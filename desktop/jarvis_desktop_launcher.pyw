@@ -12,6 +12,7 @@ TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_test.py")
 LOG_DIR = os.path.join(ROOT_DIR, "logs")
 CRASH_DIR = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
+STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
 DIAGNOSTICS_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "jarvis_diagnostics.pyw")
 VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_error_voice.py")
 
@@ -39,6 +40,11 @@ def runtime(msg):
 def reset_status():
     with open(STATUS_FILE, "w", encoding="utf-8") as f:
         f.write("")
+    try:
+        if os.path.exists(STOP_SIGNAL_FILE):
+            os.remove(STOP_SIGNAL_FILE)
+    except Exception as exc:
+        runtime(f"Failed to clear stop signal: {exc}")
 
 def write_status(kind, msg):
     with open(STATUS_FILE, "a", encoding="utf-8") as f:
@@ -68,46 +74,6 @@ def launch_diag():
     runtime(f"Diagnostics PID: {proc.pid}")
     return proc
 
-def transcript_delay_for_word(index, total_words, word):
-    delay = 0.24
-    if total_words <= 2:
-        delay = 0.29
-    elif total_words >= 8:
-        delay = 0.17
-
-    punctuation_bonus = {
-        ".": 0.22,
-        ",": 0.10,
-        ":": 0.08,
-        ";": 0.08,
-        "?": 0.18,
-        "!": 0.18,
-    }
-
-    if index == 0:
-        delay += 0.08
-
-    last_char = word[-1] if word else ""
-    delay += punctuation_bonus.get(last_char, 0.0)
-    return delay
-
-def stream_voice_text(display_text, stop_event):
-    words = display_text.split()
-    cumulative = ""
-
-    for i, word in enumerate(words):
-        if stop_event.is_set():
-            return
-
-        cumulative = f"{cumulative} {word}".strip()
-        write_status("VOICE_SYNC", cumulative)
-
-        end_time = time.time() + transcript_delay_for_word(i, len(words), word)
-        while time.time() < end_time:
-            if stop_event.is_set():
-                return
-            time.sleep(0.01)
-
 def speak(spoken_text, display_text=None):
     if not os.path.exists(VOICE_SCRIPT):
         runtime(f"Voice script missing: {VOICE_SCRIPT}")
@@ -117,19 +83,16 @@ def speak(spoken_text, display_text=None):
     runtime(f"VOICE: {spoken_text}")
     write_status("VOICE_CLEAR", "")
 
-    stop_event = threading.Event()
-    worker = threading.Thread(
-        target=stream_voice_text,
-        args=(display_text, stop_event),
-        daemon=True,
-    )
-    worker.start()
-
-    subprocess.run([pythonw(), VOICE_SCRIPT, "--text", spoken_text])
-
-    stop_event.set()
-    worker.join(timeout=0.4)
-    write_status("VOICE_FINAL", display_text)
+    cmd = [
+        pythonw(),
+        VOICE_SCRIPT,
+        "--text", spoken_text,
+        "--display-text", display_text,
+        "--status-file", STATUS_FILE,
+        "--stop-signal", STOP_SIGNAL_FILE,
+    ]
+    runtime(f"VOICE CMD: {' '.join(cmd[2:])}")
+    subprocess.run(cmd)
 
 def run_renderer():
     runtime(f"Starting renderer: {TARGET_SCRIPT}")
@@ -192,6 +155,12 @@ def main():
     write_status("STATE", "COMPLETE")
     speak("Recovery failed.")
     speak("Shutting down.")
+    try:
+        if os.path.exists(STOP_SIGNAL_FILE):
+            os.remove(STOP_SIGNAL_FILE)
+            runtime("Deleted diagnostics stop signal after completion")
+    except Exception as exc:
+        runtime(f"Failed to delete diagnostics stop signal: {exc}")
     crash_log("Renderer failed after maximum recovery attempts.", MAX_RECOVERY_ATTEMPTS, last_code or -1)
 
 if __name__ == "__main__":
