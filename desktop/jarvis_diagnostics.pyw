@@ -163,6 +163,7 @@ class DiagnosticsWindow(QWidget):
         self.voice_history = []
         self.voice_current = ""
         self.current_state = "STARTED"
+        self._last_rendered_state = ""
 
         self.move_to_right_monitor()
 
@@ -267,7 +268,26 @@ class DiagnosticsWindow(QWidget):
                 self.summary.setText("Failure Summary: " + payload)
 
             elif kind == "STATE":
-                self.current_state = payload.strip()
+                state = payload.strip()
+                self.current_state = state
+
+                mapping = {
+                    "STARTED": "Jarvis State: Starting Diagnostics",
+                    "RECOVERING": "Jarvis State: Attempting Recovery",
+                    "COMPLETE": "Jarvis State: Offline",
+                }
+
+                should_render = True
+                if state == "RECOVERING" and self._last_rendered_state == "RECOVERING":
+                    should_render = False
+
+                if should_render:
+                    display = mapping.get(state, f"Jarvis State: {state}")
+                    self.append_trace("")
+                    self.append_trace(display)
+                    self.append_trace("---------------------------------------------------")
+                    self.append_trace("")
+                    self._last_rendered_state = state
 
             elif kind == "TRACE":
                 self.append_trace(payload)
