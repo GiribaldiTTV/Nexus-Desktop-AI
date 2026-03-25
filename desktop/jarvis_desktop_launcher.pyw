@@ -3,7 +3,6 @@
 import os
 import sys
 import time
-import threading
 import subprocess
 import datetime
 
@@ -18,6 +17,7 @@ VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_error_voice.py")
 
 MAX_RECOVERY_ATTEMPTS = 3
 RECOVERY_COOLDOWN_SECONDS = 1.2
+COMPLETE_CLEANUP_DELAY_SECONDS = 0.35
 
 os.makedirs(LOG_DIR, exist_ok=True)
 os.makedirs(CRASH_DIR, exist_ok=True)
@@ -27,28 +27,48 @@ RUNTIME_FILE = os.path.join(
     f"Runtime_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
 )
 
+
 def pythonw():
     exe = sys.executable
     alt = os.path.join(os.path.dirname(exe), "pythonw.exe")
     return alt if os.path.exists(alt) else exe
+
 
 def runtime(msg):
     ts = datetime.datetime.now().strftime("%H:%M:%S")
     with open(RUNTIME_FILE, "a", encoding="utf-8") as f:
         f.write(f"[{ts}] {msg}\n")
 
+
 def reset_status():
     with open(STATUS_FILE, "w", encoding="utf-8") as f:
         f.write("")
-    try:
-        if os.path.exists(STOP_SIGNAL_FILE):
-            os.remove(STOP_SIGNAL_FILE)
-    except Exception as exc:
-        runtime(f"Failed to clear stop signal: {exc}")
+    runtime(f"Reset diagnostics status file: {STATUS_FILE}")
+    delete_file(STOP_SIGNAL_FILE, "startup reset")
+
 
 def write_status(kind, msg):
     with open(STATUS_FILE, "a", encoding="utf-8") as f:
         f.write(f"{kind}|{msg}\n")
+    runtime(f"STATUS WRITE: {kind}|{msg}")
+
+
+def write_state(state):
+    write_status("STATE", state)
+
+
+def delete_file(path, reason):
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+            runtime(f"Deleted file ({reason}): {path}")
+            return True
+        runtime(f"File already absent ({reason}): {path}")
+        return False
+    except Exception as exc:
+        runtime(f"Failed deleting file ({reason}): {path} :: {exc}")
+        return False
+
 
 def crash_log(message, attempts, last_code):
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -67,6 +87,7 @@ def crash_log(message, attempts, last_code):
     runtime(f"Crash log written: {path}")
     return path
 
+
 def launch_diag():
     runtime("Launching diagnostics UI")
     write_status("TRACE", "Launching diagnostics UI")
@@ -74,10 +95,11 @@ def launch_diag():
     runtime(f"Diagnostics PID: {proc.pid}")
     return proc
 
+
 def speak(spoken_text, display_text=None):
     if not os.path.exists(VOICE_SCRIPT):
         runtime(f"Voice script missing: {VOICE_SCRIPT}")
-        return
+        return 1
 
     display_text = display_text or spoken_text
     runtime(f"VOICE: {spoken_text}")
@@ -92,7 +114,10 @@ def speak(spoken_text, display_text=None):
         "--stop-signal", STOP_SIGNAL_FILE,
     ]
     runtime(f"VOICE CMD: {' '.join(cmd[2:])}")
-    subprocess.run(cmd)
+    result = subprocess.run(cmd)
+    runtime(f"VOICE EXIT CODE: {result.returncode} :: {spoken_text}")
+    return result.returncode
+
 
 def run_renderer():
     runtime(f"Starting renderer: {TARGET_SCRIPT}")
@@ -101,6 +126,26 @@ def run_renderer():
     proc.wait()
     runtime(f"Renderer exit code: {proc.returncode}")
     return proc.returncode
+
+
+def finalize_failure(attempts_used, last_code):
+    runtime("Beginning final immersive shutdown sequence")
+    speak("Recovery failed.")
+    speak("Shutting down.")
+    runtime("Final immersive shutdown sequence finished")
+
+    write_state("COMPLETE")
+    runtime("Backend completion reached after final voice line")
+
+    if COMPLETE_CLEANUP_DELAY_SECONDS > 0:
+        runtime(f"Waiting {COMPLETE_CLEANUP_DELAY_SECONDS:.2f}s before backend cleanup")
+        time.sleep(COMPLETE_CLEANUP_DELAY_SECONDS)
+
+    delete_file(STOP_SIGNAL_FILE, "backend completion")
+    delete_file(STATUS_FILE, "backend completion")
+
+    crash_log("Renderer failed after maximum recovery attempts.", attempts_used, last_code or -1)
+
 
 def main():
     reset_status()
@@ -116,7 +161,8 @@ def main():
 
     for attempt in range(1, MAX_RECOVERY_ATTEMPTS + 1):
         runtime(f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
-        write_status("TRACE", f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}"); time.sleep(0.18)
+        write_status("TRACE", f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
+        time.sleep(0.18)
 
         last_code = run_renderer()
 
@@ -130,17 +176,18 @@ def main():
         write_status("TRACE", f"Renderer exited unexpectedly with code {last_code}")
 
         if not diagnostics_opened:
-            write_status("TRACE", "Initializing diagnostics"); time.sleep(0.18)
-            write_status("TRACE", "Scanning runtime environment"); time.sleep(0.18)
-            write_status("TRACE", "Checking desktop engine"); time.sleep(0.18)
+            write_state("STARTED")
+            write_status("TRACE", "Scanning runtime environment")
+            time.sleep(0.18)
+            write_status("TRACE", "Checking desktop engine")
+            time.sleep(0.18)
             launch_diag()
-            write_status("STATE", "STARTED")
             speak("Uhm..... Sir, I seem to be malfunctioning.")
             diagnostics_opened = True
 
         if attempt < MAX_RECOVERY_ATTEMPTS:
             runtime(f"Preparing recovery attempt {attempt}")
-            write_status("STATE", "RECOVERING")
+            write_state("RECOVERING")
             write_status("TRACE", f"Attempting recovery ({attempt}/{MAX_RECOVERY_ATTEMPTS})")
             write_status("TRACE", f"Cooldown before next attempt: {RECOVERY_COOLDOWN_SECONDS:.1f}s")
 
@@ -152,16 +199,8 @@ def main():
 
     runtime("All recovery attempts exhausted")
     write_status("TRACE", "Recovery attempts exhausted")
-    write_status("STATE", "COMPLETE")
-    speak("Recovery failed.")
-    speak("Shutting down.")
-    try:
-        if os.path.exists(STOP_SIGNAL_FILE):
-            os.remove(STOP_SIGNAL_FILE)
-            runtime("Deleted diagnostics stop signal after completion")
-    except Exception as exc:
-        runtime(f"Failed to delete diagnostics stop signal: {exc}")
-    crash_log("Renderer failed after maximum recovery attempts.", MAX_RECOVERY_ATTEMPTS, last_code or -1)
+    finalize_failure(MAX_RECOVERY_ATTEMPTS, last_code)
+
 
 if __name__ == "__main__":
     main()
