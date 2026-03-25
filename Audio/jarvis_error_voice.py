@@ -215,34 +215,6 @@ class JarvisErrorSpeaker:
                 schedule = self.build_general_sync_schedule("Uhm..... Sir, I seem to be malfunctioning.", duration_ms)
                 return source_path, temp_paths, schedule
 
-            if normalized_display == "Shutting down.":
-                seg1 = await self.synthesize_segment("Shutting", "-15%")
-                seg2 = await self.synthesize_segment("down", "-50%")
-                temp_paths.extend([seg1, seg2])
-
-                first_ms = int(get_duration_seconds(seg1) * 1000)
-                second_ms = int(get_duration_seconds(seg2) * 1000)
-
-                combined = self.concat_audio_files([seg1, seg2]) or seg1
-                if combined not in temp_paths:
-                    temp_paths.append(combined)
-
-                tail = self.create_powerdown_tail()
-                if tail:
-                    temp_paths.append(tail)
-                    final_audio = self.concat_audio_files([combined, tail]) or combined
-                else:
-                    final_audio = combined
-
-                if final_audio not in temp_paths:
-                    temp_paths.append(final_audio)
-
-                return final_audio, temp_paths, self.build_general_sync_schedule(
-                    "Shutting down.",
-                    max(1, first_ms + second_ms),
-                )
-
-
             source_path = await self.synthesize_segment(spoken_text, "-10%")
             temp_paths.append(source_path)
 
@@ -265,12 +237,16 @@ class JarvisErrorSpeaker:
 
         try:
             base_audio_path, temp_paths, schedule = await self.prepare_audio(text, self.display_text or text)
-            playback_path = apply_error_effect(base_audio_path)
-            if playback_path and os.path.exists(playback_path):
-                processed_path = playback_path
-                playback_path = processed_path
-            else:
+            duration = get_duration_seconds(base_audio_path)
+
+            if duration < 1.2:
                 playback_path = base_audio_path
+            else:
+                effected = apply_error_effect(base_audio_path)
+                playback_path = effected if effected and os.path.exists(effected) else base_audio_path
+
+            if playback_path != base_audio_path:
+                processed_path = playback_path
 
             loop = QEventLoop()
 
