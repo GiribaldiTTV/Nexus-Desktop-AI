@@ -131,6 +131,27 @@ def assess_renderer_failure_cause(failure_cause):
     return "Assessment: the failure cause was captured, but could not be classified confidently."
 
 
+def triage_renderer_failure(failure_cause):
+    cause = (failure_cause or "").strip()
+
+    internal_exception_prefixes = (
+        "RuntimeError:",
+        "ValueError:",
+        "TypeError:",
+        "AttributeError:",
+        "NameError:",
+        "KeyError:",
+        "IndexError:",
+        "AssertionError:",
+        "NotImplementedError:",
+    )
+
+    if cause.startswith(internal_exception_prefixes):
+        return "Triage: begin with renderer startup code and recent initialization changes."
+
+    return "Triage: no confident investigation lane could be derived. Begin with the crash report."
+
+
 def delete_file(path, reason):
     try:
         if os.path.exists(path):
@@ -238,6 +259,7 @@ def finalize_failure(attempts_used, last_code, failure_cause="", crash_filename=
     runtime("Final immersive shutdown sequence finished")
     runtime_event("STATUS", "SUCCESS", "FINAL_IMMERSIVE_SHUTDOWN")
 
+    write_status("TRACE", triage_renderer_failure(failure_cause))
     write_state("COMPLETE")
     if crash_filename:
         write_status("TRACE", f"Latest crash report: {crash_filename}")
