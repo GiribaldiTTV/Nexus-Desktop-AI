@@ -463,7 +463,7 @@ def run_renderer():
     runtime(f"Starting renderer: {TARGET_SCRIPT}")
     runtime_event("STATUS", "START", "RENDERER_PROCESS")
     proc = subprocess.Popen(
-        [pythonw(), TARGET_SCRIPT],
+        [pythonw(), TARGET_SCRIPT, "--runtime-log", RUNTIME_FILE],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
