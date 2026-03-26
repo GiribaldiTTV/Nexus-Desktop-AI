@@ -24,9 +24,11 @@ COMPLETE_CLEANUP_DELAY_SECONDS = 0.35
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
+RUN_ID_STEM = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(2).upper()}"
+
 RUNTIME_FILE = os.path.join(
     LOG_DIR,
-    f"Runtime_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    f"Runtime_{RUN_ID_STEM}.txt"
 )
 
 
@@ -41,8 +43,7 @@ ENVIRONMENT_FINGERPRINT = environment_fingerprint()
 
 
 def create_run_id():
-    runtime_stamp = os.path.splitext(os.path.basename(RUNTIME_FILE))[0].replace("Runtime_", "", 1)
-    return f"Run ID: {runtime_stamp}_{secrets.token_hex(2).upper()}"
+    return f"Run ID: {RUN_ID_STEM}"
 
 
 def pythonw():
@@ -231,7 +232,9 @@ def delete_file(path, reason):
 def crash_log(message, attempts, last_code, failure_cause="", failure_origin="", crash_filename="", run_id=""):
     if crash_filename:
         path = os.path.join(CRASH_DIR, crash_filename)
-        ts = os.path.splitext(crash_filename)[0].replace("Crash_", "", 1)
+        stem = os.path.splitext(crash_filename)[0].replace("Crash_", "", 1)
+        stem_parts = stem.split("_")
+        ts = "_".join(stem_parts[:2]) if len(stem_parts) >= 2 else stem
     else:
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         path = os.path.join(CRASH_DIR, f"Crash_{ts}.txt")
@@ -441,7 +444,7 @@ def main():
         write_status("SUMMARY", "Automatic recovery did not change the underlying renderer failure.")
         write_status("TRACE", "Same failure cause persisted across all recovery attempts.")
     write_status("SUMMARY", "Automatic recovery has completed. Manual investigation is required.")
-    crash_filename = f"Crash_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    crash_filename = f"Crash_{RUN_ID_STEM}.txt"
     write_status("SUMMARY", "I have prepared the latest crash report and runtime log. Review the crash report first.")
     finalize_failure(MAX_RECOVERY_ATTEMPTS, last_code, last_failure_cause, last_failure_origin, crash_filename, run_id)
     runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "FAILURE_FLOW_COMPLETE")
