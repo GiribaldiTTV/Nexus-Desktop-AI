@@ -10,7 +10,7 @@ import platform
 import secrets
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_test.py")
+TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_main.py")
 LOG_DIR = os.path.join(ROOT_DIR, "logs")
 CRASH_DIR = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
