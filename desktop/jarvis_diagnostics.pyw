@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QLabel, QHBoxLayout, QFrame
 )
 from PySide6.QtCore import Qt, QTimer, QPoint, QRect
-from PySide6.QtGui import QFont, QGuiApplication
+from PySide6.QtGui import QFont, QGuiApplication, QTextBlockFormat, QTextCharFormat
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_DIR = os.path.join(ROOT_DIR, "logs")
@@ -426,21 +426,32 @@ class DiagnosticsWindow(QWidget):
         cursor.movePosition(cursor.MoveOperation.End)
         self.trace.setTextCursor(cursor)
 
-        self.trace.insertHtml(
+        viewport_width = self.trace.viewport().width()
+        if viewport_width > 0 and self.trace.document().textWidth() != viewport_width:
+            self.trace.document().setTextWidth(viewport_width)
+
+        cursor.insertHtml(
             '<div style="margin: 8px 10px 10px 10px;">'
             '<div style="font-size: 1px; line-height: 1px; background: #0a2730;">&nbsp;</div>'
             '<div style="font-size: 2px; line-height: 2px; background: #00d8ff;">&nbsp;</div>'
-            '<div style="margin: 3px 0; padding: 5px 12px; '
+            '<p align="center" style="margin: 3px 0; padding: 5px 12px; '
             'background: #071c24; color: #d7fbff; font-weight: 700; '
-            'border-top: 1px solid #3feaff; border-bottom: 1px solid #0b2b35; '
-            'text-align: center;">'
+            'border-top: 1px solid #3feaff; border-bottom: 1px solid #0b2b35;">'
             f'{html_escape(payload)}'
-            '</div>'
+            '</p>'
             '<div style="font-size: 2px; line-height: 2px; background: #00d8ff;">&nbsp;</div>'
             '<div style="font-size: 1px; line-height: 1px; background: #0a2730;">&nbsp;</div>'
             '</div>'
         )
-        self.trace.insertPlainText("\n")
+
+        plain_block = QTextBlockFormat()
+        plain_block.setAlignment(Qt.AlignLeft)
+        plain_block.setTopMargin(0)
+        plain_block.setBottomMargin(0)
+        plain_block.setLeftMargin(10)
+        plain_block.setRightMargin(0)
+        cursor.insertBlock(plain_block, QTextCharFormat())
+        self.trace.setTextCursor(cursor)
         self.trace.verticalScrollBar().setValue(self.trace.verticalScrollBar().maximum())
 
     def append_trace(self, payload):
