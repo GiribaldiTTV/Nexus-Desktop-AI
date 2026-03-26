@@ -183,7 +183,10 @@ class DiagnosticsWindow(QWidget):
 
         trace_title = QLabel("DIAGNOSTIC TRACE")
         trace_title.setFont(QFont("Consolas", 12, QFont.Bold))
-        root.addWidget(trace_title)
+        trace_section = QVBoxLayout()
+        trace_section.setContentsMargins(0, 0, 0, 0)
+        trace_section.setSpacing(4)
+        trace_section.addWidget(trace_title)
 
         trace_panel = QFrame()
         trace_panel.setObjectName("panel")
@@ -195,12 +198,15 @@ class DiagnosticsWindow(QWidget):
         self.trace.setLineWrapMode(QTextEdit.NoWrap)
         trace_layout.addWidget(self.trace)
         trace_panel.setLayout(trace_layout)
-        root.addWidget(trace_panel, 3)
+        trace_section.addWidget(trace_panel, 1)
+        root.addLayout(trace_section, 3)
 
         jarvis_title = QLabel("JARVIS")
         jarvis_title.setFont(QFont("Consolas", 12, QFont.Bold))
-        jarvis_title.setContentsMargins(0, 8, 0, 4)
-        root.addWidget(jarvis_title)
+        jarvis_section = QVBoxLayout()
+        jarvis_section.setContentsMargins(0, 8, 0, 0)
+        jarvis_section.setSpacing(4)
+        jarvis_section.addWidget(jarvis_title)
 
         speech_panel = QFrame()
         speech_panel.setObjectName("panel")
@@ -212,7 +218,8 @@ class DiagnosticsWindow(QWidget):
         self.speech.setMinimumHeight(120)
         speech_layout.addWidget(self.speech)
         speech_panel.setLayout(speech_layout)
-        root.addWidget(speech_panel, 1)
+        jarvis_section.addWidget(speech_panel, 1)
+        root.addLayout(jarvis_section, 1)
 
         btn_layout = QHBoxLayout()
         open_btn = QPushButton("Open Crash Folder")
