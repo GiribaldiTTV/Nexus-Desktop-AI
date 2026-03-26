@@ -228,6 +228,80 @@ def extract_renderer_failure_origin(stderr_text, stdout_text):
     return ""
 
 
+def extract_renderer_stderr_excerpt(stderr_text, failure_cause="", failure_origin=""):
+    if not stderr_text:
+        return []
+
+    frame_pattern = re.compile(r'^\s*File "([^"]+)", line (\d+), in (.+)$')
+    generic_headers = (
+        "Traceback (most recent call last):",
+        "During handling of the above exception",
+    )
+
+    def sanitize_frame_path(path):
+        try:
+            abs_path = os.path.abspath(path)
+            root_abs = os.path.abspath(ROOT_DIR)
+            if os.path.commonpath([root_abs, abs_path]) == root_abs:
+                return os.path.relpath(abs_path, ROOT_DIR).replace("\\", "/")
+        except Exception:
+            pass
+        return os.path.basename(path).replace("\\", "/")
+
+    lines = [raw.rstrip("\r") for raw in stderr_text.splitlines() if raw.strip()]
+    if not lines:
+        return []
+
+    last_frame_index = -1
+    for index, raw in enumerate(lines):
+        if frame_pattern.match(raw):
+            last_frame_index = index
+
+    if last_frame_index >= 0:
+        candidate_source = lines[last_frame_index:]
+    else:
+        candidate_source = lines[-3:]
+
+    excerpt = []
+    for raw in candidate_source:
+        stripped = raw.strip()
+        if not stripped:
+            continue
+        if any(stripped.startswith(header) for header in generic_headers):
+            continue
+
+        frame_match = frame_pattern.match(raw)
+        if frame_match:
+            path, line_number, func = frame_match.groups()
+            excerpt.append(f'File "{sanitize_frame_path(path)}", line {line_number}, in {func.strip()}')
+            continue
+
+        if stripped == (failure_cause or "").strip():
+            continue
+
+        if ":\\" in stripped:
+            continue
+
+        excerpt.append(stripped)
+
+    deduped = []
+    seen = set()
+    for line in excerpt:
+        if line not in seen:
+            deduped.append(line)
+            seen.add(line)
+
+    return deduped[:3]
+
+
+def write_runtime_stderr_excerpt(stderr_excerpt_lines):
+    if not stderr_excerpt_lines:
+        return
+    runtime("Renderer stderr excerpt:")
+    for line in stderr_excerpt_lines:
+        runtime(f"  {line}")
+
+
 def assess_renderer_failure_cause(failure_cause):
     cause = (failure_cause or "").strip()
     if not cause:
@@ -294,6 +368,7 @@ def crash_log(
     last_code,
     failure_cause="",
     failure_origin="",
+    stderr_excerpt_lines=None,
     failure_assessment="",
     recovery_outcome="",
     crash_filename="",
@@ -333,6 +408,10 @@ def crash_log(
             os.path.basename(RUNTIME_FILE),
         ):
             f.write(f"{line}\n")
+        if stderr_excerpt_lines:
+            f.write("Renderer stderr excerpt:\n")
+            for line in stderr_excerpt_lines:
+                f.write(f"  {line}\n")
         f.write("\n")
         f.write(f"Failure Reason: {message}\n")
         if failure_cause:
@@ -398,11 +477,12 @@ def run_renderer():
     runtime_event("STATUS", "END", "RENDERER_PROCESS", f"EXIT={proc.returncode}")
     failure_cause = extract_renderer_failure_cause(stderr_text or "", stdout_text or "")
     failure_origin = extract_renderer_failure_origin(stderr_text or "", stdout_text or "")
+    stderr_excerpt_lines = extract_renderer_stderr_excerpt(stderr_text or "", failure_cause, failure_origin)
     if proc.returncode != 0 and failure_cause:
         runtime(f"Renderer failure cause: {failure_cause}")
     if proc.returncode != 0 and failure_origin:
         runtime(failure_origin)
-    return proc.returncode, failure_cause, failure_origin
+    return proc.returncode, failure_cause, failure_origin, stderr_excerpt_lines
 
 
 def finalize_failure(
@@ -410,6 +490,7 @@ def finalize_failure(
     last_code,
     failure_cause="",
     failure_origin="",
+    stderr_excerpt_lines=None,
     failure_assessment="",
     recovery_outcome="",
     crash_filename="",
@@ -442,6 +523,7 @@ def finalize_failure(
         last_code or -1,
         failure_cause,
         failure_origin,
+        stderr_excerpt_lines or [],
         failure_assessment,
         recovery_outcome,
         crash_filename,
@@ -467,6 +549,7 @@ def main():
     last_code = None
     last_failure_cause = ""
     last_failure_origin = ""
+    last_failure_stderr_excerpt = []
     last_failure_assessment = ""
     failure_causes = []
     assessment_emitted = False
@@ -477,7 +560,7 @@ def main():
         write_status("TRACE", f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
         time.sleep(0.18)
 
-        last_code, failure_cause, failure_origin = run_renderer()
+        last_code, failure_cause, failure_origin, stderr_excerpt_lines = run_renderer()
 
         if last_code == 0:
             runtime("Renderer exited normally")
@@ -488,6 +571,7 @@ def main():
 
         last_failure_cause = failure_cause or last_failure_cause
         last_failure_origin = failure_origin or last_failure_origin
+        last_failure_stderr_excerpt = stderr_excerpt_lines or last_failure_stderr_excerpt
         failure_causes.append((failure_cause or "").strip())
         runtime("Renderer exited unexpectedly")
         runtime_event("STATUS", "FAIL", "RECOVERY_ATTEMPT", f"INDEX={attempt}", f"RENDERER_EXIT={last_code}")
@@ -549,6 +633,7 @@ def main():
         last_code,
         last_failure_cause,
         last_failure_origin,
+        last_failure_stderr_excerpt,
         last_failure_assessment,
         recovery_outcome,
         crash_filename,
@@ -565,6 +650,7 @@ def main():
         crash_filename,
         os.path.basename(RUNTIME_FILE),
     )
+    write_runtime_stderr_excerpt(last_failure_stderr_excerpt)
     runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "FAILURE_FLOW_COMPLETE")
 
 
