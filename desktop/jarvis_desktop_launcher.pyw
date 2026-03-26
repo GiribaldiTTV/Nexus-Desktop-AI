@@ -6,6 +6,7 @@ import time
 import re
 import subprocess
 import datetime
+import platform
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_test.py")
@@ -26,6 +27,16 @@ RUNTIME_FILE = os.path.join(
     LOG_DIR,
     f"Runtime_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
 )
+
+
+def environment_fingerprint():
+    os_parts = [part for part in (platform.system(), platform.release(), platform.version()) if part]
+    os_label = "-".join(os_parts) if os_parts else "Unknown-OS"
+    arch_label = "64-bit" if sys.maxsize > 2 ** 32 else "32-bit"
+    return f"Environment: {os_label} | {arch_label} | Python {platform.python_version()}"
+
+
+ENVIRONMENT_FINGERPRINT = environment_fingerprint()
 
 
 def pythonw():
@@ -222,6 +233,7 @@ def crash_log(message, attempts, last_code, failure_cause="", failure_origin="",
         f.write("JARVIS CRASH REPORT\n")
         f.write(f"Time: {ts}\n")
         f.write(f"Python: {pythonw()}\n")
+        f.write(f"{ENVIRONMENT_FINGERPRINT}\n")
         f.write(f"Working Directory: {ROOT_DIR}\n")
         f.write(f"Renderer: {TARGET_SCRIPT}\n")
         f.write(f"Max Recovery Attempts: {MAX_RECOVERY_ATTEMPTS}\n")
@@ -337,6 +349,7 @@ def main():
 
     runtime("==== Jarvis runtime started ====")
     runtime_event("STATUS", "START", "LAUNCHER_RUNTIME")
+    runtime(ENVIRONMENT_FINGERPRINT)
     runtime(f"Python executable: {pythonw()}")
     runtime(f"Working directory: {ROOT_DIR}")
     runtime(f"Renderer target: {TARGET_SCRIPT}")
