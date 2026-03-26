@@ -25,6 +25,7 @@ COMPLETE_CLEANUP_DELAY_SECONDS = 0.35
 STARTUP_OBSERVE_POLL_SECONDS = 0.05
 STARTUP_READY_OBSERVE_WINDOW_SECONDS = 3.0
 STARTUP_READY_STALL_CONFIRM_SECONDS = 8.0
+STARTUP_ABORT_CONTROL_FLOW_RESULT = "STARTUP_ABORT"
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -159,15 +160,17 @@ def write_state(state):
     runtime_event("PHASE", state)
 
 
-def runtime_log_contains(pattern):
+def runtime_log_contains_since(pattern, start_offset=0):
     try:
         with open(RUNTIME_FILE, "r", encoding="utf-8", errors="ignore") as f:
+            if start_offset > 0:
+                f.seek(start_offset)
             return pattern in f.read()
     except Exception:
         return False
 
 
-def observe_renderer_startup_ready(proc):
+def observe_renderer_startup_ready(proc, log_start_offset):
     ready_marker = "RENDERER_MAIN|STARTUP_READY"
     startup_abort_marker = "RENDERER_MAIN|STARTUP_ABORTED"
     warn_deadline = time.monotonic() + STARTUP_READY_OBSERVE_WINDOW_SECONDS
@@ -178,11 +181,11 @@ def observe_renderer_startup_ready(proc):
     runtime_event("STATUS", "TRACE", "LAUNCHER_RUNTIME", "STARTUP_OBSERVE_BEGIN")
 
     while True:
-        if runtime_log_contains(ready_marker):
+        if runtime_log_contains_since(ready_marker, log_start_offset):
             runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "STARTUP_READY_OBSERVED")
             return "ready", None, None
 
-        if runtime_log_contains(startup_abort_marker):
+        if runtime_log_contains_since(startup_abort_marker, log_start_offset):
             runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_OBSERVED")
             return "startup_aborted", None, None
 
@@ -208,11 +211,11 @@ def observe_renderer_startup_ready(proc):
         except subprocess.TimeoutExpired:
             continue
 
-    if runtime_log_contains(ready_marker):
+    if runtime_log_contains_since(ready_marker, log_start_offset):
         runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "STARTUP_READY_OBSERVED")
         return "ready", stdout_text, stderr_text
 
-    if runtime_log_contains(startup_abort_marker):
+    if runtime_log_contains_since(startup_abort_marker, log_start_offset):
         runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_OBSERVED")
         return "startup_aborted", stdout_text, stderr_text
 
@@ -528,6 +531,7 @@ def speak(spoken_text, display_text=None):
 def run_renderer():
     runtime(f"Starting renderer: {TARGET_SCRIPT}")
     runtime_event("STATUS", "START", "RENDERER_PROCESS")
+    log_start_offset = os.path.getsize(RUNTIME_FILE) if os.path.exists(RUNTIME_FILE) else 0
     proc = subprocess.Popen(
         [
             pythonw(),
@@ -543,7 +547,7 @@ def run_renderer():
     )
     runtime(f"Renderer PID: {proc.pid}")
     runtime_event("STATUS", "SUCCESS", "RENDERER_PROCESS_SPAWN", f"PID={proc.pid}")
-    startup_observation, stdout_text, stderr_text = observe_renderer_startup_ready(proc)
+    startup_observation, stdout_text, stderr_text = observe_renderer_startup_ready(proc, log_start_offset)
     if stdout_text is None and stderr_text is None:
         stdout_text, stderr_text = proc.communicate()
     runtime(f"Renderer exit code: {proc.returncode}")
@@ -641,9 +645,11 @@ def main():
             runtime_event("STATUS", "WARNING", "RECOVERY_ATTEMPT", f"INDEX={attempt}", "RENDERER_STARTUP_ABORTED")
             delete_file(STOP_SIGNAL_FILE, "startup abort")
             delete_file(STARTUP_ABORT_SIGNAL_FILE, "startup abort")
-            delete_file(STATUS_FILE, "startup abort")
             runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_COMPLETE")
-            return 0
+            last_code = STARTUP_ABORT_CONTROL_FLOW_RESULT
+            failure_cause = "Renderer startup aborted cooperatively before readiness."
+            failure_origin = ""
+            stderr_excerpt_lines = []
 
         if last_code == 0:
             runtime("Renderer exited normally")
