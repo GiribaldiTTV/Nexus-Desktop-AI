@@ -7,6 +7,7 @@ import re
 import subprocess
 import datetime
 import platform
+import secrets
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_test.py")
@@ -37,6 +38,11 @@ def environment_fingerprint():
 
 
 ENVIRONMENT_FINGERPRINT = environment_fingerprint()
+
+
+def create_run_id():
+    runtime_stamp = os.path.splitext(os.path.basename(RUNTIME_FILE))[0].replace("Runtime_", "", 1)
+    return f"Run ID: {runtime_stamp}_{secrets.token_hex(2).upper()}"
 
 
 def pythonw():
@@ -222,7 +228,7 @@ def delete_file(path, reason):
         return False
 
 
-def crash_log(message, attempts, last_code, failure_cause="", failure_origin="", crash_filename=""):
+def crash_log(message, attempts, last_code, failure_cause="", failure_origin="", crash_filename="", run_id=""):
     if crash_filename:
         path = os.path.join(CRASH_DIR, crash_filename)
         ts = os.path.splitext(crash_filename)[0].replace("Crash_", "", 1)
@@ -232,6 +238,8 @@ def crash_log(message, attempts, last_code, failure_cause="", failure_origin="",
     with open(path, "w", encoding="utf-8") as f:
         f.write("JARVIS CRASH REPORT\n")
         f.write(f"Time: {ts}\n")
+        if run_id:
+            f.write(f"{run_id}\n")
         f.write(f"Python: {pythonw()}\n")
         f.write(f"{ENVIRONMENT_FINGERPRINT}\n")
         f.write(f"Working Directory: {ROOT_DIR}\n")
@@ -311,7 +319,7 @@ def run_renderer():
     return proc.returncode, failure_cause, failure_origin
 
 
-def finalize_failure(attempts_used, last_code, failure_cause="", failure_origin="", crash_filename=""):
+def finalize_failure(attempts_used, last_code, failure_cause="", failure_origin="", crash_filename="", run_id=""):
     runtime("Beginning final immersive shutdown sequence")
     runtime_event("STATUS", "START", "FINAL_IMMERSIVE_SHUTDOWN")
     speak("Recovery failed.")
@@ -340,15 +348,18 @@ def finalize_failure(attempts_used, last_code, failure_cause="", failure_origin=
         failure_cause,
         failure_origin,
         crash_filename,
+        run_id,
     )
 
 
 def main():
+    run_id = create_run_id()
     ensure_crash_dir("launcher startup")
     reset_status()
 
     runtime("==== Jarvis runtime started ====")
     runtime_event("STATUS", "START", "LAUNCHER_RUNTIME")
+    runtime(run_id)
     runtime(ENVIRONMENT_FINGERPRINT)
     runtime(f"Python executable: {pythonw()}")
     runtime(f"Working directory: {ROOT_DIR}")
@@ -432,7 +443,7 @@ def main():
     write_status("SUMMARY", "Automatic recovery has completed. Manual investigation is required.")
     crash_filename = f"Crash_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     write_status("SUMMARY", "I have prepared the latest crash report and runtime log. Review the crash report first.")
-    finalize_failure(MAX_RECOVERY_ATTEMPTS, last_code, last_failure_cause, last_failure_origin, crash_filename)
+    finalize_failure(MAX_RECOVERY_ATTEMPTS, last_code, last_failure_cause, last_failure_origin, crash_filename, run_id)
     runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "FAILURE_FLOW_COMPLETE")
 
 
