@@ -168,7 +168,8 @@ def runtime_log_contains(pattern):
 
 
 def observe_renderer_startup_ready(proc):
-    marker = "RENDERER_MAIN|STARTUP_READY"
+    ready_marker = "RENDERER_MAIN|STARTUP_READY"
+    startup_abort_marker = "RENDERER_MAIN|STARTUP_ABORTED"
     warn_deadline = time.monotonic() + STARTUP_READY_OBSERVE_WINDOW_SECONDS
     stall_deadline = time.monotonic() + STARTUP_READY_STALL_CONFIRM_SECONDS
     warned_within_window = False
@@ -177,9 +178,13 @@ def observe_renderer_startup_ready(proc):
     runtime_event("STATUS", "TRACE", "LAUNCHER_RUNTIME", "STARTUP_OBSERVE_BEGIN")
 
     while True:
-        if runtime_log_contains(marker):
+        if runtime_log_contains(ready_marker):
             runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "STARTUP_READY_OBSERVED")
-            return True, None, None
+            return "ready", None, None
+
+        if runtime_log_contains(startup_abort_marker):
+            runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_OBSERVED")
+            return "startup_aborted", None, None
 
         if (
             not warned_within_window
@@ -203,12 +208,16 @@ def observe_renderer_startup_ready(proc):
         except subprocess.TimeoutExpired:
             continue
 
-    if runtime_log_contains(marker):
+    if runtime_log_contains(ready_marker):
         runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "STARTUP_READY_OBSERVED")
-        return True, stdout_text, stderr_text
+        return "ready", stdout_text, stderr_text
+
+    if runtime_log_contains(startup_abort_marker):
+        runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_OBSERVED")
+        return "startup_aborted", stdout_text, stderr_text
 
     runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_READY_NOT_OBSERVED_BEFORE_EXIT")
-    return False, stdout_text, stderr_text
+    return "not_ready_before_exit", stdout_text, stderr_text
 
 
 def extract_renderer_failure_cause(stderr_text, stdout_text):
@@ -534,7 +543,7 @@ def run_renderer():
     )
     runtime(f"Renderer PID: {proc.pid}")
     runtime_event("STATUS", "SUCCESS", "RENDERER_PROCESS_SPAWN", f"PID={proc.pid}")
-    _, stdout_text, stderr_text = observe_renderer_startup_ready(proc)
+    startup_observation, stdout_text, stderr_text = observe_renderer_startup_ready(proc)
     if stdout_text is None and stderr_text is None:
         stdout_text, stderr_text = proc.communicate()
     runtime(f"Renderer exit code: {proc.returncode}")
@@ -542,11 +551,12 @@ def run_renderer():
     failure_cause = extract_renderer_failure_cause(stderr_text or "", stdout_text or "")
     failure_origin = extract_renderer_failure_origin(stderr_text or "", stdout_text or "")
     stderr_excerpt_lines = extract_renderer_stderr_excerpt(stderr_text or "", failure_cause, failure_origin)
+    startup_aborted = startup_observation == "startup_aborted"
     if proc.returncode != 0 and failure_cause:
         runtime(f"Renderer failure cause: {failure_cause}")
     if proc.returncode != 0 and failure_origin:
         runtime(failure_origin)
-    return proc.returncode, failure_cause, failure_origin, stderr_excerpt_lines
+    return proc.returncode, failure_cause, failure_origin, stderr_excerpt_lines, startup_aborted
 
 
 def finalize_failure(
@@ -624,7 +634,16 @@ def main():
         write_status("TRACE", f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
         time.sleep(0.18)
 
-        last_code, failure_cause, failure_origin, stderr_excerpt_lines = run_renderer()
+        last_code, failure_cause, failure_origin, stderr_excerpt_lines, startup_aborted = run_renderer()
+
+        if last_code == 0 and startup_aborted:
+            runtime("Renderer startup aborted cooperatively")
+            runtime_event("STATUS", "WARNING", "RECOVERY_ATTEMPT", f"INDEX={attempt}", "RENDERER_STARTUP_ABORTED")
+            delete_file(STOP_SIGNAL_FILE, "startup abort")
+            delete_file(STARTUP_ABORT_SIGNAL_FILE, "startup abort")
+            delete_file(STATUS_FILE, "startup abort")
+            runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_COMPLETE")
+            return 0
 
         if last_code == 0:
             runtime("Renderer exited normally")
