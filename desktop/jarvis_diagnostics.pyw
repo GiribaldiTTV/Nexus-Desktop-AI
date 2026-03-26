@@ -20,8 +20,7 @@ class DiagnosticsWindow(QWidget):
         super().__init__()
 
         self.setWindowFlags(
-            Qt.FramelessWindowHint |
-            Qt.Tool |
+            Qt.Window |
             Qt.WindowStaysOnTopHint
         )
         self.setAttribute(Qt.WA_ShowWithoutActivating)
@@ -97,7 +96,7 @@ class DiagnosticsWindow(QWidget):
 
         root = QVBoxLayout()
         root.setContentsMargins(18, 18, 18, 18)
-        root.setSpacing(6)
+        root.setSpacing(10)
 
         self.stark = QLabel("STARK INDUSTRIES")
         self.stark.setAlignment(Qt.AlignCenter)
@@ -127,10 +126,11 @@ class DiagnosticsWindow(QWidget):
         self.trace.setReadOnly(True)
         trace_layout.addWidget(self.trace)
         trace_panel.setLayout(trace_layout)
-        root.addWidget(trace_panel)
+        root.addWidget(trace_panel, 3)
 
         jarvis_title = QLabel("JARVIS")
         jarvis_title.setFont(QFont("Consolas", 11, QFont.Bold))
+        jarvis_title.setContentsMargins(0, 8, 0, 4)
         root.addWidget(jarvis_title)
 
         speech_panel = QFrame()
@@ -140,10 +140,10 @@ class DiagnosticsWindow(QWidget):
 
         self.speech = QTextEdit()
         self.speech.setReadOnly(True)
-        self.speech.setMaximumHeight(140)
+        self.speech.setMinimumHeight(120)
         speech_layout.addWidget(self.speech)
         speech_panel.setLayout(speech_layout)
-        root.addWidget(speech_panel)
+        root.addWidget(speech_panel, 1)
 
         btn_layout = QHBoxLayout()
         open_btn = QPushButton("Open Crash Folder")
