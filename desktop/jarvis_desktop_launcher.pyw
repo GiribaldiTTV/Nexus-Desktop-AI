@@ -46,6 +46,65 @@ def create_run_id():
     return f"Run ID: {RUN_ID_STEM}"
 
 
+def strip_label_prefix(value, prefix):
+    text = (value or "").strip()
+    if text.startswith(prefix):
+        return text[len(prefix):].strip()
+    return text
+
+
+def build_incident_summary_lines(
+    run_id,
+    attempts_used,
+    last_code,
+    failure_cause="",
+    failure_origin="",
+    failure_assessment="",
+    recovery_outcome="",
+    crash_filename="",
+    runtime_filename="",
+):
+    return [
+        "INCIDENT SUMMARY",
+        f"Run ID: {strip_label_prefix(run_id, 'Run ID: ') or 'Unavailable'}",
+        f"Environment: {strip_label_prefix(ENVIRONMENT_FINGERPRINT, 'Environment: ') or 'Unavailable'}",
+        f"Renderer: {os.path.basename(TARGET_SCRIPT) or 'Unavailable'}",
+        f"Attempts Used: {attempts_used}",
+        f"Last Exit Code: {last_code}",
+        f"Failure Cause: {(failure_cause or '').strip() or 'Unavailable'}",
+        f"Failure Origin: {strip_label_prefix(failure_origin, 'Failure origin: ') or 'Unavailable'}",
+        f"Assessment: {strip_label_prefix(failure_assessment, 'Assessment: ') or 'Unavailable'}",
+        f"Recovery Outcome: {(recovery_outcome or '').strip() or 'Unavailable'}",
+        f"Latest crash report: {(crash_filename or '').strip() or 'Unavailable'}",
+        f"Latest runtime log: {(runtime_filename or '').strip() or 'Unavailable'}",
+    ]
+
+
+def write_runtime_incident_summary(
+    run_id,
+    attempts_used,
+    last_code,
+    failure_cause="",
+    failure_origin="",
+    failure_assessment="",
+    recovery_outcome="",
+    crash_filename="",
+    runtime_filename="",
+):
+    for line in build_incident_summary_lines(
+        run_id,
+        attempts_used,
+        last_code,
+        failure_cause,
+        failure_origin,
+        failure_assessment,
+        recovery_outcome,
+        crash_filename,
+        runtime_filename,
+    ):
+        runtime(line)
+
+
 def pythonw():
     exe = sys.executable
     alt = os.path.join(os.path.dirname(exe), "pythonw.exe")
@@ -229,7 +288,17 @@ def delete_file(path, reason):
         return False
 
 
-def crash_log(message, attempts, last_code, failure_cause="", failure_origin="", crash_filename="", run_id=""):
+def crash_log(
+    message,
+    attempts,
+    last_code,
+    failure_cause="",
+    failure_origin="",
+    failure_assessment="",
+    recovery_outcome="",
+    crash_filename="",
+    run_id="",
+):
     if crash_filename:
         path = os.path.join(CRASH_DIR, crash_filename)
         stem = os.path.splitext(crash_filename)[0].replace("Crash_", "", 1)
@@ -251,6 +320,20 @@ def crash_log(message, attempts, last_code, failure_cause="", failure_origin="",
         f.write(f"Attempts Used: {attempts}\n")
         f.write(f"Last Exit Code: {last_code}\n")
         f.write(f"Runtime Log: {RUNTIME_FILE}\n")
+        f.write("\n")
+        for line in build_incident_summary_lines(
+            run_id,
+            attempts,
+            last_code,
+            failure_cause,
+            failure_origin,
+            failure_assessment,
+            recovery_outcome,
+            os.path.basename(path),
+            os.path.basename(RUNTIME_FILE),
+        ):
+            f.write(f"{line}\n")
+        f.write("\n")
         f.write(f"Failure Reason: {message}\n")
         if failure_cause:
             f.write(f"Failure Cause: {failure_cause}\n")
@@ -322,7 +405,16 @@ def run_renderer():
     return proc.returncode, failure_cause, failure_origin
 
 
-def finalize_failure(attempts_used, last_code, failure_cause="", failure_origin="", crash_filename="", run_id=""):
+def finalize_failure(
+    attempts_used,
+    last_code,
+    failure_cause="",
+    failure_origin="",
+    failure_assessment="",
+    recovery_outcome="",
+    crash_filename="",
+    run_id="",
+):
     runtime("Beginning final immersive shutdown sequence")
     runtime_event("STATUS", "START", "FINAL_IMMERSIVE_SHUTDOWN")
     speak("Recovery failed.")
@@ -350,6 +442,8 @@ def finalize_failure(attempts_used, last_code, failure_cause="", failure_origin=
         last_code or -1,
         failure_cause,
         failure_origin,
+        failure_assessment,
+        recovery_outcome,
         crash_filename,
         run_id,
     )
@@ -373,6 +467,7 @@ def main():
     last_code = None
     last_failure_cause = ""
     last_failure_origin = ""
+    last_failure_assessment = ""
     failure_causes = []
     assessment_emitted = False
 
@@ -403,6 +498,7 @@ def main():
             if not assessment_emitted:
                 failure_assessment = assess_renderer_failure_cause(failure_cause)
                 if failure_assessment:
+                    last_failure_assessment = failure_assessment
                     runtime(f"Renderer failure assessment: {failure_assessment}")
                     write_status("TRACE", failure_assessment)
                     assessment_emitted = True
@@ -436,17 +532,39 @@ def main():
     runtime("All recovery attempts exhausted")
     runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", "MAX_ATTEMPTS_EXHAUSTED")
     write_status("TRACE", "Recovery attempts exhausted")
+    recovery_outcome = "Automatic recovery completed without resolving the renderer failure."
     if (
         len(failure_causes) == MAX_RECOVERY_ATTEMPTS
         and all(failure_causes)
         and len(set(failure_causes)) == 1
     ):
+        recovery_outcome = "Automatic recovery did not change the underlying renderer failure."
         write_status("SUMMARY", "Automatic recovery did not change the underlying renderer failure.")
         write_status("TRACE", "Same failure cause persisted across all recovery attempts.")
     write_status("SUMMARY", "Automatic recovery has completed. Manual investigation is required.")
     crash_filename = f"Crash_{RUN_ID_STEM}.txt"
     write_status("SUMMARY", "I have prepared the latest crash report and runtime log. Review the crash report first.")
-    finalize_failure(MAX_RECOVERY_ATTEMPTS, last_code, last_failure_cause, last_failure_origin, crash_filename, run_id)
+    finalize_failure(
+        MAX_RECOVERY_ATTEMPTS,
+        last_code,
+        last_failure_cause,
+        last_failure_origin,
+        last_failure_assessment,
+        recovery_outcome,
+        crash_filename,
+        run_id,
+    )
+    write_runtime_incident_summary(
+        run_id,
+        MAX_RECOVERY_ATTEMPTS,
+        last_code or -1,
+        last_failure_cause,
+        last_failure_origin,
+        last_failure_assessment,
+        recovery_outcome,
+        crash_filename,
+        os.path.basename(RUNTIME_FILE),
+    )
     runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "FAILURE_FLOW_COMPLETE")
 
 
