@@ -262,7 +262,7 @@ def launch_diag():
     runtime("Launching diagnostics UI")
     runtime_event("STATUS", "START", "DIAGNOSTICS_UI")
     write_status("TRACE", "Launching diagnostics UI")
-    proc = subprocess.Popen([pythonw(), DIAGNOSTICS_SCRIPT])
+    proc = subprocess.Popen([pythonw(), DIAGNOSTICS_SCRIPT, "--runtime-log", RUNTIME_FILE])
     runtime(f"Diagnostics PID: {proc.pid}")
     runtime_event("STATUS", "SUCCESS", "DIAGNOSTICS_UI", f"PID={proc.pid}")
     return proc
