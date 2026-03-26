@@ -1,69 +1,65 @@
+# Version 1.3.2 rev 13 diagnostics UI
+
 import os
 import sys
-import datetime
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTextEdit, QPushButton,
     QLabel, QHBoxLayout, QFrame
 )
 from PySide6.QtCore import Qt, QTimer, QPoint, QRect
-from PySide6.QtGui import QFont, QGuiApplication, QCursor
+from PySide6.QtGui import QFont, QGuiApplication
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_DIR = os.path.join(ROOT_DIR, "logs")
 CRASH_FOLDER = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
 STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
-
 RUNTIME_LOG_FILE = ""
-RESIZE_MARGIN = 8
-MIN_WINDOW_WIDTH = 760
-MIN_WINDOW_HEIGHT = 540
+
+
+def html_escape(text: str) -> str:
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
 
 
 def parse_runtime_log_arg(argv):
     global RUNTIME_LOG_FILE
-
-    for index, arg in enumerate(argv):
-        if arg == "--runtime-log" and index + 1 < len(argv):
-            RUNTIME_LOG_FILE = argv[index + 1]
+    for i, arg in enumerate(argv):
+        if arg == "--runtime-log" and i + 1 < len(argv):
+            RUNTIME_LOG_FILE = argv[i + 1]
             return
 
-    RUNTIME_LOG_FILE = os.environ.get("JARVIS_RUNTIME_LOG", "")
 
-
-def ui_runtime(message: str):
+def diag_runtime(message: str):
     if not RUNTIME_LOG_FILE:
         return
-
     try:
-        ts = datetime.datetime.now().strftime("%H:%M:%S")
         with open(RUNTIME_LOG_FILE, "a", encoding="utf-8") as f:
-            f.write(f"[{ts}] DIAG_UI|{message}\n")
+            f.write(message + "\n")
     except Exception:
         pass
 
 
+def diag_event(*parts):
+    diag_runtime("UI|" + "|".join(str(part) for part in parts))
+
 class DiagnosticsWindow(QWidget):
     def __init__(self):
         super().__init__()
+        diag_event('DiagnosticsWindow.__init__', 'start')
 
         self.setWindowFlags(
             Qt.FramelessWindowHint |
-            Qt.Window |
+            Qt.Tool |
             Qt.WindowStaysOnTopHint
         )
         self.setAttribute(Qt.WA_ShowWithoutActivating)
-        self.setMouseTracking(True)
         self.resize(920, 660)
-        self.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
-
-        self._drag_active = False
-        self._drag_offset = QPoint()
-        self._resize_active = False
-        self._resize_edges = ""
-        self._resize_start_pos = QPoint()
-        self._resize_start_geometry = QRect()
-        self._last_hover_edges = ""
+        self.setMinimumSize(720, 520)
+        diag_event('window_flags', 'frameless_tool_ontop')
 
         self.setStyleSheet("""
         QWidget {
@@ -87,8 +83,8 @@ class DiagnosticsWindow(QWidget):
             border-radius: 6px;
             color: #6ee7ff;
             font-family: Consolas;
-            font-size: 10.5pt;
-            padding: 8px 10px;
+            font-size: 11pt;
+            padding: 6px 8px;
             selection-background-color: #0a3a46;
         }
 
@@ -120,6 +116,34 @@ class DiagnosticsWindow(QWidget):
             border-radius: 4px;
         }
 
+        QTextEdit QScrollBar:horizontal {
+            background: #031018;
+            height: 12px;
+            margin: 2px;
+            border: 1px solid #00b8d9;
+            border-radius: 6px;
+        }
+
+        QTextEdit QScrollBar::handle:horizontal {
+            background: #00cfff;
+            min-width: 24px;
+            border-radius: 5px;
+            border: 1px solid #7befff;
+        }
+
+        QTextEdit QScrollBar::add-line:horizontal,
+        QTextEdit QScrollBar::sub-line:horizontal {
+            background: transparent;
+            width: 0px;
+            border: none;
+        }
+
+        QTextEdit QScrollBar::add-page:horizontal,
+        QTextEdit QScrollBar::sub-page:horizontal {
+            background: #031018;
+            border-radius: 4px;
+        }
+
         QPushButton {
             background: #07151b;
             border: 1px solid #00e1ff;
@@ -143,23 +167,18 @@ class DiagnosticsWindow(QWidget):
         self.stark.setStyleSheet("color:#d4af37;")
         root.addWidget(self.stark)
 
-        self.title = QLabel("J.A.R.V.I.S. SYSTEM DIAGNOSTICS")
-        self.title.setAlignment(Qt.AlignCenter)
-        self.title.setFont(QFont("Consolas", 13, QFont.Bold))
-        root.addWidget(self.title)
+        title = QLabel("J.A.R.V.I.S. SYSTEM DIAGNOSTICS")
+        title.setAlignment(Qt.AlignCenter)
+        title.setFont(QFont("Consolas", 13, QFont.Bold))
+        root.addWidget(title)
 
         self.summary = QLabel("Failure Summary: waiting for diagnostic input...")
         self.summary.setAlignment(Qt.AlignCenter)
         root.addWidget(self.summary)
 
-        trace_section = QVBoxLayout()
-        trace_section.setContentsMargins(0, 0, 0, 0)
-        trace_section.setSpacing(3)
-
         trace_title = QLabel("DIAGNOSTIC TRACE")
         trace_title.setFont(QFont("Consolas", 11, QFont.Bold))
-        trace_title.setContentsMargins(0, 10, 0, 0)
-        trace_section.addWidget(trace_title)
+        root.addWidget(trace_title)
 
         trace_panel = QFrame()
         trace_panel.setObjectName("panel")
@@ -169,21 +188,14 @@ class DiagnosticsWindow(QWidget):
         self.trace = QTextEdit()
         self.trace.setReadOnly(True)
         self.trace.setLineWrapMode(QTextEdit.NoWrap)
-        self.trace.document().setDocumentMargin(10)
-        self.trace.setTabStopDistance(28)
         trace_layout.addWidget(self.trace)
         trace_panel.setLayout(trace_layout)
-        trace_section.addWidget(trace_panel, 1)
-        root.addLayout(trace_section, 3)
-
-        jarvis_section = QVBoxLayout()
-        jarvis_section.setContentsMargins(0, 0, 0, 0)
-        jarvis_section.setSpacing(3)
+        root.addWidget(trace_panel, 3)
 
         jarvis_title = QLabel("JARVIS")
         jarvis_title.setFont(QFont("Consolas", 11, QFont.Bold))
-        jarvis_title.setContentsMargins(0, 10, 0, 0)
-        jarvis_section.addWidget(jarvis_title)
+        jarvis_title.setContentsMargins(0, 8, 0, 4)
+        root.addWidget(jarvis_title)
 
         speech_panel = QFrame()
         speech_panel.setObjectName("panel")
@@ -192,43 +204,46 @@ class DiagnosticsWindow(QWidget):
 
         self.speech = QTextEdit()
         self.speech.setReadOnly(True)
-        self.speech.setLineWrapMode(QTextEdit.WidgetWidth)
-        self.speech.document().setDocumentMargin(10)
         self.speech.setMinimumHeight(120)
         speech_layout.addWidget(self.speech)
         speech_panel.setLayout(speech_layout)
-        jarvis_section.addWidget(speech_panel, 1)
-        root.addLayout(jarvis_section, 1)
+        root.addWidget(speech_panel, 1)
 
         btn_layout = QHBoxLayout()
-        self.open_btn = QPushButton("Open Crash Folder")
-        self.open_btn.clicked.connect(self.open_crash)
+        open_btn = QPushButton("Open Crash Folder")
+        open_btn.clicked.connect(self.open_crash)
 
         dismiss_btn = QPushButton("Dismiss")
         dismiss_btn.clicked.connect(self.dismiss_diagnostics)
 
-        btn_layout.addWidget(self.open_btn)
+        btn_layout.addWidget(open_btn)
         btn_layout.addWidget(dismiss_btn)
         root.addLayout(btn_layout)
 
         self.setLayout(root)
 
+        self.dragPos = QPoint()
         self._seen = 0
+        self._drag_active = False
+        self._resize_active = False
+        self._resize_edges = set()
+        self._resize_start_pos = QPoint()
+        self._resize_start_geom = QRect()
+        self._edge_margin = 8
+        self.setMouseTracking(True)
         self.voice_history = []
         self.voice_current = ""
         self.current_state = "STARTED"
         self._last_rendered_state = ""
 
         self.move_to_right_monitor()
+        diag_event('initial_state', self.current_state)
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.poll_status)
         self.timer.start(80)
-
-        ui_runtime(
-            f"DiagnosticsWindow init :: frameless=1 min_width={MIN_WINDOW_WIDTH} min_height={MIN_WINDOW_HEIGHT}"
-        )
-        self.ensure_crash_folder_ready("ui init")
+        diag_event('timer_start', '80ms')
+        diag_event('DiagnosticsWindow.__init__', 'complete')
 
     def move_to_right_monitor(self):
         screens = QGuiApplication.screens()
@@ -237,88 +252,126 @@ class DiagnosticsWindow(QWidget):
         x = geo.x() + (geo.width() - self.width()) // 2
         y = geo.y() + (geo.height() - self.height()) // 2
         self.move(x, y)
-        ui_runtime(
-            f"move_to_right_monitor :: screen={target.name()} x={x} y={y} width={self.width()} height={self.height()}"
-        )
+        diag_event('move_to_right_monitor', f'screens={len(screens)}', f'target={geo.x()},{geo.y()},{geo.width()}x{geo.height()}', f'pos={x},{y}')
 
     def showEvent(self, event):
         super().showEvent(event)
+        diag_event('showEvent', f'geom={self.geometry().x()},{self.geometry().y()},{self.geometry().width()}x{self.geometry().height()}')
         QTimer.singleShot(0, self.raise_)
         QTimer.singleShot(25, self.raise_)
-        ui_runtime(f"showEvent :: x={self.x()} y={self.y()} width={self.width()} height={self.height()}")
+
+    def dismiss_diagnostics(self):
+        diag_event('dismiss_clicked')
+        self.cleanup_and_exit()
+
+    def cleanup_and_exit(self):
+        diag_event('cleanup_and_exit', f'state={self.current_state}')
+        try:
+            self.timer.stop()
+            diag_event('timer_stop', 'success')
+        except Exception as exc:
+            diag_event('timer_stop', f'failed={exc}')
+            pass
+
+        if self.current_state in ("STARTED", "RECOVERING"):
+            try:
+                with open(STOP_SIGNAL_FILE, "w", encoding="utf-8") as f:
+                    f.write("dismissed")
+            except Exception:
+                pass
+
+        if self.current_state == "COMPLETE":
+            for cleanup_path in (STOP_SIGNAL_FILE, STATUS_FILE):
+                try:
+                    if os.path.exists(cleanup_path):
+                        os.remove(cleanup_path)
+                except Exception:
+                    pass
+
+        try:
+            self.hide()
+        except Exception:
+            pass
+
+        app = QApplication.instance()
+        if app:
+            app.quit()
+
+        os._exit(0)
 
     def closeEvent(self, event):
-        ui_runtime(f"closeEvent accepted :: current_state={self.current_state}")
+        diag_event('closeEvent', 'accepted')
         event.accept()
         self.cleanup_and_exit()
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        size = event.size()
-        ui_runtime(f"resizeEvent :: width={size.width()} height={size.height()}")
-
-    def _edge_hits(self, pos):
+    def _hit_test_edges(self, pos):
+        rect = self.rect()
         x = pos.x()
         y = pos.y()
-        w = self.width()
-        h = self.height()
+        margin = self._edge_margin
+        edges = set()
 
-        left = x <= RESIZE_MARGIN
-        right = x >= w - RESIZE_MARGIN
-        top = y <= RESIZE_MARGIN
-        bottom = y >= h - RESIZE_MARGIN
+        if x <= margin:
+            edges.add("left")
+        elif x >= rect.width() - margin:
+            edges.add("right")
 
-        edges = ""
-        if left:
-            edges += "L"
-        elif right:
-            edges += "R"
-
-        if top:
-            edges += "T"
-        elif bottom:
-            edges += "B"
+        if y <= margin:
+            edges.add("top")
+        elif y >= rect.height() - margin:
+            edges.add("bottom")
 
         return edges
 
-    def _set_cursor_for_edges(self, edges):
-        cursor_map = {
-            "L": Qt.SizeHorCursor,
-            "R": Qt.SizeHorCursor,
-            "T": Qt.SizeVerCursor,
-            "B": Qt.SizeVerCursor,
-            "LT": Qt.SizeFDiagCursor,
-            "RB": Qt.SizeFDiagCursor,
-            "RT": Qt.SizeBDiagCursor,
-            "LB": Qt.SizeBDiagCursor,
-        }
-        self.setCursor(cursor_map.get(edges, Qt.ArrowCursor))
+    def _apply_cursor_for_edges(self, edges):
+        if {"left", "top"} <= edges or {"right", "bottom"} <= edges:
+            self.setCursor(Qt.SizeFDiagCursor)
+        elif {"right", "top"} <= edges or {"left", "bottom"} <= edges:
+            self.setCursor(Qt.SizeBDiagCursor)
+        elif "left" in edges or "right" in edges:
+            self.setCursor(Qt.SizeHorCursor)
+        elif "top" in edges or "bottom" in edges:
+            self.setCursor(Qt.SizeVerCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
 
-    def _can_drag_from(self, pos):
-        widget = self.childAt(pos)
-        return widget is None or widget in {self, self.stark, self.title, self.summary}
+    def _resize_geometry(self, global_pos):
+        delta = global_pos - self._resize_start_pos
+        rect = QRect(self._resize_start_geom)
+
+        if "left" in self._resize_edges:
+            new_left = rect.left() + delta.x()
+            max_left = rect.right() - self.minimumWidth()
+            rect.setLeft(min(new_left, max_left))
+
+        if "right" in self._resize_edges:
+            new_width = max(self.minimumWidth(), rect.width() + delta.x())
+            rect.setWidth(new_width)
+
+        if "top" in self._resize_edges:
+            new_top = rect.top() + delta.y()
+            max_top = rect.bottom() - self.minimumHeight()
+            rect.setTop(min(new_top, max_top))
+
+        if "bottom" in self._resize_edges:
+            new_height = max(self.minimumHeight(), rect.height() + delta.y())
+            rect.setHeight(new_height)
+
+        self.setGeometry(rect)
 
     def mousePressEvent(self, event):
-        if event.button() != Qt.LeftButton:
-            return super().mousePressEvent(event)
-
-        edges = self._edge_hits(event.position().toPoint())
-        if edges:
-            self._resize_active = True
-            self._resize_edges = edges
-            self._resize_start_pos = event.globalPosition().toPoint()
-            self._resize_start_geometry = self.geometry()
-            ui_runtime(f"resize begin :: edges={edges} geometry={self.geometry().getRect()}")
+        if event.button() == Qt.LeftButton:
+            edges = self._hit_test_edges(event.position().toPoint())
+            if edges:
+                self._resize_active = True
+                self._resize_edges = edges
+                self._resize_start_pos = event.globalPosition().toPoint()
+                self._resize_start_geom = self.geometry()
+            else:
+                self._drag_active = True
+                self.dragPos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
             event.accept()
             return
-
-        if self._can_drag_from(event.position().toPoint()):
-            self._drag_active = True
-            self._drag_offset = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
-            ui_runtime(f"drag begin :: x={self.x()} y={self.y()}")
-            event.accept()
-            return
-
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
@@ -326,99 +379,42 @@ class DiagnosticsWindow(QWidget):
         global_pos = event.globalPosition().toPoint()
 
         if self._resize_active:
-            new_geo = QRect(self._resize_start_geometry)
-            delta = global_pos - self._resize_start_pos
-
-            if "L" in self._resize_edges:
-                new_left = self._resize_start_geometry.left() + delta.x()
-                max_left = self._resize_start_geometry.right() - self.minimumWidth() + 1
-                new_geo.setLeft(min(new_left, max_left))
-            if "R" in self._resize_edges:
-                new_geo.setRight(max(self._resize_start_geometry.left() + self.minimumWidth() - 1,
-                                     self._resize_start_geometry.right() + delta.x()))
-            if "T" in self._resize_edges:
-                new_top = self._resize_start_geometry.top() + delta.y()
-                max_top = self._resize_start_geometry.bottom() - self.minimumHeight() + 1
-                new_geo.setTop(min(new_top, max_top))
-            if "B" in self._resize_edges:
-                new_geo.setBottom(max(self._resize_start_geometry.top() + self.minimumHeight() - 1,
-                                      self._resize_start_geometry.bottom() + delta.y()))
-
-            self.setGeometry(new_geo.normalized())
+            self._resize_geometry(global_pos)
             event.accept()
             return
 
-        if self._drag_active:
-            self.move(global_pos - self._drag_offset)
+        if self._drag_active and (event.buttons() & Qt.LeftButton):
+            self.move(global_pos - self.dragPos)
             event.accept()
             return
 
-        edges = self._edge_hits(pos)
-        if edges != self._last_hover_edges:
-            self._last_hover_edges = edges
-            self._set_cursor_for_edges(edges)
-            if edges:
-                ui_runtime(f"resize hover :: edges={edges}")
+        self._apply_cursor_for_edges(self._hit_test_edges(pos))
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            if self._resize_active:
-                ui_runtime(f"resize end :: geometry={self.geometry().getRect()}")
-            if self._drag_active:
-                ui_runtime(f"drag end :: x={self.x()} y={self.y()}")
-            self._resize_active = False
-            self._resize_edges = ""
-            self._drag_active = False
-            self._set_cursor_for_edges(self._edge_hits(event.position().toPoint()))
-            event.accept()
-            return
-
+        self._drag_active = False
+        self._resize_active = False
+        self._resize_edges = set()
+        self._apply_cursor_for_edges(self._hit_test_edges(event.position().toPoint()))
         super().mouseReleaseEvent(event)
 
-    def dismiss_diagnostics(self):
-        ui_runtime("dismiss button clicked")
-        self.cleanup_and_exit()
+    def leaveEvent(self, event):
+        if not self._drag_active and not self._resize_active:
+            self.setCursor(Qt.ArrowCursor)
+        super().leaveEvent(event)
 
-    def cleanup_and_exit(self):
-        ui_runtime(f"cleanup_and_exit begin :: current_state={self.current_state}")
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        size = event.size()
+        diag_event('resizeEvent', f'{size.width()}x{size.height()}')
 
-        try:
-            self.timer.stop()
-        except Exception:
-            pass
-
-        if self.current_state in ("STARTED", "RECOVERING"):
-            try:
-                with open(STOP_SIGNAL_FILE, "w", encoding="utf-8") as f:
-                    f.write("dismissed")
-                ui_runtime(f"stop signal written :: {STOP_SIGNAL_FILE}")
-            except Exception as exc:
-                ui_runtime(f"stop signal write failed :: {exc}")
-
-        if self.current_state == "COMPLETE":
-            for cleanup_path in (STOP_SIGNAL_FILE, STATUS_FILE):
-                try:
-                    if os.path.exists(cleanup_path):
-                        os.remove(cleanup_path)
-                        ui_runtime(f"cleanup deleted :: {cleanup_path}")
-                except Exception as exc:
-                    ui_runtime(f"cleanup delete failed :: {cleanup_path} :: {exc}")
-
-        try:
-            self.hide()
-            ui_runtime("window hidden")
-        except Exception as exc:
-            ui_runtime(f"window hide failed :: {exc}")
-
-        app = QApplication.instance()
-        if app:
-            app.quit()
-            ui_runtime("QApplication quit requested")
-
-        os._exit(0)
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        pos = event.pos()
+        diag_event('moveEvent', f'{pos.x()},{pos.y()}')
 
     def render_voice_panel(self):
+
         lines = list(self.voice_history)
         if self.voice_current:
             lines.append(self.voice_current)
@@ -426,31 +422,27 @@ class DiagnosticsWindow(QWidget):
         self.speech.verticalScrollBar().setValue(self.speech.verticalScrollBar().maximum())
 
     def append_trace(self, payload):
-        if payload.startswith("[") and "]" in payload:
-            self.trace.append(payload)
-        elif payload.startswith("Jarvis State:"):
-            self.trace.append(payload)
-        elif payload.startswith("---"):
-            self.trace.append(payload)
-        elif payload == "":
-            self.trace.append("")
-        else:
-            self.trace.append(f"  {payload}")
-        self.trace.verticalScrollBar().setValue(self.trace.verticalScrollBar().maximum())
+        cursor = self.trace.textCursor()
+        cursor.movePosition(cursor.MoveOperation.End)
+        self.trace.setTextCursor(cursor)
 
-    def ensure_crash_folder_ready(self, reason):
-        try:
-            os.makedirs(CRASH_FOLDER, exist_ok=True)
-            ready = os.path.isdir(CRASH_FOLDER)
-            if hasattr(self, "open_btn"):
-                self.open_btn.setEnabled(ready)
-            ui_runtime(f"crash folder ensure :: reason={reason} ready={int(ready)} path={CRASH_FOLDER}")
-            return ready
-        except Exception as exc:
-            if hasattr(self, "open_btn"):
-                self.open_btn.setEnabled(False)
-            ui_runtime(f"crash folder ensure failed :: reason={reason} error={exc}")
-            return False
+        stripped = payload.strip()
+
+        if stripped and set(stripped) == {"-"}:
+            self.trace.insertHtml(
+                '<div style="margin: 8px 2px 10px 2px; color: #89f3ff; white-space: pre; '
+                'font-weight: 600;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>'
+            )
+            self.trace.insertPlainText("\n")
+        elif payload == "":
+            self.trace.insertPlainText("\n")
+        else:
+            self.trace.insertHtml(
+                f'<div style="margin-left: 10px; white-space: pre;">{html_escape(payload)}</div>'
+            )
+            self.trace.insertPlainText("\n")
+
+        self.trace.verticalScrollBar().setValue(self.trace.verticalScrollBar().maximum())
 
     def poll_status(self):
         if not os.path.exists(STATUS_FILE):
@@ -474,7 +466,6 @@ class DiagnosticsWindow(QWidget):
 
             if kind == "SUMMARY":
                 self.summary.setText("Failure Summary: " + payload)
-                self.ensure_crash_folder_ready("summary received")
 
             elif kind == "STATE":
                 state = payload.strip()
@@ -492,12 +483,14 @@ class DiagnosticsWindow(QWidget):
 
                 if should_render:
                     display = mapping.get(state, f"Jarvis State: {state}")
-                    ui_runtime(f"State updated :: {state}")
+                    diag_event('state_transition', f'raw={state}', f'display={display}')
                     self.append_trace("")
                     self.append_trace(display)
                     self.append_trace("---------------------------------------------------")
                     self.append_trace("")
                     self._last_rendered_state = state
+                else:
+                    diag_event('state_transition_skipped', f'raw={state}')
 
             elif kind == "TRACE":
                 self.append_trace(payload)
@@ -515,27 +508,22 @@ class DiagnosticsWindow(QWidget):
                 self.voice_current = ""
                 if final_line and (not self.voice_history or self.voice_history[-1] != final_line):
                     self.voice_history.append(final_line)
-                    ui_runtime(f"VOICE_FINAL appended :: {final_line}")
+                    diag_event('voice_final_append', final_line)
                 self.render_voice_panel()
 
     def open_crash(self):
-        ready = self.ensure_crash_folder_ready("open button clicked")
-        ui_runtime(f"open_crash clicked :: exists={int(os.path.exists(CRASH_FOLDER))} ready={int(ready)}")
-        if ready:
+        if os.path.exists(CRASH_FOLDER):
             os.startfile(CRASH_FOLDER)
-
 
 def main():
     parse_runtime_log_arg(sys.argv)
-    ui_runtime(f"Diagnostics process starting :: runtime_log={RUNTIME_LOG_FILE or 'UNSET'}")
-    ui_runtime(f"Diagnostics status target :: {STATUS_FILE}")
-    ui_runtime(f"Diagnostics stop target :: {STOP_SIGNAL_FILE}")
+    diag_event('main', 'start', f'runtime_log={RUNTIME_LOG_FILE or "none"}')
     app = QApplication(sys.argv)
     w = DiagnosticsWindow()
     w.show()
-    ui_runtime("Diagnostics window shown")
-    sys.exit(app.exec())
-
+    code = app.exec()
+    diag_event('main', 'exit', f'code={code}')
+    sys.exit(code)
 
 if __name__ == "__main__":
     main()
