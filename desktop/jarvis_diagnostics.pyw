@@ -485,6 +485,7 @@ class DiagnosticsWindow(QWidget):
                     display = mapping.get(state, f"Jarvis State: {state}")
                     diag_event('state_transition', f'raw={state}', f'display={display}')
                     self.append_trace("")
+                    self.append_trace("---------------------------------------------------")
                     self.append_trace(display)
                     self.append_trace("---------------------------------------------------")
                     self.append_trace("")
