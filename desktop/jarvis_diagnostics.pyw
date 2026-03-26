@@ -427,10 +427,17 @@ class DiagnosticsWindow(QWidget):
         self.trace.setTextCursor(cursor)
 
         self.trace.insertHtml(
-            '<div style="margin: 6px 10px 8px 10px; padding: 4px 12px; '
-            'background: #031018; color: #a8f6ff; font-weight: 600; '
-            'border-top: 1px solid #0a2730; border-bottom: 1px solid #061018;">'
+            '<div style="margin: 8px 10px 10px 10px;">'
+            '<div style="font-size: 1px; line-height: 1px; background: #0a2730;">&nbsp;</div>'
+            '<div style="font-size: 2px; line-height: 2px; background: #00d8ff;">&nbsp;</div>'
+            '<div style="margin: 3px 0; padding: 5px 12px; '
+            'background: #071c24; color: #d7fbff; font-weight: 700; '
+            'border-top: 1px solid #3feaff; border-bottom: 1px solid #0b2b35; '
+            'text-align: center;">'
             f'{html_escape(payload)}'
+            '</div>'
+            '<div style="font-size: 2px; line-height: 2px; background: #00d8ff;">&nbsp;</div>'
+            '<div style="font-size: 1px; line-height: 1px; background: #0a2730;">&nbsp;</div>'
             '</div>'
         )
         self.trace.insertPlainText("\n")
