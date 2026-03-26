@@ -39,6 +39,7 @@ def trace_signal_html(payload: str) -> str:
     styles = {
         "Failure cause:": ("#ff2b2b", "#ffd7d7", "#16090b"),
         "Assessment:": ("#d4af37", "#f3e2a3", "#151108"),
+        "Triage:": ("#00e1ff", "#dffbff", "#08161b"),
     }
 
     for prefix, (accent_color, text_color, background_color) in styles.items():
@@ -465,13 +466,9 @@ class DiagnosticsWindow(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        size = event.size()
-        diag_event('resizeEvent', f'{size.width()}x{size.height()}')
 
     def moveEvent(self, event):
         super().moveEvent(event)
-        pos = event.pos()
-        diag_event('moveEvent', f'{pos.x()},{pos.y()}')
 
     def render_voice_panel(self):
 
