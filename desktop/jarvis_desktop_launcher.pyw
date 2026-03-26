@@ -20,7 +20,6 @@ RECOVERY_COOLDOWN_SECONDS = 1.2
 COMPLETE_CLEANUP_DELAY_SECONDS = 0.35
 
 os.makedirs(LOG_DIR, exist_ok=True)
-os.makedirs(CRASH_DIR, exist_ok=True)
 
 RUNTIME_FILE = os.path.join(
     LOG_DIR,
@@ -43,6 +42,18 @@ def runtime(msg):
 def runtime_event(category, *parts):
     payload = "|".join(str(part) for part in parts)
     runtime(f"{category}|{payload}" if payload else category)
+
+
+def ensure_crash_dir(reason):
+    try:
+        os.makedirs(CRASH_DIR, exist_ok=True)
+        runtime(f"Crash directory ready ({reason}): {CRASH_DIR}")
+        runtime_event("FILE", "ENSURE_DIR", os.path.basename(CRASH_DIR), "SUCCESS", reason)
+        return True
+    except Exception as exc:
+        runtime(f"Crash directory ensure failed ({reason}): {CRASH_DIR} :: {exc}")
+        runtime_event("FILE", "ENSURE_DIR", os.path.basename(CRASH_DIR), "FAILED", reason, exc)
+        return False
 
 
 def reset_status():
@@ -104,18 +115,7 @@ def launch_diag():
     runtime("Launching diagnostics UI")
     runtime_event("STATUS", "START", "DIAGNOSTICS_UI")
     write_status("TRACE", "Launching diagnostics UI")
-
-    if not os.path.exists(DIAGNOSTICS_SCRIPT):
-        runtime(f"Diagnostics script missing: {DIAGNOSTICS_SCRIPT}")
-        runtime_event("STATUS", "FAIL", "DIAGNOSTICS_UI", "SCRIPT_MISSING")
-        return None
-
-    cmd = [pythonw(), DIAGNOSTICS_SCRIPT, "--runtime-log", RUNTIME_FILE]
-    env = os.environ.copy()
-    env["JARVIS_RUNTIME_LOG"] = RUNTIME_FILE
-    runtime("Diagnostics command: " + " ".join(cmd))
-    runtime(f"Diagnostics runtime handoff: {RUNTIME_FILE}")
-    proc = subprocess.Popen(cmd, env=env)
+    proc = subprocess.Popen([pythonw(), DIAGNOSTICS_SCRIPT])
     runtime(f"Diagnostics PID: {proc.pid}")
     runtime_event("STATUS", "SUCCESS", "DIAGNOSTICS_UI", f"PID={proc.pid}")
     return proc
@@ -181,6 +181,7 @@ def finalize_failure(attempts_used, last_code):
 
 
 def main():
+    ensure_crash_dir("launcher startup")
     reset_status()
 
     runtime("==== Jarvis runtime started ====")
@@ -188,8 +189,6 @@ def main():
     runtime(f"Python executable: {pythonw()}")
     runtime(f"Working directory: {ROOT_DIR}")
     runtime(f"Renderer target: {TARGET_SCRIPT}")
-    runtime(f"Diagnostics target: {DIAGNOSTICS_SCRIPT}")
-    runtime(f"Voice target: {VOICE_SCRIPT}")
 
     diagnostics_opened = False
     recovery_voice_spoken = False
@@ -221,8 +220,9 @@ def main():
             time.sleep(0.18)
             write_status("TRACE", "Checking desktop engine")
             time.sleep(0.18)
-            diag_proc = launch_diag()
-            runtime("Diagnostics launch result: STARTED" if diag_proc else "Diagnostics launch result: FAILED_TO_START")
+            ensure_crash_dir("first failure detected")
+            write_status("TRACE", "Crash folder ready")
+            launch_diag()
             speak("Uhm..... Sir, I seem to be malfunctioning.")
             diagnostics_opened = True
 

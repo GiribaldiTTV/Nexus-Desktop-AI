@@ -152,10 +152,14 @@ class DiagnosticsWindow(QWidget):
         self.summary.setAlignment(Qt.AlignCenter)
         root.addWidget(self.summary)
 
+        trace_section = QVBoxLayout()
+        trace_section.setContentsMargins(0, 0, 0, 0)
+        trace_section.setSpacing(3)
+
         trace_title = QLabel("DIAGNOSTIC TRACE")
         trace_title.setFont(QFont("Consolas", 11, QFont.Bold))
-        trace_title.setContentsMargins(0, 12, 0, 4)
-        root.addWidget(trace_title)
+        trace_title.setContentsMargins(0, 10, 0, 0)
+        trace_section.addWidget(trace_title)
 
         trace_panel = QFrame()
         trace_panel.setObjectName("panel")
@@ -166,12 +170,17 @@ class DiagnosticsWindow(QWidget):
         self.trace.setReadOnly(True)
         trace_layout.addWidget(self.trace)
         trace_panel.setLayout(trace_layout)
-        root.addWidget(trace_panel, 3)
+        trace_section.addWidget(trace_panel, 1)
+        root.addLayout(trace_section, 3)
+
+        jarvis_section = QVBoxLayout()
+        jarvis_section.setContentsMargins(0, 0, 0, 0)
+        jarvis_section.setSpacing(3)
 
         jarvis_title = QLabel("JARVIS")
         jarvis_title.setFont(QFont("Consolas", 11, QFont.Bold))
-        jarvis_title.setContentsMargins(0, 12, 0, 4)
-        root.addWidget(jarvis_title)
+        jarvis_title.setContentsMargins(0, 10, 0, 0)
+        jarvis_section.addWidget(jarvis_title)
 
         speech_panel = QFrame()
         speech_panel.setObjectName("panel")
@@ -183,16 +192,17 @@ class DiagnosticsWindow(QWidget):
         self.speech.setMinimumHeight(120)
         speech_layout.addWidget(self.speech)
         speech_panel.setLayout(speech_layout)
-        root.addWidget(speech_panel, 1)
+        jarvis_section.addWidget(speech_panel, 1)
+        root.addLayout(jarvis_section, 1)
 
         btn_layout = QHBoxLayout()
-        open_btn = QPushButton("Open Crash Folder")
-        open_btn.clicked.connect(self.open_crash)
+        self.open_btn = QPushButton("Open Crash Folder")
+        self.open_btn.clicked.connect(self.open_crash)
 
         dismiss_btn = QPushButton("Dismiss")
         dismiss_btn.clicked.connect(self.dismiss_diagnostics)
 
-        btn_layout.addWidget(open_btn)
+        btn_layout.addWidget(self.open_btn)
         btn_layout.addWidget(dismiss_btn)
         root.addLayout(btn_layout)
 
@@ -213,6 +223,7 @@ class DiagnosticsWindow(QWidget):
         ui_runtime(
             f"DiagnosticsWindow init :: frameless=1 min_width={MIN_WINDOW_WIDTH} min_height={MIN_WINDOW_HEIGHT}"
         )
+        self.ensure_crash_folder_ready("ui init")
 
     def move_to_right_monitor(self):
         screens = QGuiApplication.screens()
@@ -413,6 +424,20 @@ class DiagnosticsWindow(QWidget):
         self.trace.append(payload)
         self.trace.verticalScrollBar().setValue(self.trace.verticalScrollBar().maximum())
 
+    def ensure_crash_folder_ready(self, reason):
+        try:
+            os.makedirs(CRASH_FOLDER, exist_ok=True)
+            ready = os.path.isdir(CRASH_FOLDER)
+            if hasattr(self, "open_btn"):
+                self.open_btn.setEnabled(ready)
+            ui_runtime(f"crash folder ensure :: reason={reason} ready={int(ready)} path={CRASH_FOLDER}")
+            return ready
+        except Exception as exc:
+            if hasattr(self, "open_btn"):
+                self.open_btn.setEnabled(False)
+            ui_runtime(f"crash folder ensure failed :: reason={reason} error={exc}")
+            return False
+
     def poll_status(self):
         if not os.path.exists(STATUS_FILE):
             return
@@ -435,6 +460,7 @@ class DiagnosticsWindow(QWidget):
 
             if kind == "SUMMARY":
                 self.summary.setText("Failure Summary: " + payload)
+                self.ensure_crash_folder_ready("summary received")
 
             elif kind == "STATE":
                 state = payload.strip()
@@ -479,8 +505,9 @@ class DiagnosticsWindow(QWidget):
                 self.render_voice_panel()
 
     def open_crash(self):
-        ui_runtime(f"open_crash clicked :: exists={int(os.path.exists(CRASH_FOLDER))}")
-        if os.path.exists(CRASH_FOLDER):
+        ready = self.ensure_crash_folder_ready("open button clicked")
+        ui_runtime(f"open_crash clicked :: exists={int(os.path.exists(CRASH_FOLDER))} ready={int(ready)}")
+        if ready:
             os.startfile(CRASH_FOLDER)
 
 
