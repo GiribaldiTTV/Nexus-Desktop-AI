@@ -300,6 +300,8 @@ def main():
     ):
         write_status("SUMMARY", "Automatic recovery did not change the underlying renderer failure.")
         write_status("TRACE", "Same failure cause persisted across all recovery attempts.")
+    write_status("SUMMARY", "Automatic recovery has completed. Manual investigation is required.")
+    write_status("TRACE", "Review the latest crash report and runtime log for follow-up.")
     finalize_failure(MAX_RECOVERY_ATTEMPTS, last_code, last_failure_cause)
     runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "FAILURE_FLOW_COMPLETE")
 
