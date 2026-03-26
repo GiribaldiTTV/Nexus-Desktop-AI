@@ -23,6 +23,7 @@ RECOVERY_COOLDOWN_SECONDS = 1.2
 COMPLETE_CLEANUP_DELAY_SECONDS = 0.35
 STARTUP_OBSERVE_POLL_SECONDS = 0.05
 STARTUP_READY_OBSERVE_WINDOW_SECONDS = 3.0
+STARTUP_READY_STALL_CONFIRM_SECONDS = 8.0
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -166,8 +167,10 @@ def runtime_log_contains(pattern):
 
 def observe_renderer_startup_ready(proc):
     marker = "RENDERER_MAIN|STARTUP_READY"
-    deadline = time.monotonic() + STARTUP_READY_OBSERVE_WINDOW_SECONDS
+    warn_deadline = time.monotonic() + STARTUP_READY_OBSERVE_WINDOW_SECONDS
+    stall_deadline = time.monotonic() + STARTUP_READY_STALL_CONFIRM_SECONDS
     warned_within_window = False
+    stall_confirmed = False
 
     runtime_event("STATUS", "TRACE", "LAUNCHER_RUNTIME", "STARTUP_OBSERVE_BEGIN")
 
@@ -178,11 +181,19 @@ def observe_renderer_startup_ready(proc):
 
         if (
             not warned_within_window
-            and time.monotonic() >= deadline
+            and time.monotonic() >= warn_deadline
             and proc.poll() is None
         ):
             runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_READY_NOT_OBSERVED_WITHIN_WINDOW")
             warned_within_window = True
+
+        if (
+            not stall_confirmed
+            and time.monotonic() >= stall_deadline
+            and proc.poll() is None
+        ):
+            runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_READY_STALL_CONFIRMED")
+            stall_confirmed = True
 
         try:
             stdout_text, stderr_text = proc.communicate(timeout=STARTUP_OBSERVE_POLL_SECONDS)
