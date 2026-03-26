@@ -163,21 +163,26 @@ class DiagnosticsWindow(QWidget):
 
         self.stark = QLabel("STARK INDUSTRIES")
         self.stark.setAlignment(Qt.AlignCenter)
-        self.stark.setFont(QFont("Consolas", 18, QFont.Bold))
+        self.stark.setFont(QFont("Consolas", 19, QFont.Bold))
         self.stark.setStyleSheet("color:#d4af37;")
         root.addWidget(self.stark)
 
         title = QLabel("J.A.R.V.I.S. SYSTEM DIAGNOSTICS")
         title.setAlignment(Qt.AlignCenter)
-        title.setFont(QFont("Consolas", 13, QFont.Bold))
+        title.setFont(QFont("Consolas", 14, QFont.Bold))
+        title.setStyleSheet("color:#ff2b2b;")
         root.addWidget(title)
 
         self.summary = QLabel("Failure Summary: waiting for diagnostic input...")
         self.summary.setAlignment(Qt.AlignCenter)
+        summary_font = self.summary.font()
+        if summary_font.pointSize() > 0:
+            summary_font.setPointSize(summary_font.pointSize() + 1)
+        self.summary.setFont(summary_font)
         root.addWidget(self.summary)
 
         trace_title = QLabel("DIAGNOSTIC TRACE")
-        trace_title.setFont(QFont("Consolas", 11, QFont.Bold))
+        trace_title.setFont(QFont("Consolas", 12, QFont.Bold))
         root.addWidget(trace_title)
 
         trace_panel = QFrame()
@@ -193,7 +198,7 @@ class DiagnosticsWindow(QWidget):
         root.addWidget(trace_panel, 3)
 
         jarvis_title = QLabel("JARVIS")
-        jarvis_title.setFont(QFont("Consolas", 11, QFont.Bold))
+        jarvis_title.setFont(QFont("Consolas", 12, QFont.Bold))
         jarvis_title.setContentsMargins(0, 8, 0, 4)
         root.addWidget(jarvis_title)
 
@@ -211,9 +216,14 @@ class DiagnosticsWindow(QWidget):
 
         btn_layout = QHBoxLayout()
         open_btn = QPushButton("Open Crash Folder")
+        button_font = open_btn.font()
+        if button_font.pointSize() > 0:
+            button_font.setPointSize(button_font.pointSize() + 1)
+        open_btn.setFont(button_font)
         open_btn.clicked.connect(self.open_crash)
 
         dismiss_btn = QPushButton("Dismiss")
+        dismiss_btn.setFont(button_font)
         dismiss_btn.clicked.connect(self.dismiss_diagnostics)
 
         btn_layout.addWidget(open_btn)
@@ -426,21 +436,28 @@ class DiagnosticsWindow(QWidget):
         cursor.movePosition(cursor.MoveOperation.End)
         self.trace.setTextCursor(cursor)
 
+        outer_line = "#0a2730"
+        accent_line = "#00d8ff"
+        band_background = "#071c24"
+        band_text = "#d4af37"
+        band_border_top = "#3feaff"
+        band_border_bottom = "#0b2b35"
+
         viewport_width = self.trace.viewport().width()
         if viewport_width > 0 and self.trace.document().textWidth() != viewport_width:
             self.trace.document().setTextWidth(viewport_width)
 
         cursor.insertHtml(
             '<div style="margin: 8px 10px 10px 10px;">'
-            '<div style="font-size: 1px; line-height: 1px; background: #0a2730;">&nbsp;</div>'
-            '<div style="font-size: 2px; line-height: 2px; background: #00d8ff;">&nbsp;</div>'
+            f'<div style="font-size: 1px; line-height: 1px; background: {outer_line};">&nbsp;</div>'
+            f'<div style="font-size: 2px; line-height: 2px; background: {accent_line};">&nbsp;</div>'
             '<p align="center" style="margin: 3px 0; padding: 5px 12px; '
-            'background: #071c24; color: #d7fbff; font-weight: 700; '
-            'border-top: 1px solid #3feaff; border-bottom: 1px solid #0b2b35;">'
+            f'background: {band_background}; color: {band_text}; font-weight: 700; '
+            f'border-top: 1px solid {band_border_top}; border-bottom: 1px solid {band_border_bottom};">'
             f'{html_escape(payload)}'
             '</p>'
-            '<div style="font-size: 2px; line-height: 2px; background: #00d8ff;">&nbsp;</div>'
-            '<div style="font-size: 1px; line-height: 1px; background: #0a2730;">&nbsp;</div>'
+            f'<div style="font-size: 2px; line-height: 2px; background: {accent_line};">&nbsp;</div>'
+            f'<div style="font-size: 1px; line-height: 1px; background: {outer_line};">&nbsp;</div>'
             '</div>'
         )
 
