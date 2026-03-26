@@ -87,8 +87,8 @@ class DiagnosticsWindow(QWidget):
             border-radius: 6px;
             color: #6ee7ff;
             font-family: Consolas;
-            font-size: 11pt;
-            padding: 4px;
+            font-size: 10.5pt;
+            padding: 8px 10px;
             selection-background-color: #0a3a46;
         }
 
@@ -168,6 +168,9 @@ class DiagnosticsWindow(QWidget):
 
         self.trace = QTextEdit()
         self.trace.setReadOnly(True)
+        self.trace.setLineWrapMode(QTextEdit.NoWrap)
+        self.trace.document().setDocumentMargin(10)
+        self.trace.setTabStopDistance(28)
         trace_layout.addWidget(self.trace)
         trace_panel.setLayout(trace_layout)
         trace_section.addWidget(trace_panel, 1)
@@ -189,6 +192,8 @@ class DiagnosticsWindow(QWidget):
 
         self.speech = QTextEdit()
         self.speech.setReadOnly(True)
+        self.speech.setLineWrapMode(QTextEdit.WidgetWidth)
+        self.speech.document().setDocumentMargin(10)
         self.speech.setMinimumHeight(120)
         speech_layout.addWidget(self.speech)
         speech_panel.setLayout(speech_layout)
@@ -421,7 +426,16 @@ class DiagnosticsWindow(QWidget):
         self.speech.verticalScrollBar().setValue(self.speech.verticalScrollBar().maximum())
 
     def append_trace(self, payload):
-        self.trace.append(payload)
+        if payload.startswith("[") and "]" in payload:
+            self.trace.append(payload)
+        elif payload.startswith("Jarvis State:"):
+            self.trace.append(payload)
+        elif payload.startswith("---"):
+            self.trace.append(payload)
+        elif payload == "":
+            self.trace.append("")
+        else:
+            self.trace.append(f"  {payload}")
         self.trace.verticalScrollBar().setValue(self.trace.verticalScrollBar().maximum())
 
     def ensure_crash_folder_ready(self, reason):
