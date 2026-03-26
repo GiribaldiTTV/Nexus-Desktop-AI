@@ -26,6 +26,7 @@ STARTUP_OBSERVE_POLL_SECONDS = 0.05
 STARTUP_READY_OBSERVE_WINDOW_SECONDS = 3.0
 STARTUP_READY_STALL_CONFIRM_SECONDS = 8.0
 STARTUP_ABORT_CONTROL_FLOW_RESULT = "STARTUP_ABORT"
+CONSECUTIVE_STARTUP_ABORT_THRESHOLD = 2
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -649,6 +650,8 @@ def main():
     last_failure_assessment = ""
     failure_causes = []
     assessment_emitted = False
+    consecutive_startup_abort_count = 0
+    recovery_pipeline_end_reason = "MAX_ATTEMPTS_EXHAUSTED"
 
     for attempt in range(1, MAX_RECOVERY_ATTEMPTS + 1):
         runtime(f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
@@ -678,6 +681,11 @@ def main():
             delete_file(STATUS_FILE, "normal exit")
             runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "NORMAL_EXIT_COMPLETE")
             return 0
+
+        if last_code == STARTUP_ABORT_CONTROL_FLOW_RESULT:
+            consecutive_startup_abort_count += 1
+        else:
+            consecutive_startup_abort_count = 0
 
         last_failure_cause = failure_cause or last_failure_cause
         last_failure_origin = failure_origin or last_failure_origin
@@ -709,6 +717,18 @@ def main():
             speak("Uhm..... Sir, I seem to be malfunctioning.")
             diagnostics_opened = True
 
+        if consecutive_startup_abort_count >= CONSECUTIVE_STARTUP_ABORT_THRESHOLD:
+            runtime("Consecutive startup abort threshold reached")
+            runtime_event(
+                "STATUS",
+                "WARNING",
+                "LAUNCHER_RUNTIME",
+                "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED",
+                f"COUNT={consecutive_startup_abort_count}",
+            )
+            recovery_pipeline_end_reason = "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED"
+            break
+
         if attempt < MAX_RECOVERY_ATTEMPTS:
             runtime(f"Preparing recovery attempt {attempt}")
             runtime_event("STATUS", "START", "RECOVERY_COOLDOWN", f"INDEX={attempt}", f"SECONDS={RECOVERY_COOLDOWN_SECONDS:.1f}")
@@ -723,9 +743,14 @@ def main():
             time.sleep(RECOVERY_COOLDOWN_SECONDS)
             runtime_event("STATUS", "SUCCESS", "RECOVERY_COOLDOWN", f"INDEX={attempt}")
 
-    runtime("All recovery attempts exhausted")
-    runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", "MAX_ATTEMPTS_EXHAUSTED")
-    write_status("TRACE", "Recovery attempts exhausted")
+    if recovery_pipeline_end_reason == "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED":
+        runtime("Recovery pipeline escalated after repeated startup aborts")
+        runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", recovery_pipeline_end_reason)
+        write_status("TRACE", "Repeated startup aborts reached escalation threshold.")
+    else:
+        runtime("All recovery attempts exhausted")
+        runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", "MAX_ATTEMPTS_EXHAUSTED")
+        write_status("TRACE", "Recovery attempts exhausted")
     recovery_outcome = "Automatic recovery completed without resolving the renderer failure."
     if (
         len(failure_causes) == MAX_RECOVERY_ATTEMPTS
