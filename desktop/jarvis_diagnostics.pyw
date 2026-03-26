@@ -4,7 +4,7 @@ import os
 import sys
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTextEdit, QPushButton,
-    QLabel, QHBoxLayout, QFrame
+    QLabel, QHBoxLayout, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, QTimer, QPoint, QRect
 from PySide6.QtGui import QFont, QGuiApplication, QTextBlockFormat, QTextCharFormat
@@ -23,6 +23,37 @@ def html_escape(text: str) -> str:
         .replace("<", "&lt;")
         .replace(">", "&gt;")
     )
+
+
+def summary_html(payload: str, payload_color: str = "#ff2b2b") -> str:
+    return (
+        '<div style="text-align: center;">'
+        '<span style="color: #d4af37; font-weight: 700;">FAILURE SUMMARY</span>'
+        '<span style="color: #00d8ff; font-weight: 700;"> // </span>'
+        f'<span style="color: {payload_color}; font-weight: 700;">{html_escape(payload)}</span>'
+        '</div>'
+    )
+
+
+def trace_signal_html(payload: str) -> str:
+    styles = {
+        "Failure cause:": ("#ff2b2b", "#ffd7d7", "#16090b"),
+        "Assessment:": ("#d4af37", "#f3e2a3", "#151108"),
+    }
+
+    for prefix, (accent_color, text_color, background_color) in styles.items():
+        if payload.startswith(prefix):
+            detail = payload[len(prefix):].lstrip()
+            detail_html = f' <span style="color: {text_color};">{html_escape(detail)}</span>' if detail else ""
+            return (
+                f'<div style="margin-left: 10px; padding: 2px 0 2px 8px; '
+                f'border-left: 2px solid {accent_color}; background: {background_color}; white-space: pre;">'
+                f'<span style="color: {accent_color}; font-weight: 700;">{html_escape(prefix)}</span>'
+                f'{detail_html}'
+                '</div>'
+            )
+
+    return ""
 
 
 def parse_runtime_log_arg(argv):
@@ -173,13 +204,25 @@ class DiagnosticsWindow(QWidget):
         title.setStyleSheet("color:#ff2b2b;")
         root.addWidget(title)
 
-        self.summary = QLabel("Failure Summary: waiting for diagnostic input...")
+        self.summary = QLabel()
         self.summary.setAlignment(Qt.AlignCenter)
+        self.summary.setTextFormat(Qt.RichText)
+        self.summary.setStyleSheet(
+            "QLabel {"
+            "background: #140d10;"
+            "border: 1px solid #00e1ff;"
+            "border-radius: 4px;"
+            "padding: 5px 10px;"
+            "}"
+        )
         summary_font = self.summary.font()
         if summary_font.pointSize() > 0:
             summary_font.setPointSize(summary_font.pointSize() + 1)
         self.summary.setFont(summary_font)
+        self.summary.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        self.summary.setText(summary_html("waiting for diagnostic input...", "#6ee7ff"))
         root.addWidget(self.summary)
+        root.setAlignment(self.summary, Qt.AlignHCenter)
 
         trace_title = QLabel("DIAGNOSTIC TRACE")
         trace_title.setFont(QFont("Consolas", 12, QFont.Bold))
@@ -484,10 +527,14 @@ class DiagnosticsWindow(QWidget):
         self.trace.setTextCursor(cursor)
 
         stripped = payload.strip()
+        signal_html = trace_signal_html(payload)
 
         if stripped and set(stripped) == {"-"}:
             self.trace.insertPlainText("\n")
         elif payload == "":
+            self.trace.insertPlainText("\n")
+        elif signal_html:
+            self.trace.insertHtml(signal_html)
             self.trace.insertPlainText("\n")
         else:
             self.trace.insertHtml(
@@ -518,7 +565,7 @@ class DiagnosticsWindow(QWidget):
             kind, payload = line.split("|", 1)
 
             if kind == "SUMMARY":
-                self.summary.setText("Failure Summary: " + payload)
+                self.summary.setText(summary_html(payload))
 
             elif kind == "STATE":
                 state = payload.strip()
