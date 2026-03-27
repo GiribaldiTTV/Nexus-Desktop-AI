@@ -499,8 +499,9 @@ def assess_renderer_failure_cause(failure_cause):
     return "Assessment: the failure cause was captured, but could not be classified confidently."
 
 
-def triage_renderer_failure(failure_cause):
+def triage_renderer_failure(failure_cause, failure_stability=""):
     cause = (failure_cause or "").strip()
+    stability = (failure_stability or "").strip()
 
     internal_exception_prefixes = (
         "RuntimeError:",
@@ -513,6 +514,9 @@ def triage_renderer_failure(failure_cause):
         "AssertionError:",
         "NotImplementedError:",
     )
+
+    if stability == "unstable across recovery attempts":
+        return "Triage: compare attempt-to-attempt failure differences before focusing on the final failure cause."
 
     if cause.startswith(internal_exception_prefixes):
         return "Triage: begin with renderer startup code and recent initialization changes."
@@ -705,7 +709,7 @@ def finalize_failure(
     runtime("Final immersive shutdown sequence finished")
     runtime_event("STATUS", "SUCCESS", "FINAL_IMMERSIVE_SHUTDOWN")
 
-    write_status("TRACE", triage_renderer_failure(failure_cause))
+    write_status("TRACE", triage_renderer_failure(failure_cause, failure_stability))
     write_state("COMPLETE")
     if crash_filename:
         write_status("TRACE", f"Latest crash report: {crash_filename}")
