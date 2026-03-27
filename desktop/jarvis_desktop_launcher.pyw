@@ -102,10 +102,11 @@ def build_incident_summary_lines(
     failure_assessment="",
     recovery_outcome="",
     attempt_pattern="",
+    failure_stability="",
     crash_filename="",
     runtime_filename="",
 ):
-    return [
+    lines = [
         "INCIDENT SUMMARY",
         f"Run ID: {strip_label_prefix(run_id, 'Run ID: ') or 'Unavailable'}",
         f"Environment: {strip_label_prefix(ENVIRONMENT_FINGERPRINT, 'Environment: ') or 'Unavailable'}",
@@ -117,9 +118,14 @@ def build_incident_summary_lines(
         f"Assessment: {strip_label_prefix(failure_assessment, 'Assessment: ') or 'Unavailable'}",
         f"Recovery Outcome: {(recovery_outcome or '').strip() or 'Unavailable'}",
         f"Attempt Pattern: {(attempt_pattern or '').strip() or 'Unavailable'}",
+    ]
+    if failure_stability:
+        lines.append(f"Failure Stability: {failure_stability.strip()}")
+    lines.extend([
         f"Latest crash report: {(crash_filename or '').strip() or 'Unavailable'}",
         f"Latest runtime log: {(runtime_filename or '').strip() or 'Unavailable'}",
-    ]
+    ])
+    return lines
 
 
 def select_recovery_outcome(recovery_pipeline_end_reason, failure_causes):
@@ -150,6 +156,16 @@ def select_attempt_pattern(recovery_pipeline_end_reason, mixed_failure_pattern_l
     return "varied failure outcomes across recovery attempts"
 
 
+def select_failure_stability(mixed_failure_pattern_logged, failure_kinds, failure_causes):
+    non_empty_kinds = [kind for kind in failure_kinds if kind]
+    non_empty_causes = [cause for cause in failure_causes if cause]
+    if mixed_failure_pattern_logged:
+        return "unstable across recovery attempts"
+    if len(set(non_empty_kinds)) > 1 or len(set(non_empty_causes)) > 1:
+        return "unstable across recovery attempts"
+    return ""
+
+
 def write_runtime_incident_summary(
     run_id,
     attempts_used,
@@ -159,6 +175,7 @@ def write_runtime_incident_summary(
     failure_assessment="",
     recovery_outcome="",
     attempt_pattern="",
+    failure_stability="",
     crash_filename="",
     runtime_filename="",
 ):
@@ -171,6 +188,7 @@ def write_runtime_incident_summary(
         failure_assessment,
         recovery_outcome,
         attempt_pattern,
+        failure_stability,
         crash_filename,
         runtime_filename,
     ):
@@ -526,6 +544,7 @@ def crash_log(
     failure_assessment="",
     recovery_outcome="",
     attempt_pattern="",
+    failure_stability="",
     crash_filename="",
     run_id="",
 ):
@@ -560,6 +579,7 @@ def crash_log(
             failure_assessment,
             recovery_outcome,
             attempt_pattern,
+            failure_stability,
             os.path.basename(path),
             os.path.basename(RUNTIME_FILE),
         ):
@@ -659,6 +679,7 @@ def finalize_failure(
     failure_assessment="",
     recovery_outcome="",
     attempt_pattern="",
+    failure_stability="",
     crash_filename="",
     run_id="",
 ):
@@ -693,6 +714,7 @@ def finalize_failure(
         failure_assessment,
         recovery_outcome,
         attempt_pattern,
+        failure_stability,
         crash_filename,
         run_id,
     )
@@ -900,6 +922,11 @@ def main():
         failure_kinds,
         failure_causes,
     )
+    failure_stability = select_failure_stability(
+        mixed_failure_pattern_logged,
+        failure_kinds,
+        failure_causes,
+    )
     if recovery_outcome == "Automatic recovery did not change the underlying renderer failure.":
         write_status("SUMMARY", "Automatic recovery did not change the underlying renderer failure.")
         write_status("TRACE", "Same failure cause persisted across all recovery attempts.")
@@ -915,6 +942,7 @@ def main():
         last_failure_assessment,
         recovery_outcome,
         attempt_pattern,
+        failure_stability,
         crash_filename,
         run_id,
     )
@@ -927,6 +955,7 @@ def main():
         last_failure_assessment,
         recovery_outcome,
         attempt_pattern,
+        failure_stability,
         crash_filename,
         os.path.basename(RUNTIME_FILE),
     )
