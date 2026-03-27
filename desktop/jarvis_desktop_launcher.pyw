@@ -120,6 +120,20 @@ def build_incident_summary_lines(
     ]
 
 
+def select_recovery_outcome(recovery_pipeline_end_reason, failure_causes):
+    if recovery_pipeline_end_reason == "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED":
+        return "Automatic recovery stopped after repeated startup aborts reached the launcher escalation threshold."
+    if recovery_pipeline_end_reason == "CONSECUTIVE_IDENTICAL_CRASH_THRESHOLD_REACHED":
+        return "Automatic recovery stopped after repeated identical crash outcomes reached the launcher escalation threshold."
+    if (
+        len(failure_causes) == MAX_RECOVERY_ATTEMPTS
+        and all(failure_causes)
+        and len(set(failure_causes)) == 1
+    ):
+        return "Automatic recovery did not change the underlying renderer failure."
+    return "Automatic recovery completed without resolving the renderer failure."
+
+
 def write_runtime_incident_summary(
     run_id,
     attempts_used,
@@ -855,13 +869,8 @@ def main():
         runtime("All recovery attempts exhausted")
         runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", "MAX_ATTEMPTS_EXHAUSTED")
         write_status("TRACE", "Recovery attempts exhausted")
-    recovery_outcome = "Automatic recovery completed without resolving the renderer failure."
-    if (
-        len(failure_causes) == MAX_RECOVERY_ATTEMPTS
-        and all(failure_causes)
-        and len(set(failure_causes)) == 1
-    ):
-        recovery_outcome = "Automatic recovery did not change the underlying renderer failure."
+    recovery_outcome = select_recovery_outcome(recovery_pipeline_end_reason, failure_causes)
+    if recovery_outcome == "Automatic recovery did not change the underlying renderer failure.":
         write_status("SUMMARY", "Automatic recovery did not change the underlying renderer failure.")
         write_status("TRACE", "Same failure cause persisted across all recovery attempts.")
     write_status("SUMMARY", "Automatic recovery has completed. Manual investigation is required.")

@@ -184,6 +184,39 @@ This remains intentionally deferred until after active orchestration stabilizati
 
 ---
 
+### [ID: FB-006] Threshold-based recovery outcome summary refinement
+
+Status: Deferred  
+Priority: Low  
+Suggested Version: v1.6.0  
+Suggested Revision: TBD  
+
+Description:
+Refine final runtime and crash summaries so threshold-based early escalations are described differently from max-attempt exhaustion.
+
+Why it matters:
+Current final artifacts still use a generic recovery-outcome sentence even when recovery stopped early due to a specific launcher threshold.
+
+Proposed Change:
+Adjust launcher-generated summary wording so repeated STARTUP_ABORT escalation and repeated identical crash escalation produce threshold-specific recovery outcome text.
+
+Likely Files Affected:
+- jarvis_desktop_launcher.pyw
+
+Scope:
+- launcher-only
+- summary wording refinement
+
+Out of Scope:
+- retry policy changes
+- diagnostics UI changes
+- renderer changes
+
+Notes:
+This should remain a reporting refinement only and must not change launcher behavior.
+
+---
+
 ## Completed Items
 
 Move completed backlog items here for history tracking.
