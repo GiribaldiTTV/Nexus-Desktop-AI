@@ -102,6 +102,7 @@ def build_incident_summary_lines(
     failure_assessment="",
     recovery_outcome="",
     attempt_pattern="",
+    diagnostics_priority="",
     failure_stability="",
     triage_guidance="",
     crash_filename="",
@@ -120,10 +121,12 @@ def build_incident_summary_lines(
         f"Recovery Outcome: {(recovery_outcome or '').strip() or 'Unavailable'}",
         f"Attempt Pattern: {(attempt_pattern or '').strip() or 'Unavailable'}",
     ]
+    if diagnostics_priority:
+        lines.append(f"Diagnostics Priority: {diagnostics_priority.strip()}")
     if failure_stability:
         lines.append(f"Failure Stability: {failure_stability.strip()}")
     if triage_guidance:
-        lines.append(f"Triage Guidance: {triage_guidance.strip()}")
+        lines.append(f"Triage Guidance: {strip_label_prefix(triage_guidance, 'Triage: ') or 'Unavailable'}")
     lines.extend([
         f"Latest crash report: {(crash_filename or '').strip() or 'Unavailable'}",
         f"Latest runtime log: {(runtime_filename or '').strip() or 'Unavailable'}",
@@ -199,6 +202,7 @@ def write_runtime_incident_summary(
     failure_assessment="",
     recovery_outcome="",
     attempt_pattern="",
+    diagnostics_priority="",
     failure_stability="",
     triage_guidance="",
     crash_filename="",
@@ -213,6 +217,7 @@ def write_runtime_incident_summary(
         failure_assessment,
         recovery_outcome,
         attempt_pattern,
+        diagnostics_priority,
         failure_stability,
         triage_guidance,
         crash_filename,
@@ -574,6 +579,7 @@ def crash_log(
     failure_assessment="",
     recovery_outcome="",
     attempt_pattern="",
+    diagnostics_priority="",
     failure_stability="",
     triage_guidance="",
     crash_filename="",
@@ -610,6 +616,7 @@ def crash_log(
             failure_assessment,
             recovery_outcome,
             attempt_pattern,
+            diagnostics_priority,
             failure_stability,
             triage_guidance,
             os.path.basename(path),
@@ -711,6 +718,7 @@ def finalize_failure(
     failure_assessment="",
     recovery_outcome="",
     attempt_pattern="",
+    diagnostics_priority="",
     failure_stability="",
     triage_guidance="",
     crash_filename="",
@@ -747,6 +755,7 @@ def finalize_failure(
         failure_assessment,
         recovery_outcome,
         attempt_pattern,
+        diagnostics_priority,
         failure_stability,
         triage_guidance,
         crash_filename,
@@ -990,6 +999,7 @@ def main():
         last_failure_assessment,
         recovery_outcome,
         attempt_pattern,
+        diagnostics_priority,
         failure_stability,
         triage_guidance,
         crash_filename,
@@ -1004,6 +1014,7 @@ def main():
         last_failure_assessment,
         recovery_outcome,
         attempt_pattern,
+        diagnostics_priority,
         failure_stability,
         triage_guidance,
         crash_filename,
