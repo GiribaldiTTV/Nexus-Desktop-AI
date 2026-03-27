@@ -50,7 +50,7 @@ This should remain a narrow escalation rule for repeated identical crash outcome
 
 Status: Deferred  
 Priority: Medium  
-Suggested Version: v1.6.0  
+Suggested Version: Post-v1.7.0  
 Suggested Revision: TBD  
 
 Description:
@@ -76,7 +76,7 @@ Out of Scope:
 - renderer changes
 
 Notes:
-This should follow, not precede, the repeated identical crash policy.
+This remains intentionally deferred and should not be mixed into the advisory-only `v1.7.0` track.
 
 ---
 
@@ -84,7 +84,7 @@ This should follow, not precede, the repeated identical crash policy.
 
 Status: Deferred  
 Priority: Medium  
-Suggested Version: v1.6.0  
+Suggested Version: Post-v1.7.0  
 Suggested Revision: TBD  
 
 Description:
@@ -109,7 +109,7 @@ Out of Scope:
 - broad orchestration refactor
 
 Notes:
-This should build on the specific repeated-failure classifications already established.
+This remains intentionally deferred and should not be mixed into the advisory-only `v1.7.0` track.
 
 ---
 
@@ -320,7 +320,7 @@ This should remain a summary and classification consistency refinement only and 
 
 ### [ID: FB-010] v1.6.0 closeout and documentation sync
 
-Status: Deferred  
+Status: Implemented (v1.6.0)  
 Priority: Medium  
 Suggested Version: v1.6.0  
 Suggested Revision: closeout  
@@ -352,7 +352,185 @@ Out of Scope:
 - new orchestration behavior
 
 Notes:
-This should be handled as a documentation-only closeout pass and must not introduce new runtime behavior.
+This is the documentation-only closeout pass for the finalized `v1.6.0` orchestration layer.
+
+---
+
+### [ID: FB-011] Historical memory contract
+
+Status: Deferred  
+Priority: High  
+Suggested Version: v1.7.0  
+Suggested Revision: TBD  
+
+Description:
+Define the contract for a passive cross-run historical memory layer before any historical intelligence is implemented.
+
+Why it matters:
+Without a contract, later history, advisory, and diagnostics work can drift into a second truth source or become nondeterministic.
+
+Proposed Change:
+Define a versioned history schema, run identity rules, retention and reset rules, provenance requirements, and corruption fallback behavior for the cross-run memory layer.
+
+Likely Files Affected:
+- C:/Jarvis/docs/development_rules.md
+- C:/Jarvis/docs/architecture.md
+- C:/Jarvis/docs/orchestration.md
+- future historical-memory implementation files
+
+Scope:
+- planning and architecture contract
+- passive historical-memory rules
+
+Out of Scope:
+- runtime behavior changes
+- retry changes
+- escalation changes
+- boot-level control
+
+Notes:
+This should be the first `v1.7.0` implementation track.
+
+---
+
+### [ID: FB-012] Failure fingerprint and recurrence model
+
+Status: Deferred  
+Priority: High  
+Suggested Version: v1.7.0  
+Suggested Revision: TBD  
+
+Description:
+Define how the system recognizes recurring outcomes across launches without changing the closed `v1.6.0` runtime classification model.
+
+Why it matters:
+Cross-run recurrence and trend analysis require stable fingerprint rules or historical intelligence will misclassify repeated failures.
+
+Proposed Change:
+Define failure fingerprint rules, recurrence grouping rules, and stability trend semantics for cross-run analysis using existing `v1.6.0` truth signals.
+
+Likely Files Affected:
+- C:/Jarvis/docs/architecture.md
+- C:/Jarvis/docs/orchestration.md
+- future historical-memory implementation files
+
+Scope:
+- cross-run identity
+- recurrence tracking
+- stability trend model
+
+Out of Scope:
+- runtime classification changes
+- retry changes
+- escalation changes
+
+Notes:
+This should build directly on the historical memory contract.
+
+---
+
+### [ID: FB-013] Advisory provenance and confidence semantics
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: v1.7.0  
+Suggested Revision: TBD  
+
+Description:
+Define how advisory outputs describe provenance, confidence, and evidence quality without becoming authoritative policy.
+
+Why it matters:
+Advisory intelligence can become misleading if the system does not clearly distinguish current-run truth, historical recurrence, and inference.
+
+Proposed Change:
+Define provenance labels and confidence semantics so confidence remains explanatory only and advisory outputs remain non-binding.
+
+Likely Files Affected:
+- C:/Jarvis/docs/development_rules.md
+- C:/Jarvis/docs/orchestration.md
+- future advisory-layer implementation files
+
+Scope:
+- advisory semantics
+- provenance labels
+- confidence meaning
+
+Out of Scope:
+- behavior changes
+- retry changes
+- escalation changes
+
+Notes:
+This should remain advisory-only throughout `v1.7.0`.
+
+---
+
+### [ID: FB-014] Multi-run orchestration regression harness
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: v1.7.0  
+Suggested Revision: TBD  
+
+Description:
+Create a reusable multi-run validation concept for historical-memory, diagnostics-enrichment, and advisory-only orchestration work.
+
+Why it matters:
+`v1.7.0` introduces cross-run reasoning, which requires repeatable multi-launch verification instead of only single-run scenario checks.
+
+Proposed Change:
+Define and later build a scenario-based regression harness that can validate recurrence, stability trends, fallback behavior, and advisory outputs across multiple launches.
+
+Likely Files Affected:
+- orchestration validation tooling
+- documentation for scenario expectations
+
+Scope:
+- validation tooling
+- multi-run scenario replay
+
+Out of Scope:
+- launcher policy changes
+- renderer behavior changes
+- UI redesign
+
+Notes:
+This future-proofs `v1.7.0` without reopening `v1.6.0` behavior.
+
+---
+
+### [ID: FB-015] Boot and desktop phase-boundary model
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: v1.7.0  
+Suggested Revision: TBD  
+
+Description:
+Define the conceptual boundary between future boot-stage orchestration and the already stabilized desktop-stage launcher layer.
+
+Why it matters:
+Later boot-level orchestration will need a clean contract for how boot-stage history, diagnostics, and advisory signals relate to desktop-stage truth.
+
+Proposed Change:
+Document phase-boundary rules, ownership boundaries, and data-sharing assumptions between a future boot orchestrator and the existing desktop launcher.
+
+Likely Files Affected:
+- C:/Jarvis/docs/architecture.md
+- C:/Jarvis/docs/orchestration.md
+- future boot-orchestrator planning docs
+
+Scope:
+- architecture modeling
+- future phase-boundary preparation
+
+Out of Scope:
+- boot-level control
+- adaptive retry logic
+- launcher behavior changes
+
+Notes:
+This is preparation work only and must not introduce boot-level runtime control in `v1.7.0`.
 
 ---
 

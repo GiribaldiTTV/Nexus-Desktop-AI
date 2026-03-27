@@ -17,7 +17,7 @@ It exists so future revisions can reference:
 -> `jarvis_desktop_launcher.pyw`
 -> `jarvis_desktop_main.py`
 
-## Orchestration Evolution (rev1–9)
+## Orchestration Evolution (rev1-rev9)
 
 The orchestration system was built in stages:
 
@@ -29,7 +29,7 @@ The orchestration system was built in stages:
 6. Add abort classification
 7. Route abort into recovery
 8. Add automatic abort on confirmed stall
-9. Add repeated consecutive STARTUP_ABORT escalation
+9. Add repeated consecutive `STARTUP_ABORT` escalation
 
 This sequence must not be skipped in future systems.
 
@@ -123,56 +123,80 @@ The renderer is responsible for:
 - cooperative response to launcher control signals
 - clean shutdown behavior
 
-## v1.6.0 Evolution (rev10–rev24)
+## v1.6.0 Evolution (rev10-rev24)
 
-### rev10–12
+### rev10-rev12
 - Introduced cooperative startup abort
 - Added threshold-based early escalation
-- Established retry + recovery control boundaries
+- Established retry and recovery control boundaries
 
-### rev13–17
+### rev13-rev17
 - Added mixed-pattern classification
 - Implemented attempt-pattern summaries
 - Introduced failure stability signal
-- Fixed classification correctness (rev17)
+- Fixed classification correctness
 
-### rev18–19
-- Surfaced instability into diagnostics_status
+### rev18-rev19
+- Surfaced instability into `diagnostics_status`
 - Aligned triage guidance with stability
 
-### rev20–22
-- Diagnostics parity across runtime/crash
-- Instability end-reason classification
-- Diagnostics priority signal
+### rev20-rev22
+- Established diagnostics parity across runtime and crash surfaces
+- Added instability end-reason classification
+- Added diagnostics priority signal
 
 ### rev23
 - Fixed mixed crash classification inconsistency
-- Aligned classifier with summary layer
+- Aligned classifier with the summary layer
 
 ### rev24
 - Normalized incident summaries
 - Propagated diagnostics priority across all surfaces
 - Removed triage wording duplication
 
----
-
 ## Final State (v1.6.0)
 
 The orchestration system is:
 
-- Behaviorally stable
-- Fully observable
-- Classification-consistent
-- Summary-aligned
-- Diagnostics-aligned
-- Operator-guided correctly
+- behaviorally stable
+- fully observable
+- classification-consistent
+- summary-aligned
+- diagnostics-aligned
+- operator-guided correctly
 
 No contradictions exist between:
+
 - runtime markers
 - classification
 - summaries
 - diagnostics
 - triage guidance
+
+## v1.7.0 Boundary Note
+
+`v1.7.0` may introduce historical memory and advisory intelligence, but it may not alter the closed `v1.6.0` runtime control model.
+
+Allowed in `v1.7.0`:
+
+- cross-run outcome recording
+- recurrence and stability trend summaries
+- diagnostics enrichment using historical context
+- advisory recommendations with clear provenance
+
+Not allowed in `v1.7.0`:
+
+- retry changes
+- escalation changes
+- threshold changes
+- classification changes
+- diagnostics trigger changes
+- instability-driven behavior
+- adaptive retry behavior
+- boot-level runtime control
+
+Historical memory in `v1.7.0` must remain advisory-only.
+If history is missing, unreadable, or corrupt, runtime behavior must degrade cleanly to the finalized `v1.6.0` orchestration behavior.
 
 ## Future Expansion (Not Yet Implemented)
 
