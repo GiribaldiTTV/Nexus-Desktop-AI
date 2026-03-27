@@ -534,6 +534,48 @@ This is preparation work only and must not introduce boot-level runtime control 
 
 ---
 
+### [ID: FB-016] Recorder-only historical memory groundwork
+
+Status: Deferred  
+Priority: High  
+Suggested Version: v1.7.0  
+Suggested Revision: rev1  
+
+Description:
+Implement the first passive historical-memory slice as a recorder-only layer with versioned schema scaffolding and zero readback into runtime behavior.
+
+Why it matters:
+This is the narrowest implementation step that proves the historical-memory architecture can record deterministic per-run facts without altering the finalized `v1.6.0` control model.
+
+Proposed Change:
+Add a write-only history recorder that stores finalized per-run outcomes using the `v1.7.0` historical memory contract, including schema versioning, run identity, failure fingerprint capture, and corruption-safe fallback behavior.
+
+Likely Files Affected:
+- C:/Jarvis/docs/architecture.md
+- C:/Jarvis/docs/development_rules.md
+- C:/Jarvis/docs/orchestration.md
+- future historical-memory implementation files
+
+Scope:
+- recorder-only groundwork
+- versioned schema scaffolding
+- run identity capture
+- failure fingerprint capture
+- write-only passive recording
+
+Out of Scope:
+- diagnostics enrichment
+- advisory recommendations
+- historical summary output
+- runtime behavior changes
+- retry changes
+- escalation changes
+
+Notes:
+Rev1 should record only finalized facts from the closed `v1.6.0` truth layer and must not read history back into control flow.
+
+---
+
 ## Completed Items
 
 Move completed backlog items here for history tracking.
