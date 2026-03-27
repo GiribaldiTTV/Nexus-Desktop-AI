@@ -16,7 +16,7 @@ Rules:
 
 ### [ID: FB-001] Repeated identical crash early escalation
 
-Status: Deferred  
+Status: Implemented (v1.6.0)  
 Priority: Medium  
 Suggested Version: v1.6.0  
 Suggested Revision: rev12  
@@ -186,7 +186,7 @@ This remains intentionally deferred until after active orchestration stabilizati
 
 ### [ID: FB-006] Threshold-based recovery outcome summary refinement
 
-Status: Deferred  
+Status: Implemented (v1.6.0)  
 Priority: Low  
 Suggested Version: v1.6.0  
 Suggested Revision: TBD  
@@ -219,7 +219,7 @@ This should remain a reporting refinement only and must not change launcher beha
 
 ### [ID: FB-007] Max-attempt identical-failure attempt-pattern correction
 
-Status: Deferred  
+Status: Implemented (v1.6.0)  
 Priority: Low  
 Suggested Version: v1.6.0  
 Suggested Revision: TBD  
@@ -286,7 +286,7 @@ This should be handled as a dedicated voice and experience revision after orches
 
 ### [ID: FB-009] Align crash-origin mixed markers with stable repeated-failure summaries
 
-Status: Deferred  
+Status: Implemented (v1.6.0)  
 Priority: Low  
 Suggested Version: v1.6.0  
 Suggested Revision: TBD  

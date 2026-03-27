@@ -17,7 +17,7 @@ It exists so future revisions can reference:
 -> `jarvis_desktop_launcher.pyw`
 -> `jarvis_desktop_main.py`
 
-## Orchestration Evolution (`v1.6`)
+## Orchestration Evolution (rev1–9)
 
 The orchestration system was built in stages:
 
@@ -122,6 +122,57 @@ The renderer is responsible for:
 - UI ownership
 - cooperative response to launcher control signals
 - clean shutdown behavior
+
+## v1.6.0 Evolution (rev10–rev24)
+
+### rev10–12
+- Introduced cooperative startup abort
+- Added threshold-based early escalation
+- Established retry + recovery control boundaries
+
+### rev13–17
+- Added mixed-pattern classification
+- Implemented attempt-pattern summaries
+- Introduced failure stability signal
+- Fixed classification correctness (rev17)
+
+### rev18–19
+- Surfaced instability into diagnostics_status
+- Aligned triage guidance with stability
+
+### rev20–22
+- Diagnostics parity across runtime/crash
+- Instability end-reason classification
+- Diagnostics priority signal
+
+### rev23
+- Fixed mixed crash classification inconsistency
+- Aligned classifier with summary layer
+
+### rev24
+- Normalized incident summaries
+- Propagated diagnostics priority across all surfaces
+- Removed triage wording duplication
+
+---
+
+## Final State (v1.6.0)
+
+The orchestration system is:
+
+- Behaviorally stable
+- Fully observable
+- Classification-consistent
+- Summary-aligned
+- Diagnostics-aligned
+- Operator-guided correctly
+
+No contradictions exist between:
+- runtime markers
+- classification
+- summaries
+- diagnostics
+- triage guidance
 
 ## Future Expansion (Not Yet Implemented)
 
