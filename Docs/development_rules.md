@@ -133,3 +133,61 @@ Each revision (`revX`) must introduce only one controlled change within that ver
 Important architecture, orchestration, and behavior decisions should be written into repo docs rather than left only in chat history.
 
 Project docs are part of the source of truth and should be read before planning future revisions.
+
+## Backlog Integration
+
+If a new idea or improvement is identified:
+
+- It must be added to docs/feature_backlog.md
+- It must NOT be implemented immediately
+- It must be assigned a suggested version and revision
+- It must follow one-fix-per-revision discipline
+
+Ideas are only implemented after being explicitly selected from the backlog.
+
+## Backlog Control
+The backlog file (docs/feature_backlog.md) is the controlled planning layer for future work.
+
+### Codex Permissions
+
+Codex may:
+- propose new backlog items
+- format backlog entries
+- suggest updates to backlog items
+
+Codex may NOT:
+- silently edit the backlog
+- mark items complete without approval
+- change status of existing items without approval
+- reorder or reprioritize items
+- delete backlog items
+
+Backlog state changes must be explicitly approved and performed by the user.
+
+### Required Backlog Workflow
+
+If a new idea, improvement, or follow-up work is identified:
+
+1. Codex must propose a backlog update first
+2. The proposal must include:
+   - Type (new item / status update / notes / completion)
+   - Title
+   - Reason
+   - Exact markdown change
+3. Codex must wait for explicit user approval
+4. Only after approval may Codex edit docs/feature_backlog.md
+
+### Execution Rules
+
+- Backlog updates must remain minimal and scoped
+- Backlog changes may be made alongside other files ONLY after approval
+- If no backlog update is required, do not modify the backlog
+
+### Control Principle
+
+The backlog is a planning and control layer.
+
+Codex assists in managing it, but the user retains final authority over:
+- prioritization
+- status changes
+- completion

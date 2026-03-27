@@ -29,6 +29,7 @@ The orchestration system was built in stages:
 6. Add abort classification
 7. Route abort into recovery
 8. Add automatic abort on confirmed stall
+9. Add repeated consecutive STARTUP_ABORT escalation
 
 This sequence must not be skipped in future systems.
 
@@ -86,7 +87,7 @@ On confirmed stall:
 
 When renderer aborts during startup:
 
-- Renderer emits `STARTUP_ABORTED`
+- Renderer emits `RENDERER_MAIN|STARTUP_ABORTED`
 - Launcher classifies the abort distinctly
 - Launcher treats the attempt as a startup failure outcome
 - Launcher routes that outcome into recovery flow

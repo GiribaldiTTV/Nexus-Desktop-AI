@@ -70,9 +70,10 @@ Responsible for:
 ## Startup Classification
 
 - `STARTUP_READY_OBSERVED` -> healthy
-- `NOT_OBSERVED_WITHIN_WINDOW` -> slow
-- `STALL_CONFIRMED` -> stalled
-- `STARTUP_ABORTED` -> controlled abort
+- `STARTUP_READY_NOT_OBSERVED_WITHIN_WINDOW` -> slow
+- `STARTUP_READY_STALL_CONFIRMED` -> stalled
+- `RENDERER_MAIN|STARTUP_ABORTED` -> renderer acknowledged the cooperative startup-abort request
+- `STARTUP_ABORT_COMPLETE` -> launcher completed abort-specific cleanup and control-flow handoff
 - failure path -> crash or exception
 
 ## Control System
@@ -119,5 +120,6 @@ The renderer executes behavior.
 - outcome classification
 - recovery routing
 - first automatic stall response
+- repeated startup-abort escalation
 
 This staged build order should be preserved in future subsystems when possible.
