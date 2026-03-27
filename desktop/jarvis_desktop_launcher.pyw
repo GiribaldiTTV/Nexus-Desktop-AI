@@ -103,6 +103,7 @@ def build_incident_summary_lines(
     recovery_outcome="",
     attempt_pattern="",
     failure_stability="",
+    triage_guidance="",
     crash_filename="",
     runtime_filename="",
 ):
@@ -121,6 +122,8 @@ def build_incident_summary_lines(
     ]
     if failure_stability:
         lines.append(f"Failure Stability: {failure_stability.strip()}")
+    if triage_guidance:
+        lines.append(f"Triage Guidance: {triage_guidance.strip()}")
     lines.extend([
         f"Latest crash report: {(crash_filename or '').strip() or 'Unavailable'}",
         f"Latest runtime log: {(runtime_filename or '').strip() or 'Unavailable'}",
@@ -181,6 +184,12 @@ def select_failure_stability(mixed_failure_pattern_logged, failure_kinds, failur
     return ""
 
 
+def select_diagnostics_priority(failure_stability):
+    if (failure_stability or "").strip() == "unstable across recovery attempts":
+        return "elevated attention due to unstable recovery pattern"
+    return ""
+
+
 def write_runtime_incident_summary(
     run_id,
     attempts_used,
@@ -191,6 +200,7 @@ def write_runtime_incident_summary(
     recovery_outcome="",
     attempt_pattern="",
     failure_stability="",
+    triage_guidance="",
     crash_filename="",
     runtime_filename="",
 ):
@@ -204,6 +214,7 @@ def write_runtime_incident_summary(
         recovery_outcome,
         attempt_pattern,
         failure_stability,
+        triage_guidance,
         crash_filename,
         runtime_filename,
     ):
@@ -564,6 +575,7 @@ def crash_log(
     recovery_outcome="",
     attempt_pattern="",
     failure_stability="",
+    triage_guidance="",
     crash_filename="",
     run_id="",
 ):
@@ -599,6 +611,7 @@ def crash_log(
             recovery_outcome,
             attempt_pattern,
             failure_stability,
+            triage_guidance,
             os.path.basename(path),
             os.path.basename(RUNTIME_FILE),
         ):
@@ -699,6 +712,7 @@ def finalize_failure(
     recovery_outcome="",
     attempt_pattern="",
     failure_stability="",
+    triage_guidance="",
     crash_filename="",
     run_id="",
 ):
@@ -709,7 +723,7 @@ def finalize_failure(
     runtime("Final immersive shutdown sequence finished")
     runtime_event("STATUS", "SUCCESS", "FINAL_IMMERSIVE_SHUTDOWN")
 
-    write_status("TRACE", triage_renderer_failure(failure_cause, failure_stability))
+    write_status("TRACE", triage_guidance or triage_renderer_failure(failure_cause, failure_stability))
     write_state("COMPLETE")
     if crash_filename:
         write_status("TRACE", f"Latest crash report: {crash_filename}")
@@ -734,6 +748,7 @@ def finalize_failure(
         recovery_outcome,
         attempt_pattern,
         failure_stability,
+        triage_guidance,
         crash_filename,
         run_id,
     )
@@ -923,6 +938,14 @@ def main():
             time.sleep(RECOVERY_COOLDOWN_SECONDS)
             runtime_event("STATUS", "SUCCESS", "RECOVERY_COOLDOWN", f"INDEX={attempt}")
 
+    failure_stability = select_failure_stability(
+        mixed_failure_pattern_logged,
+        failure_kinds,
+        failure_causes,
+    )
+    if recovery_pipeline_end_reason == "MAX_ATTEMPTS_EXHAUSTED" and failure_stability:
+        recovery_pipeline_end_reason = "MAX_ATTEMPTS_EXHAUSTED_WITH_INSTABILITY"
+
     if recovery_pipeline_end_reason == "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED":
         runtime("Recovery pipeline escalated after repeated startup aborts")
         runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", recovery_pipeline_end_reason)
@@ -931,6 +954,10 @@ def main():
         runtime("Recovery pipeline escalated after repeated identical crash outcomes")
         runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", recovery_pipeline_end_reason)
         write_status("TRACE", "Repeated identical crash outcomes reached escalation threshold.")
+    elif recovery_pipeline_end_reason == "MAX_ATTEMPTS_EXHAUSTED_WITH_INSTABILITY":
+        runtime("All recovery attempts exhausted with instability observed")
+        runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", recovery_pipeline_end_reason)
+        write_status("TRACE", "Recovery attempts exhausted with instability observed.")
     else:
         runtime("All recovery attempts exhausted")
         runtime_event("STATUS", "FAIL", "RECOVERY_PIPELINE", "MAX_ATTEMPTS_EXHAUSTED")
@@ -942,11 +969,10 @@ def main():
         failure_kinds,
         failure_causes,
     )
-    failure_stability = select_failure_stability(
-        mixed_failure_pattern_logged,
-        failure_kinds,
-        failure_causes,
-    )
+    triage_guidance = triage_renderer_failure(last_failure_cause, failure_stability)
+    diagnostics_priority = select_diagnostics_priority(failure_stability)
+    if diagnostics_priority:
+        write_status("SUMMARY", f"Diagnostics Priority: {diagnostics_priority}")
     if failure_stability:
         write_status("SUMMARY", f"Failure Stability: {failure_stability}")
     if recovery_outcome == "Automatic recovery did not change the underlying renderer failure.":
@@ -965,6 +991,7 @@ def main():
         recovery_outcome,
         attempt_pattern,
         failure_stability,
+        triage_guidance,
         crash_filename,
         run_id,
     )
@@ -978,6 +1005,7 @@ def main():
         recovery_outcome,
         attempt_pattern,
         failure_stability,
+        triage_guidance,
         crash_filename,
         os.path.basename(RUNTIME_FILE),
     )

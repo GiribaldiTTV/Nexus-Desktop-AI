@@ -284,6 +284,40 @@ This should be handled as a dedicated voice and experience revision after orches
 
 ---
 
+### [ID: FB-009] Align crash-origin mixed markers with stable repeated-failure summaries
+
+Status: Deferred  
+Priority: Low  
+Suggested Version: v1.6.0  
+Suggested Revision: TBD  
+
+Description:
+Align mixed-pattern classification with final failed-run summaries when the failure cause stays identical across attempts but failure origin changes.
+
+Why it matters:
+The launcher can currently emit a mixed crash-pattern marker while the final summary intentionally describes the same run as a repeated identical failure, which weakens summary consistency.
+
+Proposed Change:
+Refine mixed crash-pattern classification so identical-cause runs that are intentionally summarized as repeated identical failure do not also emit a conflicting mixed-pattern interpretation unless that distinction is explicitly desired.
+
+Likely Files Affected:
+- jarvis_desktop_launcher.pyw
+
+Scope:
+- launcher-only
+- reporting and classification consistency
+
+Out of Scope:
+- retry policy changes
+- threshold changes
+- diagnostics UI changes
+- renderer changes
+
+Notes:
+This should remain a summary and classification consistency refinement only and must not change launcher behavior.
+
+---
+
 ## Completed Items
 
 Move completed backlog items here for history tracking.
