@@ -207,6 +207,57 @@ def normalize_history_run_id(run_id):
     return strip_label_prefix(run_id, "Run ID: ") or RUN_ID_STEM
 
 
+def prepare_history_storage_path():
+    path = os.path.abspath(history_file())
+    parent_dir = os.path.dirname(path)
+    if not parent_dir:
+        raise ValueError("History storage path has no parent directory.")
+    os.makedirs(parent_dir, exist_ok=True)
+    if os.path.isdir(path):
+        raise IsADirectoryError(f"History storage path is a directory: {path}")
+    return path
+
+
+def validate_history_record(record):
+    if not isinstance(record, dict):
+        return "History record payload must be a dictionary."
+
+    required_string_fields = (
+        "run_id",
+        "recorded_at",
+        "final_outcome",
+        "final_classification",
+        "end_reason",
+        "attempt_pattern",
+        "failure_stability",
+        "diagnostics_priority",
+        "failure_fingerprint",
+        "provenance",
+    )
+
+    if record.get("schema_version") != HISTORY_SCHEMA_VERSION:
+        return f"History record schema_version must be {HISTORY_SCHEMA_VERSION}."
+
+    attempt_count = record.get("attempt_count")
+    if not isinstance(attempt_count, int) or attempt_count < 1:
+        return "History record attempt_count must be a positive integer."
+
+    if record.get("final_outcome") not in {"SUCCESS", "FAILURE"}:
+        return "History record final_outcome must be SUCCESS or FAILURE."
+
+    for field_name in required_string_fields:
+        field_value = record.get(field_name)
+        if not isinstance(field_value, str):
+            return f"History record field {field_name} must be a string."
+        if field_name in {"run_id", "recorded_at", "final_outcome", "final_classification", "end_reason", "provenance"} and not field_value.strip():
+            return f"History record field {field_name} must not be empty."
+
+    if record.get("provenance") != "derived_from_finalized_v1.6.0_truth_surfaces":
+        return "History record provenance marker is invalid."
+
+    return ""
+
+
 def build_failure_fingerprint(final_outcome, final_classification, failure_cause="", failure_origin=""):
     if final_outcome != "FAILURE":
         return ""
@@ -285,9 +336,16 @@ def record_finalized_history(
     )
 
     try:
-        with open(history_file(), "a", encoding="utf-8") as f:
-            f.write(json.dumps(record, sort_keys=True) + "\n")
-        runtime(f"Historical recorder wrote finalized run record: {os.path.basename(history_file())}")
+        validation_error = validate_history_record(record)
+        if validation_error:
+            runtime(f"Historical recorder skipped invalid finalized record; continuing without history: {validation_error}")
+            return False
+
+        history_path = prepare_history_storage_path()
+        serialized_record = json.dumps(record, sort_keys=True)
+        with open(history_path, "a", encoding="utf-8") as f:
+            f.write(serialized_record + "\n")
+        runtime(f"Historical recorder wrote finalized run record: {os.path.basename(history_path)}")
         return True
     except Exception as exc:
         runtime(f"Historical recorder failed; continuing without history: {exc}")
