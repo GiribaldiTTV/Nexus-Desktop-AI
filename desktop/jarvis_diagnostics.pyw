@@ -21,6 +21,7 @@ CRASH_FOLDER = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
 STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
 RUNTIME_LOG_FILE = ""
+MANUAL_TEST_MODE = False
 
 
 def html_escape(text: str) -> str:
@@ -63,12 +64,53 @@ def trace_signal_html(payload: str) -> str:
     return ""
 
 
-def parse_runtime_log_arg(argv):
-    global RUNTIME_LOG_FILE
+def arg_value(argv, flag_name):
     for i, arg in enumerate(argv):
-        if arg == "--runtime-log" and i + 1 < len(argv):
-            RUNTIME_LOG_FILE = argv[i + 1]
-            return
+        if arg == flag_name and i + 1 < len(argv):
+            return argv[i + 1]
+    return None
+
+
+def configure_launch_args(argv):
+    global RUNTIME_LOG_FILE, STATUS_FILE, STOP_SIGNAL_FILE, MANUAL_TEST_MODE
+
+    runtime_log_arg = arg_value(argv, "--runtime-log")
+    if runtime_log_arg:
+        RUNTIME_LOG_FILE = runtime_log_arg
+
+    MANUAL_TEST_MODE = "--manual-test" in argv
+    if MANUAL_TEST_MODE:
+        STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.manual_test.txt")
+        STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.manual_test.signal")
+        if not RUNTIME_LOG_FILE:
+            RUNTIME_LOG_FILE = os.path.join(LOG_DIR, "Runtime_manual_diagnostics_test.txt")
+
+
+def seed_manual_test_status():
+    os.makedirs(LOG_DIR, exist_ok=True)
+
+    for cleanup_path in (STATUS_FILE, STOP_SIGNAL_FILE):
+        try:
+            if os.path.exists(cleanup_path):
+                os.remove(cleanup_path)
+        except Exception:
+            pass
+
+    payload_lines = [
+        "STATE|STARTED",
+        "SUMMARY|Manual diagnostics UI test",
+        "TRACE|Launching diagnostics UI",
+        "TRACE|Manual developer test mode active",
+        "TRACE|Failure cause: synthetic diagnostics test payload only",
+        "TRACE|Assessment: manual diagnostics validation path",
+        "TRACE|Triage: verify visibility, focus behavior, and dismiss behavior",
+        "VOICE_FINAL|Manual diagnostics test ready.",
+        "STATE|COMPLETE",
+    ]
+
+    with open(STATUS_FILE, "w", encoding="utf-8") as f:
+        for line in payload_lines:
+            f.write(line + "\n")
 
 
 def diag_runtime(message: str):
@@ -672,8 +714,12 @@ class DiagnosticsWindow(QWidget):
             diag_event("report_issue", "issue_open_unconfirmed", bundle_info["run_identity"])
 
 def main():
-    parse_runtime_log_arg(sys.argv)
+    configure_launch_args(sys.argv)
+    if MANUAL_TEST_MODE:
+        seed_manual_test_status()
     diag_event('main', 'start', f'runtime_log={RUNTIME_LOG_FILE or "none"}')
+    if MANUAL_TEST_MODE:
+        diag_event('manual_test', 'enabled', os.path.basename(STATUS_FILE))
     app = QApplication(sys.argv)
     w = DiagnosticsWindow()
     w.show()
