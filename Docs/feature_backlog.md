@@ -395,7 +395,7 @@ This contract was defined in repo docs before implementation began and remains t
 
 ### [ID: FB-012] Failure fingerprint and recurrence model
 
-Status: Deferred  
+Status: Implemented (v1.8.0 rev2a)  
 Priority: High  
 Suggested Version: v1.8.0  
 Suggested Revision: rev2  
@@ -425,7 +425,7 @@ Out of Scope:
 - escalation changes
 
 Notes:
-This should follow the multi-run regression harness in `v1.8.0` and build directly on the historical memory contract.
+This now has its first implemented slice in `v1.8.0 rev2a`, which formalized the strict failure-fingerprint contract and strict recurrence equality without reopening `v1.6.0` behavior. The next intended implementation step remains `FB-012 rev2b`.
 
 ---
 

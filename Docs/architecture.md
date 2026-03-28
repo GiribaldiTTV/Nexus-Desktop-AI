@@ -290,22 +290,24 @@ Current guarantees remain unchanged:
 - historical context remains non-authoritative
 - advisory output remains non-binding
 
-## v1.8.0 Planned Rev2a Narrow Scope
+## v1.8.0 Implemented Rev2a Strict Fingerprint Contract
 
-`FB-012` rev2a should begin as a strict failure-fingerprint contract pass, not as a broader recurrence redesign.
+`FB-012` rev2a is now implemented as the first strict failure-fingerprint contract slice for `v1.8.0`.
 
-That first slice should:
+Implemented rev2a state:
 
-- formalize the current implemented fingerprint shape using only existing finalized truth surfaces already recorded by the historical layer
-- formalize initial recurrence grouping as strict equality on the normalized full fingerprint
-- exclude success records and empty fingerprints from recurrence grouping
+- fingerprints apply only to finalized failure records
+- success records keep empty `failure_fingerprint` values
+- failure records require non-empty normalized `failure_fingerprint` values
+- initial recurrence grouping uses strict equality on the normalized full fingerprint
+- success records and empty fingerprints are excluded from recurrence grouping
 
-That first slice must not:
+Current guarantees remain unchanged:
 
-- introduce fuzzy matching
-- introduce confidence or provenance semantics
-- reinterpret recurrence as runtime policy significance
-- couple historical recurrence to runtime-control behavior
+- no fuzzy matching
+- no confidence or provenance semantics
+- no reinterpretation of recurrence as runtime policy significance
+- no coupling of historical recurrence to runtime-control behavior
 
 ## Read-Only Memory Rule
 
