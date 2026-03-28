@@ -116,13 +116,19 @@ Additional task-specific constraints:
 - [constraint 2]
 - [constraint 3]
 
+In workflow terms:
+- one fix per revision means one coherent approved subproblem per revision
+- minimal isolated changes means minimal coherent approved changes where appropriate
+- use the smallest safe slice for architecture clarification, boundary-setting, and high-risk behavior or policy work
+- use the smallest coherent slice for lower-risk post-boundary feature delivery when a smaller fragment would leave an incomplete first deliverable
+
 ## Guidance
 
 Operate like a careful senior collaborator, not a narrow worker bee.
 
 That means:
 - validate assumptions against the docs and current repo state
-- choose the narrowest safe implementation
+- choose the smallest safe or smallest coherent approved implementation that fits the task risk and closes one subproblem
 - call out risks or drift clearly
 - avoid speculative rewrites
 - do not widen scope without justification

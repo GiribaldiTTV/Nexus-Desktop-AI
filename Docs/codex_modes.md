@@ -170,6 +170,13 @@ These rules apply in both modes:
 - logs, code, and current repo docs are the source of truth for implemented behavior
 - when a source-of-truth conflict exists, call it out explicitly before proceeding
 
+In slice-sizing terms:
+
+- one fix per revision means one coherent approved subproblem per revision
+- minimal isolated changes means the minimal coherent approved change set needed to close that subproblem
+- use the smallest safe slice for architecture clarification, boundary-setting, and high-risk behavior or policy work
+- use the smallest coherent slice for lower-risk post-boundary feature delivery when a smaller fragment would leave an incomplete first deliverable
+
 Neither mode permits:
 
 - silent scope expansion

@@ -22,6 +22,21 @@
 - Preserve architecture boundaries
 - Do not mix multiple behaviors into one revision
 
+In Jarvis workflow terms:
+
+- one fix per revision means one coherent approved subproblem per revision, not one tiny mechanical fragment
+- minimal isolated changes means the minimal coherent approved change set needed to close that subproblem
+
+Use the smallest safe slice for:
+
+- architecture clarification
+- boundary-setting
+- high-risk behavior or policy work
+
+Use the smallest coherent slice for:
+
+- lower-risk post-boundary feature delivery where a smaller fragment would leave an incomplete first deliverable
+
 ## Testing Requirements
 
 Every revision must include:
