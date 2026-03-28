@@ -351,6 +351,23 @@ Current guarantees remain unchanged:
 
 `FB-013` remains open after rev3a pending the next narrow decision on whether a definition-only confidence-semantics slice is still needed for `v1.8.0`.
 
+## v1.8.0 Planned Rev3b Internal Confidence Semantics
+
+`FB-013` rev3b should remain a definition-only and internal confidence-semantics pass.
+
+That narrow confidence slice should:
+
+- define confidence only as evidence-directness or evidence-quality for advisory inference
+- keep confidence absent from surfaced operator-facing output
+
+That narrow confidence slice must not:
+
+- interpret confidence as severity, urgency, escalation level, recommendation strength, predictive correctness, runtime-policy permission, or authority over current-run truth
+- couple confidence semantics to runtime-control behavior
+- expand authority beyond the existing diagnostics-only advisory boundary
+- add confidence, historical, or advisory language to crash-report or incident-summary truth surfaces
+- redesign advisory output beyond what is needed to preserve the internal-only confidence boundary
+
 ## Read-Only Memory Rule
 
 Historical memory in `v1.7.0` must remain a derived, read-only layer over `v1.6.0` truth.
