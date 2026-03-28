@@ -89,15 +89,16 @@ class DiagnosticsWindow(QWidget):
         super().__init__()
         diag_event('DiagnosticsWindow.__init__', 'start')
 
+        # Diagnostics should stay reachable without hijacking the user's
+        # current task, so keep the window passive and non-topmost by default.
         self.setWindowFlags(
-            Qt.FramelessWindowHint |
-            Qt.Tool |
-            Qt.WindowStaysOnTopHint
+            Qt.Window |
+            Qt.FramelessWindowHint
         )
-        self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setAttribute(Qt.WA_ShowWithoutActivating, True)
         self.resize(920, 660)
         self.setMinimumSize(720, 520)
-        diag_event('window_flags', 'frameless_tool_ontop')
+        diag_event('window_flags', 'passive_non_topmost')
 
         self.setStyleSheet("""
         QWidget {
@@ -327,9 +328,11 @@ class DiagnosticsWindow(QWidget):
 
     def showEvent(self, event):
         super().showEvent(event)
-        diag_event('showEvent', f'geom={self.geometry().x()},{self.geometry().y()},{self.geometry().width()}x{self.geometry().height()}')
-        QTimer.singleShot(0, self.raise_)
-        QTimer.singleShot(25, self.raise_)
+        diag_event(
+            'showEvent',
+            f'geom={self.geometry().x()},{self.geometry().y()},{self.geometry().width()}x{self.geometry().height()}',
+            'passive_no_raise'
+        )
 
     def dismiss_diagnostics(self):
         diag_event('dismiss_clicked')
