@@ -235,37 +235,44 @@ If the template and a casual user request conflict, Codex should follow the expl
 
 ---
 
-## Immediate Next Planning Guidance After `v1.8.0`
+## Prompt Hygiene After Consolidation
 
-After `v1.8.0`, the next safe high-level move is post-`v1.8.0` architecture work rather than launcher-policy tuning.
+When a workstream has been consolidated into a canonical planning or design doc, prompts should prefer that canonical doc over the earlier slice-by-slice planning stack.
 
-Based on current source-of-truth docs, `FB-015` is the strongest architecture-first next planning target unless a later source-of-truth conflict proves otherwise.
+This keeps prompts shorter, reduces duplicate source lists, and prevents archival reasoning docs from being treated like equal-weight current truth.
 
-Why `FB-015` is the cleanest next move:
+### Analysis Mode Guidance
 
-- `feature_backlog.md` places `FB-015` in `Post-v1.8.0`
-- `FB-015` is explicitly a phase-boundary and architecture-modeling item
-- `FB-015` stays out of boot-level control, adaptive retries, and launcher behavior changes
-- `v1.8.0_closeout.md` already identifies post-`v1.8.0` architecture work such as `FB-015` as the next safe high-level target
+In Analysis mode, Codex should:
 
-### How Analysis Mode Should Be Used First
+- identify whether a canonical consolidated doc already exists for the active workstream
+- carry forward that canonical doc instead of the full stack of superseded slice docs
+- explicitly say what older slice docs can be removed from the prompt because the canonical doc already covers them
+- pull older slice docs back in only if the task is about historical tracing, consolidation audit, or source conflict checking
 
-Use Analysis mode first to:
+### Workflow Mode Guidance
 
-- confirm that `FB-015` is still the correct next target
-- validate whether any source-of-truth conflict appeared after `v1.8.0` closeout
-- define the narrowest safe `FB-015` planning scope
-- determine whether the first `FB-015` step should be docs-only architecture clarification before any implementation work
+In Workflow mode, Codex should:
 
-### How Workflow Mode Should Be Used Later
+- use the canonical consolidated doc as the primary planning baseline for the active workstream
+- avoid re-listing archival slice docs unless the approved task explicitly depends on them
+- keep the prompt evidence set narrow and current rather than mechanically repeating every earlier planning file
 
-Use Workflow mode only after the user explicitly approves a narrow `FB-015` task such as:
+### Current Boot-Planning Example
 
-- a docs-only architecture planning pass
-- a bounded phase-boundary clarification
-- a later approved implementation slice if and only if the architecture phase has already been defined and accepted
+For current Jarvis boot-access work, `docs/boot_access_design.md` is now the canonical boot planning source.
 
-Workflow mode should not be used to jump directly from `v1.8.0` closeout into boot-control implementation.
+That means future boot-access prompts should usually prefer:
+
+- `development_rules.md`
+- `architecture.md`
+- `jarvis_vision.md`
+- `feature_backlog.md`
+- `orchestration.md`
+- `boot_access_design.md`
+- relevant closeout docs only when still needed
+
+The earlier `boot_*_plan.md` slice docs have been retired from the active docs tree and should not be listed as prompt inputs unless they are reintroduced separately for historical review outside the normal planning baseline.
 
 ---
 

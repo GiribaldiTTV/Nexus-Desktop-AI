@@ -149,6 +149,10 @@ Important architecture, orchestration, and behavior decisions should be written 
 
 Project docs are part of the source of truth and should be read before planning future revisions.
 
+When a workstream has a consolidated canonical planning or design doc, future prompts and task baselines should prefer that canonical doc over the full stack of superseded slice docs.
+
+Superseded slice docs may still be used for historical traceability, earlier revision review, or conflict checking, but they should not continue to be listed as equal-weight prompt inputs once a canonical consolidation exists.
+
 When using Codex or ChatGPT for project tasks, prefer the structured prompt format in `docs/jarvis_task_template.md` so requests include clear goal, context, evidence, constraints, allowed surfaces, and done-when criteria.
 
 ## Historical Intelligence Rules

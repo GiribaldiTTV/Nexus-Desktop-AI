@@ -11,9 +11,15 @@ Treat the following files as authoritative unless a direct verified implementati
 - C:\Jarvis\docs\jarvis_vision.md
 - C:\Jarvis\docs\feature_backlog.md
 - C:\Jarvis\docs\orchestration.md
+- C:\Jarvis\docs\[relevant consolidated canonical design docs]
 - C:\Jarvis\docs\[relevant prior version closeout docs]
 
 If anything in this request conflicts with those docs, call it out explicitly before proceeding.
+
+Prompt hygiene:
+- If a consolidated canonical design or planning doc exists for the active workstream, include that doc and omit superseded slice docs unless the task is explicitly tracing history or auditing the consolidation.
+- Do not bulk-list archival planning slice docs as equal-weight prompt inputs once a canonical consolidation exists.
+- Include prior closeout docs and older slice docs only when they are still materially relevant to the specific task.
 
 ## Current Project State
 
