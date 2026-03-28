@@ -72,11 +72,15 @@ def arg_value(argv, flag_name):
 
 
 def configure_launch_args(argv):
-    global RUNTIME_LOG_FILE, STATUS_FILE, STOP_SIGNAL_FILE, MANUAL_TEST_MODE
+    global LOG_DIR, CRASH_FOLDER, RUNTIME_LOG_FILE, STATUS_FILE, STOP_SIGNAL_FILE, MANUAL_TEST_MODE
 
     runtime_log_arg = arg_value(argv, "--runtime-log")
     if runtime_log_arg:
-        RUNTIME_LOG_FILE = runtime_log_arg
+        RUNTIME_LOG_FILE = os.path.abspath(runtime_log_arg)
+        LOG_DIR = os.path.dirname(RUNTIME_LOG_FILE)
+        CRASH_FOLDER = os.path.join(LOG_DIR, "crash")
+        STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
+        STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
 
     MANUAL_TEST_MODE = "--manual-test" in argv
     if MANUAL_TEST_MODE:

@@ -25,6 +25,7 @@ Current repo-root items with planning significance:
 - `jarvis_desktop_test.py`
 - `jarvis_voice.py`
 - `launch_jarvis_desktop.vbs`
+- `dev/`
 - `Audio/`
 - `desktop/`
 - `Docs/` / `docs/` references
@@ -47,6 +48,12 @@ Repo metadata and environment artifacts that should remain root-owned:
 - desktop renderer support
 - desktop support-reporting helpers
 - harness tooling tied to desktop/runtime validation
+
+`dev/`
+
+- developer-only launchers
+- deterministic manual-test renderer targets
+- contained manual validation entry points that should not be treated as Windows-facing production shims
 
 `Audio/`
 
@@ -86,6 +93,9 @@ For now, these should remain root-owned:
 - `launch_jarvis_desktop.vbs`
 - `main.py`
 
+Developer-only launchers should not remain root-owned.
+They should live under `dev/launchers/`.
+
 ### What Should Belong Under Domain Folders
 
 `desktop/`
@@ -95,6 +105,13 @@ For now, these should remain root-owned:
 - desktop renderer support
 - desktop-specific helpers
 - desktop entrypoints later, after a controlled migration pass
+- runtime harness helpers that are part of production-adjacent launcher behavior
+
+`dev/`
+
+- manual test launchers
+- deterministic manual renderer targets
+- developer-only helper surfaces for contained validation
 
 Later move candidates into `desktop/`:
 
@@ -131,6 +148,7 @@ This folder already has coherent ownership and can remain a dedicated visual-ass
 
 Use lowercase canonical folder names for core repo domains:
 
+- `dev`
 - `audio`
 - `desktop`
 - `docs`
@@ -192,6 +210,16 @@ These files are sensitive enough that they must be migrated in a controlled orde
 
 - current failure and shutdown voice script
 - path is referenced directly by the launcher
+
+`dev/launchers/*.vbs`
+
+- developer-only Windows launch shims
+- should remain separate from the root Windows-facing production launcher surface
+
+`dev/targets/*.pyw`
+
+- deterministic manual launcher-path test targets
+- safe to move independently from production runtime code because they are only selected through harness env overrides
 
 ## Generated And Runtime State
 
