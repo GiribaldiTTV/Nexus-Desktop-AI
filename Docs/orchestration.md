@@ -248,6 +248,46 @@ No contradictions remain between:
 - diagnostics `TRACE` advisory wording
 - documented version boundaries
 
+## v1.8.0 Validation-First Boundary
+
+`v1.8.0` should begin as a validation-first phase for the historical-intelligence layer introduced in `v1.7.0`.
+
+The safest first target is:
+
+- `FB-014` multi-run orchestration regression harness
+
+Allowed in early `v1.8.0`:
+
+- repeatable multi-run verification of history recording
+- recurrence and fallback validation across repeated launches
+- diagnostics historical-context verification
+- diagnostics advisory-surface verification
+
+Not allowed in early `v1.8.0`:
+
+- retry or escalation changes
+- threshold or classification changes
+- diagnostics-trigger changes
+- confidence scoring
+- broader advisory expansion
+- historical content added to crash-report or incident-summary truth surfaces
+- readback from history into runtime behavior
+
+Future `v1.8.0` work may formalize recurrence and provenance semantics only after validation infrastructure is in place.
+
+## v1.8.0 Implemented Rev1 State
+
+`FB-014` rev1 now exists as external validation tooling around the historical-intelligence layer.
+
+Implemented rev1 state:
+
+- rev1a added dormant launcher seams for contained execution without touching the live production logs tree
+- rev1b added the first reusable contained harness runner
+- rev1c expanded that runner to cover baseline prior-history and fallback scenarios
+
+This implemented rev1 state does not alter orchestration behavior.
+It validates the existing recorder, summarizer, diagnostics-context, and diagnostics-advisory surfaces from outside the runtime-control path.
+
 ## Future Expansion (Not Yet Implemented)
 
 Examples of later orchestration topics:

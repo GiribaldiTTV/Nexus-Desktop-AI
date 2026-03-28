@@ -395,10 +395,10 @@ This contract was defined in repo docs before implementation began and remains t
 
 ### [ID: FB-012] Failure fingerprint and recurrence model
 
-Status: Deferred  
+Status: Implemented (v1.8.0)  
 Priority: High  
-Suggested Version: v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: v1.8.0  
+Suggested Revision: rev2  
 
 Description:
 Define how the system recognizes recurring outcomes across launches without changing the closed `v1.6.0` runtime classification model.
@@ -425,16 +425,16 @@ Out of Scope:
 - escalation changes
 
 Notes:
-This should build directly on the historical memory contract.
+This is now implemented through `v1.8.0 rev2a` and `v1.8.0 rev2b`, which together formalized the strict failure-fingerprint contract, strict recurrence equality, and deterministic recent-history stability model without reopening `v1.6.0` behavior. The next intended implementation track remains `FB-013`.
 
 ---
 
 ### [ID: FB-013] Advisory provenance and confidence semantics
 
-Status: Deferred  
+Status: Implemented (v1.8.0)  
 Priority: Medium  
-Suggested Version: v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: v1.8.0  
+Suggested Revision: rev3  
 
 Description:
 Define how advisory outputs describe provenance, confidence, and evidence quality without becoming authoritative policy.
@@ -461,16 +461,16 @@ Out of Scope:
 - escalation changes
 
 Notes:
-This should remain advisory-only throughout `v1.7.0`.
+This is now implemented through `v1.8.0 rev3a` and `v1.8.0 rev3b`, which together formalized provenance-first advisory semantics and internal-only confidence meaning without introducing surfaced confidence output, runtime coupling, or policy significance. This completes `FB-013` for `v1.8.0`.
 
 ---
 
 ### [ID: FB-014] Multi-run orchestration regression harness
 
-Status: Deferred  
+Status: Implemented (v1.8.0 rev1)  
 Priority: Medium  
-Suggested Version: v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: v1.8.0  
+Suggested Revision: rev1  
 
 Description:
 Create a reusable multi-run validation concept for historical-memory, diagnostics-enrichment, and advisory-only orchestration work.
@@ -495,7 +495,7 @@ Out of Scope:
 - UI redesign
 
 Notes:
-This future-proofs `v1.7.0` without reopening `v1.6.0` behavior.
+This was the safest first implementation target for `v1.8.0` and is now implemented as the validation-first harness foundation through rev1a, rev1b, and rev1c without reopening `v1.6.0` behavior. The next intended implementation track remains `FB-012`.
 
 ---
 
@@ -503,7 +503,7 @@ This future-proofs `v1.7.0` without reopening `v1.6.0` behavior.
 
 Status: Deferred  
 Priority: Medium  
-Suggested Version: v1.7.0  
+Suggested Version: Post-v1.8.0  
 Suggested Revision: TBD  
 
 Description:
@@ -530,7 +530,7 @@ Out of Scope:
 - launcher behavior changes
 
 Notes:
-This is preparation work only and must not introduce boot-level runtime control in `v1.7.0`.
+This is preparation work only, must not introduce boot-level runtime control, and is not part of the validation-first `v1.8.0` track.
 
 ---
 

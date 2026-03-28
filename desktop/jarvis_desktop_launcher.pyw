@@ -10,15 +10,30 @@ import datetime
 import platform
 import secrets
 
+
+def env_flag(name):
+    value = (os.environ.get(name) or "").strip().casefold()
+    return value in {"1", "true", "yes", "on"}
+
+
+def env_path_override(name, default_path):
+    value = (os.environ.get(name) or "").strip()
+    return os.path.abspath(value) if value else default_path
+
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_main.py")
-LOG_DIR = os.path.join(ROOT_DIR, "logs")
+DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_main.py")
+DEFAULT_LOG_DIR = os.path.join(ROOT_DIR, "logs")
+TARGET_SCRIPT = env_path_override("JARVIS_HARNESS_TARGET_SCRIPT", DEFAULT_TARGET_SCRIPT)
+LOG_DIR = env_path_override("JARVIS_HARNESS_LOG_ROOT", DEFAULT_LOG_DIR)
 CRASH_DIR = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
 STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
 STARTUP_ABORT_SIGNAL_FILE = os.path.join(LOG_DIR, "renderer_startup_abort.signal")
 DIAGNOSTICS_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "jarvis_diagnostics.pyw")
 VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_error_voice.py")
+HARNESS_DISABLE_DIAGNOSTICS = env_flag("JARVIS_HARNESS_DISABLE_DIAGNOSTICS")
+HARNESS_DISABLE_VOICE = env_flag("JARVIS_HARNESS_DISABLE_VOICE")
 
 MAX_RECOVERY_ATTEMPTS = 3
 RECOVERY_COOLDOWN_SECONDS = 1.2
@@ -30,6 +45,9 @@ STARTUP_ABORT_CONTROL_FLOW_RESULT = "STARTUP_ABORT"
 CONSECUTIVE_STARTUP_ABORT_THRESHOLD = 2
 CONSECUTIVE_IDENTICAL_CRASH_THRESHOLD = 2
 HISTORY_SCHEMA_VERSION = 1
+HISTORY_STABILITY_WINDOW_SIZE = 5
+ADVISORY_CONFIDENCE_DIRECT_EVIDENCE = "direct_evidence"
+ADVISORY_CONFIDENCE_PATTERN_EVIDENCE = "pattern_evidence"
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -65,6 +83,63 @@ def strip_label_prefix(value, prefix):
 def normalize_policy_value(value, prefix=""):
     text = strip_label_prefix(value, prefix)
     return " ".join(text.split()).casefold()
+
+
+def format_historical_context_line(message):
+    return f"Historical context (derived from prior finalized recorded history only): {message}"
+
+
+def format_advisory_inference_line(message):
+    return (
+        "Advisory inference (derived from prior finalized history, non-binding, non-authoritative): "
+        f"{message}"
+    )
+
+
+def build_failure_fingerprint_parts(final_classification, failure_cause="", failure_origin=""):
+    parts = []
+    normalized_classification = normalize_policy_value(final_classification)
+    normalized_cause = normalize_policy_value(failure_cause)
+    normalized_origin = normalize_policy_value(failure_origin, "Failure origin: ")
+
+    if normalized_classification:
+        parts.append(("classification", normalized_classification))
+    if normalized_cause:
+        parts.append(("cause", normalized_cause))
+    if normalized_origin:
+        parts.append(("origin", normalized_origin))
+
+    return parts
+
+
+def normalize_failure_fingerprint_text(failure_fingerprint):
+    text = (failure_fingerprint or "").strip()
+    if not text:
+        return ""
+
+    normalized_parts = []
+    for raw_part in text.split("|"):
+        part = raw_part.strip()
+        if not part or "=" not in part:
+            return ""
+
+        key, raw_value = part.split("=", 1)
+        normalized_key = " ".join(key.split()).casefold()
+        normalized_value = normalize_policy_value(raw_value)
+        if not normalized_key or not normalized_value:
+            return ""
+
+        normalized_parts.append(f"{normalized_key}={normalized_value}")
+
+    return "|".join(normalized_parts)
+
+
+def recurrence_eligible_history_record(record):
+    if not isinstance(record, dict):
+        return False
+    if (record.get("final_outcome") or "").strip() != "FAILURE":
+        return False
+    return bool(normalize_failure_fingerprint_text(record.get("failure_fingerprint")))
 
 
 def repeated_identical_crash(previous_cause, previous_origin, current_cause, current_origin):
@@ -245,6 +320,14 @@ def validate_history_record(record):
     if record.get("final_outcome") not in {"SUCCESS", "FAILURE"}:
         return "History record final_outcome must be SUCCESS or FAILURE."
 
+    normalized_failure_fingerprint = normalize_failure_fingerprint_text(record.get("failure_fingerprint"))
+    if record.get("final_outcome") == "SUCCESS" and record.get("failure_fingerprint", "").strip():
+        return "History record failure_fingerprint must be empty for SUCCESS."
+    if record.get("final_outcome") == "FAILURE" and not normalized_failure_fingerprint:
+        return "History record failure_fingerprint must be a non-empty normalized fingerprint for FAILURE."
+    if normalized_failure_fingerprint and record.get("failure_fingerprint") != normalized_failure_fingerprint:
+        return "History record failure_fingerprint must already be normalized."
+
     for field_name in required_string_fields:
         field_value = record.get(field_name)
         if not isinstance(field_value, str):
@@ -289,29 +372,34 @@ def load_history_records():
 
 
 def count_history_recurrence(records, failure_fingerprint):
-    fingerprint = (failure_fingerprint or "").strip()
+    fingerprint = normalize_failure_fingerprint_text(failure_fingerprint)
     if not fingerprint:
         return 0
-    return sum(1 for record in records if (record.get("failure_fingerprint") or "").strip() == fingerprint)
+    return sum(
+        1
+        for record in records
+        if recurrence_eligible_history_record(record)
+        and normalize_failure_fingerprint_text(record.get("failure_fingerprint")) == fingerprint
+    )
 
 
 def characterize_history_stability(records):
-    if not records:
+    recent_records = [
+        record
+        for record in records
+        if recurrence_eligible_history_record(record)
+    ][-HISTORY_STABILITY_WINDOW_SIZE:]
+
+    if not recent_records:
         return "stable"
 
-    recent_records = records[-5:]
-    recent_outcomes = {
-        (record.get("final_outcome") or "").strip()
-        for record in recent_records
-        if (record.get("final_outcome") or "").strip()
-    }
     recent_fingerprints = {
-        (record.get("failure_fingerprint") or "").strip()
+        normalize_failure_fingerprint_text(record.get("failure_fingerprint"))
         for record in recent_records
-        if (record.get("failure_fingerprint") or "").strip()
+        if recurrence_eligible_history_record(record)
     }
 
-    if len(recent_outcomes) <= 1 and len(recent_fingerprints) <= 1:
+    if len(recent_fingerprints) <= 1:
         return "stable"
     return "varied"
 
@@ -326,7 +414,9 @@ def summarize_loaded_history(records):
         }
 
     latest_record = records[-1]
-    latest_failure_fingerprint = (latest_record.get("failure_fingerprint") or "").strip()
+    latest_failure_fingerprint = ""
+    if recurrence_eligible_history_record(latest_record):
+        latest_failure_fingerprint = normalize_failure_fingerprint_text(latest_record.get("failure_fingerprint"))
 
     return {
         "history_loaded": True,
@@ -340,8 +430,7 @@ def summarize_prior_history_for_diagnostics(records, current_failure_fingerprint
     relevant_failure_records = [
         record
         for record in records
-        if (record.get("final_outcome") or "").strip() == "FAILURE"
-        and (record.get("failure_fingerprint") or "").strip()
+        if recurrence_eligible_history_record(record)
     ]
 
     if not relevant_failure_records:
@@ -358,43 +447,51 @@ def summarize_prior_history_for_diagnostics(records, current_failure_fingerprint
     }
 
 
-def select_historical_advisory_hint(prior_history_context):
+def build_historical_advisory_inference(prior_history_context):
     if not prior_history_context.get("history_loaded"):
-        return ""
+        return {}
 
     matching_failure_recurrence = int(prior_history_context.get("matching_failure_recurrence", 0) or 0)
     if matching_failure_recurrence > 0:
-        return (
-            "Advisory (historical, non-authoritative): "
-            f"this finalized failure fingerprint has appeared in {matching_failure_recurrence} prior finalized failed run(s)."
-        )
+        return {
+            "message": (
+                f"this finalized failure fingerprint has appeared in {matching_failure_recurrence} "
+                "prior finalized failed run(s)."
+            ),
+            "confidence": ADVISORY_CONFIDENCE_DIRECT_EVIDENCE,
+        }
 
     if (prior_history_context.get("recent_history_stability") or "").strip() == "varied":
-        return (
-            "Advisory (historical, non-authoritative): "
-            "recent prior finalized failed runs have been varied, so this run appears within a changing failure history."
-        )
+        return {
+            "message": (
+                "recent prior finalized failed runs have been varied, so this run appears within a changing "
+                "failure history."
+            ),
+            "confidence": ADVISORY_CONFIDENCE_PATTERN_EVIDENCE,
+        }
 
-    return ""
+    return {}
+
+
+def select_historical_advisory_hint(prior_history_context):
+    advisory_inference = build_historical_advisory_inference(prior_history_context)
+    if not advisory_inference:
+        return ""
+    return format_advisory_inference_line(advisory_inference["message"])
 
 
 def build_failure_fingerprint(final_outcome, final_classification, failure_cause="", failure_origin=""):
     if final_outcome != "FAILURE":
         return ""
 
-    parts = []
-    normalized_classification = normalize_policy_value(final_classification)
-    normalized_cause = normalize_policy_value(failure_cause)
-    normalized_origin = normalize_policy_value(failure_origin, "Failure origin: ")
-
-    if normalized_classification:
-        parts.append(f"classification={normalized_classification}")
-    if normalized_cause:
-        parts.append(f"cause={normalized_cause}")
-    if normalized_origin:
-        parts.append(f"origin={normalized_origin}")
-
-    return "|".join(parts)
+    return "|".join(
+        f"{key}={value}"
+        for key, value in build_failure_fingerprint_parts(
+            final_classification,
+            failure_cause,
+            failure_origin,
+        )
+    )
 
 
 def build_history_record(
@@ -919,6 +1016,11 @@ def crash_log(
 
 
 def launch_diag():
+    if HARNESS_DISABLE_DIAGNOSTICS:
+        runtime("Diagnostics UI launch skipped by harness seam")
+        runtime_event("STATUS", "SKIP", "DIAGNOSTICS_UI", "HARNESS_DISABLED")
+        return None
+
     runtime("Launching diagnostics UI")
     runtime_event("STATUS", "START", "DIAGNOSTICS_UI")
     write_status("TRACE", "Launching diagnostics UI")
@@ -929,6 +1031,11 @@ def launch_diag():
 
 
 def speak(spoken_text, display_text=None):
+    if HARNESS_DISABLE_VOICE:
+        runtime(f"VOICE skipped by harness seam: {spoken_text}")
+        runtime_event("VOICE", "SKIP", spoken_text, "HARNESS_DISABLED")
+        return 0
+
     if not os.path.exists(VOICE_SCRIPT):
         runtime(f"Voice script missing: {VOICE_SCRIPT}")
         runtime_event("STATUS", "FAIL", "VOICE_SCRIPT", "MISSING")
@@ -1287,11 +1394,15 @@ def main():
         if prior_history_context["matching_failure_recurrence"] > 0:
             write_status(
                 "TRACE",
-                f"Historical context (prior finalized runs only): matching failure fingerprint observed in {prior_history_context['matching_failure_recurrence']} prior run(s).",
+                format_historical_context_line(
+                    f"matching failure fingerprint observed in {prior_history_context['matching_failure_recurrence']} prior run(s)."
+                ),
             )
         write_status(
             "TRACE",
-            f"Historical context (prior finalized runs only): recent recorded failure history stability = {prior_history_context['recent_history_stability']}.",
+            format_historical_context_line(
+                f"recent recorded failure history stability = {prior_history_context['recent_history_stability']}."
+            ),
         )
     historical_advisory_hint = select_historical_advisory_hint(prior_history_context)
     if historical_advisory_hint:

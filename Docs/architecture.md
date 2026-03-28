@@ -237,6 +237,138 @@ It should be treated as:
 - a non-authoritative and non-binding intelligence layer
 - a stopping point before any future confidence scoring, broader advisory expansion, or behavior-coupled intelligence work
 
+## v1.8.0 Direction
+
+`v1.8.0` should be treated as a trust-and-validation phase for cross-run historical intelligence.
+
+Its job is not to make Jarvis more behaviorally aggressive or more authoritative.
+Its job is to make the existing historical layer more trustworthy, repeatable, and future-safe before any broader intelligence work is considered.
+
+Official objective:
+
+- validation-first multi-run historical-intelligence infrastructure
+- stronger replay and verification across launches
+- clearer recurrence and provenance semantics built on existing `v1.7.0` boundaries
+- no runtime-control coupling
+- no authority expansion
+
+## v1.8.0 Safest First Revision
+
+The safest first revision for `v1.8.0` is:
+
+- `FB-014` multi-run orchestration regression harness
+
+That first revision should remain:
+
+- tooling and verification focused
+- cross-run and replay oriented
+- isolated from launcher runtime-control behavior
+- sufficient to validate recorder, summarizer, diagnostics-context, and diagnostics-advisory behavior across repeated launches
+
+Explicit non-goals for `v1.8.0` rev1:
+
+- confidence scoring
+- advisory authority expansion
+- historical readback into runtime behavior
+- retry, escalation, threshold, or classification changes
+- boot-level orchestration work
+
+## v1.8.0 Implemented Rev1 Foundation
+
+`FB-014` rev1 is now implemented as the validation-first harness foundation for `v1.8.0`.
+
+Current implemented rev1 foundation:
+
+- rev1a: dormant contained-execution seams in the launcher for isolated log-root control, target-script override, and optional diagnostics or voice no-op seams
+- rev1b: first reusable contained harness runner covering healthy runs, failed runs with no prior history, and failed runs with matching prior failure history
+- rev1c: harness scenario expansion covering varied prior failure history, success-only prior history, malformed history input, and hostile or unreadable history storage fallback
+
+Current guarantees remain unchanged:
+
+- harness execution remains external validation tooling rather than runtime-control behavior
+- launcher and runtime behavior remain unchanged in production mode when seams are unset
+- historical context remains non-authoritative
+- advisory output remains non-binding
+
+## v1.8.0 Implemented Rev2a Strict Fingerprint Contract
+
+`FB-012` rev2a is now implemented as the first strict failure-fingerprint contract slice for `v1.8.0`.
+
+Implemented rev2a state:
+
+- fingerprints apply only to finalized failure records
+- success records keep empty `failure_fingerprint` values
+- failure records require non-empty normalized `failure_fingerprint` values
+- initial recurrence grouping uses strict equality on the normalized full fingerprint
+- success records and empty fingerprints are excluded from recurrence grouping
+
+Current guarantees remain unchanged:
+
+- no fuzzy matching
+- no confidence or provenance semantics
+- no reinterpretation of recurrence as runtime policy significance
+- no coupling of historical recurrence to runtime-control behavior
+
+## v1.8.0 Implemented Rev2b Deterministic Stability Model
+
+`FB-012` rev2b is now implemented as the deterministic recent-history stability-model slice for `v1.8.0`.
+
+Implemented rev2b state:
+
+- stability is computed only from recurrence-eligible finalized failure records
+- the recent-history window is explicitly the most recent `5` eligible finalized failure records
+- `stable` means a recent window containing `0` or `1` unique normalized full fingerprints
+- `varied` means a recent window containing more than `1` unique normalized full fingerprints
+- success records, empty fingerprints, malformed lines, contract-invalid records, and hostile or unreadable history cases are excluded from stability calculations
+
+Current guarantees remain unchanged:
+
+- no fuzzy matching
+- no confidence or provenance semantics
+- no advisory redesign
+- no reinterpretation of stability as runtime policy significance
+- no coupling of historical stability to runtime-control behavior
+
+Taken together, `FB-012` rev2a and rev2b complete the failure fingerprint and recurrence model track for `v1.8.0` without changing runtime policy.
+
+## v1.8.0 Implemented Rev3a Provenance-First Advisory Semantics
+
+`FB-013` rev3a is now implemented as the provenance-first advisory semantics slice for `v1.8.0`.
+
+Implemented rev3a state:
+
+- diagnostics-facing output now explicitly distinguishes current-run truth, prior finalized historical context, and advisory inference
+- advisory inference remains non-binding and non-authoritative
+- confidence remains absent from surfaced operator-facing output in this first slice
+- crash-report and incident-summary truth surfaces remain free of historical or advisory provenance language
+
+Current guarantees remain unchanged:
+
+- no surfaced confidence scoring
+- no interpretation of confidence as severity, urgency, escalation level, recommendation strength, or runtime-policy permission
+- no coupling of advisory semantics to runtime-control behavior
+- no authority expansion beyond the existing diagnostics-only advisory boundary
+
+## v1.8.0 Implemented Rev3b Internal Confidence Semantics
+
+`FB-013` rev3b is now implemented as the definition-only and internal confidence-semantics slice for `v1.8.0`.
+
+Implemented rev3b state:
+
+- confidence is defined only as evidence-directness or evidence-quality for advisory inference
+- confidence remains absent from surfaced operator-facing output
+- internal confidence handling stays aligned only with the existing exact-recurrence and varied-history advisory evidence lanes
+
+Current guarantees remain unchanged:
+
+- no surfaced confidence scoring
+- no interpretation of confidence as severity, urgency, escalation level, recommendation strength, predictive correctness, runtime-policy permission, or authority over current-run truth
+- no coupling of confidence semantics to runtime-control behavior
+- no authority expansion beyond the existing diagnostics-only advisory boundary
+- no confidence, historical, or advisory language added to crash-report or incident-summary truth surfaces
+
+Taken together, `FB-013` rev3a and rev3b complete the advisory provenance and confidence semantics track for `v1.8.0` without introducing surfaced confidence output or runtime-policy meaning.
+
 ## Read-Only Memory Rule
 
 Historical memory in `v1.7.0` must remain a derived, read-only layer over `v1.6.0` truth.
