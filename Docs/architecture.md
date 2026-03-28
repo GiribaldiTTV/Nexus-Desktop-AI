@@ -425,33 +425,31 @@ Not allowed yet:
 
 ## Support-Bundle Reporting Boundary
 
-The safest first slice for `FB-017` is a privacy-safe reporting-contract pass.
+The first coherent `FB-017` deliverable is now implemented as a privacy-safe manual reporting flow in the existing diagnostics window.
 
-A future `Report Issue` flow may package a minimal local support bundle and open a prefilled GitHub issue page or draft for manual user submission.
+The implemented `Report Issue` flow packages a minimal local support bundle and opens a prefilled GitHub issue page or draft for manual user submission.
 
 This boundary is reporting and packaging work only.
 It may package already-produced runtime and crash artifacts plus a small manifest, but it must not introduce upload behavior, silent collection expansion, or diagnostics-policy changes.
 
-Minimum rev1a contract:
+Implemented first-deliverable state:
 
 - the relevant runtime log for the reported run
-- the matching crash log if present
+- the matching crash log if present and trustworthily determinable by exact runtime-to-crash reference match
 - a small manifest containing Jarvis version, run or timestamp identity, and a basic environment summary
+- bundled file list recorded in the manifest
 - local bundle generation only
 - manual user review before sharing
 - a prefilled GitHub issue page or draft opened for manual completion
 - manual user attachment and manual user submission
 
-Default exclusions:
+Current guarantees remain unchanged:
 
 - historical-memory files
 - harness artifacts
 - internal-only debug extras
 - silent or background upload behavior
 - fully automatic GitHub submission
-
-Not allowed in this first slice:
-
 - launcher or runtime behavior changes
 - retry, escalation, threshold, classification, diagnostics-trigger, summary, or triage-guidance changes
 - diagnostics redesign

@@ -579,10 +579,10 @@ Implemented in `v1.7.0` rev1.
 
 ### [ID: FB-017] Support bundle and GitHub issue prefill
 
-Status: Deferred  
+Status: Implemented (Post-v1.8.0 rev1)  
 Priority: Medium  
-Suggested Version: Post-v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: Post-v1.8.0  
+Suggested Revision: rev1  
 
 Description:
 Add a user-friendly issue-reporting flow that generates a support bundle and opens a prefilled GitHub issue page.
@@ -611,7 +611,7 @@ Out of Scope:
 - unrelated diagnostics policy changes
 
 Notes:
-Prefer a privacy-safe design where the user reviews and submits the issue manually. The support bundle should remain simple by default, with advanced/internal artifacts included only if explicitly needed later.
+The first coherent manual reporting flow is now implemented as a privacy-safe diagnostics-window `Report Issue` action. It generates a local support bundle, writes the manifest, opens a prefilled GitHub issue page for manual completion, keeps attachment and submission manual, and includes a crash log only when the runtime-to-crash match is trustworthily determinable. The support bundle remains simple by default, with advanced/internal artifacts included only if explicitly needed later.
 
 ---
 
