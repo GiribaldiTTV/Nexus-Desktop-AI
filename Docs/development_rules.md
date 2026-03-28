@@ -134,6 +134,27 @@ Important architecture, orchestration, and behavior decisions should be written 
 
 Project docs are part of the source of truth and should be read before planning future revisions.
 
+## Historical Intelligence Rules
+
+Cross-run intelligence must be contract-defined in repo docs before implementation begins.
+
+That contract must define:
+
+- versioned history schema
+- run identity rules
+- failure fingerprint rules
+- provenance labeling
+- retention and reset behavior
+- corruption and fallback behavior
+
+Historical intelligence must remain a derived layer over current-run truth.
+It must not become a second source of runtime truth.
+
+Confidence may be used only as explanatory metadata.
+It must never be treated as authoritative runtime policy.
+
+If historical state is missing, unreadable, or corrupt, the system must degrade cleanly to the last finalized non-historical behavior.
+
 ## Backlog Integration
 
 If a new idea or improvement is identified:
@@ -146,6 +167,7 @@ If a new idea or improvement is identified:
 Ideas are only implemented after being explicitly selected from the backlog.
 
 ## Backlog Control
+
 The backlog file (docs/feature_backlog.md) is the controlled planning layer for future work.
 
 ### Codex Permissions

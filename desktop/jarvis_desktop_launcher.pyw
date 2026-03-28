@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import re
+import json
 import subprocess
 import datetime
 import platform
@@ -28,6 +29,7 @@ STARTUP_READY_STALL_CONFIRM_SECONDS = 8.0
 STARTUP_ABORT_CONTROL_FLOW_RESULT = "STARTUP_ABORT"
 CONSECUTIVE_STARTUP_ABORT_THRESHOLD = 2
 CONSECUTIVE_IDENTICAL_CRASH_THRESHOLD = 2
+HISTORY_SCHEMA_VERSION = 1
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -191,6 +193,284 @@ def select_diagnostics_priority(failure_stability):
     if (failure_stability or "").strip() == "unstable across recovery attempts":
         return "elevated attention due to unstable recovery pattern"
     return ""
+
+
+def history_file():
+    return os.path.join(LOG_DIR, "jarvis_history_v1.jsonl")
+
+
+def history_timestamp():
+    return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def normalize_history_run_id(run_id):
+    return strip_label_prefix(run_id, "Run ID: ") or RUN_ID_STEM
+
+
+def prepare_history_storage_path():
+    path = os.path.abspath(history_file())
+    parent_dir = os.path.dirname(path)
+    if not parent_dir:
+        raise ValueError("History storage path has no parent directory.")
+    os.makedirs(parent_dir, exist_ok=True)
+    if os.path.isdir(path):
+        raise IsADirectoryError(f"History storage path is a directory: {path}")
+    return path
+
+
+def validate_history_record(record):
+    if not isinstance(record, dict):
+        return "History record payload must be a dictionary."
+
+    required_string_fields = (
+        "run_id",
+        "recorded_at",
+        "final_outcome",
+        "final_classification",
+        "end_reason",
+        "attempt_pattern",
+        "failure_stability",
+        "diagnostics_priority",
+        "failure_fingerprint",
+        "provenance",
+    )
+
+    if record.get("schema_version") != HISTORY_SCHEMA_VERSION:
+        return f"History record schema_version must be {HISTORY_SCHEMA_VERSION}."
+
+    attempt_count = record.get("attempt_count")
+    if not isinstance(attempt_count, int) or attempt_count < 1:
+        return "History record attempt_count must be a positive integer."
+
+    if record.get("final_outcome") not in {"SUCCESS", "FAILURE"}:
+        return "History record final_outcome must be SUCCESS or FAILURE."
+
+    for field_name in required_string_fields:
+        field_value = record.get(field_name)
+        if not isinstance(field_value, str):
+            return f"History record field {field_name} must be a string."
+        if field_name in {"run_id", "recorded_at", "final_outcome", "final_classification", "end_reason", "provenance"} and not field_value.strip():
+            return f"History record field {field_name} must not be empty."
+
+    if record.get("provenance") != "derived_from_finalized_v1.6.0_truth_surfaces":
+        return "History record provenance marker is invalid."
+
+    return ""
+
+
+def load_history_records():
+    try:
+        history_path = os.path.abspath(history_file())
+        if not os.path.exists(history_path):
+            return []
+        if os.path.isdir(history_path):
+            return []
+
+        records = []
+        with open(history_path, "r", encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                except Exception:
+                    continue
+
+                validation_error = validate_history_record(record)
+                if validation_error:
+                    continue
+
+                records.append(record)
+
+        return records
+    except Exception:
+        return []
+
+
+def count_history_recurrence(records, failure_fingerprint):
+    fingerprint = (failure_fingerprint or "").strip()
+    if not fingerprint:
+        return 0
+    return sum(1 for record in records if (record.get("failure_fingerprint") or "").strip() == fingerprint)
+
+
+def characterize_history_stability(records):
+    if not records:
+        return "stable"
+
+    recent_records = records[-5:]
+    recent_outcomes = {
+        (record.get("final_outcome") or "").strip()
+        for record in recent_records
+        if (record.get("final_outcome") or "").strip()
+    }
+    recent_fingerprints = {
+        (record.get("failure_fingerprint") or "").strip()
+        for record in recent_records
+        if (record.get("failure_fingerprint") or "").strip()
+    }
+
+    if len(recent_outcomes) <= 1 and len(recent_fingerprints) <= 1:
+        return "stable"
+    return "varied"
+
+
+def summarize_loaded_history(records):
+    if not records:
+        return {
+            "history_loaded": False,
+            "history_record_count": 0,
+            "latest_failure_recurrence": 0,
+            "recent_history_stability": "stable",
+        }
+
+    latest_record = records[-1]
+    latest_failure_fingerprint = (latest_record.get("failure_fingerprint") or "").strip()
+
+    return {
+        "history_loaded": True,
+        "history_record_count": len(records),
+        "latest_failure_recurrence": count_history_recurrence(records, latest_failure_fingerprint),
+        "recent_history_stability": characterize_history_stability(records),
+    }
+
+
+def summarize_prior_history_for_diagnostics(records, current_failure_fingerprint):
+    relevant_failure_records = [
+        record
+        for record in records
+        if (record.get("final_outcome") or "").strip() == "FAILURE"
+        and (record.get("failure_fingerprint") or "").strip()
+    ]
+
+    if not relevant_failure_records:
+        return {
+            "history_loaded": False,
+            "matching_failure_recurrence": 0,
+            "recent_history_stability": "stable",
+        }
+
+    return {
+        "history_loaded": True,
+        "matching_failure_recurrence": count_history_recurrence(relevant_failure_records, current_failure_fingerprint),
+        "recent_history_stability": characterize_history_stability(relevant_failure_records),
+    }
+
+
+def select_historical_advisory_hint(prior_history_context):
+    if not prior_history_context.get("history_loaded"):
+        return ""
+
+    matching_failure_recurrence = int(prior_history_context.get("matching_failure_recurrence", 0) or 0)
+    if matching_failure_recurrence > 0:
+        return (
+            "Advisory (historical, non-authoritative): "
+            f"this finalized failure fingerprint has appeared in {matching_failure_recurrence} prior finalized failed run(s)."
+        )
+
+    if (prior_history_context.get("recent_history_stability") or "").strip() == "varied":
+        return (
+            "Advisory (historical, non-authoritative): "
+            "recent prior finalized failed runs have been varied, so this run appears within a changing failure history."
+        )
+
+    return ""
+
+
+def build_failure_fingerprint(final_outcome, final_classification, failure_cause="", failure_origin=""):
+    if final_outcome != "FAILURE":
+        return ""
+
+    parts = []
+    normalized_classification = normalize_policy_value(final_classification)
+    normalized_cause = normalize_policy_value(failure_cause)
+    normalized_origin = normalize_policy_value(failure_origin, "Failure origin: ")
+
+    if normalized_classification:
+        parts.append(f"classification={normalized_classification}")
+    if normalized_cause:
+        parts.append(f"cause={normalized_cause}")
+    if normalized_origin:
+        parts.append(f"origin={normalized_origin}")
+
+    return "|".join(parts)
+
+
+def build_history_record(
+    run_id,
+    final_outcome,
+    final_classification,
+    end_reason,
+    attempt_count,
+    attempt_pattern="",
+    failure_stability="",
+    diagnostics_priority="",
+    failure_cause="",
+    failure_origin="",
+):
+    return {
+        "schema_version": HISTORY_SCHEMA_VERSION,
+        "run_id": normalize_history_run_id(run_id),
+        "recorded_at": history_timestamp(),
+        "final_outcome": (final_outcome or "").strip(),
+        "final_classification": (final_classification or "").strip(),
+        "end_reason": (end_reason or "").strip(),
+        "attempt_count": int(attempt_count),
+        "attempt_pattern": (attempt_pattern or "").strip(),
+        "failure_stability": (failure_stability or "").strip(),
+        "diagnostics_priority": (diagnostics_priority or "").strip(),
+        "failure_fingerprint": build_failure_fingerprint(
+            (final_outcome or "").strip(),
+            (final_classification or "").strip(),
+            failure_cause,
+            failure_origin,
+        ),
+        "provenance": "derived_from_finalized_v1.6.0_truth_surfaces",
+    }
+
+
+def record_finalized_history(
+    run_id,
+    final_outcome,
+    final_classification,
+    end_reason,
+    attempt_count,
+    attempt_pattern="",
+    failure_stability="",
+    diagnostics_priority="",
+    failure_cause="",
+    failure_origin="",
+):
+    record = build_history_record(
+        run_id,
+        final_outcome,
+        final_classification,
+        end_reason,
+        attempt_count,
+        attempt_pattern,
+        failure_stability,
+        diagnostics_priority,
+        failure_cause,
+        failure_origin,
+    )
+
+    try:
+        validation_error = validate_history_record(record)
+        if validation_error:
+            runtime(f"Historical recorder skipped invalid finalized record; continuing without history: {validation_error}")
+            return False
+
+        history_path = prepare_history_storage_path()
+        serialized_record = json.dumps(record, sort_keys=True)
+        with open(history_path, "a", encoding="utf-8") as f:
+            f.write(serialized_record + "\n")
+        _ = summarize_loaded_history(load_history_records())
+        runtime(f"Historical recorder wrote finalized run record: {os.path.basename(history_path)}")
+        return True
+    except Exception as exc:
+        runtime(f"Historical recorder failed; continuing without history: {exc}")
+        return False
 
 
 def write_runtime_incident_summary(
@@ -823,6 +1103,13 @@ def main():
             delete_file(STARTUP_ABORT_SIGNAL_FILE, "normal exit")
             delete_file(STATUS_FILE, "normal exit")
             runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "NORMAL_EXIT_COMPLETE")
+            record_finalized_history(
+                run_id,
+                "SUCCESS",
+                "NORMAL_EXIT_COMPLETE",
+                "NORMAL_EXIT_COMPLETE",
+                attempt,
+            )
             return 0
 
         if last_code == STARTUP_ABORT_CONTROL_FLOW_RESULT:
@@ -980,6 +1267,15 @@ def main():
     )
     triage_guidance = triage_renderer_failure(last_failure_cause, failure_stability)
     diagnostics_priority = select_diagnostics_priority(failure_stability)
+    prior_history_context = summarize_prior_history_for_diagnostics(
+        load_history_records(),
+        build_failure_fingerprint(
+            "FAILURE",
+            recovery_pipeline_end_reason,
+            last_failure_cause,
+            last_failure_origin,
+        ),
+    )
     if diagnostics_priority:
         write_status("SUMMARY", f"Diagnostics Priority: {diagnostics_priority}")
     if failure_stability:
@@ -987,6 +1283,19 @@ def main():
     if recovery_outcome == "Automatic recovery did not change the underlying renderer failure.":
         write_status("SUMMARY", "Automatic recovery did not change the underlying renderer failure.")
         write_status("TRACE", "Same failure cause persisted across all recovery attempts.")
+    if prior_history_context["history_loaded"]:
+        if prior_history_context["matching_failure_recurrence"] > 0:
+            write_status(
+                "TRACE",
+                f"Historical context (prior finalized runs only): matching failure fingerprint observed in {prior_history_context['matching_failure_recurrence']} prior run(s).",
+            )
+        write_status(
+            "TRACE",
+            f"Historical context (prior finalized runs only): recent recorded failure history stability = {prior_history_context['recent_history_stability']}.",
+        )
+    historical_advisory_hint = select_historical_advisory_hint(prior_history_context)
+    if historical_advisory_hint:
+        write_status("TRACE", historical_advisory_hint)
     write_status("SUMMARY", "Automatic recovery has completed. Manual investigation is required.")
     crash_filename = f"Crash_{RUN_ID_STEM}.txt"
     write_status("SUMMARY", "I have prepared the latest crash report and runtime log. Review the crash report first.")
@@ -1022,6 +1331,18 @@ def main():
     )
     write_runtime_stderr_excerpt(last_failure_stderr_excerpt)
     runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "FAILURE_FLOW_COMPLETE")
+    record_finalized_history(
+        run_id,
+        "FAILURE",
+        recovery_pipeline_end_reason,
+        recovery_pipeline_end_reason,
+        len(failure_kinds),
+        attempt_pattern,
+        failure_stability,
+        diagnostics_priority,
+        last_failure_cause,
+        last_failure_origin,
+    )
 
 
 if __name__ == "__main__":
