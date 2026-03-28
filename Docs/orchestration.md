@@ -288,7 +288,7 @@ Implemented rev1 state:
 This implemented rev1 state does not alter orchestration behavior.
 It validates the existing recorder, summarizer, diagnostics-context, and diagnostics-advisory surfaces from outside the runtime-control path.
 
-## Future Expansion (Not Yet Implemented)
+## Later Orchestration Topics
 
 Examples of later orchestration topics:
 
@@ -300,11 +300,11 @@ Examples of later orchestration topics:
 
 These should be handled as dedicated revisions, not mixed into unrelated work.
 
-## FB-003 Rev1a Retry-Exhaustion Boundary
+## FB-003 Rev1 Baseline and Implemented State
 
-The safest first revision for `FB-003` is a policy-contract pass only.
+`FB-003` began with a `rev1a` policy-contract pass and now includes an implemented `rev1b` launcher behavior slice.
 
-Its job is to define when retries stop adding value and when the launcher should enter the existing diagnostics completion path, using current launcher-owned failure classes and recovery outcomes rather than new UI or new control surfaces.
+The `rev1a` baseline defines when retries stop adding value and when the launcher should enter the existing diagnostics completion path, using current launcher-owned failure classes and recovery outcomes rather than new UI or new control surfaces.
 
 Rev1a should stay grounded in the current high-signal desktop-phase evidence classes already recognized by the launcher:
 
@@ -318,7 +318,15 @@ Rev1a may define:
 - that the launcher then enters the existing diagnostics completion path rather than continuing silent recovery
 - that this transition reuses the current diagnostics completion surfaces rather than redesigning diagnostics behavior
 
-Rev1a must not define yet:
+Implemented `rev1b` state:
+
+- repeated `STARTUP_ABORT` exhaustion now behaves as a first-class terminal outcome
+- repeated identical crash exhaustion now behaves as a first-class terminal outcome
+- actual attempts used now propagate into terminal finalization and runtime summary output
+- terminal crash-report wording now reflects the real end reason instead of generic max-attempt framing
+- the existing diagnostics completion path is reused unchanged
+
+`FB-003` must not define yet:
 
 - mixed failure-sequence policy such as crash-then-abort or abort-then-crash
 - threshold retuning

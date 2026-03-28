@@ -82,10 +82,10 @@ This remains intentionally deferred and should not be mixed into the advisory-on
 
 ### [ID: FB-003] Retry limit and diagnostics escalation policy
 
-Status: Deferred  
+Status: Implemented (Post-v1.8.0 rev1)  
 Priority: Medium  
-Suggested Version: Post-v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: Post-v1.8.0  
+Suggested Revision: rev1  
 
 Description:
 Define when repeated failures should escalate to diagnostics instead of continuing to retry.
@@ -109,7 +109,7 @@ Out of Scope:
 - broad orchestration refactor
 
 Notes:
-This remains intentionally deferred and should not be mixed into the advisory-only `v1.7.0` track.
+This is now implemented through `Post-v1.8.0` `rev1a` and `rev1b`. `rev1a` defined the retry-exhaustion and diagnostics-entry policy contract for repeated `STARTUP_ABORT` outcomes and repeated identical crash outcomes only. `rev1b` implemented the first coherent launcher behavior slice so those two evidence classes now terminate as first-class outcomes, propagate actual attempts used into terminal finalization and runtime summary output, use reason-correct terminal wording, and reuse the existing diagnostics completion path unchanged. Mixed failure-sequence policy remains separate `FB-002` work.
 
 ---
 
