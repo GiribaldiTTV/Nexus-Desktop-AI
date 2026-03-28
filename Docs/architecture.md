@@ -237,6 +237,42 @@ It should be treated as:
 - a non-authoritative and non-binding intelligence layer
 - a stopping point before any future confidence scoring, broader advisory expansion, or behavior-coupled intelligence work
 
+## v1.8.0 Direction
+
+`v1.8.0` should be treated as a trust-and-validation phase for cross-run historical intelligence.
+
+Its job is not to make Jarvis more behaviorally aggressive or more authoritative.
+Its job is to make the existing historical layer more trustworthy, repeatable, and future-safe before any broader intelligence work is considered.
+
+Official objective:
+
+- validation-first multi-run historical-intelligence infrastructure
+- stronger replay and verification across launches
+- clearer recurrence and provenance semantics built on existing `v1.7.0` boundaries
+- no runtime-control coupling
+- no authority expansion
+
+## v1.8.0 Safest First Revision
+
+The safest first revision for `v1.8.0` is:
+
+- `FB-014` multi-run orchestration regression harness
+
+That first revision should remain:
+
+- tooling and verification focused
+- cross-run and replay oriented
+- isolated from launcher runtime-control behavior
+- sufficient to validate recorder, summarizer, diagnostics-context, and diagnostics-advisory behavior across repeated launches
+
+Explicit non-goals for `v1.8.0` rev1:
+
+- confidence scoring
+- advisory authority expansion
+- historical readback into runtime behavior
+- retry, escalation, threshold, or classification changes
+- boot-level orchestration work
+
 ## Read-Only Memory Rule
 
 Historical memory in `v1.7.0` must remain a derived, read-only layer over `v1.6.0` truth.

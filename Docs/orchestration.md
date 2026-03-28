@@ -248,6 +248,33 @@ No contradictions remain between:
 - diagnostics `TRACE` advisory wording
 - documented version boundaries
 
+## v1.8.0 Validation-First Boundary
+
+`v1.8.0` should begin as a validation-first phase for the historical-intelligence layer introduced in `v1.7.0`.
+
+The safest first target is:
+
+- `FB-014` multi-run orchestration regression harness
+
+Allowed in early `v1.8.0`:
+
+- repeatable multi-run verification of history recording
+- recurrence and fallback validation across repeated launches
+- diagnostics historical-context verification
+- diagnostics advisory-surface verification
+
+Not allowed in early `v1.8.0`:
+
+- retry or escalation changes
+- threshold or classification changes
+- diagnostics-trigger changes
+- confidence scoring
+- broader advisory expansion
+- historical content added to crash-report or incident-summary truth surfaces
+- readback from history into runtime behavior
+
+Future `v1.8.0` work may formalize recurrence and provenance semantics only after validation infrastructure is in place.
+
 ## Future Expansion (Not Yet Implemented)
 
 Examples of later orchestration topics:

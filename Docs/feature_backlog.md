@@ -397,8 +397,8 @@ This contract was defined in repo docs before implementation began and remains t
 
 Status: Deferred  
 Priority: High  
-Suggested Version: v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: v1.8.0  
+Suggested Revision: rev2  
 
 Description:
 Define how the system recognizes recurring outcomes across launches without changing the closed `v1.6.0` runtime classification model.
@@ -425,7 +425,7 @@ Out of Scope:
 - escalation changes
 
 Notes:
-This should build directly on the historical memory contract.
+This should follow the multi-run regression harness in `v1.8.0` and build directly on the historical memory contract.
 
 ---
 
@@ -433,8 +433,8 @@ This should build directly on the historical memory contract.
 
 Status: Deferred  
 Priority: Medium  
-Suggested Version: v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: v1.8.0  
+Suggested Revision: rev3  
 
 Description:
 Define how advisory outputs describe provenance, confidence, and evidence quality without becoming authoritative policy.
@@ -461,7 +461,7 @@ Out of Scope:
 - escalation changes
 
 Notes:
-This should remain advisory-only throughout `v1.7.0`.
+This should remain advisory-only and should follow the validated recurrence model in `v1.8.0`.
 
 ---
 
@@ -469,8 +469,8 @@ This should remain advisory-only throughout `v1.7.0`.
 
 Status: Deferred  
 Priority: Medium  
-Suggested Version: v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: v1.8.0  
+Suggested Revision: rev1  
 
 Description:
 Create a reusable multi-run validation concept for historical-memory, diagnostics-enrichment, and advisory-only orchestration work.
@@ -495,7 +495,7 @@ Out of Scope:
 - UI redesign
 
 Notes:
-This future-proofs `v1.7.0` without reopening `v1.6.0` behavior.
+This is the safest first implementation target for `v1.8.0` and future-proofs the historical-intelligence layer without reopening `v1.6.0` behavior.
 
 ---
 
@@ -503,7 +503,7 @@ This future-proofs `v1.7.0` without reopening `v1.6.0` behavior.
 
 Status: Deferred  
 Priority: Medium  
-Suggested Version: v1.7.0  
+Suggested Version: Post-v1.8.0  
 Suggested Revision: TBD  
 
 Description:
@@ -530,7 +530,7 @@ Out of Scope:
 - launcher behavior changes
 
 Notes:
-This is preparation work only and must not introduce boot-level runtime control in `v1.7.0`.
+This is preparation work only, must not introduce boot-level runtime control, and is not part of the validation-first `v1.8.0` track.
 
 ---
 
