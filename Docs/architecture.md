@@ -34,6 +34,16 @@ Until that higher-level system is explicitly designed, the desktop launcher rema
 - desktop-phase stall handling
 - desktop-phase cooperative control
 - desktop-phase recovery routing
+- desktop-phase classification and finalized end-state determination
+- desktop-phase runtime and crash truth generation
+
+A future boot orchestrator may consume the desktop launcher layer only as read-only downstream inputs, such as:
+
+- launcher-owned desktop-phase readiness, failure, recovery, and finalized end-state signals after they are emitted
+- launcher-owned desktop-phase truth surfaces after they are emitted
+- bounded historical or advisory outputs only as descriptive downstream context, never as authority over desktop-stage truth or control
+
+A future boot orchestrator must not rewrite, override, or reinterpret launcher-owned desktop truth or desktop control decisions.
 
 ## System Roles
 
@@ -385,11 +395,16 @@ That means:
 
 `v1.7.0` may prepare for later boot-level orchestration only at the modeling layer.
 
+This preparation boundary is modeling and contract work only.
+It may clarify ownership, dependency, and read-only consumption rules, but it must not introduce boot-stage behavior, cross-layer control, or launcher-policy changes.
+
 Allowed:
 
 - define desktop-stage history shapes that a future boot orchestrator could consume
 - define boot and desktop phase-boundary concepts
 - document how future higher layers may depend on launcher truth
+- define which launcher-owned desktop-stage outputs may be consumed on a read-only downstream basis
+- define which desktop-stage responsibilities remain exclusively launcher-owned
 
 Not allowed yet:
 
@@ -397,3 +412,4 @@ Not allowed yet:
 - adaptive retry or escalation
 - instability-driven behavior
 - hard-kill behavior
+- cross-layer authority over launcher-owned desktop truth or control
