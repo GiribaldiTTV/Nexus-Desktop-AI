@@ -336,6 +336,28 @@ def summarize_loaded_history(records):
     }
 
 
+def summarize_prior_history_for_diagnostics(records, current_failure_fingerprint):
+    relevant_failure_records = [
+        record
+        for record in records
+        if (record.get("final_outcome") or "").strip() == "FAILURE"
+        and (record.get("failure_fingerprint") or "").strip()
+    ]
+
+    if not relevant_failure_records:
+        return {
+            "history_loaded": False,
+            "matching_failure_recurrence": 0,
+            "recent_history_stability": "stable",
+        }
+
+    return {
+        "history_loaded": True,
+        "matching_failure_recurrence": count_history_recurrence(relevant_failure_records, current_failure_fingerprint),
+        "recent_history_stability": characterize_history_stability(relevant_failure_records),
+    }
+
+
 def build_failure_fingerprint(final_outcome, final_classification, failure_cause="", failure_origin=""):
     if final_outcome != "FAILURE":
         return ""
@@ -1225,6 +1247,15 @@ def main():
     )
     triage_guidance = triage_renderer_failure(last_failure_cause, failure_stability)
     diagnostics_priority = select_diagnostics_priority(failure_stability)
+    prior_history_context = summarize_prior_history_for_diagnostics(
+        load_history_records(),
+        build_failure_fingerprint(
+            "FAILURE",
+            recovery_pipeline_end_reason,
+            last_failure_cause,
+            last_failure_origin,
+        ),
+    )
     if diagnostics_priority:
         write_status("SUMMARY", f"Diagnostics Priority: {diagnostics_priority}")
     if failure_stability:
@@ -1232,6 +1263,16 @@ def main():
     if recovery_outcome == "Automatic recovery did not change the underlying renderer failure.":
         write_status("SUMMARY", "Automatic recovery did not change the underlying renderer failure.")
         write_status("TRACE", "Same failure cause persisted across all recovery attempts.")
+    if prior_history_context["history_loaded"]:
+        if prior_history_context["matching_failure_recurrence"] > 0:
+            write_status(
+                "TRACE",
+                f"Historical context (prior finalized runs only): matching failure fingerprint observed in {prior_history_context['matching_failure_recurrence']} prior run(s).",
+            )
+        write_status(
+            "TRACE",
+            f"Historical context (prior finalized runs only): recent recorded failure history stability = {prior_history_context['recent_history_stability']}.",
+        )
     write_status("SUMMARY", "Automatic recovery has completed. Manual investigation is required.")
     crash_filename = f"Crash_{RUN_ID_STEM}.txt"
     write_status("SUMMARY", "I have prepared the latest crash report and runtime log. Review the crash report first.")
