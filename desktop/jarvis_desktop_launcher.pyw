@@ -10,15 +10,30 @@ import datetime
 import platform
 import secrets
 
+
+def env_flag(name):
+    value = (os.environ.get(name) or "").strip().casefold()
+    return value in {"1", "true", "yes", "on"}
+
+
+def env_path_override(name, default_path):
+    value = (os.environ.get(name) or "").strip()
+    return os.path.abspath(value) if value else default_path
+
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_main.py")
-LOG_DIR = os.path.join(ROOT_DIR, "logs")
+DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_main.py")
+DEFAULT_LOG_DIR = os.path.join(ROOT_DIR, "logs")
+TARGET_SCRIPT = env_path_override("JARVIS_HARNESS_TARGET_SCRIPT", DEFAULT_TARGET_SCRIPT)
+LOG_DIR = env_path_override("JARVIS_HARNESS_LOG_ROOT", DEFAULT_LOG_DIR)
 CRASH_DIR = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
 STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
 STARTUP_ABORT_SIGNAL_FILE = os.path.join(LOG_DIR, "renderer_startup_abort.signal")
 DIAGNOSTICS_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "jarvis_diagnostics.pyw")
 VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_error_voice.py")
+HARNESS_DISABLE_DIAGNOSTICS = env_flag("JARVIS_HARNESS_DISABLE_DIAGNOSTICS")
+HARNESS_DISABLE_VOICE = env_flag("JARVIS_HARNESS_DISABLE_VOICE")
 
 MAX_RECOVERY_ATTEMPTS = 3
 RECOVERY_COOLDOWN_SECONDS = 1.2
@@ -919,6 +934,11 @@ def crash_log(
 
 
 def launch_diag():
+    if HARNESS_DISABLE_DIAGNOSTICS:
+        runtime("Diagnostics UI launch skipped by harness seam")
+        runtime_event("STATUS", "SKIP", "DIAGNOSTICS_UI", "HARNESS_DISABLED")
+        return None
+
     runtime("Launching diagnostics UI")
     runtime_event("STATUS", "START", "DIAGNOSTICS_UI")
     write_status("TRACE", "Launching diagnostics UI")
@@ -929,6 +949,11 @@ def launch_diag():
 
 
 def speak(spoken_text, display_text=None):
+    if HARNESS_DISABLE_VOICE:
+        runtime(f"VOICE skipped by harness seam: {spoken_text}")
+        runtime_event("VOICE", "SKIP", spoken_text, "HARNESS_DISABLED")
+        return 0
+
     if not os.path.exists(VOICE_SCRIPT):
         runtime(f"Voice script missing: {VOICE_SCRIPT}")
         runtime_event("STATUS", "FAIL", "VOICE_SCRIPT", "MISSING")
