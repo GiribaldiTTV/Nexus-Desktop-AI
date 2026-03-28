@@ -134,6 +134,8 @@ Important architecture, orchestration, and behavior decisions should be written 
 
 Project docs are part of the source of truth and should be read before planning future revisions.
 
+When using Codex or ChatGPT for project tasks, prefer the structured prompt format in `docs/jarvis_task_template.md` so requests include clear goal, context, evidence, constraints, allowed surfaces, and done-when criteria.
+
 ## Historical Intelligence Rules
 
 Cross-run intelligence must be contract-defined in repo docs before implementation begins.
