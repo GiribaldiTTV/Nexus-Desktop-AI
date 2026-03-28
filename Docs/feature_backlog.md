@@ -576,6 +576,44 @@ Rev1 should record only finalized facts from the closed `v1.6.0` truth layer and
 
 ---
 
+### [ID: FB-017] Support bundle and GitHub issue prefill
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: Post-v1.7.0  
+Suggested Revision: TBD  
+
+Description:
+Add a user-friendly issue-reporting flow that generates a support bundle and opens a prefilled GitHub issue page.
+
+Why it matters:
+End users should be able to report crashes or failures without manually hunting for the right files. A guided support flow would keep reporting simple for users while giving developers a more consistent debug package.
+
+Proposed Change:
+Add a `Report Issue` flow that generates a support bundle containing the current runtime log, crash log, version, environment details, and a small manifest, then opens a prefilled GitHub issue form for the user to review and submit manually.
+
+Likely Files Affected:
+- issue reporting UI flow
+- support bundle generation code
+- diagnostics/support documentation
+- optional GitHub issue template integration
+
+Scope:
+- support bundle generation
+- GitHub issue prefill
+- user-guided issue reporting flow
+
+Out of Scope:
+- silent log uploads
+- fully automatic GitHub submission
+- forced inclusion of internal historical-memory files
+- unrelated diagnostics policy changes
+
+Notes:
+Prefer a privacy-safe design where the user reviews and submits the issue manually. The support bundle should remain simple by default, with advanced/internal artifacts included only if explicitly needed later.
+
+---
+
 ## Completed Items
 
 Move completed backlog items here for history tracking.
