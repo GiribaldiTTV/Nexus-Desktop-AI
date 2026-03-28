@@ -258,6 +258,84 @@ def validate_history_record(record):
     return ""
 
 
+def load_history_records():
+    try:
+        history_path = os.path.abspath(history_file())
+        if not os.path.exists(history_path):
+            return []
+        if os.path.isdir(history_path):
+            return []
+
+        records = []
+        with open(history_path, "r", encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                except Exception:
+                    continue
+
+                validation_error = validate_history_record(record)
+                if validation_error:
+                    continue
+
+                records.append(record)
+
+        return records
+    except Exception:
+        return []
+
+
+def count_history_recurrence(records, failure_fingerprint):
+    fingerprint = (failure_fingerprint or "").strip()
+    if not fingerprint:
+        return 0
+    return sum(1 for record in records if (record.get("failure_fingerprint") or "").strip() == fingerprint)
+
+
+def characterize_history_stability(records):
+    if not records:
+        return "stable"
+
+    recent_records = records[-5:]
+    recent_outcomes = {
+        (record.get("final_outcome") or "").strip()
+        for record in recent_records
+        if (record.get("final_outcome") or "").strip()
+    }
+    recent_fingerprints = {
+        (record.get("failure_fingerprint") or "").strip()
+        for record in recent_records
+        if (record.get("failure_fingerprint") or "").strip()
+    }
+
+    if len(recent_outcomes) <= 1 and len(recent_fingerprints) <= 1:
+        return "stable"
+    return "varied"
+
+
+def summarize_loaded_history(records):
+    if not records:
+        return {
+            "history_loaded": False,
+            "history_record_count": 0,
+            "latest_failure_recurrence": 0,
+            "recent_history_stability": "stable",
+        }
+
+    latest_record = records[-1]
+    latest_failure_fingerprint = (latest_record.get("failure_fingerprint") or "").strip()
+
+    return {
+        "history_loaded": True,
+        "history_record_count": len(records),
+        "latest_failure_recurrence": count_history_recurrence(records, latest_failure_fingerprint),
+        "recent_history_stability": characterize_history_stability(records),
+    }
+
+
 def build_failure_fingerprint(final_outcome, final_classification, failure_cause="", failure_origin=""):
     if final_outcome != "FAILURE":
         return ""
@@ -345,6 +423,7 @@ def record_finalized_history(
         serialized_record = json.dumps(record, sort_keys=True)
         with open(history_path, "a", encoding="utf-8") as f:
             f.write(serialized_record + "\n")
+        _ = summarize_loaded_history(load_history_records())
         runtime(f"Historical recorder wrote finalized run record: {os.path.basename(history_path)}")
         return True
     except Exception as exc:
