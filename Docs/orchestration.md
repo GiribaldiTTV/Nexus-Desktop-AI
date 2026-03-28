@@ -337,11 +337,11 @@ Implemented `rev1b` state:
 
 Mixed failure-sequence policy remains separate `FB-002` work and must not be pulled into `FB-003` rev1a.
 
-## FB-002 Rev1a Conservative Mixed Failure-Sequence Boundary
+## FB-002 Rev1 Baseline and Current Launcher State
 
-The safest first revision for `FB-002` is a policy-contract pass only.
+`FB-002` began with a `rev1a` policy-contract pass.
 
-Its job is to define the conservative policy meaning of cross-kind mixed failure sequences without retuning thresholds, redesigning classification broadly, or reopening the terminal classes already handled by `FB-003`.
+The `rev1a` baseline defines the conservative policy meaning of cross-kind mixed failure sequences without retuning thresholds, redesigning classification broadly, or reopening the terminal classes already handled by `FB-003`.
 
 Rev1a should stay limited to the currently recognized cross-kind crash and abort transitions:
 
@@ -360,6 +360,15 @@ Rev1a may define:
 - that these mixed sequences may continue contributing to diagnostics-priority and attempt-pattern reporting
 - that these mixed sequences do not become a new early-exhaustion trigger in rev1a
 - that the launcher should preserve conservative retry continuation unless stronger existing terminal evidence appears
+
+Current launcher state already satisfies this conservative `rev1a` baseline:
+
+- `CRASH_TO_STARTUP_ABORT` and `STARTUP_ABORT_TO_CRASH` are recognized as mixed cross-kind sequences
+- first-observed cross-kind mixed sequences remain non-terminal
+- these mixed sequences continue feeding instability labeling
+- these mixed sequences continue feeding diagnostics-priority and attempt-pattern reporting
+- these mixed sequences do not act as a new early-exhaustion trigger
+- conservative retry continuation remains in place unless an existing `FB-003` terminal class is reached
 
 Rev1a must not define yet:
 

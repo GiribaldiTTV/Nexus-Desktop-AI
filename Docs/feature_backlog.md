@@ -48,9 +48,9 @@ This should remain a narrow escalation rule for repeated identical crash outcome
 
 ### [ID: FB-002] Mixed failure-pattern policy
 
-Status: Deferred  
+Status: Implemented (v1.6.0)  
 Priority: Medium  
-Suggested Version: Post-v1.7.0  
+Suggested Version: v1.6.0  
 Suggested Revision: TBD  
 
 Description:
@@ -76,7 +76,7 @@ Out of Scope:
 - renderer changes
 
 Notes:
-This remains intentionally deferred and should not be mixed into the advisory-only `v1.7.0` track.
+This conservative mixed-sequence contract is already satisfied by the stabilized `v1.6.0` launcher behavior. Current launcher behavior recognizes `CRASH_TO_STARTUP_ABORT` and `STARTUP_ABORT_TO_CRASH`, keeps first-observed cross-kind sequences non-terminal, allows them to feed instability labeling, diagnostics-priority reporting, and attempt-pattern reporting, and does not treat them as a new early-exhaustion trigger. Conservative retry continuation remains in place unless an existing `FB-003` terminal class is reached.
 
 ---
 
