@@ -17,7 +17,7 @@ class JarvisSpeaker:
         self.audio_output = QAudioOutput()
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
-        self.audio_output.setVolume(0.12)
+        self.audio_output.setVolume(0.60)
 
     async def speak(self, text, voice="en-GB-RyanNeural", rate="+8%", pitch="-2Hz", mode="normal"):
         fd, source_path = tempfile.mkstemp(suffix=".mp3")

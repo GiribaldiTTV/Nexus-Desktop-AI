@@ -55,7 +55,7 @@ class JarvisErrorSpeaker:
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
 
-        self.audio_output.setVolume(0.40)
+        self.audio_output.setVolume(0.60)
         self.status_file = status_file
         self.display_text = display_text or ""
         self.stop_signal_file = stop_signal_file or ""

@@ -65,6 +65,21 @@ LANE_CONFIG = {
         "log_root_with_voice": os.path.join(LOGS_DIR, "manual_launcher_startup_abort_test_with_voice"),
         "crash_folder": "crash",
     },
+    "voiceRegression": {
+        "label": "Voice Regression Harness",
+        "detail": (
+            "Runs the contained FB-018 voice regression harness across the current launcher-owned "
+            "voice lanes and direct diagnostics voice probes, then writes a pass/fail report."
+        ),
+        "quiet_launcher": "launch_jarvis_voice_regression_harness.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "log_root": os.path.join(LOGS_DIR, "voice_regression_harness"),
+        "report_root": os.path.join(LOGS_DIR, "voice_regression_harness", "reports"),
+        "report_prefix": "VoiceRegressionReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
 }
 
 
@@ -453,6 +468,7 @@ class DevLauncherWindow(QWidget):
             ("Repeated-Crash Test With Voice", "repeatedCrash", True),
             ("Startup-Abort Test", "startupAbort", False),
             ("Startup-Abort Test With Voice", "startupAbort", True),
+            ("Voice Regression Harness", "voiceRegression", False),
         ]
         for label, lane_key, with_voice in quick_buttons:
             btn = QPushButton(label)
@@ -472,6 +488,7 @@ class DevLauncherWindow(QWidget):
             ("diagnostics", "Diagnostics UI Test"),
             ("repeatedCrash", "Repeated-Crash Failure Lane"),
             ("startupAbort", "Startup-Abort Lane"),
+            ("voiceRegression", "Voice Regression Harness"),
         ):
             btn = QPushButton(button_text)
             btn.setCheckable(True)
@@ -551,6 +568,8 @@ class DevLauncherWindow(QWidget):
 
     def active_log_root(self) -> str:
         lane = self.current_lane()
+        if lane.get("report_root"):
+            return lane["report_root"]
         if self.voice_requested() and lane.get("log_root_with_voice"):
             return lane["log_root_with_voice"]
         return lane["log_root"]
@@ -647,6 +666,36 @@ class DevLauncherWindow(QWidget):
 
     def open_latest_runtime_log(self):
         lane = self.current_lane()
+        report_root = lane.get("report_root", "")
+        report_prefix = lane.get("report_prefix", "")
+        report_suffix = lane.get("report_suffix", "")
+        if report_root and report_prefix:
+            if not os.path.isdir(report_root):
+                self.set_status(f"Report folder not found yet: {report_root}")
+                return
+            latest = ""
+            best_time = -1.0
+            for name in os.listdir(report_root):
+                if not name.lower().startswith(report_prefix.lower()):
+                    continue
+                if report_suffix and not name.lower().endswith(report_suffix.lower()):
+                    continue
+                path = os.path.join(report_root, name)
+                if not os.path.isfile(path):
+                    continue
+                try:
+                    modified = os.path.getmtime(path)
+                except OSError:
+                    continue
+                if modified >= best_time:
+                    best_time = modified
+                    latest = path
+            if not latest:
+                self.set_status(f"No report found yet in: {report_root}")
+                return
+            self.open_path(latest, f"Opened latest report: {latest}")
+            return
+
         fixed = lane.get("runtime_fixed", "")
         if fixed:
             if not os.path.isfile(fixed):
