@@ -288,7 +288,7 @@ Implemented rev1 state:
 This implemented rev1 state does not alter orchestration behavior.
 It validates the existing recorder, summarizer, diagnostics-context, and diagnostics-advisory surfaces from outside the runtime-control path.
 
-## Future Expansion (Not Yet Implemented)
+## Later Orchestration Topics
 
 Examples of later orchestration topics:
 
@@ -299,3 +299,86 @@ Examples of later orchestration topics:
 - longer-term recovery policy tuning
 
 These should be handled as dedicated revisions, not mixed into unrelated work.
+
+## FB-003 Rev1 Baseline and Implemented State
+
+`FB-003` began with a `rev1a` policy-contract pass and now includes an implemented `rev1b` launcher behavior slice.
+
+The `rev1a` baseline defines when retries stop adding value and when the launcher should enter the existing diagnostics completion path, using current launcher-owned failure classes and recovery outcomes rather than new UI or new control surfaces.
+
+Rev1a should stay grounded in the current high-signal desktop-phase evidence classes already recognized by the launcher:
+
+- repeated `STARTUP_ABORT` outcomes
+- repeated identical crash outcomes
+
+Rev1a may define:
+
+- when those repeated failure classes should be treated as retry-exhausting evidence
+- that retry exhaustion stops further recovery attempts for the current run
+- that the launcher then enters the existing diagnostics completion path rather than continuing silent recovery
+- that this transition reuses the current diagnostics completion surfaces rather than redesigning diagnostics behavior
+
+Implemented `rev1b` state:
+
+- repeated `STARTUP_ABORT` exhaustion now behaves as a first-class terminal outcome
+- repeated identical crash exhaustion now behaves as a first-class terminal outcome
+- actual attempts used now propagate into terminal finalization and runtime summary output
+- terminal crash-report wording now reflects the real end reason instead of generic max-attempt framing
+- the existing diagnostics completion path is reused unchanged
+
+`FB-003` must not define yet:
+
+- mixed failure-sequence policy such as crash-then-abort or abort-then-crash
+- threshold retuning
+- classification redesign
+- diagnostics UI changes
+- summary or triage wording changes
+- cooldown redesign
+
+Mixed failure-sequence policy remains separate `FB-002` work and must not be pulled into `FB-003` rev1a.
+
+## FB-002 Rev1 Baseline and Current Launcher State
+
+`FB-002` began with a `rev1a` policy-contract pass.
+
+The `rev1a` baseline defines the conservative policy meaning of cross-kind mixed failure sequences without retuning thresholds, redesigning classification broadly, or reopening the terminal classes already handled by `FB-003`.
+
+Rev1a should stay limited to the currently recognized cross-kind crash and abort transitions:
+
+- `CRASH_TO_STARTUP_ABORT`
+- `STARTUP_ABORT_TO_CRASH`
+
+Rev1a should treat those mixed sequences as weaker evidence than the `FB-003` terminal classes:
+
+- repeated `STARTUP_ABORT` outcomes
+- repeated identical crash outcomes
+
+Rev1a may define:
+
+- that a first observed `CRASH_TO_STARTUP_ABORT` or `STARTUP_ABORT_TO_CRASH` sequence remains non-terminal
+- that these mixed sequences may continue contributing to instability labeling
+- that these mixed sequences may continue contributing to diagnostics-priority and attempt-pattern reporting
+- that these mixed sequences do not become a new early-exhaustion trigger in rev1a
+- that the launcher should preserve conservative retry continuation unless stronger existing terminal evidence appears
+
+Current launcher state already satisfies this conservative `rev1a` baseline:
+
+- `CRASH_TO_STARTUP_ABORT` and `STARTUP_ABORT_TO_CRASH` are recognized as mixed cross-kind sequences
+- first-observed cross-kind mixed sequences remain non-terminal
+- these mixed sequences continue feeding instability labeling
+- these mixed sequences continue feeding diagnostics-priority and attempt-pattern reporting
+- these mixed sequences do not act as a new early-exhaustion trigger
+- conservative retry continuation remains in place unless an existing `FB-003` terminal class is reached
+
+Rev1a must not define yet:
+
+- threshold retuning
+- new early-escalation thresholds for mixed sequences
+- broader varied-failure policy beyond the two cross-kind crash and abort transitions above
+- classification redesign outside this mixed-sequence clarification
+- diagnostics UI changes
+- summary or triage redesign
+- cooldown redesign
+
+`FB-002` remains intentionally separate from `FB-003`.
+It may describe how mixed sequences relate to instability reporting and diagnostics entry, but it must not weaken or replace the existing `FB-003` terminal classes.

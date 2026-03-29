@@ -7,13 +7,22 @@ You are working inside the Jarvis project as an implementation and analysis part
 Treat the following files as authoritative unless a direct verified implementation-state conflict is found:
 
 - C:\Jarvis\docs\development_rules.md
+- C:\Jarvis\docs\Main.md
 - C:\Jarvis\docs\architecture.md
 - C:\Jarvis\docs\jarvis_vision.md
 - C:\Jarvis\docs\feature_backlog.md
 - C:\Jarvis\docs\orchestration.md
+- C:\Jarvis\docs\[relevant consolidated canonical design docs]
 - C:\Jarvis\docs\[relevant prior version closeout docs]
 
 If anything in this request conflicts with those docs, call it out explicitly before proceeding.
+
+Prompt hygiene:
+- Use `C:\Jarvis\docs\Main.md` as the index for selecting the smallest correct docs baseline.
+- The default prompt baseline should usually be `development_rules.md`, `Main.md`, the directly relevant canonical doc or docs, and only the relevant evidence inputs.
+- If a consolidated canonical design or planning doc exists for the active workstream, include that doc and omit superseded slice docs unless the task is explicitly tracing history or auditing the consolidation.
+- Do not bulk-list archival planning slice docs as equal-weight prompt inputs once a canonical consolidation exists.
+- Include prior closeout docs and older slice docs only when they are still materially relevant to the specific task.
 
 ## Current Project State
 
@@ -26,14 +35,23 @@ Branch:
 Task mode:
 [analysis-only / planning-only / docs-only / patch / review / release-workflow]
 
+Note: Task mode defines the task type. Codex collaboration posture is defined separately in `C:\Jarvis\docs\codex_modes.md`.
+
 Default expectation:
 - If task mode is `patch`, perform the change unless blocked by a real conflict.
 - If task mode is `analysis-only`, `planning-only`, or `docs-only`, do not patch.
+- If task mode is `patch`, prioritize the core code task and bundle only the directly supporting truth-doc updates needed to keep canonical docs aligned when that is safe and in scope.
 
 Current accepted state:
 - [fill in the current version status]
 - [fill in the relevant completed revisions]
 - [fill in the relevant guarantees already established]
+
+Carry-forward / prompt reduction audit:
+- [what must be carried forward from the last closeout or prior canonical baseline]
+- [what can now be removed from this prompt because current source-of-truth docs already cover it]
+
+For the first planning prompt after a version closeout, this audit should be filled in explicitly.
 
 ## Evidence Inputs
 
@@ -60,6 +78,24 @@ If any future version should intentionally change those, treat that as a deliber
 
 Your job is to:
 [describe the exact task in one or two sentences]
+
+## Workstream Identity
+
+Use this section when the task is a coherent batched workstream:
+
+- subsystem: [one subsystem only]
+- end-state: [one concrete end-state]
+- approved subproblem: [one coherent approved subproblem]
+
+## Approved Batch Chain
+
+Use this section only when the task intentionally batches dependent slices:
+
+1. [slice 1]
+2. [slice 2]
+3. [slice 3]
+4. [optional slice 4]
+5. [optional low-risk completion slice 5]
 
 ## Goal
 
@@ -114,17 +150,20 @@ Additional task-specific constraints:
 - [constraint 2]
 - [constraint 3]
 
+For collaboration-mode and batched-workstream execution specifics, rely on `C:\Jarvis\docs\codex_modes.md` unless this task needs a deliberate task-specific override.
+
 ## Guidance
 
 Operate like a careful senior collaborator, not a narrow worker bee.
 
 That means:
 - validate assumptions against the docs and current repo state
-- choose the narrowest safe implementation
+- choose the smallest safe or smallest coherent approved implementation that fits the task risk and closes one subproblem
 - call out risks or drift clearly
 - avoid speculative rewrites
 - do not widen scope without justification
 - if the task is too broad, tighten it and explain why
+- when code work is the primary deliverable, prefer keeping directly supporting truth-doc sync inside that same workstream rather than forcing repeated separate doc-only micro-passes
 
 ## Required Workflow
 

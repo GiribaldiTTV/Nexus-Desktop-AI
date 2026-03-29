@@ -28,12 +28,67 @@ A future top-level boot orchestrator may sit above the current desktop launcher 
 - transition into the desktop phase
 - future phase-to-phase health decisions
 
+At the architecture level, that future boot orchestrator is a coordinating layer for pre-desktop experience and cross-phase handoff.
+It is not the source of truth for desktop-stage startup state and does not replace the desktop launcher inside the desktop phase.
+
 Until that higher-level system is explicitly designed, the desktop launcher remains the owner of:
 
 - desktop-phase readiness observation
 - desktop-phase stall handling
 - desktop-phase cooperative control
 - desktop-phase recovery routing
+- desktop-phase classification and finalized end-state determination
+- desktop-phase runtime and crash truth generation
+
+A future boot orchestrator may consume the desktop launcher layer only as read-only downstream inputs, such as:
+
+- launcher-owned desktop-phase readiness, failure, recovery, and finalized end-state signals after they are emitted
+- launcher-owned desktop-phase truth surfaces after they are emitted
+- bounded historical or advisory outputs only as descriptive downstream context, never as authority over desktop-stage truth or control
+
+Conceptually, desktop-stage authority begins when boot-stage coordination delegates desktop startup execution to the desktop launcher.
+From that point forward, the boot layer may coordinate around the transition and consume launcher-emitted downstream outputs, but the launcher owns desktop-phase observation, classification, control, recovery routing, and finalized truth generation.
+
+A future boot orchestrator must not rewrite, override, or reinterpret launcher-owned desktop truth or desktop control decisions.
+
+### FB-015 Rev1a Phase-Boundary Contract
+
+`FB-015 rev1a` clarifies the future boundary between boot-stage coordination and launcher-owned desktop-stage execution.
+
+Boot-stage ownership is limited to:
+
+- pre-desktop startup presence and presentation
+- Windows boot and login handoff coordination
+- the decision to delegate desktop startup execution into the launcher
+- cross-phase observation before desktop-stage authority begins
+
+Desktop-stage ownership begins when boot-stage coordination delegates execution to the desktop launcher.
+From that handoff forward, the launcher remains the sole owner of:
+
+- renderer startup execution and observation
+- readiness, stall, abort, and failure classification
+- desktop-phase cooperative control and recovery routing
+- retry and escalation behavior inside the desktop phase
+- finalized runtime, crash, and diagnostics truth generation for the desktop phase
+
+A future higher boot layer may consume launcher-owned downstream outputs only after they are emitted, including:
+
+- readiness, failure, recovery, and finalized end-state signals
+- runtime logs, crash artifacts, and diagnostics status surfaces
+- bounded historical-memory and advisory outputs only as descriptive downstream context
+
+Those downstream inputs remain read-only.
+They may support boot-stage narration, transition logic, or later boot-stage observation, but they must not become authority over launcher-owned desktop truth, classification, control, retry policy, escalation policy, or finalized outcome determination.
+
+Historical or advisory surfaces remain especially constrained across the phase boundary:
+
+- they may be consumed only after launcher emission
+- they remain non-authoritative and non-binding
+- they must not be used by a future boot layer to rewrite desktop-stage truth
+- they must not be used to inject cross-layer control back into the launcher
+
+`FB-015 rev1a` is contract clarification only.
+It does not authorize boot runtime behavior, higher-layer recovery control, or `FB-004` implementation work.
 
 ## System Roles
 
@@ -385,11 +440,18 @@ That means:
 
 `v1.7.0` may prepare for later boot-level orchestration only at the modeling layer.
 
+This preparation boundary is modeling and contract work only.
+It may clarify ownership, dependency, and read-only consumption rules, but it must not introduce boot-stage behavior, cross-layer control, or launcher-policy changes.
+
 Allowed:
 
 - define desktop-stage history shapes that a future boot orchestrator could consume
 - define boot and desktop phase-boundary concepts
 - document how future higher layers may depend on launcher truth
+- define which launcher-owned desktop-stage outputs may be consumed on a read-only downstream basis
+- define which desktop-stage responsibilities remain exclusively launcher-owned
+- define the future boot orchestrator's coordination envelope before desktop-stage authority begins
+- define the conceptual handoff from boot-stage coordination into launcher-owned desktop-stage execution
 
 Not allowed yet:
 
@@ -397,3 +459,40 @@ Not allowed yet:
 - adaptive retry or escalation
 - instability-driven behavior
 - hard-kill behavior
+- cross-layer authority over launcher-owned desktop truth or control
+- replacement of launcher-owned desktop-stage execution with boot-layer control
+
+## Support-Bundle Reporting Boundary
+
+The first coherent `FB-017` deliverable is now implemented as a privacy-safe manual reporting flow in the existing diagnostics window.
+
+The implemented `Report Issue` flow packages a minimal local support bundle and opens a prefilled GitHub issue page or draft for manual user submission.
+
+This boundary is reporting and packaging work only.
+It may package already-produced runtime and crash artifacts plus a small manifest, but it must not introduce upload behavior, silent collection expansion, or diagnostics-policy changes.
+
+Implemented first-deliverable state:
+
+- the relevant runtime log for the reported run
+- the matching crash log if present and trustworthily determinable by exact runtime-to-crash reference match
+- a small manifest containing Jarvis version, run or timestamp identity, and a basic environment summary
+- bundled file list recorded in the manifest
+- local bundle generation only
+- manual user review before sharing
+- a prefilled GitHub issue page or draft opened for manual completion
+- manual user attachment and manual user submission
+
+Current guarantees remain unchanged:
+
+- historical-memory files
+- harness artifacts
+- internal-only debug extras
+- silent or background upload behavior
+- fully automatic GitHub submission
+- launcher or runtime behavior changes
+- retry, escalation, threshold, classification, diagnostics-trigger, summary, or triage-guidance changes
+- diagnostics redesign
+- reinterpretation of diagnostics-facing historical or advisory surfaces as report-bundle authority
+
+The support bundle should remain simple by default.
+Advanced or internal artifacts may be considered only in a later explicitly approved slice.

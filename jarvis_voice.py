@@ -17,12 +17,13 @@ class JarvisSpeaker:
         self.audio_output = QAudioOutput()
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
-        self.audio_output.setVolume(0.12)
+        self.audio_output.setVolume(0.60)
 
     async def speak(self, text, voice="en-GB-RyanNeural", rate="+8%", pitch="-2Hz", mode="normal"):
         fd, source_path = tempfile.mkstemp(suffix=".mp3")
         os.close(fd)
         processed_path = None
+        media_status_connected = False
 
         try:
             communicate = edge_tts.Communicate(
@@ -57,16 +58,21 @@ class JarvisSpeaker:
                     loop.quit()
 
             self.player.mediaStatusChanged.connect(on_media_status_changed)
+            media_status_connected = True
             self.player.setSource(QUrl.fromLocalFile(playback_path))
             self.player.play()
 
             QTimer.singleShot(20000, loop.quit)
             loop.exec()
 
+        finally:
             self.player.stop()
             self.player.setSource(QUrl())
-
-        finally:
+            if media_status_connected:
+                try:
+                    self.player.mediaStatusChanged.disconnect(on_media_status_changed)
+                except Exception:
+                    pass
             for path in (source_path, processed_path):
                 if path:
                     try:

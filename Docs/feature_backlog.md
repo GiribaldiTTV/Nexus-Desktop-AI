@@ -48,9 +48,9 @@ This should remain a narrow escalation rule for repeated identical crash outcome
 
 ### [ID: FB-002] Mixed failure-pattern policy
 
-Status: Deferred  
+Status: Implemented (v1.6.0)  
 Priority: Medium  
-Suggested Version: Post-v1.7.0  
+Suggested Version: v1.6.0  
 Suggested Revision: TBD  
 
 Description:
@@ -76,16 +76,16 @@ Out of Scope:
 - renderer changes
 
 Notes:
-This remains intentionally deferred and should not be mixed into the advisory-only `v1.7.0` track.
+This conservative mixed-sequence contract is already satisfied by the stabilized `v1.6.0` launcher behavior. Current launcher behavior recognizes `CRASH_TO_STARTUP_ABORT` and `STARTUP_ABORT_TO_CRASH`, keeps first-observed cross-kind sequences non-terminal, allows them to feed instability labeling, diagnostics-priority reporting, and attempt-pattern reporting, and does not treat them as a new early-exhaustion trigger. Conservative retry continuation remains in place unless an existing `FB-003` terminal class is reached.
 
 ---
 
 ### [ID: FB-003] Retry limit and diagnostics escalation policy
 
-Status: Deferred  
+Status: Implemented (v1.9.0 rev1)  
 Priority: Medium  
-Suggested Version: Post-v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: v1.9.0  
+Suggested Revision: rev1  
 
 Description:
 Define when repeated failures should escalate to diagnostics instead of continuing to retry.
@@ -109,7 +109,7 @@ Out of Scope:
 - broad orchestration refactor
 
 Notes:
-This remains intentionally deferred and should not be mixed into the advisory-only `v1.7.0` track.
+This is now implemented through `v1.9.0` `rev1a` and `rev1b`. `rev1a` defined the retry-exhaustion and diagnostics-entry policy contract for repeated `STARTUP_ABORT` outcomes and repeated identical crash outcomes only. `rev1b` implemented the first coherent launcher behavior slice so those two evidence classes now terminate as first-class outcomes, propagate actual attempts used into terminal finalization and runtime summary output, use reason-correct terminal wording, and reuse the existing diagnostics completion path unchanged. Mixed failure-sequence policy remains separate `FB-002` work.
 
 ---
 
@@ -280,7 +280,7 @@ Out of Scope:
 - renderer changes
 
 Notes:
-This should be handled as a dedicated voice and experience revision after orchestration stabilization, not mixed into launcher-control work.
+The earlier shutdown-specific effect experiment is no longer the current repo-truth baseline. The final "Shutting down." line currently uses the same diagnostics/error voice path and generic effect flow as the other failure lines. This item remains the place for any future dedicated shutdown-effect work, but no shutdown-specific path is currently implemented.
 
 ---
 
@@ -503,7 +503,7 @@ This was the safest first implementation target for `v1.8.0` and is now implemen
 
 Status: Deferred  
 Priority: Medium  
-Suggested Version: Post-v1.8.0  
+Suggested Version: TBD  
 Suggested Revision: TBD  
 
 Description:
@@ -530,7 +530,7 @@ Out of Scope:
 - launcher behavior changes
 
 Notes:
-This is preparation work only, must not introduce boot-level runtime control, and is not part of the validation-first `v1.8.0` track.
+This remains preparation work only. An architecture-level `FB-015 rev1a` phase-boundary contract is already captured in `docs/architecture.md`, but broader cross-doc alignment and any later boot-planning follow-through remain deferred. This item must not introduce boot-level runtime control and does not authorize `FB-004` implementation work.
 
 ---
 
@@ -579,10 +579,10 @@ Implemented in `v1.7.0` rev1.
 
 ### [ID: FB-017] Support bundle and GitHub issue prefill
 
-Status: Deferred  
+Status: Implemented (v1.9.0 rev1)  
 Priority: Medium  
-Suggested Version: Post-v1.7.0  
-Suggested Revision: TBD  
+Suggested Version: v1.9.0  
+Suggested Revision: rev1  
 
 Description:
 Add a user-friendly issue-reporting flow that generates a support bundle and opens a prefilled GitHub issue page.
@@ -611,7 +611,84 @@ Out of Scope:
 - unrelated diagnostics policy changes
 
 Notes:
-Prefer a privacy-safe design where the user reviews and submits the issue manually. The support bundle should remain simple by default, with advanced/internal artifacts included only if explicitly needed later.
+The first coherent manual reporting flow is now implemented as a privacy-safe diagnostics-window `Report Issue` action. It generates a local support bundle, writes the manifest, opens a prefilled GitHub issue page for manual completion, keeps attachment and submission manual, and includes a crash log only when the runtime-to-crash match is trustworthily determinable. The support bundle remains simple by default, with advanced/internal artifacts included only if explicitly needed later. The repo now also includes a contained offscreen validator for the production diagnostics `Report Issue` path that verifies support-bundle creation, manifest/manual-submission contract fields, and GitHub issue-prefill URL plus open-attempt handling without changing production behavior. That validator is now reachable through a dedicated VBS launcher and a report-aware lane in the accepted PySide dev toolkit.
+
+---
+
+### [ID: FB-018] Voice-path regression validation harness
+
+Status: Implemented (v1.9.0 rev1)  
+Priority: Medium  
+Suggested Version: v1.9.0  
+Suggested Revision: rev1  
+
+Description:
+Add a small contained regression harness for Jarvis voice-path validation across the current launcher and diagnostics/manual test lanes.
+
+Why it matters:
+Recent shutdown-line debugging showed that voice regressions can hide inside contained recovery flows even when the launcher still appears to behave correctly. A small voice-focused validation pass would catch missing final lines, broken status sync, bad effect output, or callback drift earlier.
+
+Proposed Change:
+Create a narrow validation path that exercises the current contained voice lanes and verifies expected `VOICE_SYNC` / `VOICE_FINAL` status output for the key launcher-owned lines without changing launcher policy or unifying the distinct normal-versus-diagnostics voice roles.
+
+Likely Files Affected:
+- developer validation tooling
+- voice-path validation helpers
+- optional docs for validation usage only if needed
+
+Scope:
+- contained voice regression validation
+- launcher-owned failure-line verification
+- diagnostics voice status verification
+
+Out of Scope:
+- voice redesign
+- unifying normal and diagnostics voice behavior
+- launcher retry or escalation policy changes
+- broader devtools framework expansion
+
+Notes:
+The first coherent validation-first slice is now implemented as a contained voice regression harness. The repo now includes the harness script, a one-click VBS launcher, toolkit surfacing in the accepted PySide dev toolkit, launcher-owned repeated-crash and startup-abort lane coverage, direct diagnostics/error `VOICE_SYNC` / `VOICE_FINAL` probes, and stronger normal-voice direct-probe evidence beyond exit-code-only smoke validation. The current product direction still intentionally keeps the normal startup/desktop Jarvis voice path distinct from the diagnostics/error Jarvis voice path, so this item remains about guarding those paths, not merging them.
+
+---
+
+### [ID: FB-019] Support bundle to repro triage helper
+
+Status: Implemented (v1.9.0 rev1)  
+Priority: Medium  
+Suggested Version: v1.9.0  
+Suggested Revision: rev1  
+
+Description:
+Add a small internal triage helper that reads a user-generated support bundle and maps it to the closest known failure class and internal repro path.
+
+Why it matters:
+The implemented `Report Issue` flow now gives developers a consistent support bundle, but engineers still have to manually inspect the manifest, runtime log, and crash log to decide which existing harness or contained validation lane best matches the incident. A small dev-only triage helper would shorten the path from user report to reproducible engineering case without changing the end-user reporting flow.
+
+Proposed Change:
+Create a dev-only support-bundle triage helper that parses the support bundle manifest plus available runtime/crash artifacts, identifies the most likely launcher-owned failure class or validation lane, and emits a compact internal summary with suggested next repro steps.
+
+Likely Files Affected:
+- dev-only support bundle triage tooling
+- support bundle manifest parser/helpers
+- optional internal triage documentation if needed
+
+Scope:
+- dev-only bundle parsing
+- failure-class suggestion
+- harness/repro-path suggestion
+- compact internal triage summary
+
+Out of Scope:
+- exact replay of the user machine state
+- end-user UI changes
+- silent uploads
+- automatic GitHub issue submission
+- launcher policy changes
+- diagnostics UI redesign
+
+Notes:
+The first coherent `FB-019` slice is now implemented as a dev-only support-bundle triage helper plus a contained regression harness. The repo now includes support-bundle zip and extracted-folder intake, parsing of the existing manifest plus bundled runtime/crash artifacts, conservative classification for the current launcher-owned terminal failure classes, compact `.txt` / `.json` triage reports, and reusable validation coverage for supported cases plus safe `unknown` fallback. The raw helper is reachable through the accepted PySide dev toolkit, and the repo also includes a contained offscreen validator for that raw-helper toolkit flow that is reachable through a dedicated VBS launcher and a report-aware lane in the accepted PySide dev toolkit. Production support-bundle generation and the end-user `Report Issue` flow remain unchanged; this item is about faster internal mapping from production evidence to the right contained repro path.
 
 ---
 

@@ -22,7 +22,7 @@ def env_path_override(name, default_path):
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_main.py")
+DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_main.py")
 DEFAULT_LOG_DIR = os.path.join(ROOT_DIR, "logs")
 TARGET_SCRIPT = env_path_override("JARVIS_HARNESS_TARGET_SCRIPT", DEFAULT_TARGET_SCRIPT)
 LOG_DIR = env_path_override("JARVIS_HARNESS_LOG_ROOT", DEFAULT_LOG_DIR)
@@ -223,6 +223,14 @@ def select_recovery_outcome(recovery_pipeline_end_reason, failure_causes):
     ):
         return "Automatic recovery did not change the underlying renderer failure."
     return "Automatic recovery completed without resolving the renderer failure."
+
+
+def select_terminal_failure_message(recovery_pipeline_end_reason):
+    if recovery_pipeline_end_reason == "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED":
+        return "Renderer failed after repeated startup aborts reached the launcher escalation threshold."
+    if recovery_pipeline_end_reason == "CONSECUTIVE_IDENTICAL_CRASH_THRESHOLD_REACHED":
+        return "Renderer failed after repeated identical crash outcomes reached the launcher escalation threshold."
+    return "Renderer failed after maximum recovery attempts."
 
 
 def stable_max_attempt_identical_failure(failure_kinds, failure_causes):
@@ -1108,6 +1116,7 @@ def finalize_failure(
     diagnostics_priority="",
     failure_stability="",
     triage_guidance="",
+    terminal_failure_message="",
     crash_filename="",
     run_id="",
 ):
@@ -1133,7 +1142,7 @@ def finalize_failure(
     delete_file(STATUS_FILE, "backend completion")
 
     crash_log(
-        "Renderer failed after maximum recovery attempts.",
+        terminal_failure_message or "Renderer failed after maximum recovery attempts.",
         attempts_used,
         last_code or -1,
         failure_cause,
@@ -1407,11 +1416,18 @@ def main():
     historical_advisory_hint = select_historical_advisory_hint(prior_history_context)
     if historical_advisory_hint:
         write_status("TRACE", historical_advisory_hint)
+    attempts_used = len(failure_kinds)
+    terminal_failure_message = select_terminal_failure_message(recovery_pipeline_end_reason)
+    if recovery_pipeline_end_reason in {
+        "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED",
+        "CONSECUTIVE_IDENTICAL_CRASH_THRESHOLD_REACHED",
+    }:
+        write_status("SUMMARY", recovery_outcome)
     write_status("SUMMARY", "Automatic recovery has completed. Manual investigation is required.")
     crash_filename = f"Crash_{RUN_ID_STEM}.txt"
     write_status("SUMMARY", "I have prepared the latest crash report and runtime log. Review the crash report first.")
     finalize_failure(
-        MAX_RECOVERY_ATTEMPTS,
+        attempts_used,
         last_code,
         last_failure_cause,
         last_failure_origin,
@@ -1422,12 +1438,13 @@ def main():
         diagnostics_priority,
         failure_stability,
         triage_guidance,
+        terminal_failure_message,
         crash_filename,
         run_id,
     )
     write_runtime_incident_summary(
         run_id,
-        MAX_RECOVERY_ATTEMPTS,
+        attempts_used,
         last_code or -1,
         last_failure_cause,
         last_failure_origin,

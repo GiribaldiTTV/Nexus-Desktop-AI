@@ -2,12 +2,18 @@
 
 import os
 import sys
+import webbrowser
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTextEdit, QPushButton,
     QLabel, QHBoxLayout, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, QTimer, QPoint, QRect
 from PySide6.QtGui import QFont, QGuiApplication, QTextBlockFormat, QTextCharFormat
+from jarvis_support_reporting import (
+    SupportBundleError,
+    build_issue_prefill_url,
+    create_support_bundle,
+)
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_DIR = os.path.join(ROOT_DIR, "logs")
@@ -15,6 +21,7 @@ CRASH_FOLDER = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
 STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
 RUNTIME_LOG_FILE = ""
+MANUAL_TEST_MODE = False
 
 
 def html_escape(text: str) -> str:
@@ -57,12 +64,57 @@ def trace_signal_html(payload: str) -> str:
     return ""
 
 
-def parse_runtime_log_arg(argv):
-    global RUNTIME_LOG_FILE
+def arg_value(argv, flag_name):
     for i, arg in enumerate(argv):
-        if arg == "--runtime-log" and i + 1 < len(argv):
-            RUNTIME_LOG_FILE = argv[i + 1]
-            return
+        if arg == flag_name and i + 1 < len(argv):
+            return argv[i + 1]
+    return None
+
+
+def configure_launch_args(argv):
+    global LOG_DIR, CRASH_FOLDER, RUNTIME_LOG_FILE, STATUS_FILE, STOP_SIGNAL_FILE, MANUAL_TEST_MODE
+
+    runtime_log_arg = arg_value(argv, "--runtime-log")
+    if runtime_log_arg:
+        RUNTIME_LOG_FILE = os.path.abspath(runtime_log_arg)
+        LOG_DIR = os.path.dirname(RUNTIME_LOG_FILE)
+        CRASH_FOLDER = os.path.join(LOG_DIR, "crash")
+        STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
+        STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
+
+    MANUAL_TEST_MODE = "--manual-test" in argv
+    if MANUAL_TEST_MODE:
+        STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.manual_test.txt")
+        STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.manual_test.signal")
+        if not RUNTIME_LOG_FILE:
+            RUNTIME_LOG_FILE = os.path.join(LOG_DIR, "Runtime_manual_diagnostics_test.txt")
+
+
+def seed_manual_test_status():
+    os.makedirs(LOG_DIR, exist_ok=True)
+
+    for cleanup_path in (STATUS_FILE, STOP_SIGNAL_FILE):
+        try:
+            if os.path.exists(cleanup_path):
+                os.remove(cleanup_path)
+        except Exception:
+            pass
+
+    payload_lines = [
+        "STATE|STARTED",
+        "SUMMARY|Manual diagnostics UI test",
+        "TRACE|Launching diagnostics UI",
+        "TRACE|Manual developer test mode active",
+        "TRACE|Failure cause: synthetic diagnostics test payload only",
+        "TRACE|Assessment: manual diagnostics validation path",
+        "TRACE|Triage: verify visibility, focus behavior, and dismiss behavior",
+        "VOICE_FINAL|Manual diagnostics test ready.",
+        "STATE|COMPLETE",
+    ]
+
+    with open(STATUS_FILE, "w", encoding="utf-8") as f:
+        for line in payload_lines:
+            f.write(line + "\n")
 
 
 def diag_runtime(message: str):
@@ -83,15 +135,16 @@ class DiagnosticsWindow(QWidget):
         super().__init__()
         diag_event('DiagnosticsWindow.__init__', 'start')
 
+        # Diagnostics should stay reachable without hijacking the user's
+        # current task, so keep the window passive and non-topmost by default.
         self.setWindowFlags(
-            Qt.FramelessWindowHint |
-            Qt.Tool |
-            Qt.WindowStaysOnTopHint
+            Qt.Window |
+            Qt.FramelessWindowHint
         )
-        self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setAttribute(Qt.WA_ShowWithoutActivating, True)
         self.resize(920, 660)
         self.setMinimumSize(720, 520)
-        diag_event('window_flags', 'frameless_tool_ontop')
+        diag_event('window_flags', 'passive_non_topmost')
 
         self.setStyleSheet("""
         QWidget {
@@ -266,10 +319,13 @@ class DiagnosticsWindow(QWidget):
         root.addLayout(jarvis_section, 1)
 
         btn_layout = QHBoxLayout()
+        self.report_btn = QPushButton("Report Issue")
         open_btn = QPushButton("Open Crash Folder")
-        button_font = open_btn.font()
+        button_font = self.report_btn.font()
         if button_font.pointSize() > 0:
             button_font.setPointSize(button_font.pointSize() + 1)
+        self.report_btn.setFont(button_font)
+        self.report_btn.clicked.connect(self.report_issue)
         open_btn.setFont(button_font)
         open_btn.clicked.connect(self.open_crash)
 
@@ -277,6 +333,7 @@ class DiagnosticsWindow(QWidget):
         dismiss_btn.setFont(button_font)
         dismiss_btn.clicked.connect(self.dismiss_diagnostics)
 
+        btn_layout.addWidget(self.report_btn)
         btn_layout.addWidget(open_btn)
         btn_layout.addWidget(dismiss_btn)
         root.addLayout(btn_layout)
@@ -317,9 +374,11 @@ class DiagnosticsWindow(QWidget):
 
     def showEvent(self, event):
         super().showEvent(event)
-        diag_event('showEvent', f'geom={self.geometry().x()},{self.geometry().y()},{self.geometry().width()}x{self.geometry().height()}')
-        QTimer.singleShot(0, self.raise_)
-        QTimer.singleShot(25, self.raise_)
+        diag_event(
+            'showEvent',
+            f'geom={self.geometry().x()},{self.geometry().y()},{self.geometry().width()}x{self.geometry().height()}',
+            'passive_no_raise'
+        )
 
     def dismiss_diagnostics(self):
         diag_event('dismiss_clicked')
@@ -611,9 +670,60 @@ class DiagnosticsWindow(QWidget):
         if os.path.exists(CRASH_FOLDER):
             os.startfile(CRASH_FOLDER)
 
+    def report_issue(self):
+        diag_event("report_issue", "start", f"runtime_log={RUNTIME_LOG_FILE or 'none'}")
+        self.report_btn.setEnabled(False)
+
+        try:
+            bundle_info = create_support_bundle(ROOT_DIR, RUNTIME_LOG_FILE, CRASH_FOLDER)
+            issue_url = build_issue_prefill_url(ROOT_DIR, bundle_info)
+        except SupportBundleError as exc:
+            self.append_trace(f"Support bundle creation failed: {exc}")
+            diag_event("report_issue", "bundle_failed", exc)
+            return
+        except Exception as exc:
+            self.append_trace(f"Report Issue flow failed: {exc}")
+            diag_event("report_issue", "unexpected_failure", exc)
+            return
+        finally:
+            self.report_btn.setEnabled(True)
+
+        crash_log_label = bundle_info["crash_log_name"] or "not included"
+        self.append_trace("")
+        self.append_trace(f"Support bundle created: {bundle_info['bundle_name']}")
+        self.append_trace(f"Runtime log included: {bundle_info['runtime_log_name']}")
+        self.append_trace(f"Crash log included: {crash_log_label}")
+        self.append_trace("Review the local support bundle before sharing.")
+
+        try:
+            os.startfile(os.path.dirname(bundle_info["bundle_path"]))
+            diag_event("report_issue", "bundle_folder_opened", bundle_info["bundle_name"])
+        except Exception as exc:
+            self.append_trace(f"Bundle folder open failed: {exc}")
+            diag_event("report_issue", "bundle_folder_failed", exc)
+
+        browser_opened = False
+        try:
+            browser_opened = webbrowser.open(issue_url, new=2)
+        except Exception as exc:
+            self.append_trace(f"GitHub issue page open failed: {exc}")
+            diag_event("report_issue", "issue_open_failed", exc)
+
+        if browser_opened:
+            self.append_trace("GitHub issue draft opened in your default browser.")
+            self.append_trace("Attach the support bundle manually and submit the issue manually.")
+            diag_event("report_issue", "issue_opened", bundle_info["run_identity"])
+        else:
+            self.append_trace("The support bundle is ready. Open the GitHub issues page manually to file the report.")
+            diag_event("report_issue", "issue_open_unconfirmed", bundle_info["run_identity"])
+
 def main():
-    parse_runtime_log_arg(sys.argv)
+    configure_launch_args(sys.argv)
+    if MANUAL_TEST_MODE:
+        seed_manual_test_status()
     diag_event('main', 'start', f'runtime_log={RUNTIME_LOG_FILE or "none"}')
+    if MANUAL_TEST_MODE:
+        diag_event('manual_test', 'enabled', os.path.basename(STATUS_FILE))
     app = QApplication(sys.argv)
     w = DiagnosticsWindow()
     w.show()

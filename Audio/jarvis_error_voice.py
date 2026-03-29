@@ -5,9 +5,6 @@ import tempfile
 import subprocess
 import shutil
 import math
-import wave
-import struct
-import random
 
 import edge_tts
 from PySide6.QtCore import QUrl, QEventLoop, QTimer
@@ -58,14 +55,13 @@ class JarvisErrorSpeaker:
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
 
-        self.audio_output.setVolume(0.40)
+        self.audio_output.setVolume(0.60)
         self.status_file = status_file
         self.display_text = display_text or ""
         self.stop_signal_file = stop_signal_file or ""
         self.last_sync = ""
         self.media_started = False
         self.sync_timer = None
-        self.stop_requested = False
 
     def should_stop(self):
         return bool(self.stop_signal_file) and os.path.exists(self.stop_signal_file)
@@ -98,36 +94,7 @@ class JarvisErrorSpeaker:
 
         return schedule
 
-    def build_split_uhm_schedule(self, display_text: str, first_ms: int, second_ms: int):
-        words = display_text.split()
-        if len(words) < 2:
-            return self.build_general_sync_schedule(display_text, first_ms + second_ms)
-
-        first_word = words[0]
-        rest_words = words[1:]
-
-        schedule = []
-        schedule.append((max(120, int(first_ms * 0.42)), first_word))
-
-        cumulative = first_word
-        total_chars = sum(max(1, len(w.strip())) for w in rest_words)
-        elapsed = float(first_ms)
-
-        for i, word in enumerate(rest_words):
-            weight = max(1, len(word.strip()))
-            portion = weight / total_chars if total_chars else 1.0 / max(1, len(rest_words))
-            cumulative = f"{cumulative} {word}".strip()
-
-            target_ms = int(elapsed + (portion * second_ms * 0.32))
-            if i == 0:
-                target_ms = max(target_ms, int(first_ms + 90))
-
-            schedule.append((target_ms, cumulative))
-            elapsed += portion * second_ms
-
-        return schedule
-
-    async def synthesize_segment(self, text: str, rate: str):
+    async def synthesize_segment(self, text: str, rate: str, pitch: str = "-2Hz"):
         fd, source_path = tempfile.mkstemp(suffix=".mp3")
         os.close(fd)
 
@@ -135,71 +102,12 @@ class JarvisErrorSpeaker:
             text=text,
             voice="en-GB-RyanNeural",
             rate=rate,
-            pitch="-2Hz",
+            pitch=pitch,
         )
         await communicate.save(source_path)
         if not os.path.exists(source_path):
             raise RuntimeError(f"audio file was not created: {source_path}")
         return source_path
-
-    def concat_audio_files(self, input_paths):
-        exe = ffmpeg_exe()
-        if not exe or not input_paths:
-            return None
-
-        fd, out_path = tempfile.mkstemp(suffix=".wav")
-        os.close(fd)
-
-        cmd = [exe]
-        for path in input_paths:
-            cmd.extend(["-i", path])
-
-        filter_inputs = "".join(f"[{i}:a]" for i in range(len(input_paths)))
-        cmd.extend([
-            "-filter_complex", f"{filter_inputs}concat=n={len(input_paths)}:v=0:a=1[outa]",
-            "-map", "[outa]",
-            out_path,
-        ])
-
-        result = subprocess.run(cmd, **hidden_subprocess_kwargs())
-        if result.returncode != 0 or not os.path.exists(out_path):
-            try:
-                os.remove(out_path)
-            except Exception:
-                pass
-            return None
-        return out_path
-
-    def create_powerdown_tail(self):
-        fd, out_path = tempfile.mkstemp(suffix=".wav")
-        os.close(fd)
-
-        sr = 44100
-        duration = 0.40
-        frames = int(sr * duration)
-
-        try:
-            with wave.open(out_path, "wb") as wf:
-                wf.setnchannels(1)
-                wf.setsampwidth(2)
-                wf.setframerate(sr)
-
-                for i in range(frames):
-                    t = i / sr
-                    freq = max(55.0, 420.0 - (340.0 * (t / duration)))
-                    tone = math.sin(2.0 * math.pi * freq * t)
-                    static = (random.random() * 2.0 - 1.0)
-                    envelope = max(0.0, 1.0 - (t / duration)) ** 1.8
-                    sample = (tone * 0.65 + static * 0.18) * envelope
-                    value = max(-32767, min(32767, int(sample * 32767)))
-                    wf.writeframesraw(struct.pack("<h", value))
-            return out_path
-        except Exception:
-            try:
-                os.remove(out_path)
-            except Exception:
-                pass
-            return None
 
     async def prepare_audio(self, spoken_text: str, display_text: str):
         temp_paths = []
@@ -213,14 +121,14 @@ class JarvisErrorSpeaker:
 
                 duration_ms = max(1, int(get_duration_seconds(source_path) * 1000))
                 schedule = self.build_general_sync_schedule("Uhm..... Sir, I seem to be malfunctioning.", duration_ms)
-                return source_path, temp_paths, schedule
+                return source_path, temp_paths, schedule, True
 
             source_path = await self.synthesize_segment(spoken_text, "-10%")
             temp_paths.append(source_path)
 
             duration_ms = max(1, int(get_duration_seconds(source_path) * 1000))
             schedule = self.build_general_sync_schedule(display_text or spoken_text, duration_ms)
-            return source_path, temp_paths, schedule
+            return source_path, temp_paths, schedule, True
 
         except Exception:
             for path in temp_paths:
@@ -234,12 +142,17 @@ class JarvisErrorSpeaker:
         base_audio_path = None
         temp_paths = []
         processed_path = None
+        position_changed_connected = False
+        playback_state_connected = False
+        media_status_connected = False
 
         try:
-            base_audio_path, temp_paths, schedule = await self.prepare_audio(text, self.display_text or text)
+            self.last_sync = ""
+            self.media_started = False
+            base_audio_path, temp_paths, schedule, allow_generic_effect = await self.prepare_audio(text, self.display_text or text)
             duration = get_duration_seconds(base_audio_path)
 
-            if duration < 1.2:
+            if not allow_generic_effect or duration < 1.2:
                 playback_path = base_audio_path
             else:
                 effected = apply_error_effect(base_audio_path)
@@ -252,7 +165,6 @@ class JarvisErrorSpeaker:
 
             def push_sync():
                 if self.should_stop():
-                    self.stop_requested = True
                     if self.sync_timer:
                         self.sync_timer.stop()
                     self.player.stop()
@@ -296,8 +208,11 @@ class JarvisErrorSpeaker:
                     loop.quit()
 
             self.player.positionChanged.connect(on_position_changed)
+            position_changed_connected = True
             self.player.playbackStateChanged.connect(on_playback_state_changed)
+            playback_state_connected = True
             self.player.mediaStatusChanged.connect(on_media_status_changed)
+            media_status_connected = True
 
             self.sync_timer = QTimer()
             self.sync_timer.timeout.connect(push_sync)
@@ -309,11 +224,33 @@ class JarvisErrorSpeaker:
             QTimer.singleShot(25000, loop.quit)
             loop.exec()
 
-            self.player.stop()
-            self.player.setSource(QUrl())
             return 0
 
         finally:
+            if self.sync_timer:
+                try:
+                    self.sync_timer.stop()
+                    self.sync_timer.timeout.disconnect(push_sync)
+                except Exception:
+                    pass
+                self.sync_timer = None
+            self.player.stop()
+            self.player.setSource(QUrl())
+            if position_changed_connected:
+                try:
+                    self.player.positionChanged.disconnect(on_position_changed)
+                except Exception:
+                    pass
+            if playback_state_connected:
+                try:
+                    self.player.playbackStateChanged.disconnect(on_playback_state_changed)
+                except Exception:
+                    pass
+            if media_status_connected:
+                try:
+                    self.player.mediaStatusChanged.disconnect(on_media_status_changed)
+                except Exception:
+                    pass
             for path in temp_paths + ([processed_path] if processed_path else []):
                 if path:
                     try:
@@ -499,7 +436,7 @@ def apply_error_effect(source_path):
 
     result = subprocess.run(cmd, **hidden_subprocess_kwargs())
 
-    if result.returncode != 0 or not os.path.exists(out_path):
+    if result.returncode != 0 or not os.path.exists(out_path) or os.path.getsize(out_path) <= 0:
         try:
             os.remove(out_path)
         except Exception:
