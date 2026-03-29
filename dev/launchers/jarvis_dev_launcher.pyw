@@ -127,6 +127,22 @@ LANE_CONFIG = {
         "report_suffix": ".txt",
         "crash_folder": "",
     },
+    "supportBundleTriageHarness": {
+        "label": "Support Bundle Triage Harness",
+        "detail": (
+            "Runs the contained FB-019 support-bundle triage regression harness across the "
+            "current supported launcher-owned bundle classes and safe unknown fallback, then "
+            "writes one consolidated pass/fail report."
+        ),
+        "quiet_launcher": "launch_jarvis_support_bundle_triage_harness.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "log_root": os.path.join(LOGS_DIR, "support_bundle_triage_harness"),
+        "report_root": os.path.join(LOGS_DIR, "support_bundle_triage_harness", "reports"),
+        "report_prefix": "SupportBundleTriageHarnessReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
 }
 
 
@@ -519,6 +535,7 @@ class DevLauncherWindow(QWidget):
             ("Healthy Desktop Launch Validation", "desktopHealthy", False),
             ("Healthy Launcher Path Validation", "launcherHealthy", False),
             ("Desktop Launcher Regression Harness", "launcherRegression", False),
+            ("Support Bundle Triage Harness", "supportBundleTriageHarness", False),
         ]
         for label, lane_key, with_voice in quick_buttons:
             btn = QPushButton(label)
@@ -542,6 +559,7 @@ class DevLauncherWindow(QWidget):
             ("desktopHealthy", "Healthy Desktop Launch Validation"),
             ("launcherHealthy", "Healthy Launcher Path Validation"),
             ("launcherRegression", "Desktop Launcher Regression Harness"),
+            ("supportBundleTriageHarness", "Support Bundle Triage Harness"),
         ):
             btn = QPushButton(button_text)
             btn.setCheckable(True)
