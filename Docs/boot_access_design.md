@@ -495,6 +495,77 @@ This planning contract does not make the resident control anchor responsible for
 Consumer setup and environment-preference planning remains a separate future lane.
 This resident control-anchor contract is only about post-login trust continuity, trust-state visibility, and user-initiated recovery access.
 
+## Consumer Setup Purpose And Entry Contract
+
+At planning level, consumer setup is the short post-install or first-run onboarding lane that helps Jarvis establish an initial fit for this person and this machine without turning setup into trust, recovery, or system configuration.
+
+Consumer setup is conceptually responsible for:
+
+- introducing Jarvis as the intended system-facing experience rather than a generic Windows app wizard
+- establishing a usable first everyday posture after install
+- collecting only the smallest set of early user-facing choices needed to avoid an obviously wrong first-run experience
+- reassuring the user that typed interaction remains sufficient and that early setup choices are not irreversible commitments
+- handing the user into ordinary Jarvis use without keeping them inside a prolonged onboarding ritual
+
+Consumer setup should begin only after install and first run have reached the point where Jarvis can present itself coherently as an experience layer.
+It should not be treated as:
+
+- the trust step itself
+- a stronger trust or recovery path
+- a replacement for resident trust-state visibility
+- an excuse to introduce shell, tray, backend, renderer, or diagnostics mechanics
+
+Consumer setup should stay short, legible, and consumer-friendly.
+Its purpose is to establish initial fit and comfort, not to front-load every future choice.
+
+## Consumer Setup Completion And Handoff Contract
+
+At planning level, consumer setup should count as complete once:
+
+- Jarvis has established a coherent initial posture for ordinary use
+- the user has made only the minimum early choices needed for that posture
+- the user understands that later preference adjustment remains possible
+- the system can hand off into normal Jarvis use without continuing to behave like an installer or onboarding wizard
+
+Consumer setup completion should not require:
+
+- exhaustive settings selection
+- environment-preference finalization across every later context
+- auth enrollment, trust restoration, or recovery completion
+- decisions about backend, shell, tray, renderer, diagnostics, or runtime behavior
+
+The handoff after setup should feel like:
+
+- Jarvis is now ready for everyday use
+- the user is no longer inside a special onboarding state
+- future adjustment can happen later without replaying the entire setup lane
+
+## Consumer Setup Relationship To Trust And Recovery Lanes
+
+Consumer setup is separate from the already-defined resident trust and recovery lanes.
+
+That means:
+
+- consumer setup may shape presentation posture, comfort, and early user guidance
+- consumer setup must not determine whether trust continuity is normal, degraded, or recovery-needed
+- consumer setup must not own recovery-entry surfacing, bounded deferral, or resident trust-state transitions
+- consumer setup must not become a hidden access gate or a disguised stronger trust path
+
+The resident control anchor remains the post-login home for:
+
+- trust-state visibility
+- recovery-entry access
+- explanation of current trust continuity posture
+
+Consumer setup remains responsible only for:
+
+- initial onboarding fit after install or first run
+- early consumer-facing calibration
+- handing the user into normal use with reversible early choices
+
+Later environment-preference taxonomy and later-adjustment design remain separate future work.
+This document intentionally does not define the exact setup sequence, exact preference list, or exact later settings ownership mechanics.
+
 ## How Jarvis Stays Present Without Becoming Heavy
 
 Jarvis should remain present through:
@@ -557,7 +628,9 @@ This canonical document intentionally defers:
 - exact post-bypass detection logic
 - exact resident recovery-entry persistence mechanics
 - exact resident control-anchor information architecture or settings taxonomy
-- consumer setup and environment-preference design
+- exact consumer setup sequence, prompt set, or screen flow
+- exact environment-preference taxonomy or timing model
+- exact later-adjustment or safe-undo mechanics for setup choices
 - boot runtime control
 - launcher-policy changes
 
@@ -605,6 +678,7 @@ A successful consolidated boot-access design would make the user feel:
 
 If boot planning continues after this clarification, the next coherent revision should stay narrow:
 
-- consumer setup and environment-preference planning after install and first run
+- environment-preference taxonomy and timing planning after consumer setup boundary clarification
+- later-adjustment and safe-undo planning for consumer setup choices
 
 That should remain separate from backend, shell, diagnostics, or implementation design until the planning boundary is intentionally changed.
