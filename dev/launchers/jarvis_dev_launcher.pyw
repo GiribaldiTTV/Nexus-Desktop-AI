@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
     QComboBox,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -22,6 +23,7 @@ from PySide6.QtWidgets import (
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEV_LAUNCHERS_DIR = os.path.dirname(os.path.abspath(__file__))
 LOGS_DIR = os.path.join(ROOT_DIR, "logs")
+SUPPORT_BUNDLE_TRIAGE_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_support_bundle_triage.py")
 
 PYTHONW_PATH = r"C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"
 
@@ -142,6 +144,24 @@ LANE_CONFIG = {
         "report_prefix": "SupportBundleTriageHarnessReport_",
         "report_suffix": ".txt",
         "crash_folder": "",
+    },
+    "supportBundleTriage": {
+        "label": "Support Bundle Triage Helper",
+        "detail": (
+            "Runs the raw FB-019 support-bundle triage helper against a selected support-bundle "
+            ".zip or extracted bundle folder, then writes a compact internal triage report with "
+            "the closest current repro lane suggestion."
+        ),
+        "quiet_launcher": "",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "log_root": os.path.join(LOGS_DIR, "support_bundle_triage"),
+        "report_root": os.path.join(LOGS_DIR, "support_bundle_triage", "reports"),
+        "report_prefix": "SupportBundleTriageReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+        "requires_bundle_input": True,
+        "script_path": SUPPORT_BUNDLE_TRIAGE_SCRIPT,
     },
 }
 
@@ -560,6 +580,7 @@ class DevLauncherWindow(QWidget):
             ("launcherHealthy", "Healthy Launcher Path Validation"),
             ("launcherRegression", "Desktop Launcher Regression Harness"),
             ("supportBundleTriageHarness", "Support Bundle Triage Harness"),
+            ("supportBundleTriage", "Support Bundle Triage Helper"),
         ):
             btn = QPushButton(button_text)
             btn.setCheckable(True)
@@ -708,6 +729,16 @@ class DevLauncherWindow(QWidget):
 
     def run_selected_launcher(self):
         try:
+            lane = self.current_lane()
+            if lane.get("requires_bundle_input"):
+                source_path = self.select_support_bundle_source()
+                if not source_path:
+                    self.set_status("Launch cancelled: no support bundle selected.")
+                    return
+                subprocess.Popen([PYTHONW_PATH, lane["script_path"], source_path], cwd=ROOT_DIR)
+                self.set_status(f"Launched: {self.active_label()} :: {source_path}")
+                return
+
             launcher_path = os.path.join(DEV_LAUNCHERS_DIR, self.active_launcher_filename())
             subprocess.Popen(["wscript.exe", launcher_path], cwd=DEV_LAUNCHERS_DIR)
             self.set_status(f"Launched: {self.active_label()}")
@@ -717,6 +748,22 @@ class DevLauncherWindow(QWidget):
             self.launch_timer.stop()
             self.launch_btn.setEnabled(True)
             self.cancel_btn.setEnabled(False)
+
+    def select_support_bundle_source(self) -> str:
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Support Bundle Zip",
+            LOGS_DIR,
+            "Support Bundle Zip (*.zip);;All Files (*)",
+        )
+        if file_path:
+            return file_path
+
+        return QFileDialog.getExistingDirectory(
+            self,
+            "Select Extracted Support Bundle Folder",
+            LOGS_DIR,
+        )
 
     def quick_launch(self, lane_key: str, with_voice: bool):
         self.select_lane(lane_key)
