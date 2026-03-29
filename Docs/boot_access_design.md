@@ -409,6 +409,56 @@ The resident layer should support both:
 - proactive surfacing when trust continuity is degraded
 - user-initiated recovery entry later
 
+## Resident Recovery-Entry Trigger And Surfacing Contract
+
+At planning level, resident recovery entry should follow the post-login resident trust states:
+
+- in normal trust state, no proactive recovery surfacing is needed
+- in degraded trust state, recovery entry should be visible, easy to reach, and calmly re-discoverable
+- in recovery-needed state, recovery entry should surface proactively and clearly enough that the user understands restoration is pending
+
+Resident recovery entry is for restoring Jarvis trust continuity after desktop entry.
+It is not a license for:
+
+- launcher-owned runtime classification
+- diagnostics escalation or diagnostics authority
+- boot-time control after desktop handoff
+- backend trust implementation details
+
+## Bounded Deferral And Re-Surface Contract
+
+At planning level, bounded deferral means:
+
+- the user may choose to postpone recovery for now
+- postponement must not silently normalize a degraded or recovery-needed state forever
+- the system should later re-surface recovery entry until trust continuity is restored
+- re-surfacing should remain calmer in degraded state than in recovery-needed state
+
+The user-posture contract is:
+
+- normal desktop use may continue after a bounded deferral
+- the user must not feel trapped or locked out of Windows because recovery was postponed
+- the user must not be forced through repeated recovery prompts during the same immediate interaction once a clear postpone choice has been made
+- later re-surfacing should remind rather than punish
+
+This document intentionally does not define:
+
+- exact timers, cadences, counters, or re-surface schedules
+- exact tray, control-center, resident UI, shell, or notification mechanics
+- exact post-bypass detection logic
+- exact persistence storage or backend state handling
+
+## Resident Trust-State Transition Contract
+
+At planning level, the resident trust-state transitions are:
+
+- normal -> degraded when trust continuity is no longer fully normal but immediate strong recovery surfacing is not yet required
+- degraded -> recovery-needed when recovery should be made proactively obvious rather than merely easy to reach
+- degraded or recovery-needed -> normal only after trust restoration is completed through the future resident recovery path
+
+These are conceptual planning states for the future resident boot-access layer.
+They do not authorize runtime control over launcher-owned desktop behavior or reinterpretation of launcher-owned desktop truth.
+
 ## How Jarvis Stays Present Without Becoming Heavy
 
 Jarvis should remain present through:
@@ -469,7 +519,7 @@ This canonical document intentionally defers:
 - diagnostics presentation behavior
 - notification-system implementation
 - exact post-bypass detection logic
-- exact recovery-prompt persistence logic
+- exact resident recovery-entry persistence mechanics
 - boot runtime control
 - launcher-policy changes
 
@@ -517,7 +567,6 @@ A successful consolidated boot-access design would make the user feel:
 
 If boot planning continues after this consolidation, the next coherent revisions should stay narrow and choose one of:
 
-- resident recovery-entry persistence and deferral behavior
 - resident control-center or settings-anchor responsibility planning
 - consumer setup and environment-preference planning after install and first run
 
