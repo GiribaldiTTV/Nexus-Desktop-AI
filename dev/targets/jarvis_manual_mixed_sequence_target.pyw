@@ -47,13 +47,42 @@ def delete_file(path):
         pass
 
 
+def crash_generic():
+    raise RuntimeError("Manual mixed-sequence crash step")
+
+
+def crash_phase_a():
+    raise RuntimeError("persistent startup failure")
+
+
+def crash_phase_b():
+    raise RuntimeError("persistent startup failure")
+
+
+def crash_phase_c():
+    raise RuntimeError("persistent startup failure")
+
+
+def crash_phase_beta():
+    raise ValueError("crash beta")
+
+
+CRASH_STEP_HANDLERS = {
+    "crash": crash_generic,
+    "crash_a": crash_phase_a,
+    "crash_b": crash_phase_b,
+    "crash_c": crash_phase_c,
+    "crash_beta": crash_phase_beta,
+}
+
+
 def parse_sequence():
     raw = os.environ.get(SEQUENCE_ENV, "").strip().lower()
     if not raw:
         raise RuntimeError(f"Missing {SEQUENCE_ENV}")
 
     sequence = [token.strip() for token in raw.split(",") if token.strip()]
-    allowed = {"crash", "abort", "success"}
+    allowed = set(CRASH_STEP_HANDLERS) | {"abort", "success"}
     if not sequence or any(token not in allowed for token in sequence):
         raise RuntimeError(f"Invalid {SEQUENCE_ENV}: {raw}")
     return sequence
@@ -74,6 +103,11 @@ def wait_for_abort(startup_abort_signal, runtime_log):
     raise RuntimeError("Mixed sequence abort step timed out waiting for launcher abort signal")
 
 
+def delete_state_if_last_step(state_path, step_index, sequence):
+    if step_index >= len(sequence) - 1:
+        delete_file(state_path)
+
+
 def main():
     runtime_log = arg_value(sys.argv, "--runtime-log")
     startup_abort_signal = arg_value(sys.argv, "--startup-abort-signal")
@@ -88,12 +122,14 @@ def main():
 
     append_runtime_line(runtime_log, f"MANUAL_TEST|mixed sequence target invoked|STEP={step_index + 1}|OUTCOME={outcome.upper()}")
 
-    if outcome == "crash":
-        sys.stderr.write("MANUAL_TEST|Mixed sequence crash step\n")
+    if outcome in CRASH_STEP_HANDLERS:
+        delete_state_if_last_step(state_path, step_index, sequence)
+        sys.stderr.write(f"MANUAL_TEST|Mixed sequence crash step|TOKEN={outcome}\n")
         sys.stderr.flush()
-        raise RuntimeError("Manual mixed-sequence crash step")
+        CRASH_STEP_HANDLERS[outcome]()
 
     if outcome == "abort":
+        delete_state_if_last_step(state_path, step_index, sequence)
         append_runtime_line(runtime_log, "MANUAL_TEST|Awaiting launcher startup abort signal")
         wait_for_abort(startup_abort_signal, runtime_log)
         return

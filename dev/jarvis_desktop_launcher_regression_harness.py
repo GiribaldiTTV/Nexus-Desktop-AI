@@ -17,6 +17,7 @@ HEALTHY_VALIDATOR_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_desktop_launche
 FAILURE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_failure_target.pyw")
 STARTUP_ABORT_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_startup_abort_target.pyw")
 MIXED_SEQUENCE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_mixed_sequence_target.pyw")
+MIXED_SEQUENCE_STATE_FILE = "manual_mixed_sequence_state.txt"
 
 
 def hidden_subprocess_kwargs():
@@ -299,6 +300,90 @@ def run_mixed_failure_lane(name, sequence_value, mixed_type, log_root):
     }
 
 
+def contains_fragment_in_any(paths, fragment):
+    for path in paths:
+        if contains_line_fragment(read_lines(path), fragment):
+            return True
+    return False
+
+
+def run_max_attempt_lane(name, sequence_value, expected_fragments, absent_fragments, log_root):
+    reset_dir(log_root)
+
+    env = os.environ.copy()
+    env["JARVIS_HARNESS_TARGET_SCRIPT"] = MIXED_SEQUENCE_TARGET
+    env["JARVIS_HARNESS_LOG_ROOT"] = log_root
+    env["JARVIS_HARNESS_DISABLE_DIAGNOSTICS"] = "1"
+    env["JARVIS_HARNESS_DISABLE_VOICE"] = "1"
+    env["JARVIS_MANUAL_MIXED_SEQUENCE"] = sequence_value
+
+    result = run_command([sys.executable, LAUNCHER_SCRIPT], env=env, timeout_seconds=180)
+
+    runtime_log = latest_file_matching(log_root, "Runtime_")
+    crash_log = latest_file_matching(os.path.join(log_root, "crash"), "Crash_")
+    searchable_paths = [path for path in (runtime_log, crash_log) if path]
+
+    checks = {
+        "launcher_exit_code_zero": line_status(
+            result.returncode == 0,
+            f"launcher exit={result.returncode}",
+        ),
+        "runtime_log_created": line_status(
+            bool(runtime_log),
+            runtime_log or "missing runtime log",
+        ),
+        "crash_log_created": line_status(
+            bool(crash_log),
+            crash_log or "missing crash log",
+        ),
+        "failure_flow_complete": line_status(
+            contains_fragment_in_any(searchable_paths, "STATUS|SUCCESS|LAUNCHER_RUNTIME|FAILURE_FLOW_COMPLETE"),
+            "STATUS|SUCCESS|LAUNCHER_RUNTIME|FAILURE_FLOW_COMPLETE",
+        ),
+        "final_shutdown_complete": line_status(
+            contains_fragment_in_any(searchable_paths, "Final immersive shutdown sequence finished"),
+            "Final immersive shutdown sequence finished",
+        ),
+        "diagnostics_status_cleaned": line_status(
+            not os.path.exists(os.path.join(log_root, "diagnostics_status.txt")),
+            os.path.join(log_root, "diagnostics_status.txt"),
+        ),
+        "diagnostics_stop_cleaned": line_status(
+            not os.path.exists(os.path.join(log_root, "diagnostics_stop.signal")),
+            os.path.join(log_root, "diagnostics_stop.signal"),
+        ),
+        "startup_abort_signal_cleaned": line_status(
+            not os.path.exists(os.path.join(log_root, "renderer_startup_abort.signal")),
+            os.path.join(log_root, "renderer_startup_abort.signal"),
+        ),
+        "sequence_state_cleaned": line_status(
+            not os.path.exists(os.path.join(log_root, MIXED_SEQUENCE_STATE_FILE)),
+            os.path.join(log_root, MIXED_SEQUENCE_STATE_FILE),
+        ),
+    }
+
+    for fragment in expected_fragments:
+        checks[f"fragment::{fragment}"] = line_status(
+            contains_fragment_in_any(searchable_paths, fragment),
+            fragment,
+        )
+
+    for fragment in absent_fragments:
+        checks[f"absent::{fragment}"] = line_status(
+            not contains_fragment_in_any(searchable_paths, fragment),
+            f"{fragment} absent",
+        )
+
+    return {
+        "name": name,
+        "runtime_log": runtime_log,
+        "crash_log": crash_log,
+        "checks": checks,
+        "stdout": result.stdout.strip(),
+        "stderr": result.stderr.strip(),
+    }
+
+
 def collect_failures(section):
     failures = []
     for key, value in section["checks"].items():
@@ -382,12 +467,49 @@ def main(argv):
         log_root=os.path.join(BASE_LOG_ROOT, "mixed_abort_to_crash"),
     )
 
+    stable_max_attempt_section = run_max_attempt_lane(
+        name="Max-Attempt Exhaustion: Stable Non-Threshold Failure",
+        sequence_value="crash_a,crash_b,crash_c",
+        expected_fragments=[
+            "STATUS|FAIL|RECOVERY_PIPELINE|MAX_ATTEMPTS_EXHAUSTED",
+            "Automatic recovery did not change the underlying renderer failure.",
+            "Attempt Pattern: repeated identical failure across recovery attempts",
+        ],
+        absent_fragments=[
+            "STATUS|FAIL|RECOVERY_PIPELINE|MAX_ATTEMPTS_EXHAUSTED_WITH_INSTABILITY",
+            "Failure Stability: unstable across recovery attempts",
+            "CONSECUTIVE_IDENTICAL_CRASH_THRESHOLD_REACHED",
+            "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED",
+            "MIXED_FAILURE_PATTERN_OBSERVED",
+        ],
+        log_root=os.path.join(BASE_LOG_ROOT, "stable_max_attempt"),
+    )
+
+    unstable_max_attempt_section = run_max_attempt_lane(
+        name="Max-Attempt Exhaustion: Unstable Non-Threshold Failure",
+        sequence_value="crash_a,abort,crash_beta",
+        expected_fragments=[
+            "STATUS|FAIL|RECOVERY_PIPELINE|MAX_ATTEMPTS_EXHAUSTED_WITH_INSTABILITY",
+            "Failure Stability: unstable across recovery attempts",
+            "Automatic recovery completed without resolving the renderer failure.",
+            "Attempt Pattern: mixed failure sequence observed",
+            "STATUS|WARNING|LAUNCHER_RUNTIME|MIXED_FAILURE_PATTERN_OBSERVED|TYPE=CRASH_TO_STARTUP_ABORT",
+        ],
+        absent_fragments=[
+            "CONSECUTIVE_IDENTICAL_CRASH_THRESHOLD_REACHED",
+            "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED",
+        ],
+        log_root=os.path.join(BASE_LOG_ROOT, "unstable_max_attempt"),
+    )
+
     sections = [
         healthy_section,
         repeated_crash_section,
         startup_abort_section,
         crash_to_abort_section,
         abort_to_crash_section,
+        stable_max_attempt_section,
+        unstable_max_attempt_section,
     ]
     failures = []
     for section in sections:
