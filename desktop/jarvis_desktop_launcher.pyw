@@ -22,7 +22,7 @@ def env_path_override(name, default_path):
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "jarvis_desktop_main.py")
+DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_main.py")
 DEFAULT_LOG_DIR = os.path.join(ROOT_DIR, "logs")
 TARGET_SCRIPT = env_path_override("JARVIS_HARNESS_TARGET_SCRIPT", DEFAULT_TARGET_SCRIPT)
 LOG_DIR = env_path_override("JARVIS_HARNESS_LOG_ROOT", DEFAULT_LOG_DIR)

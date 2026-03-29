@@ -2,6 +2,12 @@ import os
 import sys
 import datetime
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(CURRENT_DIR)
+
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
 
@@ -70,8 +76,7 @@ def main():
     if exit_if_startup_abort_requested():
         return 0
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    visual_html_path = os.path.join(base_dir, "jarvis_visual", "jarvis_core_desktop.html")
+    visual_html_path = os.path.join(ROOT_DIR, "jarvis_visual", "jarvis_core_desktop.html")
     runtime_milestone("RENDERER_MAIN|VISUAL_HTML_RESOLVED")
     if exit_if_startup_abort_requested():
         return 0

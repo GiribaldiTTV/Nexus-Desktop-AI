@@ -80,6 +80,18 @@ LANE_CONFIG = {
         "report_suffix": ".txt",
         "crash_folder": "",
     },
+    "desktopHealthy": {
+        "label": "Healthy Desktop Launch Validation",
+        "detail": (
+            "Runs a contained offscreen validation of the current default desktop renderer target "
+            "and verifies healthy startup milestones such as WINDOW_SHOW_CALLED and STARTUP_READY."
+        ),
+        "quiet_launcher": "launch_jarvis_desktop_entrypoint_validation.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "log_root": os.path.join(LOGS_DIR, "desktop_entrypoint_validation"),
+        "crash_folder": "",
+    },
 }
 
 
@@ -469,6 +481,7 @@ class DevLauncherWindow(QWidget):
             ("Startup-Abort Test", "startupAbort", False),
             ("Startup-Abort Test With Voice", "startupAbort", True),
             ("Voice Regression Harness", "voiceRegression", False),
+            ("Healthy Desktop Launch Validation", "desktopHealthy", False),
         ]
         for label, lane_key, with_voice in quick_buttons:
             btn = QPushButton(label)
@@ -489,6 +502,7 @@ class DevLauncherWindow(QWidget):
             ("repeatedCrash", "Repeated-Crash Failure Lane"),
             ("startupAbort", "Startup-Abort Lane"),
             ("voiceRegression", "Voice Regression Harness"),
+            ("desktopHealthy", "Healthy Desktop Launch Validation"),
         ):
             btn = QPushButton(button_text)
             btn.setCheckable(True)

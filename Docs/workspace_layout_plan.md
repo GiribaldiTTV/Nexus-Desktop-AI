@@ -21,8 +21,6 @@ Its job is to:
 Current repo-root items with planning significance:
 
 - `main.py`
-- `jarvis_desktop_main.py`
-- `jarvis_desktop_test.py`
 - `jarvis_voice.py`
 - `launch_jarvis_desktop.vbs`
 - `dev/`
@@ -45,6 +43,7 @@ Repo metadata and environment artifacts that should remain root-owned:
 
 - launcher runtime and recovery control
 - diagnostics UI
+- desktop entrypoints
 - desktop renderer support
 - desktop support-reporting helpers
 - harness tooling tied to desktop/runtime validation
@@ -104,7 +103,7 @@ They should live under `dev/launchers/`.
 - desktop diagnostics
 - desktop renderer support
 - desktop-specific helpers
-- desktop entrypoints later, after a controlled migration pass
+- desktop entrypoints
 - runtime harness helpers that are part of production-adjacent launcher behavior
 
 `dev/`
@@ -113,10 +112,10 @@ They should live under `dev/launchers/`.
 - deterministic manual renderer targets
 - developer-only helper surfaces for contained validation
 
-Later move candidates into `desktop/`:
+Desktop entrypoints now consolidated under `desktop/`:
 
-- `jarvis_desktop_main.py`
-- `jarvis_desktop_test.py`
+- `desktop/jarvis_desktop_main.py`
+- `desktop/jarvis_desktop_test.py`
 
 `audio/`
 
@@ -177,21 +176,21 @@ These files are sensitive enough that they must be migrated in a controlled orde
 `desktop/jarvis_desktop_launcher.pyw`
 
 - derives `ROOT_DIR`
-- assumes `jarvis_desktop_main.py` lives at repo root
+- targets `desktop/jarvis_desktop_main.py` as the default renderer entrypoint
 - assumes `logs/` lives under repo root
 - assumes `Audio/jarvis_error_voice.py` lives under repo root
 - launches sibling diagnostics script from `desktop/`
 
-`jarvis_desktop_main.py`
+`desktop/jarvis_desktop_main.py`
 
-- root entrypoint
+- desktop entrypoint
 - imports `desktop.*`
 - resolves visual assets from `jarvis_visual/` relative to repo root
 
-`jarvis_desktop_test.py`
+`desktop/jarvis_desktop_test.py`
 
-- same path pattern as `jarvis_desktop_main.py`
-- should migrate in step with the desktop entrypoint layout, not separately
+- same path pattern as `desktop/jarvis_desktop_main.py`
+- moved in step with the desktop entrypoint layout and should remain paired with it
 
 `main.py`
 
@@ -252,13 +251,13 @@ Low-risk naming and documentation alignment only.
 
 ### Step 3
 
-Desktop entrypoint consolidation.
+Implemented.
 
-- move `jarvis_desktop_main.py` into the `desktop/` domain
-- move `jarvis_desktop_test.py` with it
-- update the launcher's target-script assumption in the same approved pass
+- `jarvis_desktop_main.py` moved into the `desktop/` domain
+- `jarvis_desktop_test.py` moved with it
+- the launcher's target-script assumption now points at the moved desktop entrypoint
 
-This should be the first real code-moving pass because it addresses the clearest root-level ownership leak without crossing into paused boot work.
+This was the first real code-moving pass because it addressed the clearest root-level ownership leak without crossing into paused boot work.
 
 ### Step 4
 
@@ -299,20 +298,16 @@ Defer top-level experience entrypoint work until later.
 
 - case-only folder renames may be unreliable without a controlled git-aware pass on Windows
 - `launch_jarvis_desktop.vbs` hardcodes a root-to-desktop path
-- `desktop/jarvis_desktop_launcher.pyw` assumes root-owned renderer and audio paths
+- `desktop/jarvis_desktop_launcher.pyw` still assumes root-owned audio and log paths
 - `main.py` and `jarvis_voice.py` are coupled and should not be split casually
 - generated `logs/` content should not be mixed into source-layout refactors
 
 ## Recommended First Implementation Move Pass After Rev1a
 
-If `FB-005` proceeds beyond planning, the safest first implementation move pass should be:
+This step is now completed as desktop-entrypoint consolidation:
 
-- desktop-entrypoint consolidation only
+- `jarvis_desktop_main.py` moved under `desktop/`
+- `jarvis_desktop_test.py` moved with it
+- launcher path assumptions were updated accordingly
 
-That means:
-
-- move `jarvis_desktop_main.py`
-- move `jarvis_desktop_test.py`
-- update the launcher path assumptions in the same approved pass
-
-This is smaller and safer than starting with a broad repo rewrite.
+Broader workspace reorganization remains deferred.
