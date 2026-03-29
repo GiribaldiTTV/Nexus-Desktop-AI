@@ -1,0 +1,167 @@
+# Jarvis Post-v1.8.0 Closeout
+
+## Version
+
+Post-v1.8.0
+
+## Scope
+
+Backend-tools, developer-tools, testing-and-validation closeout for the post-`v1.8.0` lane. This version stayed intentionally contained to developer-facing harnesses, validators, reachability surfaces, and directly supportive infrastructure without reopening closed `v1.6.0`, `v1.7.0`, or `v1.8.0` behavior.
+
+---
+
+## What Is Complete
+
+### Voice Regression Validation
+
+* contained `FB-018` voice regression harness
+* dedicated VBS launcher and accepted PySide dev-toolkit lane
+* launcher-owned failure-lane coverage plus direct diagnostics/error voice probes
+
+### Desktop Validation Stack
+
+* contained desktop entrypoint validation for the moved default renderer target
+* contained healthy launcher-path validation against the live desktop launcher default target
+* contained desktop launcher regression harness covering healthy, repeated-identical-crash, startup-abort, mixed-sequence, and max-attempt exhaustion lanes
+* dedicated VBS launchers and accepted PySide dev-toolkit lanes for those validation surfaces
+
+### `FB-005` First Workspace Slice
+
+* `desktop/jarvis_desktop_main.py` and `desktop/jarvis_desktop_test.py` moved under `desktop/`
+* `desktop/jarvis_desktop_launcher.pyw` now targets `desktop/jarvis_desktop_main.py` as the default renderer entrypoint
+* `launch_jarvis_desktop.vbs` remained unchanged
+* `workspace_layout_plan.md` was minimally synced for that exact move
+
+### `FB-019` Support-Bundle Triage Stack
+
+* dev-only raw support-bundle triage helper for `.zip` or extracted-folder input
+* contained support-bundle triage regression harness with a self-owned triage subtree
+* accepted PySide dev-toolkit reachability for the raw helper
+* contained offscreen validator for the raw-helper toolkit flow
+* dedicated VBS launchers and accepted PySide dev-toolkit lanes for the triage harness and toolkit-flow validator
+
+### Diagnostics `Report Issue` Contract Validation
+
+* contained offscreen validator for the production diagnostics `Report Issue` flow
+* validation of support-bundle creation, manifest manual-review/manual-submission fields, GitHub issue-prefill URL generation, and open-attempt handling
+* dedicated VBS launcher and accepted PySide dev-toolkit lane for that validator
+
+### Source-of-Truth Alignment
+
+* `workspace_layout_plan.md` records the completed first `FB-005` move slice
+* `feature_backlog.md` notes are aligned for `FB-017`, `FB-018`, and `FB-019`
+* this closeout records the completed backend/dev-tool/testing lane as a historical version-end reference
+
+---
+
+## Accepted Developer Entry Surfaces
+
+* accepted PySide dev toolkit:
+  * `dev/launchers/jarvis_dev_launcher.pyw`
+  * `dev/launchers/launch_jarvis_dev_toolkit.vbs`
+* dedicated VBS validation and harness entry surfaces:
+  * `dev/launchers/launch_jarvis_voice_regression_harness.vbs`
+  * `dev/launchers/launch_jarvis_desktop_entrypoint_validation.vbs`
+  * `dev/launchers/launch_jarvis_desktop_launcher_healthy_validation.vbs`
+  * `dev/launchers/launch_jarvis_desktop_launcher_regression_harness.vbs`
+  * `dev/launchers/launch_jarvis_support_bundle_triage_harness.vbs`
+  * `dev/launchers/launch_jarvis_support_bundle_triage_toolkit_validation.vbs`
+  * `dev/launchers/launch_jarvis_diagnostics_report_issue_validation.vbs`
+* the raw `FB-019` support-bundle triage helper remains intentionally toolkit-lane reachable rather than a separate Windows-facing VBS shim
+
+---
+
+## Validation And Evidence Roots
+
+* voice regression harness:
+  * `logs/voice_regression_harness/reports`
+  * latest pass: `VoiceRegressionReport_20260328_170951.txt`
+* desktop entrypoint validation:
+  * `logs/desktop_entrypoint_validation/reports`
+  * latest pass: `DesktopEntrypointValidationReport_20260328_184904.txt`
+* healthy launcher-path validation:
+  * `logs/desktop_launcher_healthy_validation/reports`
+  * latest pass: `DesktopLauncherHealthyValidationReport_20260328_183655.txt`
+* desktop launcher regression harness:
+  * `logs/desktop_launcher_regression_harness/reports`
+  * latest pass: `DesktopLauncherRegressionHarnessReport_20260329_064742.txt`
+* `FB-005` first workspace slice verification artifacts:
+  * `logs/workspace_move_verify`
+  * direct repo-truth surfaces: `desktop/jarvis_desktop_main.py`, `desktop/jarvis_desktop_test.py`, `desktop/jarvis_desktop_launcher.pyw`
+* raw support-bundle triage helper:
+  * `logs/support_bundle_triage/reports`
+  * latest report-root evidence: `SupportBundleTriageReport_20260329_064743_054260.txt`
+* support-bundle triage harness:
+  * `logs/support_bundle_triage_harness/reports`
+  * latest pass: `SupportBundleTriageHarnessReport_20260329_064742.txt`
+* support-bundle triage toolkit validation:
+  * `logs/support_bundle_triage_toolkit_validation/reports`
+  * latest pass: `SupportBundleTriageToolkitValidationReport_20260329_064743.txt`
+* diagnostics `Report Issue` validation:
+  * `logs/diagnostics_report_issue_validation/reports`
+  * latest pass: `DiagnosticsReportIssueValidationReport_20260329_075012.txt`
+
+---
+
+## Current Guarantees
+
+* passive diagnostics presentation remains accepted and unchanged
+* production diagnostics `Report Issue` behavior remains a manual-review and manual-submission flow
+* production support-bundle generation remains unchanged by the dev-only triage helper and validation tooling
+* end-user issue reporting remains separate from internal triage tooling
+* the normal startup and desktop Jarvis voice path remains intentionally separate from the diagnostics and error voice path
+* launcher retry, escalation, threshold, and recovery policy remain unchanged
+* closed `v1.6.0`, `v1.7.0`, and `v1.8.0` guarantees are not reopened by this version
+
+---
+
+## What Is Intentionally Not Implemented
+
+* support-bundle schema redesign
+* silent uploads or automatic GitHub submission
+* exact replay from a support bundle alone
+* user-facing diagnostics or reporting UI redesign
+* launcher-policy tuning or broader orchestration changes
+* voice redesign or path unification
+* broader dev-toolkit redesign or framework consolidation
+* broader workspace migration beyond the completed first `FB-005` slice
+
+---
+
+## Deferred Beyond This Version
+
+* further `FB-005` workspace-organization moves beyond the completed desktop entrypoint slice
+* `FB-004` boot and access work
+* `FB-015` boot and desktop phase-boundary work
+* any expansion of internal support-bundle triage classification beyond the current launcher-owned terminal failure classes
+
+---
+
+## Final Audit Outcome
+
+The post-`v1.8.0` lane was audited across:
+
+* accepted dev-entry surfaces
+* latest validation and harness reports
+* repo-truth desktop and diagnostics files
+* `feature_backlog.md`
+* `workspace_layout_plan.md`
+
+No implementation contradiction remains across those surfaces.
+
+Observed version-level behavior is consistent:
+
+* the backend/dev-tool/testing lane is complete enough for closeout
+* the intended validators and harnesses are implemented, validated, and reachable where intended
+* raw and contained support-bundle triage tooling remain internal-only
+* production diagnostics and support-bundle behavior remain preserved
+
+---
+
+## Final Status
+
+Post-`v1.8.0` is complete for this backend/dev-tool/testing lane.
+
+No further code-first workstream is required before closeout.
+
+The next safe move after this closeout is future-version sequencing, not more current-version implementation.
