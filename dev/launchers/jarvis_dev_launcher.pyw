@@ -92,6 +92,22 @@ LANE_CONFIG = {
         "log_root": os.path.join(LOGS_DIR, "desktop_entrypoint_validation"),
         "crash_folder": "",
     },
+    "launcherHealthy": {
+        "label": "Healthy Launcher Path Validation",
+        "detail": (
+            "Runs the real desktop launcher against its current default target, waits for "
+            "launcher-owned healthy startup markers, then triggers a controlled shutdown and "
+            "captures reusable pass/fail evidence for the contained healthy path."
+        ),
+        "quiet_launcher": "launch_jarvis_desktop_launcher_healthy_validation.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "log_root": os.path.join(LOGS_DIR, "desktop_launcher_healthy_validation"),
+        "report_root": os.path.join(LOGS_DIR, "desktop_launcher_healthy_validation", "reports"),
+        "report_prefix": "DesktopLauncherHealthyValidationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
 }
 
 
@@ -482,6 +498,7 @@ class DevLauncherWindow(QWidget):
             ("Startup-Abort Test With Voice", "startupAbort", True),
             ("Voice Regression Harness", "voiceRegression", False),
             ("Healthy Desktop Launch Validation", "desktopHealthy", False),
+            ("Healthy Launcher Path Validation", "launcherHealthy", False),
         ]
         for label, lane_key, with_voice in quick_buttons:
             btn = QPushButton(label)
@@ -503,6 +520,7 @@ class DevLauncherWindow(QWidget):
             ("startupAbort", "Startup-Abort Lane"),
             ("voiceRegression", "Voice Regression Harness"),
             ("desktopHealthy", "Healthy Desktop Launch Validation"),
+            ("launcherHealthy", "Healthy Launcher Path Validation"),
         ):
             btn = QPushButton(button_text)
             btn.setCheckable(True)
