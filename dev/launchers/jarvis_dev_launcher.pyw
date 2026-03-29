@@ -160,6 +160,22 @@ LANE_CONFIG = {
         "report_suffix": ".txt",
         "crash_folder": "",
     },
+    "diagnosticsReportIssueValidation": {
+        "label": "Diagnostics Report Issue Validation",
+        "detail": (
+            "Runs the contained offscreen validator for the production diagnostics Report Issue flow "
+            "and verifies support-bundle creation, manifest manual-submission contract fields, and "
+            "GitHub issue-prefill open-attempt handling."
+        ),
+        "quiet_launcher": "launch_jarvis_diagnostics_report_issue_validation.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "log_root": os.path.join(LOGS_DIR, "diagnostics_report_issue_validation"),
+        "report_root": os.path.join(LOGS_DIR, "diagnostics_report_issue_validation", "reports"),
+        "report_prefix": "DiagnosticsReportIssueValidationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
     "supportBundleTriage": {
         "label": "Support Bundle Triage Helper",
         "detail": (
@@ -596,6 +612,7 @@ class DevLauncherWindow(QWidget):
             ("launcherRegression", "Desktop Launcher Regression Harness"),
             ("supportBundleTriageHarness", "Support Bundle Triage Harness"),
             ("supportBundleTriageToolkitValidation", "Support Bundle Triage Toolkit Validation"),
+            ("diagnosticsReportIssueValidation", "Diagnostics Report Issue Validation"),
             ("supportBundleTriage", "Support Bundle Triage Helper"),
         ):
             btn = QPushButton(button_text)
