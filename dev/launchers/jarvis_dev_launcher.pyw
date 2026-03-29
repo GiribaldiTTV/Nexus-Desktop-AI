@@ -90,6 +90,9 @@ LANE_CONFIG = {
         "voice_launcher": "",
         "supports_voice": False,
         "log_root": os.path.join(LOGS_DIR, "desktop_entrypoint_validation"),
+        "report_root": os.path.join(LOGS_DIR, "desktop_entrypoint_validation", "reports"),
+        "report_prefix": "DesktopEntrypointValidationReport_",
+        "report_suffix": ".txt",
         "crash_folder": "",
     },
     "launcherHealthy": {
