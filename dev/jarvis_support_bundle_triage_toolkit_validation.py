@@ -411,6 +411,8 @@ def build_report_text(branch_state, report_path, sections, overall_ok):
 
 
 def main(argv):
+    open_report = "--open-report" in argv
+
     reset_dir(BASE_LOG_ROOT)
     ensure_dir(REPORTS_DIR)
 
@@ -480,6 +482,12 @@ def main(argv):
             indent=2,
             sort_keys=True,
         )
+
+    if open_report and os.name == "nt":
+        try:
+            os.startfile(report_path)
+        except Exception:
+            pass
 
     print(report_text)
     return 0 if overall_ok else 1

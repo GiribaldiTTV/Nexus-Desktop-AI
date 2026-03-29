@@ -145,6 +145,21 @@ LANE_CONFIG = {
         "report_suffix": ".txt",
         "crash_folder": "",
     },
+    "supportBundleTriageToolkitValidation": {
+        "label": "Support Bundle Triage Toolkit Validation",
+        "detail": (
+            "Runs the contained offscreen validator for the raw FB-019 toolkit flow and verifies "
+            "toolkit-driven zip-input triage, extracted-folder triage, and latest-report reachability."
+        ),
+        "quiet_launcher": "launch_jarvis_support_bundle_triage_toolkit_validation.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "log_root": os.path.join(LOGS_DIR, "support_bundle_triage_toolkit_validation"),
+        "report_root": os.path.join(LOGS_DIR, "support_bundle_triage_toolkit_validation", "reports"),
+        "report_prefix": "SupportBundleTriageToolkitValidationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
     "supportBundleTriage": {
         "label": "Support Bundle Triage Helper",
         "detail": (
@@ -580,6 +595,7 @@ class DevLauncherWindow(QWidget):
             ("launcherHealthy", "Healthy Launcher Path Validation"),
             ("launcherRegression", "Desktop Launcher Regression Harness"),
             ("supportBundleTriageHarness", "Support Bundle Triage Harness"),
+            ("supportBundleTriageToolkitValidation", "Support Bundle Triage Toolkit Validation"),
             ("supportBundleTriage", "Support Bundle Triage Helper"),
         ):
             btn = QPushButton(button_text)
