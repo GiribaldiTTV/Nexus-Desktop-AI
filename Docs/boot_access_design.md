@@ -563,8 +563,83 @@ Consumer setup remains responsible only for:
 - early consumer-facing calibration
 - handing the user into normal use with reversible early choices
 
-Later environment-preference taxonomy and later-adjustment design remain separate future work.
-This document intentionally does not define the exact setup sequence, exact preference list, or exact later settings ownership mechanics.
+Later-adjustment design remains separate future work.
+This document intentionally does not define the exact setup sequence, exact preference labels, or exact later settings ownership mechanics.
+
+## Environment-Preference Taxonomy Contract
+
+At planning level, environment preferences are the user-facing posture choices that shape how Jarvis feels during setup and ordinary use without changing trust meaning, recovery meaning, or runtime authority.
+
+The environment-preference categories that belong in this lane are:
+
+- presence posture:
+  how calm, expressive, quiet, or pronounced Jarvis should feel as an experience layer
+- guidance posture:
+  how concise or guided Jarvis should be while helping the user understand the early experience
+- interaction posture:
+  how voice participates as optional framing or guidance while typed interaction remains fully sufficient
+- pacing and atmosphere posture:
+  how brief versus atmospheric the early Jarvis experience should feel without turning setup into ceremony
+- everyday resident presence posture:
+  how visible or quiet Jarvis should feel after setup when trust continuity is normal and no recovery-oriented surfacing is active
+
+These categories are about comfort, presentation, and usability posture.
+They are not:
+
+- trust categories
+- recovery-state categories
+- backend categories
+- shell or tray categories
+- diagnostics categories
+- runtime-policy categories
+
+## Environment-Preference Timing Model
+
+At planning level, the most plausible up-front setup choices are the broad posture decisions that help Jarvis avoid an obviously wrong first-run experience:
+
+- an initial presence-posture baseline
+- an initial guidance-posture baseline
+- an initial interaction-posture baseline that keeps typing sufficient and voice optional
+
+At planning level, the most plausible optional setup choices are refinements that may improve comfort but are not required to establish a coherent first everyday posture:
+
+- deeper pacing or atmosphere refinements
+- non-essential resident presence refinements for normal trust state
+- secondary comfort refinements that are helpful but not required for setup completion
+
+At planning level, the choices that should remain deferred until later are those the user can evaluate better only after living with Jarvis for some time:
+
+- detailed per-surface preference tuning
+- exact later everyday adjustments
+- anything that would require the user to understand future shell, tray, renderer, or diagnostics behavior
+- anything that meaningfully overlaps with trust, recovery, or resident control-anchor ownership
+
+This timing model is meant to keep setup short and consumer-friendly.
+It prevents setup from becoming either:
+
+- a full settings migration exercise
+- a disguised access-control sequence
+
+## Environment-Preference Boundary Contract
+
+Environment preferences may shape:
+
+- comfort
+- presentation tone
+- guidance density
+- presence intensity
+- normal-state everyday visibility posture
+
+Environment preferences must not shape:
+
+- whether trust continuity is normal, degraded, or recovery-needed
+- whether recovery-entry surfacing is required
+- how bounded deferral works
+- how the resident control anchor owns trust-state visibility or recovery access
+- launcher-owned desktop truth, diagnostics authority, or any runtime behavior
+
+Later-adjustment and safe-undo planning remains a separate future lane.
+This document does not define how preference changes are revisited later; it defines only which categories belong here and when they are plausibly chosen.
 
 ## How Jarvis Stays Present Without Becoming Heavy
 
@@ -629,7 +704,7 @@ This canonical document intentionally defers:
 - exact resident recovery-entry persistence mechanics
 - exact resident control-anchor information architecture or settings taxonomy
 - exact consumer setup sequence, prompt set, or screen flow
-- exact environment-preference taxonomy or timing model
+- exact environment-preference labels, defaults, or per-surface mappings
 - exact later-adjustment or safe-undo mechanics for setup choices
 - boot runtime control
 - launcher-policy changes
@@ -678,7 +753,6 @@ A successful consolidated boot-access design would make the user feel:
 
 If boot planning continues after this clarification, the next coherent revision should stay narrow:
 
-- environment-preference taxonomy and timing planning after consumer setup boundary clarification
 - later-adjustment and safe-undo planning for consumer setup choices
 
 That should remain separate from backend, shell, diagnostics, or implementation design until the planning boundary is intentionally changed.
