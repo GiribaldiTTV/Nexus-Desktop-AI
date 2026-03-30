@@ -563,7 +563,7 @@ Consumer setup remains responsible only for:
 - early consumer-facing calibration
 - handing the user into normal use with reversible early choices
 
-Later-adjustment design remains separate future work.
+Later-adjustment and safe-undo remains a distinct adjacent lane.
 This document intentionally does not define the exact setup sequence, exact preference labels, or exact later settings ownership mechanics.
 
 ## Environment-Preference Taxonomy Contract
@@ -638,8 +638,75 @@ Environment preferences must not shape:
 - how the resident control anchor owns trust-state visibility or recovery access
 - launcher-owned desktop truth, diagnostics authority, or any runtime behavior
 
-Later-adjustment and safe-undo planning remains a separate future lane.
+Later-adjustment and safe-undo remains a separate adjacent lane.
 This document does not define how preference changes are revisited later; it defines only which categories belong here and when they are plausibly chosen.
+
+## Later-Adjustment And Safe-Undo Purpose Contract
+
+At planning level, later adjustment and safe-undo is the ordinary post-setup lane where the user can revisit, soften, or reverse prior consumer-facing setup and environment-preference choices without implying that trust is broken or recovery is required.
+
+This lane is conceptually responsible for:
+
+- allowing the user to make Jarvis calmer, simpler, quieter, or less demanding after living with the initial setup choices
+- reinforcing that setup and environment-preference choices are revisable rather than one-time commitments
+- helping the user recover from overly strong, overly guided, or otherwise poor comfort choices without replaying the meaning of trust failure
+- preserving confidence that the Jarvis experience can be adjusted without destabilizing ordinary use
+
+This lane should feel:
+
+- normal
+- user-directed
+- non-urgent
+- non-punitive
+- like ordinary preference revision rather than a system repair event
+
+## Ordinary Adjustment Versus Trust Recovery Contract
+
+At planning level, ordinary preference adjustment is different in meaning from trust recovery.
+
+Ordinary preference adjustment is about:
+
+- comfort
+- presentation posture
+- guidance density
+- presence intensity
+- how strong or quiet the everyday Jarvis experience should feel
+
+Trust recovery is about:
+
+- degraded or recovery-needed trust continuity
+- restoring the intended trust path after bypass or disruption
+- the resident trust-state and recovery-entry contracts already defined elsewhere in this document
+
+That means:
+
+- wanting Jarvis to feel calmer or simpler must not be treated as recovery-needed state
+- revising a setup choice must not change trust-state meaning by itself
+- undoing a consumer-facing preference must not require trust restoration
+- trust recovery must remain separate from normal post-setup preference revision
+
+## Later-Adjustment Relationship To The Resident Control Anchor
+
+The resident control anchor remains the post-login home for:
+
+- trust-state visibility
+- recovery-entry access
+- explanation of current trust continuity posture
+
+Later adjustment and safe-undo may still be reachable after login, but it is not conceptually the same lane as the resident control anchor.
+
+At planning level, that means:
+
+- later adjustment may coexist with post-login Jarvis presence without being reclassified as trust-state ownership
+- later adjustment must not take over recovery-entry surfacing or bounded-deferral meaning
+- the resident control anchor must not become the owner of broad consumer setup or environment-preference revision just because both are post-login reachable
+
+This document intentionally does not define:
+
+- exact settings-surface ownership
+- exact cross-links between trust-state access and later adjustment
+- exact tray, shell, resident UI, or notification mechanics for how later adjustment is reached
+- exact later-adjustment screen flow or safe-undo sequence
 
 ## How Jarvis Stays Present Without Becoming Heavy
 
@@ -751,8 +818,9 @@ A successful consolidated boot-access design would make the user feel:
 
 ## Recommended Next Planning Splits
 
-If boot planning continues after this clarification, the next coherent revision should stay narrow:
+If boot planning continues after this clarification, any later revisions should stay narrower than the already-defined planning contracts and focus only on:
 
-- later-adjustment and safe-undo planning for consumer setup choices
+- exact settings ownership or information-architecture clarification if a later planning boundary still needs it
+- exact preference labels, defaults, or per-surface mappings if a later planning boundary intentionally allows that depth
 
-That should remain separate from backend, shell, diagnostics, or implementation design until the planning boundary is intentionally changed.
+Those should remain separate from backend, shell, diagnostics, or implementation design until the planning boundary is intentionally changed.
