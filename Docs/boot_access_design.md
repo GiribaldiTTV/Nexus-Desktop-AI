@@ -249,6 +249,70 @@ At planning level, the trust family narrows into two conceptual factor shapes:
 
 This keeps the normal daily path fast while preserving a distinct elevated path when trust continuity is different from routine access.
 
+## Windows Hello Additive Path Contract
+
+At planning level, Windows Hello may be considered only as a future optional additive shortcut for the routine daily path.
+It does not replace the current local knowledge-based secret family as the canonical Jarvis trust baseline.
+
+Conceptually, this means:
+
+- the short-form deliberate secret entry remains the baseline routine-path trust factor
+- Windows Hello may later act as a faster routine-path unlock on a compatible Windows device for a user who has already established the Jarvis local-secret baseline
+- the longer-form deliberate secret entry remains the stronger or recovery-oriented path unless a later explicitly approved planning pass changes that
+
+Windows Hello should be understood here as:
+
+- a device-local convenience and hardening layer for routine access
+- subordinate to the current Jarvis trust-family baseline
+- additive rather than replacement-oriented
+
+Windows Hello should not be treated here as:
+
+- the new primary Jarvis identity model
+- the new stronger or recovery-oriented factor by default
+- a reason to remove typed sufficiency
+- a reason to redefine Jarvis trust continuity around Windows-owned device state
+
+## Windows Hello Role Inside The Routine Path
+
+At planning level, if Windows Hello is later introduced, it should fit the routine path as a shortcut that preserves the existing routine-path character:
+
+- quick
+- calm
+- intentional
+- low-friction
+
+That means:
+
+- typed secret entry must remain sufficient even when Windows Hello is available
+- Windows Hello may make ordinary daily access faster on a compatible device, but it must not become mandatory
+- if Windows Hello is unavailable, unset, declined, or fails, the routine typed path remains the ordinary fallback rather than a special recovery event
+- the stronger or recovery-oriented path should not silently collapse into Windows Hello just because the device supports it
+
+This keeps the routine path aligned with the current Jarvis contract:
+
+- Jarvis still presents the trust moment
+- the trust step remains real and understandable
+- routine access does not become a separate Windows-owned login product
+
+## Windows Hello Boundary And Deferral Contract
+
+This planning clarification does not authorize:
+
+- auth backend design
+- credential storage design
+- biometric implementation details
+- device-trust implementation details
+- passkey-account or relying-party design
+- shell, tray, renderer, diagnostics, or boot-runtime mechanics
+
+This planning clarification only defines the role Windows Hello could later play:
+
+- optional
+- routine-path only by default
+- subordinate to the local-secret baseline
+- non-replacing unless a later planning pass explicitly reopens that decision
+
 ## Routine Daily Path
 
 The routine path is the default consumer-Windows access path.
@@ -773,6 +837,7 @@ This canonical document intentionally defers:
 - exact consumer setup sequence, prompt set, or screen flow
 - exact environment-preference labels, defaults, or per-surface mappings
 - exact later-adjustment or safe-undo mechanics for setup choices
+- exact Windows Hello enrollment, availability, fallback, or failure-handling mechanics
 - boot runtime control
 - launcher-policy changes
 
