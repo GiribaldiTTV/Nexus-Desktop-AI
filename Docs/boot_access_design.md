@@ -422,6 +422,42 @@ This keeps the stronger path aligned with the current Jarvis contract:
 - still finite
 - still Jarvis-framed
 
+## TOTP Absence As Degraded Stronger-Path Condition
+
+At planning level, if TOTP is later introduced and the user cannot use the current authenticator device or code path, Jarvis should treat that by default as a narrower degraded stronger-path condition rather than as ordinary routine access or a full separate recovery state.
+
+Conceptually, this means:
+
+- the longer-form deliberate secret entry remains usable as the baseline stronger-path factor
+- the stronger path remains clearly non-routine and deliberate even when the additive hardening factor is unavailable
+- TOTP absence narrows the hardening posture of the stronger path, but does not automatically mean Jarvis trust continuity was bypassed
+- the routine path does not become an acceptable substitute just because the additive stronger-path factor is currently unavailable
+
+This degraded stronger-path condition should be understood here as:
+
+- less hardened than a future stronger path where the additive TOTP factor is available
+- still stronger than routine access
+- narrower than the broader post-bypass trust-restoration state
+- still inside the stronger-path family rather than a separate recovery lane by default
+
+This degraded stronger-path condition should not be treated here as:
+
+- proof that the user bypassed Jarvis trust completion
+- a reason to immediately route the user into the broader post-bypass recovery contract by default
+- a reason to make the longer-secret stronger-path baseline unusable
+- a reason to require recovery-code planning in this clarification
+
+## TOTP Absence Versus Full Recovery State
+
+At planning level, TOTP absence differs from the broader recovery contract because the user is still attempting to complete Jarvis trust through an approved stronger-path factor rather than reaching Windows through fallback and later repairing bypassed trust continuity.
+
+That means:
+
+- degraded stronger-path use remains inside the stronger-path lane
+- full trust-recovery remains reserved for broader trust-continuity breakage such as post-bypass restoration
+- typed sufficiency remains preserved because the longer-form deliberate secret entry is still valid
+- any later companion mechanics for device loss, recovery codes, or alternate fallback remain explicitly deferred until a later planning pass reopens them
+
 ## TOTP Boundary And Deferral Contract
 
 This planning clarification does not authorize:
