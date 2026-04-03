@@ -4,7 +4,7 @@ import subprocess
 import sys
 import textwrap
 
-from PySide6.QtCore import QPoint, QRect, Qt, QTimer
+from PySide6.QtCore import QEvent, QPoint, QRect, Qt, QTimer
 from PySide6.QtGui import QFont, QFontMetrics, QGuiApplication
 from PySide6.QtWidgets import (
     QApplication,
@@ -332,12 +332,14 @@ class DevLauncherWindow(QWidget):
         self.setMinimumSize(840, 620)
 
         self._drag_active = False
+        self._drag_pos = QPoint()
         self._resize_active = False
         self._resize_edges = set()
         self._resize_start_pos = QPoint()
         self._resize_start_geom = QRect()
         self._edge_margin = 8
         self.setMouseTracking(True)
+        self._drag_source_widgets = []
 
         self.pending_launch_key = ""
         self.selected_lane_key = "diagnostics"
@@ -554,6 +556,7 @@ class DevLauncherWindow(QWidget):
         shell_layout = QVBoxLayout(shell)
         shell_layout.setContentsMargins(14, 14, 14, 14)
         shell_layout.setSpacing(12)
+        self.shell_frame = shell
 
         self.title_bar = TitleBar(self)
         shell_layout.addWidget(self.title_bar)
@@ -563,30 +566,36 @@ class DevLauncherWindow(QWidget):
         banner_layout = QVBoxLayout(banner)
         banner_layout.setContentsMargins(12, 12, 12, 12)
         banner_layout.setSpacing(4)
+        self.banner_frame = banner
 
         banner_top = QLabel("STARK INDUSTRIES // INTERNAL TOOLING")
         banner_top.setObjectName("bannerTop")
         banner_top.setAlignment(Qt.AlignCenter)
         banner_layout.addWidget(banner_top)
+        self.banner_top_label = banner_top
 
         banner_title = QLabel("JARVIS DEV TOOLKIT")
         banner_title.setObjectName("bannerTitle")
         banner_title.setAlignment(Qt.AlignCenter)
         banner_layout.addWidget(banner_title)
+        self.banner_title_label = banner_title
 
         banner_subtitle = QLabel("Manual validation launch surface")
         banner_subtitle.setObjectName("bannerSubtitle")
         banner_subtitle.setAlignment(Qt.AlignCenter)
         banner_layout.addWidget(banner_subtitle)
+        self.banner_subtitle_label = banner_subtitle
 
         shell_layout.addWidget(banner)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        self.scroll_area = scroll
         content = QWidget()
         content_layout = QVBoxLayout(content)
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(12)
+        self.scroll_content = content
 
         status_panel = Panel("Status")
         self.status_label = QLabel("Ready.")
@@ -624,6 +633,8 @@ class DevLauncherWindow(QWidget):
         scroll.setWidget(content)
         shell_layout.addWidget(scroll, 1)
         root.addWidget(shell)
+
+        self._install_background_drag_filters()
 
         self.center_on_primary()
         self.refresh_previous_launches()
@@ -856,6 +867,47 @@ class DevLauncherWindow(QWidget):
         note.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         layout.addWidget(note)
         layout.addStretch(1)
+
+    def _install_background_drag_filters(self):
+        self._drag_source_widgets = [
+            self.shell_frame,
+            self.banner_frame,
+            self.banner_top_label,
+            self.banner_title_label,
+            self.banner_subtitle_label,
+            self.scroll_area.viewport(),
+            self.scroll_content,
+        ]
+        for widget in self._drag_source_widgets:
+            widget.installEventFilter(self)
+
+    def _begin_window_drag(self, global_pos: QPoint) -> bool:
+        self._drag_active = True
+        self._drag_pos = global_pos - self.frameGeometry().topLeft()
+        return True
+
+    def _move_window_drag(self, global_pos: QPoint) -> bool:
+        if not self._drag_active:
+            return False
+        self.move(global_pos - self._drag_pos)
+        return True
+
+    def _end_window_drag(self):
+        self._drag_active = False
+
+    def _is_background_drag_zone(self, source, local_pos: QPoint) -> bool:
+        if source is None:
+            return False
+        global_pos = source.mapToGlobal(local_pos)
+        window_pos = self.mapFromGlobal(global_pos)
+        if self._hit_test_edges(window_pos):
+            return False
+
+        if source in (self.banner_top_label, self.banner_title_label, self.banner_subtitle_label):
+            return True
+
+        child = source.childAt(local_pos)
+        return child is None
 
     def current_lane_group(self) -> dict:
         groups = self.filtered_lane_groups()
@@ -1707,6 +1759,7 @@ class DevLauncherWindow(QWidget):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        self._end_window_drag()
         self._resize_active = False
         self._resize_edges = set()
         self._apply_cursor_for_edges(self._hit_test_edges(event.position().toPoint()))
@@ -1722,6 +1775,24 @@ class DevLauncherWindow(QWidget):
         if not self._resize_active:
             self.setCursor(Qt.ArrowCursor)
         super().leaveEvent(event)
+
+    def eventFilter(self, source, event):
+        if source in self._drag_source_widgets and not self._resize_active:
+            event_type = event.type()
+            if event_type == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+                if self._is_background_drag_zone(source, event.position().toPoint()):
+                    self._begin_window_drag(event.globalPosition().toPoint())
+                    event.accept()
+                    return True
+            elif event_type == QEvent.MouseMove and self._drag_active and (event.buttons() & Qt.LeftButton):
+                if self._move_window_drag(event.globalPosition().toPoint()):
+                    event.accept()
+                    return True
+            elif event_type == QEvent.MouseButtonRelease and self._drag_active:
+                self._end_window_drag()
+                event.accept()
+                return True
+        return super().eventFilter(source, event)
 
 
 def main():
