@@ -195,89 +195,6 @@ LANE_CONFIG = {
     },
 }
 
-QUICK_LAUNCH_GROUPS = (
-    {
-        "label": "Diagnostics & Recovery Checks",
-        "options": (
-            {
-                "label": "Diagnostics UI Test (Quiet)",
-                "lane_key": "diagnostics",
-                "with_voice": False,
-                "detail": "Standalone diagnostics window checks without launcher recovery or voice playback.",
-            },
-            {
-                "label": "Repeated-Crash Failure Lane (Quiet)",
-                "lane_key": "repeatedCrash",
-                "with_voice": False,
-                "detail": "Real launcher repeated-crash recovery flow without audio playback.",
-            },
-            {
-                "label": "Repeated-Crash Failure Lane (With Voice / Audio)",
-                "lane_key": "repeatedCrash",
-                "with_voice": True,
-                "detail": "Real launcher repeated-crash recovery flow with dedicated voice-enabled evidence.",
-            },
-            {
-                "label": "Startup-Abort Lane (Quiet)",
-                "lane_key": "startupAbort",
-                "with_voice": False,
-                "detail": "Launcher stall and cooperative startup-abort recovery without audio playback.",
-            },
-            {
-                "label": "Startup-Abort Lane (With Voice / Audio)",
-                "lane_key": "startupAbort",
-                "with_voice": True,
-                "detail": "Launcher stall and cooperative startup-abort recovery with voice-enabled evidence.",
-            },
-        ),
-    },
-    {
-        "label": "Voice & Launcher Regression",
-        "options": (
-            {
-                "label": "Voice Regression Harness (Quiet)",
-                "lane_key": "voiceRegression",
-                "with_voice": False,
-                "detail": "Contained regression harness for launcher-owned voice lanes and direct diagnostics probes.",
-            },
-            {
-                "label": "Desktop Launcher Regression Harness (Quiet)",
-                "lane_key": "launcherRegression",
-                "with_voice": False,
-                "detail": "Consolidated launcher regression sweep across the healthy and failure-path launcher lanes.",
-            },
-        ),
-    },
-    {
-        "label": "Healthy Startup Validation",
-        "options": (
-            {
-                "label": "Healthy Desktop Launch Validation (Quiet)",
-                "lane_key": "desktopHealthy",
-                "with_voice": False,
-                "detail": "Contained offscreen validation for the current default desktop renderer target.",
-            },
-            {
-                "label": "Healthy Launcher Path Validation (Quiet)",
-                "lane_key": "launcherHealthy",
-                "with_voice": False,
-                "detail": "Real launcher healthy-path validation with a controlled shutdown and reusable evidence.",
-            },
-        ),
-    },
-    {
-        "label": "Support Bundles & Reporting",
-        "options": (
-            {
-                "label": "Support Bundle Triage Harness (Quiet)",
-                "lane_key": "supportBundleTriageHarness",
-                "with_voice": False,
-                "detail": "Contained regression harness for supported support-bundle classes and safe unknown fallback.",
-            },
-        ),
-    },
-)
-
 CONFIG_LANE_GROUPS = (
     {
         "label": "Diagnostics & Recovery Checks",
@@ -317,6 +234,27 @@ def latest_file_matching(folder_path: str, prefix: str) -> str:
         if modified >= best_time:
             best_time = modified
             best_path = path
+    return best_path
+
+
+def latest_directory_named(root_path: str, folder_name: str) -> str:
+    if not os.path.isdir(root_path):
+        return ""
+
+    best_path = ""
+    best_time = -1.0
+    for current_root, dir_names, _file_names in os.walk(root_path):
+        for dir_name in dir_names:
+            if dir_name.lower() != folder_name.lower():
+                continue
+            path = os.path.join(current_root, dir_name)
+            try:
+                modified = os.path.getmtime(path)
+            except OSError:
+                continue
+            if modified >= best_time:
+                best_time = modified
+                best_path = path
     return best_path
 
 
@@ -638,10 +576,6 @@ class DevLauncherWindow(QWidget):
         right_col = QVBoxLayout()
         right_col.setSpacing(12)
 
-        quick_panel = Panel("Quick Presets")
-        self._add_quick_launches(quick_panel.layout)
-        left_col.addWidget(quick_panel)
-
         config_panel = Panel("Custom Launch")
         self._build_configurable_panel(config_panel.layout)
         left_col.addWidget(config_panel, 1)
@@ -652,8 +586,8 @@ class DevLauncherWindow(QWidget):
 
         notes_panel = Panel("Notes")
         notes_label = QLabel(
-            "- Quick Presets launch the most common lanes immediately with a fixed audio mode.\n"
-            "- Custom Launch lets you choose the lane family, exact lane, launch delay, and audio mode.\n"
+            "- Custom Launch is the single launch surface for all current toolkit lanes.\n"
+            "- Start by choosing Launch Mode, then narrow by Purpose and Test / Helper.\n"
             "- Only Repeated-Crash and Startup-Abort support With Voice / Audio.\n"
             "- Support Bundle Triage Helper will ask for a bundle zip or extracted folder when launched.\n"
             "- Production behavior is unchanged unless you explicitly launch one of these internal test lanes."
@@ -685,44 +619,21 @@ class DevLauncherWindow(QWidget):
         self.center_on_primary()
         self.update_ui()
 
-    def _add_quick_launches(self, layout):
-        quick_group_label = QLabel("Purpose")
-        quick_group_label.setObjectName("fieldLabel")
-        layout.addWidget(quick_group_label)
-
-        self.quick_group_combo = QComboBox()
-        for group in QUICK_LAUNCH_GROUPS:
-            self.quick_group_combo.addItem(group["label"])
-        self.quick_group_combo.currentIndexChanged.connect(self.populate_quick_presets)
-        layout.addWidget(self.quick_group_combo)
-
-        quick_preset_label = QLabel("Quick Option")
-        quick_preset_label.setObjectName("fieldLabel")
-        layout.addWidget(quick_preset_label)
-
-        self.quick_preset_combo = QComboBox()
-        self.quick_preset_combo.currentIndexChanged.connect(self.update_quick_detail)
-        layout.addWidget(self.quick_preset_combo)
-
-        self.quick_detail_label = QLabel()
-        self.quick_detail_label.setObjectName("detailBox")
-        self.quick_detail_label.setWordWrap(True)
-        layout.addWidget(self.quick_detail_label)
-
-        self.quick_launch_btn = QPushButton("Launch Quick Option")
-        self.quick_launch_btn.clicked.connect(self.launch_selected_quick_preset)
-        layout.addWidget(self.quick_launch_btn)
-
-        note = QLabel(
-            "Use Quick Presets when you want the most common lanes with the audio mode already chosen for you."
-        )
-        note.setObjectName("noteBox")
-        note.setWordWrap(True)
-        layout.addWidget(note)
-
-        self.populate_quick_presets()
-
     def _build_configurable_panel(self, layout):
+        launch_mode_label = QLabel("Launch Mode")
+        launch_mode_label.setObjectName("fieldLabel")
+        layout.addWidget(launch_mode_label)
+
+        self.audio_label = QLabel("Choose whether this launch should stay quiet or run with live voice/audio.")
+        self.audio_label.setObjectName("noteBox")
+        self.audio_label.setWordWrap(True)
+        layout.addWidget(self.audio_label)
+
+        self.audio_combo = QComboBox()
+        self.audio_combo.addItems(["Quiet (No Audio / No Voice)", "With Voice / Audio"])
+        self.audio_combo.currentIndexChanged.connect(self.on_launch_mode_changed)
+        layout.addWidget(self.audio_combo)
+
         lane_group_label = QLabel("Purpose")
         lane_group_label.setObjectName("fieldLabel")
         layout.addWidget(lane_group_label)
@@ -756,16 +667,6 @@ class DevLauncherWindow(QWidget):
         self.delay_combo.currentIndexChanged.connect(self.update_ui)
         layout.addWidget(self.delay_combo)
 
-        self.audio_label = QLabel("Audio Mode")
-        self.audio_label.setObjectName("fieldLabel")
-        self.audio_label.setWordWrap(True)
-        layout.addWidget(self.audio_label)
-
-        self.audio_combo = QComboBox()
-        self.audio_combo.addItems(["Quiet", "With Voice / Audio"])
-        self.audio_combo.currentIndexChanged.connect(self.update_ui)
-        layout.addWidget(self.audio_combo)
-
         self.launch_btn = QPushButton("Launch Selected Lane")
         self.launch_btn.clicked.connect(self.schedule_or_launch)
         layout.addWidget(self.launch_btn)
@@ -779,7 +680,7 @@ class DevLauncherWindow(QWidget):
         self.mode_line.setWordWrap(True)
         layout.addWidget(self.mode_line)
 
-        self.populate_lane_choices("diagnostics")
+        self.populate_lane_group_choices("diagnostics")
 
     def _build_evidence_panel(self, layout):
         buttons = [
@@ -802,53 +703,56 @@ class DevLauncherWindow(QWidget):
         note.setWordWrap(True)
         layout.addWidget(note)
 
-    def current_quick_group(self) -> dict:
-        index = self.quick_group_combo.currentIndex()
-        if index < 0:
-            index = 0
-        return QUICK_LAUNCH_GROUPS[index]
-
-    def current_quick_selection(self) -> tuple[str, bool]:
-        data = self.quick_preset_combo.currentData()
-        if isinstance(data, tuple) and len(data) == 2:
-            return data
-        first_option = QUICK_LAUNCH_GROUPS[0]["options"][0]
-        return first_option["lane_key"], first_option["with_voice"]
-
-    def populate_quick_presets(self, *_args):
-        group = self.current_quick_group()
-        self.quick_preset_combo.blockSignals(True)
-        self.quick_preset_combo.clear()
-        for option in group["options"]:
-            self.quick_preset_combo.addItem(option["label"], (option["lane_key"], option["with_voice"]))
-        self.quick_preset_combo.blockSignals(False)
-        self.quick_preset_combo.setCurrentIndex(0)
-        self.update_quick_detail()
-
-    def update_quick_detail(self, *_args):
-        lane_key, with_voice = self.current_quick_selection()
-        lane = LANE_CONFIG[lane_key]
-        detail = lane["detail"]
-        for option in self.current_quick_group()["options"]:
-            if option["lane_key"] == lane_key and option["with_voice"] == with_voice:
-                detail = option.get("detail", detail)
-                break
-        audio_mode = "With Voice / Audio" if with_voice else "Quiet"
-        self.quick_detail_label.setText(
-            f"Lane: {lane['label']}\n"
-            f"Audio: {audio_mode}\n"
-            f"Purpose: {detail}"
+    def update_crash_folder_button(self, lane: dict):
+        if not hasattr(self, "crash_folder_btn"):
+            return
+        if lane.get("crash_folder"):
+            self.crash_folder_btn.setText("Open Crash Folder")
+            self.crash_folder_btn.setToolTip(
+                "Open the current lane's dedicated crash folder when crash evidence exists."
+            )
+            return
+        self.crash_folder_btn.setText("Open Latest Crash Folder")
+        self.crash_folder_btn.setToolTip(
+            "This lane does not use its own crash folder, so this opens the newest available crash folder under logs."
         )
 
-    def launch_selected_quick_preset(self):
-        lane_key, with_voice = self.current_quick_selection()
-        self.quick_launch(lane_key, with_voice)
-
     def current_lane_group(self) -> dict:
+        groups = self.filtered_lane_groups()
+        if not groups:
+            return {"label": "No Matching Lanes", "lane_keys": ()}
         index = self.lane_group_combo.currentIndex()
-        if index < 0:
+        if index < 0 or index >= len(groups):
             index = 0
-        return CONFIG_LANE_GROUPS[index]
+        return groups[index]
+
+    def filtered_lane_groups(self) -> list[dict]:
+        wants_voice = self.audio_combo.currentIndex() == 1
+        groups = []
+        for group in CONFIG_LANE_GROUPS:
+            lane_keys = []
+            for lane_key in group["lane_keys"]:
+                lane = LANE_CONFIG[lane_key]
+                if wants_voice and not lane.get("supports_voice", False):
+                    continue
+                lane_keys.append(lane_key)
+            if lane_keys:
+                groups.append({"label": group["label"], "lane_keys": tuple(lane_keys)})
+        return groups
+
+    def populate_lane_group_choices(self, preferred_lane_key: str = ""):
+        groups = self.filtered_lane_groups()
+        self.lane_group_combo.blockSignals(True)
+        self.lane_group_combo.clear()
+        preferred_group_index = 0
+        for index, group in enumerate(groups):
+            self.lane_group_combo.addItem(group["label"])
+            if preferred_lane_key and preferred_lane_key in group["lane_keys"]:
+                preferred_group_index = index
+        if groups:
+            self.lane_group_combo.setCurrentIndex(preferred_group_index)
+        self.lane_group_combo.blockSignals(False)
+        self.populate_lane_choices(preferred_lane_key)
 
     def populate_lane_choices(self, preferred_lane_key: str = ""):
         group = self.current_lane_group()
@@ -867,6 +771,10 @@ class DevLauncherWindow(QWidget):
 
     def on_lane_group_changed(self, *_args):
         self.populate_lane_choices()
+
+    def on_launch_mode_changed(self, *_args):
+        preferred_lane_key = self.current_lane_key()
+        self.populate_lane_group_choices(preferred_lane_key)
 
     def on_lane_choice_changed(self, *_args):
         lane_key = self.lane_combo.currentData()
@@ -904,15 +812,11 @@ class DevLauncherWindow(QWidget):
         return lane["label"]
 
     def select_lane(self, lane_key: str):
-        group_index = 0
-        for index, group in enumerate(CONFIG_LANE_GROUPS):
-            if lane_key in group["lane_keys"]:
-                group_index = index
-                break
-        self.lane_group_combo.blockSignals(True)
-        self.lane_group_combo.setCurrentIndex(group_index)
-        self.lane_group_combo.blockSignals(False)
-        self.populate_lane_choices(lane_key)
+        if self.audio_combo.currentIndex() == 1 and not LANE_CONFIG[lane_key].get("supports_voice", False):
+            self.audio_combo.blockSignals(True)
+            self.audio_combo.setCurrentIndex(0)
+            self.audio_combo.blockSignals(False)
+        self.populate_lane_group_choices(lane_key)
 
     def audio_mode_summary(self, lane: dict) -> str:
         if lane.get("supports_voice", False):
@@ -932,11 +836,11 @@ class DevLauncherWindow(QWidget):
         )
 
     def update_mode_line(self, lane: dict):
-        selected_audio = self.audio_combo.currentText() if lane.get("supports_voice", False) else "Quiet only"
+        selected_audio = self.audio_combo.currentText()
         self.mode_line.setText(
+            f"Launch Mode: {selected_audio} | "
             f"Selected Group: {self.current_lane_group()['label']} | "
             f"Lane: {lane['label']} | "
-            f"Audio: {selected_audio} | "
             f"Delay: {self.delay_combo.currentText()}"
         )
 
@@ -945,13 +849,16 @@ class DevLauncherWindow(QWidget):
         self.detail_label.setText(self.detail_text_for_lane(lane))
 
         supports_voice = lane.get("supports_voice", False)
-        self.audio_combo.setEnabled(supports_voice)
-        if not supports_voice:
+        if self.audio_combo.currentIndex() == 1 and not supports_voice:
+            self.audio_combo.blockSignals(True)
             self.audio_combo.setCurrentIndex(0)
-        self.audio_label.setText(self.audio_mode_label_text(lane))
+            self.audio_combo.blockSignals(False)
+        self.audio_label.setText(
+            "Choose whether this launch should stay quiet or run with live voice/audio. "
+            f"Current lane support: {self.audio_mode_summary(lane)}"
+        )
 
-        if hasattr(self, "crash_folder_btn"):
-            self.crash_folder_btn.setEnabled(bool(lane.get("crash_folder")))
+        self.update_crash_folder_button(lane)
         self.update_mode_line(lane)
         self.cancel_btn.setEnabled(self.launch_timer.isActive())
 
@@ -1019,13 +926,6 @@ class DevLauncherWindow(QWidget):
             LOGS_DIR,
         )
 
-    def quick_launch(self, lane_key: str, with_voice: bool):
-        self.select_lane(lane_key)
-        self.delay_combo.setCurrentText("Now")
-        self.audio_combo.setCurrentIndex(1 if with_voice else 0)
-        self.update_ui()
-        self.schedule_or_launch()
-
     def open_launchers_folder(self):
         self.open_path(DEV_LAUNCHERS_DIR, "Opened: Dev launchers folder")
 
@@ -1089,14 +989,33 @@ class DevLauncherWindow(QWidget):
     def open_crash_folder(self):
         lane = self.current_lane()
         crash_folder_name = lane.get("crash_folder", "")
-        if not crash_folder_name:
-            self.set_status("Diagnostics UI Test does not use a dedicated crash folder.")
+        preferred_crash_path = ""
+        if crash_folder_name:
+            preferred_crash_path = os.path.join(self.active_log_root(), crash_folder_name)
+            if os.path.isdir(preferred_crash_path):
+                self.open_path(
+                    preferred_crash_path,
+                    f"Opened crash folder for {lane['label']}: {preferred_crash_path}",
+                )
+                return
+
+        fallback_crash_path = latest_directory_named(LOGS_DIR, "crash")
+        if fallback_crash_path:
+            if preferred_crash_path:
+                self.open_path(
+                    fallback_crash_path,
+                    f"Opened latest available crash folder (current lane folder not found): {fallback_crash_path}",
+                )
+                return
+            self.open_path(
+                fallback_crash_path,
+                f"Opened latest available crash folder: {fallback_crash_path}",
+            )
             return
-        crash_path = os.path.join(self.active_log_root(), crash_folder_name)
-        if not os.path.isdir(crash_path):
-            self.set_status(f"Crash folder not found yet: {crash_path}")
+        if preferred_crash_path:
+            self.set_status(f"Crash folder not found yet: {preferred_crash_path}")
             return
-        self.open_path(crash_path, f"Opened crash folder: {crash_path}")
+        self.set_status("No crash folder found yet under logs.")
 
     def open_path(self, path: str, success_message: str):
         try:

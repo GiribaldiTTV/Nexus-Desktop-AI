@@ -253,7 +253,7 @@ This should remain a reporting refinement only and must not change launcher beha
 
 ### [ID: FB-008] Shutdown voice degradation effect
 
-Status: Deferred  
+Status: On Hold  
 Priority: Low  
 Suggested Version: TBD  
 Suggested Revision: TBD  
@@ -281,6 +281,7 @@ Out of Scope:
 
 Notes:
 The earlier shutdown-specific effect experiment is no longer the current repo-truth baseline. The final "Shutting down." line currently uses the same diagnostics/error voice path and generic effect flow as the other failure lines. This item remains the place for any future dedicated shutdown-effect work, but no shutdown-specific path is currently implemented.
+This item is intentionally paused behind `FB-020` so the Dev Toolkit utility model and dev-only evidence-root cleanup can land first without mixing voice refinement into the current developer-surface rework.
 
 ---
 
@@ -689,6 +690,56 @@ Out of Scope:
 
 Notes:
 The first coherent `FB-019` slice is now implemented as a dev-only support-bundle triage helper plus a contained regression harness. The repo now includes support-bundle zip and extracted-folder intake, parsing of the existing manifest plus bundled runtime/crash artifacts, conservative classification for the current launcher-owned terminal failure classes, compact `.txt` / `.json` triage reports, and reusable validation coverage for supported cases plus safe `unknown` fallback. The raw helper is reachable through the accepted PySide dev toolkit, and the repo also includes a contained offscreen validator for that raw-helper toolkit flow that is reachable through a dedicated VBS launcher and a report-aware lane in the accepted PySide dev toolkit. Production support-bundle generation and the end-user `Report Issue` flow remain unchanged; this item is about faster internal mapping from production evidence to the right contained repro path.
+
+---
+
+### [ID: FB-020] Dev Toolkit utility split and dev-only evidence roots
+
+Status: Deferred  
+Priority: High  
+Suggested Version: v2.0  
+Suggested Revision: TBD  
+
+Description:
+Split the Dev Toolkit utility surface into global versus selected-lane utilities and move Dev Toolkit writes into dedicated `dev/logs` evidence roots instead of the active client-facing `logs` / `crash` roots.
+
+Why it matters:
+The current Dev Toolkit mixes stable navigation buttons with lane-dependent evidence buttons, which makes the surface harder to learn. Dev/test runs also still write some evidence into the shared active-client `logs` area, which blurs the line between production-facing artifacts and developer-only validation output.
+
+Proposed Change:
+Introduce a `Global Utilities` section for always-stable folders such as the Jarvis root, Dev folder, Dev launchers folder, Dev logs root, and Dev crash root. Keep lane-dependent evidence under a separate `Custom Launch Utilities` section that follows the current selected lane and launch mode. Migrate Dev Toolkit and dev-harness write paths so developer-triggered runs write into `C:/Jarvis/dev/logs` and `C:/Jarvis/dev/logs/crashes` (or lane-specific subfolders under that root) while still allowing explicit read/open access to active client logs or crash roots when needed for investigation.
+
+Likely Files Affected:
+- C:/Jarvis/dev/launchers/jarvis_dev_launcher.pyw
+- C:/Jarvis/dev/launchers/launch_jarvis_diagnostics_manual_test.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_launcher_failure_manual_test.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_launcher_failure_manual_test_with_voice.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_launcher_startup_abort_manual_test.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_launcher_startup_abort_manual_test_with_voice.vbs
+- C:/Jarvis/desktop/jarvis_diagnostics.pyw
+- current dev validation and harness scripts that define base log roots
+
+Scope:
+- Dev Toolkit utility split
+- global versus lane-scoped utility boundaries
+- dev-only evidence-root migration
+- lane-specific dev runtime/report/crash root normalization
+
+Out of Scope:
+- boot planning
+- workspace reorganization
+- production launcher log/crash policy changes
+- support bundle contract redesign
+- shutdown voice refinement
+
+Notes:
+This should be implemented as a narrow developer-surface pass, not a production-behavior refactor. The concrete patch sequence should be:
+- split utility buttons into `Global Utilities` and `Custom Launch Utilities` with no redundant overlap
+- keep global buttons stable and always available
+- keep lane-dependent buttons tied to the selected lane and disabled until the relevant artifact exists
+- move Dev Toolkit-triggered writes out of the active client-facing `logs` / `crash` roots
+- migrate the diagnostics manual-test path, which is currently the biggest direct writer into the shared root `logs` area
+- preserve the ability to read/open active client `logs` / `crash` locations explicitly when investigation requires it
 
 ---
 
