@@ -666,15 +666,15 @@ def apply_shutdown_source_slowdown(source_path):
         lead_in = 0.0
 
     down_start_ratio = weighted_word_boundary_ratio("Shutting down.", 1)
-    # Pre-shape the same spoken line from roughly -15% at the front to roughly
-    # -80% by the tail, with the strongest drop landing around and after the
-    # transition into "down".
+    # Pre-shape the same spoken line from roughly -15% at the front to a heavy
+    # late collapse, but keep the tail readable so "down" still lands as one
+    # failing utterance instead of an overstretched detached suffix.
     segment_specs = [
         {"end_ratio": max(0.28, down_start_ratio * 0.50), "tempo": 0.82, "pitch": 1.00},
         {"end_ratio": max(0.55, down_start_ratio + 0.00), "tempo": 0.62, "pitch": 0.88},
-        {"end_ratio": min(0.78, down_start_ratio + 0.10), "tempo": 0.40, "pitch": 0.72},
-        {"end_ratio": min(0.92, down_start_ratio + 0.22), "tempo": 0.24, "pitch": 0.64},
-        {"end_ratio": 1.0, "tempo": 0.10, "pitch": 0.56},
+        {"end_ratio": min(0.76, down_start_ratio + 0.08), "tempo": 0.46, "pitch": 0.76},
+        {"end_ratio": min(0.89, down_start_ratio + 0.18), "tempo": 0.30, "pitch": 0.68},
+        {"end_ratio": 1.0, "tempo": 0.16, "pitch": 0.60},
     ]
 
     fd, out_path = tempfile.mkstemp(suffix=".wav")

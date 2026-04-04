@@ -13,7 +13,7 @@ REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 
 LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_launcher.pyw")
 ERROR_VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_error_voice.py")
-NORMAL_VOICE_SCRIPT = os.path.join(ROOT_DIR, "jarvis_voice.py")
+NORMAL_VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_voice.py")
 
 FAILURE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_failure_target.pyw")
 STARTUP_ABORT_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_startup_abort_target.pyw")
