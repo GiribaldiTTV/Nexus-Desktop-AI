@@ -9,8 +9,8 @@ import zipfile
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-BASE_LOG_ROOT = os.path.join(LOGS_DIR, "support_bundle_triage_harness")
+DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
+BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "support_bundle_triage_harness")
 REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 TRIAGE_LOG_ROOT = os.path.join(BASE_LOG_ROOT, "triage")
 VERIFICATION_DIR = os.path.join(BASE_LOG_ROOT, "verification")
@@ -20,13 +20,13 @@ SUPPORT_REPORTING_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_support_rep
 LAUNCHER_REGRESSION_HARNESS_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_desktop_launcher_regression_harness.py")
 
 DESKTOP_LAUNCHER_REGRESSION_HARNESS = os.path.join(ROOT_DIR, "dev", "jarvis_desktop_launcher_regression_harness.py")
-LAUNCHER_REGRESSION_REPORTS_DIR = os.path.join(LOGS_DIR, "desktop_launcher_regression_harness", "reports")
+LAUNCHER_REGRESSION_REPORTS_DIR = os.path.join(DEV_LOGS_DIR, "desktop_launcher_regression_harness", "reports")
 
 LANE_ROOTS = {
-    "repeated_crash": os.path.join(LOGS_DIR, "desktop_launcher_regression_harness", "repeated_crash"),
-    "startup_abort": os.path.join(LOGS_DIR, "desktop_launcher_regression_harness", "startup_abort"),
-    "stable_max_attempt": os.path.join(LOGS_DIR, "desktop_launcher_regression_harness", "stable_max_attempt"),
-    "unstable_max_attempt": os.path.join(LOGS_DIR, "desktop_launcher_regression_harness", "unstable_max_attempt"),
+    "repeated_crash": os.path.join(DEV_LOGS_DIR, "desktop_launcher_regression_harness", "repeated_crash"),
+    "startup_abort": os.path.join(DEV_LOGS_DIR, "desktop_launcher_regression_harness", "startup_abort"),
+    "stable_max_attempt": os.path.join(DEV_LOGS_DIR, "desktop_launcher_regression_harness", "stable_max_attempt"),
+    "unstable_max_attempt": os.path.join(DEV_LOGS_DIR, "desktop_launcher_regression_harness", "unstable_max_attempt"),
 }
 
 

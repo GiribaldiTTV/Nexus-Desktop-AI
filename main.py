@@ -18,7 +18,7 @@ from PySide6.QtCore import Qt, QTimer, QObject, Signal, QPropertyAnimation, QUrl
 from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
-from jarvis_voice import JarvisSpeaker
+from Audio.jarvis_voice import JarvisSpeaker
 
 
 # ---------------------------

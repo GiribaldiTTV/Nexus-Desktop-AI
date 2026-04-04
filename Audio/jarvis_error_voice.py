@@ -5,6 +5,8 @@ import tempfile
 import subprocess
 import shutil
 import math
+import struct
+import wave
 
 import edge_tts
 from PySide6.QtCore import QUrl, QEventLoop, QTimer
@@ -109,10 +111,34 @@ class JarvisErrorSpeaker:
             raise RuntimeError(f"audio file was not created: {source_path}")
         return source_path
 
+    async def synthesize_shutdown_source(self):
+        temp_paths = []
+        try:
+            # Preserve the natural whole-line prosody, then reshape only the
+            # active speech region so the slowdown lands on "down" without
+            # making the second word sound like a separate utterance.
+            source_path = await self.synthesize_segment("Shutting down.", "-10%")
+            temp_paths.append(source_path)
+
+            slowed_path = apply_shutdown_source_slowdown(source_path)
+            if not slowed_path:
+                raise RuntimeError("failed to assemble shutdown slowed source")
+
+            temp_paths.append(slowed_path)
+            return slowed_path, temp_paths
+        except Exception:
+            for path in temp_paths:
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+            raise
+
     async def prepare_audio(self, spoken_text: str, display_text: str):
         temp_paths = []
         try:
             normalized_display = normalize_line(display_text or spoken_text)
+            effect_mode = effect_mode_for_display_text(normalized_display)
 
             if normalized_display == "Uhm..... Sir, I seem to be malfunctioning.":
                 # rev 18b recovery: guarantee audible playback first, refine segmentation later
@@ -121,14 +147,22 @@ class JarvisErrorSpeaker:
 
                 duration_ms = max(1, int(get_duration_seconds(source_path) * 1000))
                 schedule = self.build_general_sync_schedule("Uhm..... Sir, I seem to be malfunctioning.", duration_ms)
-                return source_path, temp_paths, schedule, True
+                return source_path, temp_paths, schedule, effect_mode
+
+            if normalized_display == "Shutting down.":
+                source_path, generated_paths = await self.synthesize_shutdown_source()
+                temp_paths.extend(generated_paths)
+
+                duration_ms = max(1, int(get_duration_seconds(source_path) * 1000))
+                schedule = self.build_general_sync_schedule(normalized_display, duration_ms)
+                return source_path, temp_paths, schedule, effect_mode
 
             source_path = await self.synthesize_segment(spoken_text, "-10%")
             temp_paths.append(source_path)
 
             duration_ms = max(1, int(get_duration_seconds(source_path) * 1000))
             schedule = self.build_general_sync_schedule(display_text or spoken_text, duration_ms)
-            return source_path, temp_paths, schedule, True
+            return source_path, temp_paths, schedule, effect_mode
 
         except Exception:
             for path in temp_paths:
@@ -149,10 +183,10 @@ class JarvisErrorSpeaker:
         try:
             self.last_sync = ""
             self.media_started = False
-            base_audio_path, temp_paths, schedule, allow_generic_effect = await self.prepare_audio(text, self.display_text or text)
+            base_audio_path, temp_paths, schedule, effect_mode = await self.prepare_audio(text, self.display_text or text)
             duration = get_duration_seconds(base_audio_path)
 
-            if not allow_generic_effect or duration < 1.2:
+            if duration < 1.2:
                 playback_path = base_audio_path
             else:
                 effected = apply_error_effect(base_audio_path)
@@ -160,6 +194,15 @@ class JarvisErrorSpeaker:
 
             if playback_path != base_audio_path:
                 processed_path = playback_path
+
+            playback_duration_ms = max(1, int(get_duration_seconds(playback_path) * 1000))
+            base_duration_ms = max(1, int(get_duration_seconds(base_audio_path) * 1000))
+            if schedule and playback_duration_ms != base_duration_ms:
+                stretch_ratio = playback_duration_ms / base_duration_ms
+                schedule = [
+                    (max(1, int(target_ms * stretch_ratio)), content)
+                    for target_ms, content in schedule
+                ]
 
             loop = QEventLoop()
 
@@ -354,6 +397,12 @@ def get_duration_seconds(path):
         return 0.0
 
 
+def effect_mode_for_display_text(normalized_display):
+    if normalized_display == "Shutting down.":
+        return "shutdown"
+    return "generic"
+
+
 def seg_filter(level):
     if level == "extreme":
         return (
@@ -411,6 +460,265 @@ def build_chunked_filter_complex(duration, segment_len=0.40, fade_len=0.050):
     return ";".join(segments + [f"{concat_inputs}concat=n={len(segments)}:v=0:a=1[outa]"])
 
 
+def atempo_chain_for_factor(factor):
+    factor = max(0.01, float(factor))
+    filters = []
+
+    while factor < 0.5:
+        filters.append("atempo=0.500")
+        factor /= 0.5
+
+    while factor > 2.0:
+        filters.append("atempo=2.000")
+        factor /= 2.0
+
+    filters.append(f"atempo={factor:.3f}")
+    return ",".join(filters)
+
+
+def convert_audio_to_wav(source_path):
+    exe = ffmpeg_exe()
+    if not exe:
+        return ""
+
+    fd, out_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+
+    result = subprocess.run(
+        [exe, "-y", "-i", source_path, out_path],
+        **hidden_subprocess_kwargs()
+    )
+
+    if result.returncode != 0 or not os.path.exists(out_path):
+        try:
+            os.remove(out_path)
+        except Exception:
+            pass
+        return ""
+
+    return out_path
+
+
+def detect_active_audio_region(path, window_ms=25, rms_threshold=10.0):
+    analysis_wav = convert_audio_to_wav(path)
+    if not analysis_wav:
+        duration = get_duration_seconds(path)
+        return 0.0, duration
+
+    try:
+        with wave.open(analysis_wav, "rb") as wav_file:
+            channels = wav_file.getnchannels()
+            sample_width = wav_file.getsampwidth()
+            frame_rate = wav_file.getframerate()
+            frame_count = wav_file.getnframes()
+            raw_data = wav_file.readframes(frame_count)
+
+        if sample_width != 2:
+            duration = frame_count / float(frame_rate or 1)
+            return 0.0, duration
+
+        samples = struct.unpack("<" + ("h" * (len(raw_data) // 2)), raw_data)
+        if channels > 1:
+            mono_samples = []
+            for i in range(0, len(samples), channels):
+                mono_samples.append(sum(samples[i:i + channels]) / channels)
+            samples = mono_samples
+
+        step = max(1, int(frame_rate * (window_ms / 1000.0)))
+        active_indexes = []
+        for index, start in enumerate(range(0, len(samples), step)):
+            chunk = samples[start:start + step]
+            if not chunk:
+                continue
+            mean_sq = sum(float(sample) * float(sample) for sample in chunk) / len(chunk)
+            rms = math.sqrt(mean_sq)
+            if rms >= rms_threshold:
+                active_indexes.append(index)
+
+        total_duration = len(samples) / float(frame_rate or 1)
+        if not active_indexes:
+            return 0.0, total_duration
+
+        start_time = active_indexes[0] * (window_ms / 1000.0)
+        end_time = min(total_duration, (active_indexes[-1] + 1) * (window_ms / 1000.0))
+        return max(0.0, start_time), max(start_time, end_time)
+    finally:
+        try:
+            os.remove(analysis_wav)
+        except Exception:
+            pass
+
+
+def weighted_word_boundary_ratio(text: str, word_index: int) -> float:
+    words = text.split()
+    if not words:
+        return 0.0
+
+    def word_weight(word: str) -> int:
+        cleaned = "".join(ch for ch in word if ch.isalnum())
+        return max(1, len(cleaned) or len(word.strip()) or 1)
+
+    total_weight = sum(word_weight(word) for word in words)
+    if total_weight <= 0:
+        return 0.0
+
+    boundary_weight = sum(word_weight(word) for word in words[:word_index])
+    return max(0.0, min(1.0, boundary_weight / total_weight))
+
+
+def build_progressive_tempo_filter_complex(duration, segment_specs, fade_len=0.050, source_start=0.0):
+    segments = []
+    start = 0.0
+
+    for index, spec in enumerate(segment_specs):
+        end_ratio = max(0.0, min(1.0, float(spec["end_ratio"])))
+        end = duration * end_ratio if index < len(segment_specs) - 1 else duration
+        if end <= start:
+            continue
+
+        label = f"s{index}"
+        seg_dur = end - start
+        level = spec.get("level", "raised")
+        tempo_factor = spec.get("tempo", 1.0)
+        chain = f"{atempo_chain_for_factor(tempo_factor)},{seg_filter(level)}"
+
+        actual_fade = min(fade_len, max(0.010, seg_dur / 4))
+        fade_out_start = max(0.0, seg_dur - actual_fade)
+
+        segments.append(
+            f"[0:a]atrim=start={source_start + start:.3f}:end={source_start + end:.3f},"
+            f"asetpts=PTS-STARTPTS,{chain},"
+            f"afade=t=in:st=0:d={actual_fade:.3f},"
+            f"afade=t=out:st={fade_out_start:.3f}:d={actual_fade:.3f}"
+            f"[{label}]"
+        )
+        start = end
+
+    concat_inputs = "".join(f"[s{i}]" for i in range(len(segments)))
+    return ";".join(segments + [f"{concat_inputs}concat=n={len(segments)}:v=0:a=1[outa]"])
+
+
+def build_smooth_progressive_tempo_filter_complex(duration, segment_specs, source_start=0.0, crossfade_duration=0.035):
+    segments = []
+    labels = []
+    start = 0.0
+
+    for index, spec in enumerate(segment_specs):
+        end_ratio = max(0.0, min(1.0, float(spec["end_ratio"])))
+        end = duration * end_ratio if index < len(segment_specs) - 1 else duration
+        if end <= start:
+            continue
+
+        label = f"smooth{index}"
+        tempo_factor = spec.get("tempo", 1.0)
+        pitch_factor = max(0.50, min(1.0, float(spec.get("pitch", 1.0))))
+        chain_parts = []
+        effective_tempo = tempo_factor
+        if abs(pitch_factor - 1.0) > 0.001:
+            chain_parts.extend([
+                f"asetrate=24000*{pitch_factor:.3f}",
+                "aresample=24000",
+            ])
+            effective_tempo = tempo_factor / pitch_factor
+        chain_parts.append(atempo_chain_for_factor(effective_tempo))
+        segments.append(
+            f"[0:a]atrim=start={source_start + start:.3f}:end={source_start + end:.3f},"
+            f"asetpts=PTS-STARTPTS,{','.join(chain_parts)}[{label}]"
+        )
+        labels.append(label)
+        start = end
+
+    if not labels:
+        return ""
+
+    if len(labels) == 1:
+        return ";".join(segments + [f"[{labels[0]}]anull[outa]"])
+
+    current = labels[0]
+    crossfades = []
+    for index, label in enumerate(labels[1:], start=1):
+        mixed_label = f"smoothmix{index}"
+        crossfades.append(
+            f"[{current}][{label}]acrossfade=d={crossfade_duration:.3f}:c1=tri:c2=tri[{mixed_label}]"
+        )
+        current = mixed_label
+
+    return ";".join(segments + crossfades + [f"[{current}]anull[outa]"])
+
+
+def apply_shutdown_source_slowdown(source_path):
+    exe = ffmpeg_exe()
+    if not exe:
+        return ""
+
+    duration = get_duration_seconds(source_path)
+    if duration <= 0:
+        return ""
+
+    speech_start, speech_end = detect_active_audio_region(source_path)
+    if speech_end <= speech_start:
+        speech_start, speech_end = 0.0, duration
+
+    lead_in = max(0.0, speech_start - 0.030)
+    speech_duration = max(0.0, speech_end - lead_in)
+    if speech_duration <= 0.0:
+        speech_duration = duration
+        lead_in = 0.0
+
+    down_start_ratio = weighted_word_boundary_ratio("Shutting down.", 1)
+    # Pre-shape the same spoken line from roughly -15% at the front to roughly
+    # -80% by the tail, with the strongest drop landing around and after the
+    # transition into "down".
+    segment_specs = [
+        {"end_ratio": max(0.28, down_start_ratio * 0.50), "tempo": 0.82, "pitch": 1.00},
+        {"end_ratio": max(0.55, down_start_ratio + 0.00), "tempo": 0.62, "pitch": 0.88},
+        {"end_ratio": min(0.78, down_start_ratio + 0.10), "tempo": 0.40, "pitch": 0.72},
+        {"end_ratio": min(0.92, down_start_ratio + 0.22), "tempo": 0.24, "pitch": 0.64},
+        {"end_ratio": 1.0, "tempo": 0.10, "pitch": 0.56},
+    ]
+
+    fd, out_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+
+    filter_complex = build_smooth_progressive_tempo_filter_complex(
+        speech_duration,
+        segment_specs,
+        source_start=lead_in,
+        crossfade_duration=0.020,
+    )
+
+    if not filter_complex:
+        try:
+            os.remove(out_path)
+        except Exception:
+            pass
+        return ""
+
+    result = subprocess.run(
+        [
+            exe,
+            "-y",
+            "-i",
+            source_path,
+            "-filter_complex",
+            filter_complex,
+            "-map",
+            "[outa]",
+            out_path,
+        ],
+        **hidden_subprocess_kwargs()
+    )
+
+    if result.returncode != 0 or not os.path.exists(out_path) or os.path.getsize(out_path) <= 0:
+        try:
+            os.remove(out_path)
+        except Exception:
+            pass
+        return ""
+
+    return out_path
+
+
 def apply_error_effect(source_path):
     exe = ffmpeg_exe()
     if not exe:
@@ -424,6 +732,88 @@ def apply_error_effect(source_path):
     os.close(fd)
 
     filter_complex = build_chunked_filter_complex(duration)
+
+    cmd = [
+        exe,
+        "-y",
+        "-i", source_path,
+        "-filter_complex", filter_complex,
+        "-map", "[outa]",
+        out_path,
+    ]
+
+    result = subprocess.run(cmd, **hidden_subprocess_kwargs())
+
+    if result.returncode != 0 or not os.path.exists(out_path) or os.path.getsize(out_path) <= 0:
+        try:
+            os.remove(out_path)
+        except Exception:
+            pass
+        return None
+
+    return out_path
+
+
+def build_shutdown_filter_complex(duration, speech_start=0.0, speech_end=None):
+    # Keep the shutdown path isolated, but drive its slowdown from a word-
+    # weighted boundary so more of "down" gets stretched instead of only the
+    # final sliver of the clip.
+    if speech_end is None:
+        speech_end = duration
+
+    speech_duration = max(0.0, speech_end - speech_start)
+    if speech_duration <= 0.0:
+        speech_duration = duration
+        speech_start = 0.0
+        speech_end = duration
+
+    down_start_ratio = weighted_word_boundary_ratio("Shutting down.", 1)
+    segment_specs = [
+        {"end_ratio": max(0.18, down_start_ratio * 0.48), "tempo": 0.90, "level": "raised"},
+        {"end_ratio": max(0.40, down_start_ratio * 0.82), "tempo": 0.80, "level": "extreme"},
+        {"end_ratio": min(0.74, down_start_ratio + 0.03), "tempo": 0.62, "level": "raised"},
+        {"end_ratio": min(0.86, down_start_ratio + 0.14), "tempo": 0.36, "level": "extreme"},
+        {"end_ratio": min(0.95, down_start_ratio + 0.24), "tempo": 0.20, "level": "raised"},
+        {"end_ratio": 1.0, "tempo": 0.10, "level": "extreme"},
+    ]
+    prefix_specs = []
+    if speech_start > 0.0:
+        prefix_specs.append(
+            f"[0:a]atrim=start=0:end={speech_start:.3f},asetpts=PTS-STARTPTS[prefix]"
+        )
+
+    speech_filter = build_progressive_tempo_filter_complex(
+        speech_duration,
+        segment_specs,
+        source_start=speech_start,
+    )
+
+    concat_inputs = "[prefix]" if prefix_specs else ""
+    concat_inputs += "".join(f"[s{i}]" for i in range(len(segment_specs)))
+    concat_count = len(segment_specs) + (1 if prefix_specs else 0)
+
+    return ";".join(
+        prefix_specs
+        + [speech_filter]
+        + [f"{concat_inputs}concat=n={concat_count}:v=0:a=1[outa]"]
+    )
+
+
+def apply_shutdown_effect(source_path):
+    exe = ffmpeg_exe()
+    if not exe:
+        return None
+
+    duration = get_duration_seconds(source_path)
+    if duration <= 0:
+        return None
+
+    speech_start, speech_end = detect_active_audio_region(source_path)
+
+    fd, out_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+
+    filter_complex = build_shutdown_filter_complex(duration, speech_start=speech_start, speech_end=speech_end)
 
     cmd = [
         exe,

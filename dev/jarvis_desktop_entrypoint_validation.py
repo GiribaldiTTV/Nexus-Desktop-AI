@@ -8,8 +8,8 @@ import time
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-BASE_LOG_ROOT = os.path.join(LOGS_DIR, "desktop_entrypoint_validation")
+DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
+BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "desktop_entrypoint_validation")
 REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 
 LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_launcher.pyw")

@@ -115,19 +115,19 @@ This is now implemented through `v1.9.0` `rev1a` and `rev1b`. `rev1a` defined th
 
 ### [ID: FB-004] Future boot orchestrator layer
 
-Status: Deferred  
+Status: Deferred (planning groundwork complete enough to pause)  
 Priority: High  
-Suggested Version: TBD  
-Suggested Revision: TBD  
+Suggested Version: v2.0  
+Suggested Revision: rev1  
 
 Description:
-Design and implement top-level boot orchestration above the desktop launcher.
+Design and later implement top-level boot orchestration above the desktop launcher.
 
 Why it matters:
 The long-term product direction is for Jarvis to feel like the system-facing experience, with a higher-level boot flow coordinating the transition into the stabilized desktop phase.
 
 Proposed Change:
-Introduce a future boot orchestrator layer that sits above the desktop launcher and coordinates boot presentation, phase transitions, and higher-level startup policy.
+For current repo truth, establish the minimal future boot-orchestrator planning model without authorizing runtime implementation, then defer later implementation-facing work until a separate explicitly approved slice.
 
 Likely Files Affected:
 - main.py
@@ -145,25 +145,25 @@ Out of Scope:
 - voice or UI feature expansion
 
 Notes:
-This is a later architecture track and should not be mixed into the current desktop orchestration revisions.
+Current planning truth already includes the minimal future boot-orchestrator stage model in `docs/architecture.md` and aligned boot-access planning language in `docs/boot_access_design.md`. That completed groundwork is now complete enough to pause. This item therefore remains deferred only for later implementation-facing planning or runtime work and should not be mixed into current desktop orchestration revisions.
 
 ---
 
 ### [ID: FB-005] Workspace and folder organization
 
-Status: Deferred  
+Status: Deferred (partial implementation through Step 4)  
 Priority: Low  
-Suggested Version: TBD  
-Suggested Revision: TBD  
+Suggested Version: v2.0  
+Suggested Revision: rev1  
 
 Description:
-Restructure project directories for clarity and scalability.
+Continue staged project-directory cleanup for clarity and scalability while keeping top-level entrypoint and broader workspace restructuring deferred.
 
 Why it matters:
 As the project grows, clearer folder boundaries will make ownership, startup flow, audio systems, diagnostics, and future subsystems easier to maintain.
 
 Proposed Change:
-Reorganize project directories and documentation locations with a dedicated, approved workspace-organization pass.
+Carry workspace organization only through explicitly approved, path-sensitive slices rather than broad folder cleanup.
 
 Likely Files Affected:
 - multiple project directories
@@ -180,7 +180,20 @@ Out of Scope:
 - unrelated refactors
 
 Notes:
-This remains intentionally deferred until after active orchestration stabilization work.
+Current repo truth no longer reflects an untouched deferred item.
+Completed slices now include:
+
+- Step 3: `jarvis_desktop_main.py` and `jarvis_desktop_test.py` moved under `desktop/`, and the launcher's target-script assumption now points at the moved desktop entrypoint
+- Step 4: `jarvis_voice.py` moved under `Audio/` as `Audio/jarvis_voice.py`
+- Step 4: `main.py` now imports `Audio.jarvis_voice`
+- Step 4: the launcher-owned diagnostics/error voice path remained valid and unchanged at `Audio/jarvis_error_voice.py`
+
+Step 5 and broader workspace work remain intentionally deferred.
+That means:
+
+- `main.py` remains root-owned
+- `launch_jarvis_desktop.vbs` remains root-owned
+- broader folder cleanup, broader `Audio` casing normalization, and `logs/` reorganization remain out of scope until a later explicitly approved slice
 
 ---
 
@@ -253,19 +266,19 @@ This should remain a reporting refinement only and must not change launcher beha
 
 ### [ID: FB-008] Shutdown voice degradation effect
 
-Status: Deferred  
+Status: On Hold  
 Priority: Low  
 Suggested Version: TBD  
 Suggested Revision: TBD  
 
 Description:
-Add a staged degradation effect to the final "Shutting down" voice line so Jarvis sounds like he is losing power during terminal shutdown.
+Refine the existing staged degradation effect on the final "Shutting down" voice line so Jarvis sounds more convincingly like he is losing power during terminal shutdown.
 
 Why it matters:
-A shutdown degradation effect would make Jarvis feel more state-aware and physically present during failure termination.
+Shutdown-line tuning would make Jarvis feel more state-aware and physically present during failure termination without widening the diagnostics/error voice path.
 
 Proposed Change:
-Implement a controlled shutdown voice envelope using staged slowdown, optional pitch drop, and final tail fade or hesitation. Prefer segmented delivery over a single linear slowdown so the effect is more reliable and easier to tune.
+Tune the existing shutdown-only voice envelope using staged slowdown, optional pitch drop, and final tail fade or hesitation. Keep the work limited to shutdown-line-only envelope refinement rather than first-time implementation or broader voice-path redesign.
 
 Likely Files Affected:
 - C:/Jarvis/Audio/jarvis_error_voice.py
@@ -280,7 +293,8 @@ Out of Scope:
 - renderer changes
 
 Notes:
-The earlier shutdown-specific effect experiment is no longer the current repo-truth baseline. The final "Shutting down." line currently uses the same diagnostics/error voice path and generic effect flow as the other failure lines. This item remains the place for any future dedicated shutdown-effect work, but no shutdown-specific path is currently implemented.
+Current repo truth already includes a dedicated shutdown-only effect path for the final "Shutting down." line inside the diagnostics/error voice script. This item now represents any future shutdown-envelope tuning on top of that existing path, not first implementation of a shutdown-specific branch.
+This item is intentionally paused behind `FB-020` so the Dev Toolkit utility model and dev-only evidence-root cleanup can land first without mixing voice refinement into the current developer-surface rework.
 
 ---
 
@@ -501,10 +515,10 @@ This was the safest first implementation target for `v1.8.0` and is now implemen
 
 ### [ID: FB-015] Boot and desktop phase-boundary model
 
-Status: Deferred  
+Status: Deferred (rev1a clarification complete enough to pause)  
 Priority: Medium  
-Suggested Version: TBD  
-Suggested Revision: TBD  
+Suggested Version: v2.0  
+Suggested Revision: rev1a  
 
 Description:
 Define the conceptual boundary between future boot-stage orchestration and the already stabilized desktop-stage launcher layer.
@@ -513,7 +527,7 @@ Why it matters:
 Later boot-level orchestration will need a clean contract for how boot-stage history, diagnostics, and advisory signals relate to desktop-stage truth.
 
 Proposed Change:
-Document phase-boundary rules, ownership boundaries, and data-sharing assumptions between a future boot orchestrator and the existing desktop launcher.
+For current repo truth, document phase-boundary rules, ownership boundaries, and downstream-input assumptions between a future boot orchestrator and the existing desktop launcher, then defer any later follow-through beyond that clarification.
 
 Likely Files Affected:
 - C:/Jarvis/docs/architecture.md
@@ -530,7 +544,7 @@ Out of Scope:
 - launcher behavior changes
 
 Notes:
-This remains preparation work only. An architecture-level `FB-015 rev1a` phase-boundary contract is already captured in `docs/architecture.md`, but broader cross-doc alignment and any later boot-planning follow-through remain deferred. This item must not introduce boot-level runtime control and does not authorize `FB-004` implementation work.
+This remains preparation work only. Current planning truth already includes the architecture-level `FB-015 rev1a` phase-boundary contract in `docs/architecture.md` plus the aligned downstream-input contract in `docs/boot_access_design.md`. That clarification work is now complete enough to pause. Any later boot-planning follow-through remains deferred, this item must not introduce boot-level runtime control, and it still does not authorize `FB-004` implementation work.
 
 ---
 
@@ -689,6 +703,61 @@ Out of Scope:
 
 Notes:
 The first coherent `FB-019` slice is now implemented as a dev-only support-bundle triage helper plus a contained regression harness. The repo now includes support-bundle zip and extracted-folder intake, parsing of the existing manifest plus bundled runtime/crash artifacts, conservative classification for the current launcher-owned terminal failure classes, compact `.txt` / `.json` triage reports, and reusable validation coverage for supported cases plus safe `unknown` fallback. The raw helper is reachable through the accepted PySide dev toolkit, and the repo also includes a contained offscreen validator for that raw-helper toolkit flow that is reachable through a dedicated VBS launcher and a report-aware lane in the accepted PySide dev toolkit. Production support-bundle generation and the end-user `Report Issue` flow remain unchanged; this item is about faster internal mapping from production evidence to the right contained repro path.
+
+---
+
+### [ID: FB-020] Dev Toolkit utility split and dev-only evidence roots
+
+Status: Implemented (v2.0 rev2)  
+Priority: High  
+Suggested Version: v2.0  
+Suggested Revision: rev2  
+
+Description:
+Split the Dev Toolkit utility surface into stable global utilities versus lane-aware custom-launch utilities, add a separate previous-launch per-run history and exact-artifact reopen flow, and move toolkit-facing dev writes into dedicated `C:/Jarvis/dev/logs/<lane>/...` roots instead of the active client-facing `logs` / `crash` roots.
+
+Why it matters:
+The Dev Toolkit is easier to learn when stable navigation is separated from lane-dependent evidence, current-session utilities only appear when relevant, and historical runs can be reopened precisely without collapsing to the newest lane snapshot. Keeping developer-triggered runtime, report, and crash artifacts under `dev/logs` also prevents dev validation output from polluting the active client-facing `logs` area.
+
+Proposed Change:
+Implemented model:
+- `Global Utilities` opens stable developer locations such as the Jarvis root, Dev folder, Dev logs root, and Dev launchers folder.
+- `Custom Launch Utilities` follows the selected lane, stays hidden until relevant to the current selection, and only enables after that lane produces current-session evidence.
+- current launch and previous-launch flows start in explicit chooser-based empty states rather than preselected lane state.
+- `Previous Launches` is a true per-run history browser rather than a latest-per-lane snapshot.
+- `Previous Launch Utilities` reopens the exact runtime, report, crash, or evidence-root artifacts for the selected saved run.
+- toolkit-facing dev and test writes land under `C:/Jarvis/dev/logs/<lane>/...`
+- lane-local crash artifacts stay under each lane root as `...\\crash`
+- active client-facing `C:/Jarvis/logs` remains read-only investigation context where needed, such as support-bundle picking
+
+Likely Files Affected:
+- C:/Jarvis/dev/launchers/jarvis_dev_launcher.pyw
+- C:/Jarvis/dev/launchers/launch_jarvis_diagnostics_manual_test.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_launcher_failure_manual_test.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_launcher_failure_manual_test_with_voice.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_launcher_startup_abort_manual_test.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_launcher_startup_abort_manual_test_with_voice.vbs
+- directly relevant dev validation and harness scripts that define toolkit-facing evidence roots
+
+Scope:
+- Dev Toolkit utility split
+- global versus lane-scoped utility boundaries
+- previous-launch evidence reopen flow
+- previous-launch true per-run history
+- exact selected-run artifact reopening
+- dev-only evidence-root migration under `dev/logs`
+- lane-specific dev runtime/report/crash root normalization
+- current empty-state and utility-visibility hardening needed to make the toolkit surface accurate and usable
+
+Out of Scope:
+- boot planning
+- workspace reorganization
+- production launcher log/crash policy changes
+- support bundle contract redesign
+- shutdown voice refinement
+
+Notes:
+Rev1 and rev2 are now implemented in code. The current repo truth uses lane-local crash folders under each lane root rather than a shared `dev/logs/crashes` bucket, and includes later Dev Toolkit UX hardening needed to make the split utility model usable without preselected state or stale artifact reopening. `FB-008` remains intentionally on hold behind this delivered toolkit and dev-evidence cleanup lane.
 
 ---
 

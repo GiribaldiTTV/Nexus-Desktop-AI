@@ -9,8 +9,8 @@ import time
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-DEFAULT_BASE_LOG_ROOT = os.path.join(LOGS_DIR, "desktop_launcher_healthy_validation")
+DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
+DEFAULT_BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "desktop_launcher_healthy_validation")
 REPORT_PREFIX = "DesktopLauncherHealthyValidationReport_"
 
 LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_launcher.pyw")

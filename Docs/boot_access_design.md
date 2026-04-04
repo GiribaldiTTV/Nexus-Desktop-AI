@@ -61,6 +61,39 @@ It is not allowed to replace launcher-owned desktop authority.
 Desktop-stage ownership begins when boot-stage coordination delegates execution to the launcher.
 From that point forward, launcher-owned desktop truth, classification, control, retry, recovery routing, and finalized end-state determination remain launcher-owned and read-only to higher layers.
 
+The canonical allowed downstream input classes available to a future boot/access layer after launcher emission are:
+
+- emitted lifecycle and end-state signals
+- emitted desktop-phase truth artifacts
+- bounded historical-memory or advisory summaries after launcher emission
+
+Those classes remain read-only and non-authoritative.
+They may support only:
+
+- Jarvis presentation or narration framing around the handoff
+- transition-state observation around desktop entry
+- later explanatory observation after launcher emission
+
+They must not rewrite, reinterpret, suppress, or override launcher-owned desktop truth or control decisions.
+They must not become a cross-layer command path back into the launcher.
+
+At planning level, the minimal future boot orchestrator is shaped as four conceptual stages:
+
+1. boot presence stage
+2. access/trust framing stage
+3. delegation checkpoint
+4. post-delegation observation stage
+
+Within this boot-access planning surface, those stages mean:
+
+- the boot presence stage owns only pre-desktop Jarvis startup presence and presentation
+- the access/trust framing stage owns only pre-desktop access or trust framing before launcher delegation
+- the delegation checkpoint is the point where desktop startup execution is handed into the launcher and boot-stage authority ends
+- the post-delegation observation stage may observe only launcher-emitted downstream inputs under the existing read-only and non-authoritative boundary contract
+
+This stage model remains conceptual only.
+It does not define boot runtime behavior, implementation sequencing, higher-layer control, or concrete shell/login integration.
+
 ## Product Intent
 
 Jarvis should feel like the primary visible system presence on a consumer Windows machine.
@@ -249,6 +282,70 @@ At planning level, the trust family narrows into two conceptual factor shapes:
 
 This keeps the normal daily path fast while preserving a distinct elevated path when trust continuity is different from routine access.
 
+## Windows Hello Additive Path Contract
+
+At planning level, Windows Hello may be considered only as a future optional additive shortcut for the routine daily path.
+It does not replace the current local knowledge-based secret family as the canonical Jarvis trust baseline.
+
+Conceptually, this means:
+
+- the short-form deliberate secret entry remains the baseline routine-path trust factor
+- Windows Hello may later act as a faster routine-path unlock on a compatible Windows device for a user who has already established the Jarvis local-secret baseline
+- the longer-form deliberate secret entry remains the stronger or recovery-oriented path unless a later explicitly approved planning pass changes that
+
+Windows Hello should be understood here as:
+
+- a device-local convenience and hardening layer for routine access
+- subordinate to the current Jarvis trust-family baseline
+- additive rather than replacement-oriented
+
+Windows Hello should not be treated here as:
+
+- the new primary Jarvis identity model
+- the new stronger or recovery-oriented factor by default
+- a reason to remove typed sufficiency
+- a reason to redefine Jarvis trust continuity around Windows-owned device state
+
+## Windows Hello Role Inside The Routine Path
+
+At planning level, if Windows Hello is later introduced, it should fit the routine path as a shortcut that preserves the existing routine-path character:
+
+- quick
+- calm
+- intentional
+- low-friction
+
+That means:
+
+- typed secret entry must remain sufficient even when Windows Hello is available
+- Windows Hello may make ordinary daily access faster on a compatible device, but it must not become mandatory
+- if Windows Hello is unavailable, unset, declined, or fails, the routine typed path remains the ordinary fallback rather than a special recovery event
+- the stronger or recovery-oriented path should not silently collapse into Windows Hello just because the device supports it
+
+This keeps the routine path aligned with the current Jarvis contract:
+
+- Jarvis still presents the trust moment
+- the trust step remains real and understandable
+- routine access does not become a separate Windows-owned login product
+
+## Windows Hello Boundary And Deferral Contract
+
+This planning clarification does not authorize:
+
+- auth backend design
+- credential storage design
+- biometric implementation details
+- device-trust implementation details
+- passkey-account or relying-party design
+- shell, tray, renderer, diagnostics, or boot-runtime mechanics
+
+This planning clarification only defines the role Windows Hello could later play:
+
+- optional
+- routine-path only by default
+- subordinate to the local-secret baseline
+- non-replacing unless a later planning pass explicitly reopens that decision
+
 ## Routine Daily Path
 
 The routine path is the default consumer-Windows access path.
@@ -311,6 +408,106 @@ It should not feel:
 - hostile
 - corporate
 - like the new default login path
+
+## TOTP Additive Stronger-Path Contract
+
+At planning level, TOTP or authenticator-app factors may be considered only as a future optional additive hardening layer for stronger or recovery-oriented trust states.
+They do not replace the current longer-form deliberate secret entry as the canonical Jarvis stronger-path baseline.
+
+Conceptually, this means:
+
+- the longer-form deliberate secret entry remains the baseline stronger or recovery-oriented trust factor
+- TOTP may later act as an additional stronger-path confirmation factor when a later explicitly approved planning pass chooses to harden that lane
+- the routine path does not become a TOTP-driven path by default
+
+TOTP should be understood here as:
+
+- a possible additive hardening factor for non-routine trust states
+- separate from the Windows Hello routine-path shortcut
+- supportive of stronger-path confidence, not a replacement for the current local-secret family
+
+TOTP should not be treated here as:
+
+- the new default daily login path
+- a replacement for typed sufficiency
+- a reason to collapse the stronger path into phone-dependent access by default
+- a reason to redefine Jarvis trust continuity around external app possession alone
+
+## TOTP Role Inside Stronger And Recovery Paths
+
+At planning level, if TOTP is later introduced, it should fit only where the existing design already justifies a more deliberate trust posture:
+
+- trust restoration
+- recovery-oriented confirmation
+- other non-routine states where the system should not pretend everything is ordinary
+
+That means:
+
+- typed secret entry must remain sufficient as part of the stronger-path baseline unless a later planning pass explicitly changes that contract
+- TOTP may later add hardening to stronger or recovery-oriented entry, but it must not silently become the routine path
+- failure or absence of TOTP must not cause the routine path and the stronger path to collapse into one confused flow
+- stronger-path hardening must remain conceptually separate from Windows Hello routine convenience
+
+This keeps the stronger path aligned with the current Jarvis contract:
+
+- more deliberate than routine access
+- recovery-aware when needed
+- still finite
+- still Jarvis-framed
+
+## TOTP Absence As Degraded Stronger-Path Condition
+
+At planning level, if TOTP is later introduced and the user cannot use the current authenticator device or code path, Jarvis should treat that by default as a narrower degraded stronger-path condition rather than as ordinary routine access or a full separate recovery state.
+
+Conceptually, this means:
+
+- the longer-form deliberate secret entry remains usable as the baseline stronger-path factor
+- the stronger path remains clearly non-routine and deliberate even when the additive hardening factor is unavailable
+- TOTP absence narrows the hardening posture of the stronger path, but does not automatically mean Jarvis trust continuity was bypassed
+- the routine path does not become an acceptable substitute just because the additive stronger-path factor is currently unavailable
+
+This degraded stronger-path condition should be understood here as:
+
+- less hardened than a future stronger path where the additive TOTP factor is available
+- still stronger than routine access
+- narrower than the broader post-bypass trust-restoration state
+- still inside the stronger-path family rather than a separate recovery lane by default
+
+This degraded stronger-path condition should not be treated here as:
+
+- proof that the user bypassed Jarvis trust completion
+- a reason to immediately route the user into the broader post-bypass recovery contract by default
+- a reason to make the longer-secret stronger-path baseline unusable
+- a reason to require recovery-code planning in this clarification
+
+## TOTP Absence Versus Full Recovery State
+
+At planning level, TOTP absence differs from the broader recovery contract because the user is still attempting to complete Jarvis trust through an approved stronger-path factor rather than reaching Windows through fallback and later repairing bypassed trust continuity.
+
+That means:
+
+- degraded stronger-path use remains inside the stronger-path lane
+- full trust-recovery remains reserved for broader trust-continuity breakage such as post-bypass restoration
+- typed sufficiency remains preserved because the longer-form deliberate secret entry is still valid
+- any later companion mechanics for device loss, recovery codes, or alternate fallback remain explicitly deferred until a later planning pass reopens them
+
+## TOTP Boundary And Deferral Contract
+
+This planning clarification does not authorize:
+
+- auth backend design
+- credential or secret storage implementation
+- exact TOTP enrollment or provisioning flow
+- exact fallback, device-loss, or recovery-code mechanics
+- device-trust implementation details
+- shell, tray, renderer, diagnostics, or boot-runtime mechanics
+
+This planning clarification only defines the role TOTP could later play:
+
+- optional
+- stronger-path or recovery-path only by default
+- additive to the current longer-secret baseline
+- non-replacing unless a later planning pass explicitly reopens that decision
 
 ## Fallback And Safety Contract
 
@@ -409,6 +606,363 @@ The resident layer should support both:
 - proactive surfacing when trust continuity is degraded
 - user-initiated recovery entry later
 
+## Resident Recovery-Entry Trigger And Surfacing Contract
+
+At planning level, resident recovery entry should follow the post-login resident trust states:
+
+- in normal trust state, no proactive recovery surfacing is needed
+- in degraded trust state, recovery entry should be visible, easy to reach, and calmly re-discoverable
+- in recovery-needed state, recovery entry should surface proactively and clearly enough that the user understands restoration is pending
+
+Resident recovery entry is for restoring Jarvis trust continuity after desktop entry.
+It is not a license for:
+
+- launcher-owned runtime classification
+- diagnostics escalation or diagnostics authority
+- boot-time control after desktop handoff
+- backend trust implementation details
+
+## Bounded Deferral And Re-Surface Contract
+
+At planning level, bounded deferral means:
+
+- the user may choose to postpone recovery for now
+- postponement must not silently normalize a degraded or recovery-needed state forever
+- the system should later re-surface recovery entry until trust continuity is restored
+- re-surfacing should remain calmer in degraded state than in recovery-needed state
+
+The user-posture contract is:
+
+- normal desktop use may continue after a bounded deferral
+- the user must not feel trapped or locked out of Windows because recovery was postponed
+- the user must not be forced through repeated recovery prompts during the same immediate interaction once a clear postpone choice has been made
+- later re-surfacing should remind rather than punish
+
+This document intentionally does not define:
+
+- exact timers, cadences, counters, or re-surface schedules
+- exact tray, control-center, resident UI, shell, or notification mechanics
+- exact post-bypass detection logic
+- exact persistence storage or backend state handling
+
+## Resident Trust-State Transition Contract
+
+At planning level, the resident trust-state transitions are:
+
+- normal -> degraded when trust continuity is no longer fully normal but immediate strong recovery surfacing is not yet required
+- degraded -> recovery-needed when recovery should be made proactively obvious rather than merely easy to reach
+- degraded or recovery-needed -> normal only after trust restoration is completed through the future resident recovery path
+
+These are conceptual planning states for the future resident boot-access layer.
+They do not authorize runtime control over launcher-owned desktop behavior or reinterpretation of launcher-owned desktop truth.
+
+## Resident Control-Anchor Responsibility Contract
+
+At planning level, the future resident control-center or settings anchor is the stable post-login place where the user can:
+
+- understand current Jarvis trust posture without re-entering a boot flow
+- see whether the current resident trust state is normal, degraded, or recovery-needed
+- reach recovery entry later through a user-initiated path
+- understand why recovery is being surfaced when trust continuity is no longer fully normal
+- revisit Jarvis trust-continuity posture after login through one stable anchor rather than scattered one-off prompts
+
+This resident control anchor is conceptually responsible for:
+
+- calm post-login trust-state visibility
+- user-initiated recovery entry after login
+- concise explanation of current trust continuity posture
+- being the stable post-login home for recovery posture once the boot flow has already handed off to the desktop phase
+
+This resident control anchor should relate to the resident trust states as follows:
+
+- in normal trust state, it may remain quiet and low-demand while still existing as the stable post-login anchor
+- in degraded trust state, it should make recovery discoverable, legible, and easy to revisit
+- in recovery-needed state, it should make restoration obvious enough that the user does not have to hunt for the next safe step
+- after a bounded deferral, it remains the stable place where recovery can later be resumed without forcing the user back through a boot-only flow
+
+This planning contract does not make the resident control anchor responsible for:
+
+- pre-desktop presence or boot-time trust completion
+- launcher-owned desktop truth, classification, control, retry, recovery routing, or finalized end-state determination
+- diagnostics authority, diagnostics policy, or incident handling
+- auth backend, credential storage, biometrics, device-trust, or shell mechanics
+- exact tray, control-center, resident UI, or notification implementation mechanics
+- broad consumer setup or environment-preference ownership
+
+Consumer setup and environment-preference planning remains a separate future lane.
+This resident control-anchor contract is only about post-login trust continuity, trust-state visibility, and user-initiated recovery access.
+
+## Consumer Setup Purpose And Entry Contract
+
+At planning level, consumer setup is the short post-install or first-run onboarding lane that helps Jarvis establish an initial fit for this person and this machine without turning setup into trust, recovery, or system configuration.
+
+Consumer setup is conceptually responsible for:
+
+- introducing Jarvis as the intended system-facing experience rather than a generic Windows app wizard
+- establishing a usable first everyday posture after install
+- collecting only the smallest set of early user-facing choices needed to avoid an obviously wrong first-run experience
+- reassuring the user that typed interaction remains sufficient and that early setup choices are not irreversible commitments
+- handing the user into ordinary Jarvis use without keeping them inside a prolonged onboarding ritual
+
+Consumer setup should begin only after install and first run have reached the point where Jarvis can present itself coherently as an experience layer.
+It should not be treated as:
+
+- the trust step itself
+- a stronger trust or recovery path
+- a replacement for resident trust-state visibility
+- an excuse to introduce shell, tray, backend, renderer, or diagnostics mechanics
+
+Consumer setup should stay short, legible, and consumer-friendly.
+Its purpose is to establish initial fit and comfort, not to front-load every future choice.
+
+## Consumer Setup Completion And Handoff Contract
+
+At planning level, consumer setup should count as complete once:
+
+- Jarvis has established a coherent initial posture for ordinary use
+- the user has made only the minimum early choices needed for that posture
+- the user understands that later preference adjustment remains possible
+- the system can hand off into normal Jarvis use without continuing to behave like an installer or onboarding wizard
+
+Consumer setup completion should not require:
+
+- exhaustive settings selection
+- environment-preference finalization across every later context
+- auth enrollment, trust restoration, or recovery completion
+- decisions about backend, shell, tray, renderer, diagnostics, or runtime behavior
+
+The handoff after setup should feel like:
+
+- Jarvis is now ready for everyday use
+- the user is no longer inside a special onboarding state
+- future adjustment can happen later without replaying the entire setup lane
+
+## Consumer Setup Relationship To Trust And Recovery Lanes
+
+Consumer setup is separate from the already-defined resident trust and recovery lanes.
+
+That means:
+
+- consumer setup may shape presentation posture, comfort, and early user guidance
+- consumer setup must not determine whether trust continuity is normal, degraded, or recovery-needed
+- consumer setup must not own recovery-entry surfacing, bounded deferral, or resident trust-state transitions
+- consumer setup must not become a hidden access gate or a disguised stronger trust path
+
+The resident control anchor remains the post-login home for:
+
+- trust-state visibility
+- recovery-entry access
+- explanation of current trust continuity posture
+
+Consumer setup remains responsible only for:
+
+- initial onboarding fit after install or first run
+- early consumer-facing calibration
+- handing the user into normal use with reversible early choices
+
+Later-adjustment and safe-undo remains a distinct adjacent lane.
+This document intentionally does not define the exact setup sequence, exact preference labels, or exact later settings ownership mechanics.
+
+## Environment-Preference Taxonomy Contract
+
+At planning level, environment preferences are the user-facing posture choices that shape how Jarvis feels during setup and ordinary use without changing trust meaning, recovery meaning, or runtime authority.
+
+The environment-preference categories that belong in this lane are:
+
+- presence posture:
+  how calm, expressive, quiet, or pronounced Jarvis should feel as an experience layer
+- guidance posture:
+  how concise or guided Jarvis should be while helping the user understand the early experience
+- interaction posture:
+  how voice participates as optional framing or guidance while typed interaction remains fully sufficient
+- pacing and atmosphere posture:
+  how brief versus atmospheric the early Jarvis experience should feel without turning setup into ceremony
+- everyday resident presence posture:
+  how visible or quiet Jarvis should feel after setup when trust continuity is normal and no recovery-oriented surfacing is active
+
+These categories are about comfort, presentation, and usability posture.
+They are not:
+
+- trust categories
+- recovery-state categories
+- backend categories
+- shell or tray categories
+- diagnostics categories
+- runtime-policy categories
+
+## Environment-Preference Timing Model
+
+At planning level, the most plausible up-front setup choices are the broad posture decisions that help Jarvis avoid an obviously wrong first-run experience:
+
+- an initial presence-posture baseline
+- an initial guidance-posture baseline
+- an initial interaction-posture baseline that keeps typing sufficient and voice optional
+
+At planning level, the most plausible optional setup choices are refinements that may improve comfort but are not required to establish a coherent first everyday posture:
+
+- deeper pacing or atmosphere refinements
+- non-essential resident presence refinements for normal trust state
+- secondary comfort refinements that are helpful but not required for setup completion
+
+At planning level, the choices that should remain deferred until later are those the user can evaluate better only after living with Jarvis for some time:
+
+- detailed per-surface preference tuning
+- exact later everyday adjustments
+- anything that would require the user to understand future shell, tray, renderer, or diagnostics behavior
+- anything that meaningfully overlaps with trust, recovery, or resident control-anchor ownership
+
+This timing model is meant to keep setup short and consumer-friendly.
+It prevents setup from becoming either:
+
+- a full settings migration exercise
+- a disguised access-control sequence
+
+## Environment-Preference Boundary Contract
+
+Environment preferences may shape:
+
+- comfort
+- presentation tone
+- guidance density
+- presence intensity
+- normal-state everyday visibility posture
+
+Environment preferences must not shape:
+
+- whether trust continuity is normal, degraded, or recovery-needed
+- whether recovery-entry surfacing is required
+- how bounded deferral works
+- how the resident control anchor owns trust-state visibility or recovery access
+- launcher-owned desktop truth, diagnostics authority, or any runtime behavior
+
+Later-adjustment and safe-undo remains a separate adjacent lane.
+This document does not define how preference changes are revisited later; it defines only which categories belong here and when they are plausibly chosen.
+
+## Later-Adjustment And Safe-Undo Purpose Contract
+
+At planning level, later adjustment and safe-undo is the ordinary post-setup lane where the user can revisit, soften, or reverse prior consumer-facing setup and environment-preference choices without implying that trust is broken or recovery is required.
+
+This lane is conceptually responsible for:
+
+- allowing the user to make Jarvis calmer, simpler, quieter, or less demanding after living with the initial setup choices
+- reinforcing that setup and environment-preference choices are revisable rather than one-time commitments
+- helping the user recover from overly strong, overly guided, or otherwise poor comfort choices without replaying the meaning of trust failure
+- preserving confidence that the Jarvis experience can be adjusted without destabilizing ordinary use
+
+This lane should feel:
+
+- normal
+- user-directed
+- non-urgent
+- non-punitive
+- like ordinary preference revision rather than a system repair event
+
+## Ordinary Adjustment Versus Trust Recovery Contract
+
+At planning level, ordinary preference adjustment is different in meaning from trust recovery.
+
+Ordinary preference adjustment is about:
+
+- comfort
+- presentation posture
+- guidance density
+- presence intensity
+- how strong or quiet the everyday Jarvis experience should feel
+
+Trust recovery is about:
+
+- degraded or recovery-needed trust continuity
+- restoring the intended trust path after bypass or disruption
+- the resident trust-state and recovery-entry contracts already defined elsewhere in this document
+
+That means:
+
+- wanting Jarvis to feel calmer or simpler must not be treated as recovery-needed state
+- revising a setup choice must not change trust-state meaning by itself
+- undoing a consumer-facing preference must not require trust restoration
+- trust recovery must remain separate from normal post-setup preference revision
+
+## Later-Adjustment Relationship To The Resident Control Anchor
+
+The resident control anchor remains the post-login home for:
+
+- trust-state visibility
+- recovery-entry access
+- explanation of current trust continuity posture
+
+Later adjustment and safe-undo may still be reachable after login, but it is not conceptually the same lane as the resident control anchor.
+
+At planning level, that means:
+
+- later adjustment may coexist with post-login Jarvis presence without being reclassified as trust-state ownership
+- later adjustment must not take over recovery-entry surfacing or bounded-deferral meaning
+- the resident control anchor must not become the owner of broad consumer setup or environment-preference revision just because both are post-login reachable
+
+This document intentionally does not define:
+
+- exact screen or settings-surface layout
+- exact tray, shell, resident UI, or notification mechanics for how later adjustment is reached
+- exact later-adjustment screen flow or safe-undo sequence
+
+## Post-Login Settings Ownership Boundary Contract
+
+At planning level, the post-login settings and control surface remains conceptually split across three adjacent but distinct lanes:
+
+- the resident control anchor
+- later adjustment and safe-undo
+- environment-preference revision
+
+The resident control anchor is allowed to own only:
+
+- current trust-state visibility after login
+- recovery-entry reachability after login
+- concise explanation of current trust-continuity posture
+- calm wayfinding toward ordinary adjustment only when the user issue is comfort or presentation rather than trust restoration
+
+The resident control anchor must not own:
+
+- broad comfort or presentation revision
+- ordinary setup-choice undo
+- environment-preference editing as a primary responsibility
+- reinterpretation of launcher-owned desktop truth or any runtime authority
+
+Later adjustment and safe-undo is allowed to own only:
+
+- revision of prior consumer-facing setup choices after the user has lived with them
+- softening or undoing comfort, guidance, presence, or pacing choices that proved too strong or poorly matched
+- reinforcing that user-facing posture choices remain revisable without implying trust breakage
+- ordinary post-login adjustment paths that feel normal rather than recovery-oriented
+
+Later adjustment and safe-undo must not own:
+
+- trust-state visibility meaning
+- recovery-entry surfacing or bounded-deferral meaning
+- determination of whether the user is in a normal, degraded, or recovery-needed trust state
+- launcher-owned desktop truth, diagnostics authority, or runtime control
+
+Environment-preference revision is allowed to own only:
+
+- the content categories already defined in the environment-preference taxonomy
+- revision of those categories when the user is adjusting how Jarvis feels rather than restoring trust continuity
+- normal-state everyday presence posture as a comfort and presentation concern
+
+Environment-preference revision must not own:
+
+- recovery entry
+- trust-state explanation or trust-state classification
+- post-bypass restoration meaning
+- launcher-owned desktop truth or runtime authority
+
+At planning level, these lanes may conceptually link only as follows:
+
+- the resident control anchor may point the user toward later adjustment when the issue is ordinary comfort or presentation rather than trust restoration
+- later adjustment may expose environment-preference revision as the place where posture choices are actually revised
+- later adjustment may point back to the resident control anchor when the user needs trust-state visibility or recovery entry rather than ordinary adjustment
+- environment-preference revision may remain reachable after login without becoming the owner of trust-state visibility or recovery posture
+
+These conceptual links are allowed to improve clarity and discoverability.
+They must not collapse the three lanes into one mixed settings surface, and they do not authorize any tray, shell, renderer, notification, or implementation mechanics.
+
 ## How Jarvis Stays Present Without Becoming Heavy
 
 Jarvis should remain present through:
@@ -469,7 +1023,13 @@ This canonical document intentionally defers:
 - diagnostics presentation behavior
 - notification-system implementation
 - exact post-bypass detection logic
-- exact recovery-prompt persistence logic
+- exact resident recovery-entry persistence mechanics
+- exact resident control-anchor information architecture or settings taxonomy
+- exact consumer setup sequence, prompt set, or screen flow
+- exact environment-preference labels, defaults, or per-surface mappings
+- exact later-adjustment or safe-undo mechanics for setup choices
+- exact Windows Hello enrollment, availability, fallback, or failure-handling mechanics
+- exact TOTP enrollment, provisioning, fallback, device-loss, or recovery-code mechanics
 - boot runtime control
 - launcher-policy changes
 
@@ -515,10 +1075,9 @@ A successful consolidated boot-access design would make the user feel:
 
 ## Recommended Next Planning Splits
 
-If boot planning continues after this consolidation, the next coherent revisions should stay narrow and choose one of:
+If boot planning continues after this clarification, any later revisions should stay narrower than the already-defined planning contracts and focus only on:
 
-- resident recovery-entry persistence and deferral behavior
-- resident control-center or settings-anchor responsibility planning
-- consumer setup and environment-preference planning after install and first run
+- exact settings ownership or information-architecture clarification if a later planning boundary still needs it
+- exact preference labels, defaults, or per-surface mappings if a later planning boundary intentionally allows that depth
 
 Those should remain separate from backend, shell, diagnostics, or implementation design until the planning boundary is intentionally changed.

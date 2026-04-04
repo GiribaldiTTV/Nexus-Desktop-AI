@@ -8,24 +8,24 @@ import sys
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-BASE_LOG_ROOT = os.path.join(LOGS_DIR, "support_bundle_triage_toolkit_validation")
+DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
+BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "support_bundle_triage_toolkit_validation")
 REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 
 DEV_LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "dev", "launchers", "jarvis_dev_launcher.pyw")
 TRIAGE_HELPER_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_support_bundle_triage.py")
 TRIAGE_HARNESS_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_support_bundle_triage_harness.py")
 
-RAW_TRIAGE_REPORTS_DIR = os.path.join(LOGS_DIR, "support_bundle_triage", "reports")
-TRIAGE_HARNESS_REPORTS_DIR = os.path.join(LOGS_DIR, "support_bundle_triage_harness", "reports")
+RAW_TRIAGE_REPORTS_DIR = os.path.join(DEV_LOGS_DIR, "support_bundle_triage", "reports")
+TRIAGE_HARNESS_REPORTS_DIR = os.path.join(DEV_LOGS_DIR, "support_bundle_triage_harness", "reports")
 REPEATED_CRASH_SUPPORT_BUNDLES_DIR = os.path.join(
-    LOGS_DIR,
+    DEV_LOGS_DIR,
     "desktop_launcher_regression_harness",
     "repeated_crash",
     "support_bundles",
 )
 UNSTABLE_EXTRACTED_BUNDLE_ROOT = os.path.join(
-    LOGS_DIR,
+    DEV_LOGS_DIR,
     "support_bundle_triage_harness",
     "verification",
     "unstable_bundle_extracted",
@@ -277,7 +277,7 @@ def run_toolkit_case(dev_launcher_module, window, app, name, source_mode, source
         elif new_reports:
             new_report_path = latest_file_matching(RAW_TRIAGE_REPORTS_DIR, RAW_TRIAGE_REPORT_PREFIX, ".txt")
 
-        window.open_latest_runtime_log()
+        window.open_latest_report()
         app.processEvents()
         open_status = window.status_label.text()
     finally:

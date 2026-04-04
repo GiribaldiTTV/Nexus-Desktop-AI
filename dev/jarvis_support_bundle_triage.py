@@ -8,8 +8,8 @@ import zipfile
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-DEFAULT_BASE_LOG_ROOT = os.path.join(LOGS_DIR, "support_bundle_triage")
+DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
+DEFAULT_BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "support_bundle_triage")
 MANIFEST_FILENAME = "manifest.json"
 
 DESKTOP_LAUNCHER_REGRESSION_HARNESS = os.path.join(ROOT_DIR, "dev", "jarvis_desktop_launcher_regression_harness.py")

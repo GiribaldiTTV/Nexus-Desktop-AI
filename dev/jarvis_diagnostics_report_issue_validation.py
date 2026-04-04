@@ -10,8 +10,8 @@ import zipfile
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-BASE_LOG_ROOT = os.path.join(LOGS_DIR, "diagnostics_report_issue_validation")
+DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
+BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "diagnostics_report_issue_validation")
 VERIFICATION_DIR = os.path.join(BASE_LOG_ROOT, "verification")
 REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 DESKTOP_DIR = os.path.join(ROOT_DIR, "desktop")
