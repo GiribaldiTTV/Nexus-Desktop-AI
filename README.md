@@ -1,5 +1,3 @@
-Absolutely — here’s a cleaner, more public-first README draft that still stays accurate and includes backlog-based “what’s next.”
-
 ```markdown
 # Jarvis
 
