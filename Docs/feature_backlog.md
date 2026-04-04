@@ -761,6 +761,287 @@ Rev1 and rev2 are now implemented in code. The current repo truth uses lane-loca
 
 ---
 
+### [ID: FB-021] Dev-only Boot Jarvis test lane
+
+Status: Implemented (v2.1.0 rev1)  
+Priority: High  
+Suggested Version: v2.1.0  
+Suggested Revision: rev1  
+
+Description:
+Build out the dev-only Boot Jarvis test lane around `main.py` so boot/login behavior and the boot-to-desktop transition are faster to reproduce without turning `main.py` into the normal product entrypoint.
+
+Why it matters:
+Boot and transition testing is currently much slower than desktop-path testing unless the repo keeps a narrow internal harness model for `main.py`.
+
+Proposed Change:
+Implemented model:
+- `main.py` now includes Phase 1 boot-harness seams for boot profile, audio mode, dedicated `dev/logs` runtime roots, structured `BOOT_MAIN|...` milestones, and auto-handoff skip-import support
+- dev-only hidden-window boot launchers now exist under `dev/launchers/` for manual versus auto-handoff and quiet versus voice
+- Boot Jarvis transition work stayed inside the dev-only harness and did not turn `main.py` into a normal product entrypoint
+
+Likely Files Affected:
+- C:/Jarvis/main.py
+- C:/Jarvis/dev/launchers/launch_jarvis_main_*.vbs
+
+Scope:
+- dev-only boot/login harness support
+- faster contained boot-to-desktop repro
+- dedicated dev launchers for the existing boot prompt chain
+- contained boot transition behavior and evidence inside the dev-only harness
+
+Out of Scope:
+- making `main.py` a user-facing launcher
+- changing `launch_jarvis_desktop.vbs`
+- trust or auth behavior changes
+- full boot orchestrator implementation
+- Dev Toolkit surfacing in the same slice
+
+Notes:
+This item is now implemented as a reusable dev-only boot test lane.
+Current repo truth also includes later helper follow-through such as:
+
+- monitor preflight
+- boot-to-desktop handoff verification
+- transition capture
+
+Those later helper surfaces remain dev-only and still must not blur the line between the boot harness and the normal desktop launch path.
+
+---
+
+### [ID: FB-022] Boot & Transition Checks Dev Toolkit surfacing
+
+Status: Implemented (v2.1.0 rev2)  
+Priority: Medium  
+Suggested Version: v2.1.0  
+Suggested Revision: rev2  
+
+Description:
+Add a dedicated `Boot & Transition Checks` purpose group to the Dev Toolkit once the boot helper seams and launchers are stable enough to surface safely.
+
+Why it matters:
+The Dev Toolkit should eventually expose repeatable boot and transition checks without requiring direct file launches, but it should only surface stable helpers rather than inventing them inside the toolkit UI.
+
+Proposed Change:
+Implemented model:
+- the Dev Toolkit now includes a dedicated `Boot & Transition Checks` purpose group
+- it reuses the existing quiet/voice launch-mode model rather than inventing a separate boot audio system
+- the current surfaced lanes are:
+  - `Boot Jarvis Manual Flow`
+  - `Boot Jarvis Auto Handoff (Skip Import)`
+  - `Boot To Desktop Handoff Verification`
+  - `Boot Transition Capture`
+  - `Boot Monitor Preflight`
+  - `Boot Helper Toolkit Validation`
+
+Likely Files Affected:
+- C:/Jarvis/dev/launchers/jarvis_dev_launcher.pyw
+- C:/Jarvis/dev/launchers/launch_jarvis_main_manual_test*.vbs
+- C:/Jarvis/dev/launchers/launch_jarvis_main_auto_handoff_skip_import*.vbs
+
+Scope:
+- Dev Toolkit purpose grouping for boot checks
+- boot-specific lane surfacing after helper stability
+- reuse of existing quiet versus voice launch-mode patterns
+
+Out of Scope:
+- inventing new boot helper seams inside the toolkit
+- user-facing boot launchers
+- trust or product behavior changes
+- desktop launcher policy changes
+
+Notes:
+This item is now implemented.
+Later Dev Toolkit follow-through in the same branch also added:
+
+- Toolkit session runtime logging
+- top-level smoke validation in a separate purpose group
+- live background status/progress
+- latest-artifact convenience utilities
+
+Those later QoL additions build on this surfacing rather than changing its core ownership model.
+
+---
+
+### [ID: FB-023] Desktop renderer observability gap closure
+
+Status: Implemented (v2.1.0 rev3)  
+Priority: High  
+Suggested Version: v2.1.0  
+Suggested Revision: rev3  
+
+Description:
+Add the smallest missing renderer-side runtime markers for the controlled desktop path so renderer failures and shutdown behavior are easier to diagnose from logs.
+
+Why it matters:
+Current desktop logs cover startup well but remain thinner on page-load failure, desktop-mode attach results, and renderer-side shutdown milestones.
+
+Proposed Change:
+Implemented model:
+- `desktop/desktop_renderer.py` now emits the first narrow renderer-side observability markers for:
+  - visual page ready versus load failed
+  - desktop mode enable begin
+  - desktop attach result
+  - renderer shutdown begin
+- directly supportive WorkerW host-discovery probe evidence then landed to explain a real attach-path blind spot
+- a guarded `Progman` fallback followed as machine-specific host-selection follow-through after the new markers surfaced the failed next-WorkerW assumption
+
+Likely Files Affected:
+- C:/Jarvis/desktop/desktop_renderer.py
+- C:/Jarvis/desktop/jarvis_desktop_main.py
+
+Scope:
+- desktop renderer observability only
+- missing failure-path and shutdown markers
+- improved outcome clarity for the controlled desktop lane
+
+Out of Scope:
+- launcher policy changes
+- boot-harness changes
+- Dev Toolkit work
+- raw verbosity increases
+- UI redesign
+
+Notes:
+This item is now implemented as the first coherent desktop renderer observability slice, with directly supportive attach-path follow-through after the newly surfaced evidence showed the old WorkerW selection assumption was wrong on this machine.
+
+---
+
+### [ID: FB-024] Boot harness edge-path observability refinement
+  
+Status: Implemented (v2.1.0 rev4)  
+Priority: Medium  
+Suggested Version: v2.1.0  
+Suggested Revision: rev4  
+
+Description:
+Fill in the remaining Boot Jarvis edge-path runtime markers so invalid prompt loops and interrupted handoff paths can be diagnosed without inferring behavior from missing happy-path milestones.
+
+Why it matters:
+The current boot harness now records the main happy path well, but unrecognized command loops, invalid import responses, and interrupted shutdown/handoff paths still leave evidence gaps.
+
+Proposed Change:
+Implemented model:
+- `main.py` now emits the remaining narrow boot edge-path markers for:
+  - rejected first-command input
+  - rejected import yes/no input
+  - typed shutdown accepted at command stage 1 or 2
+  - hotkey-triggered shutdown
+  - handoff signal emitted versus dropped
+- the marker pass stayed inside the existing boot harness and did not redesign prompt flow or alter boot behavior
+
+Likely Files Affected:
+- C:/Jarvis/main.py
+
+Scope:
+- boot-harness milestone refinement only
+- prompt edge-path evidence
+- abnormal exit and interrupted handoff evidence
+
+Out of Scope:
+- prompt copy rewrite
+- monitor preflight helper implementation
+- desktop renderer changes
+- Dev Toolkit surfacing
+- trust or auth behavior changes
+
+Notes:
+ Current repo truth for this item includes:
+  
+- Phase 1 boot-harness seams in `main.py`
+- structured `BOOT_MAIN|...` milestones across the happy path
+- quiet and auto-handoff skip-import support
+- dev-only boot launchers
+- a more continuous boot-to-desktop handoff
+- helper follow-through such as monitor preflight, handoff verification, transition capture, and boot-helper Toolkit validation
+- landed edge-path markers for rejected input, shutdown source, and handoff signal outcome
+
+Later naming cleanup remains deferred under `FB-025`.
+
+---
+
+### [ID: FB-025] Boot and desktop milestone taxonomy clarification
+
+Status: Deferred  
+Priority: Low  
+Suggested Version: v2.1.0  
+Suggested Revision: rev5  
+
+Description:
+Clarify the shared naming shape between `BOOT_MAIN|...` and `RENDERER_MAIN|...` milestone families once both lanes have enough core markers to make cross-lane evidence easier to compare.
+
+Why it matters:
+Boot and desktop ownership should stay separate, but a small later taxonomy pass could make mixed evidence easier to read without collapsing the two lanes into a single logging system.
+
+Proposed Change:
+Do a tiny naming and taxonomy clarification pass only after the core boot and desktop observability gaps are closed, preserving separate lane ownership while aligning milestone shape where that improves diagnostics.
+
+Likely Files Affected:
+- C:/Jarvis/main.py
+- C:/Jarvis/desktop/jarvis_desktop_main.py
+- C:/Jarvis/desktop/desktop_renderer.py
+
+Scope:
+- naming and taxonomy clarification only
+- cross-lane diagnostic readability
+
+Out of Scope:
+- full shared logging contract implementation
+- launcher policy changes
+- raw verbosity increases
+- behavior changes
+
+Notes:
+This remains deferred.
+Current repo truth now already includes first-class `BOOT_MAIN|...` and `RENDERER_MAIN|...` milestone families, so this item is now only about later naming-shape cleanup and cross-lane readability rather than filling missing core marker coverage.
+
+---
+
+### [ID: FB-026] Dev Toolkit uploaded-bundle intake surface
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: v2.1.0  
+Suggested Revision: rev6  
+
+Description:
+Add a dedicated bottom-of-toolkit intake surface for user-submitted debug bundles so engineers can pick a zip or extracted folder, see what was received, and route it into the right internal helper without leaving the Dev Toolkit.
+
+Why it matters:
+The current toolkit already has support-bundle triage coverage, but intake still feels fragmented. A small, explicit uploaded-bundle area would make the toolkit feel like a one-stop internal debugging surface instead of a set of separate helper entrypoints.
+
+Proposed Change:
+Add a dedicated `Uploads` or similarly named lower-section panel in the Dev Toolkit that accepts a user-submitted zip or extracted bundle folder, shows the current selected source, and routes that source into the existing support-bundle triage helper or later bundle-specific follow-up helpers.
+
+Likely Files Affected:
+- C:/Jarvis/dev/launchers/jarvis_dev_launcher.pyw
+- C:/Jarvis/dev/jarvis_support_bundle_triage.py
+- directly supportive VBS/helper launcher surfaces only if needed
+
+Scope:
+- dev-only uploaded-bundle intake UI
+- zip and extracted-folder picking
+- clearer one-stop routing into existing bundle-debug helpers
+
+Out of Scope:
+- silent uploads
+- cloud transfer or remote storage
+- product-facing upload UI
+- automatic issue submission redesign
+
+Notes:
+This remains deferred.
+Current repo truth already includes:
+
+- the existing support-bundle triage helper and its Toolkit surfacing
+- Toolkit session logging
+- live status/progress for background lanes
+- latest-artifact convenience utilities
+
+The remaining work is the dedicated lower intake surface itself, not the broader Toolkit foundation around it.
+
+---
+
 ## Completed Items
 
 Move completed backlog items here for history tracking.

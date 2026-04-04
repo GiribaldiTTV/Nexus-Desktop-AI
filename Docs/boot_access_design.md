@@ -378,6 +378,28 @@ Acceptable routine friction is limited to:
 
 If normal daily use starts to feel like a ritual, the routine path has become too heavy.
 
+## Routine-To-Stronger Trust Boundary
+
+At planning level, Jarvis should stop treating access as routine when doing so would incorrectly frame the current trust posture as ordinary daily continuity.
+
+Routine access remains sufficient when:
+
+- the user is completing ordinary daily entry and Jarvis trust continuity is still normal enough to be treated as routine
+- the trust moment is still just one ordinary daily confirmation rather than trust restoration or recovery-oriented confirmation
+- a future optional routine-path shortcut such as Windows Hello is unavailable, unset, declined, or fails, but the ordinary typed routine path still applies
+
+The stronger path becomes justified when:
+
+- Jarvis should no longer pretend the current trust posture is ordinary daily continuity
+- the trust moment now carries restoration, recovery-oriented confirmation, or clearly non-routine confirmation meaning
+- trust continuity is meaningfully different from normal daily entry even before any future additive stronger-path hardening factor is considered
+
+This boundary clarification does not mean:
+
+- the stronger path becomes the new default daily path
+- routine access should be escalated just because optional routine-path convenience is unavailable
+- the stronger path is defined by future TOTP mechanics rather than by the underlying non-routine trust posture
+
 ## Stronger Path
 
 The stronger path is not for routine daily use.
@@ -715,12 +737,30 @@ It should not be treated as:
 Consumer setup should stay short, legible, and consumer-friendly.
 Its purpose is to establish initial fit and comfort, not to front-load every future choice.
 
+## Minimum Consumer-Setup First Slice
+
+At planning level, the smallest coherent first consumer-setup slice should include only the minimum broad posture choices needed to avoid an obviously wrong first-run experience:
+
+- an initial presence-posture baseline
+- an initial guidance-posture baseline
+- an initial interaction-posture baseline that keeps typing sufficient and voice optional
+
+This first slice may be satisfied by explicit user choice or by accepting a coherent default posture for those same categories.
+
+This first slice should not require:
+
+- deeper pacing or atmosphere refinement
+- detailed per-surface preference tuning
+- non-essential resident presence refinement for later ordinary use
+- any choice that would force the user to understand trust restoration, recovery posture, or later post-login ownership lanes
+
 ## Consumer Setup Completion And Handoff Contract
 
 At planning level, consumer setup should count as complete once:
 
 - Jarvis has established a coherent initial posture for ordinary use
 - the user has made only the minimum early choices needed for that posture
+- the minimum first-slice posture bundle has been either explicitly chosen or coherently accepted by default
 - the user understands that later preference adjustment remains possible
 - the system can hand off into normal Jarvis use without continuing to behave like an installer or onboarding wizard
 
@@ -736,6 +776,12 @@ The handoff after setup should feel like:
 - Jarvis is now ready for everyday use
 - the user is no longer inside a special onboarding state
 - future adjustment can happen later without replaying the entire setup lane
+
+At planning level, that first handoff into ordinary use includes:
+
+- the chosen initial posture becoming the active everyday starting posture
+- ordinary Jarvis use beginning without reopening setup as an access gate
+- later refinement remaining available only as a future adjacent lane rather than as part of first-slice completion
 
 ## Consumer Setup Relationship To Trust And Recovery Lanes
 

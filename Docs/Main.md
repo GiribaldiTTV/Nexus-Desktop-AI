@@ -72,6 +72,7 @@ These docs are still valid, but they are not part of the default prompt baseline
 - `docs/v1.8.0_closeout.md`
 - `docs/v1.9.0_closeout.md`
 - `docs/v2.0_closeout.md`
+- `docs/post_v2.0_branch_rebaseline.md`
 
 Use them when the task depends on:
 
@@ -79,6 +80,7 @@ Use them when the task depends on:
 - version closeout facts
 - post-closeout sequencing
 - auditing whether later work reopens closed version behavior
+- implemented post-`v2.0` branch truth before a later version closeout exists
 
 ### Retired / Archive Docs
 
@@ -147,6 +149,7 @@ For the first planning prompt after a version closes, prompts should usually inc
 - `docs/Main.md`
 - `docs/codex_modes.md`
 - the latest relevant closeout doc
+- the latest relevant interim rebaseline doc if one exists for the active post-closeout branch
 - the directly relevant canonical planning doc or docs for the next version lane
 
 That first prompt should explicitly answer:

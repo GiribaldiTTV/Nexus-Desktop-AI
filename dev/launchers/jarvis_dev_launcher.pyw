@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import textwrap
+import time
 
 from PySide6.QtCore import QEvent, QPoint, QRect, Qt, QTimer
 from PySide6.QtGui import QFont, QFontMetrics, QGuiApplication
@@ -13,6 +14,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QProgressBar,
     QPushButton,
     QScrollArea,
     QSizePolicy,
@@ -22,13 +24,44 @@ from PySide6.QtWidgets import (
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from desktop.single_instance import NamedSignal, SingleInstanceGuard, acquire_or_prompt_replace
+
 DEV_DIR = os.path.join(ROOT_DIR, "dev")
 DEV_LAUNCHERS_DIR = os.path.dirname(os.path.abspath(__file__))
 CLIENT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
 DEV_LOGS_DIR = os.path.join(DEV_DIR, "logs")
+DEV_TOOLKIT_SESSION_LOG_DIR = os.path.join(DEV_LOGS_DIR, "dev_toolkit_session")
+DEV_TOOLKIT_SMOKE_REPORT_DIR = os.path.join(DEV_LOGS_DIR, "dev_toolkit_smoke_validation", "reports")
+BOOT_TRANSITION_CAPTURE_ROOT = os.path.join(DEV_LOGS_DIR, "boot_transition_capture")
+BOOT_TRANSITION_CAPTURE_REPORT_DIR = os.path.join(BOOT_TRANSITION_CAPTURE_ROOT, "reports")
+BOOT_TRANSITION_CAPTURE_FRAMES_DIR = os.path.join(BOOT_TRANSITION_CAPTURE_ROOT, "captures")
 SUPPORT_BUNDLE_TRIAGE_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_support_bundle_triage.py")
 
 PYTHONW_PATH = r"C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"
+DEV_TOOLKIT_MUTEX = r"Local\JarvisDevToolkitSingletonV1"
+DEV_TOOLKIT_RELAUNCH_EVENT = r"Local\JarvisDevToolkitRelaunchRequestV1"
+dev_toolkit_guard = SingleInstanceGuard(DEV_TOOLKIT_MUTEX)
+dev_toolkit_relaunch_signal = NamedSignal(DEV_TOOLKIT_RELAUNCH_EVENT)
+
+
+def create_dev_toolkit_runtime_log() -> str:
+    os.makedirs(DEV_TOOLKIT_SESSION_LOG_DIR, exist_ok=True)
+    stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    return os.path.join(DEV_TOOLKIT_SESSION_LOG_DIR, f"Runtime_{stamp}.txt")
+
+
+def write_dev_toolkit_runtime_marker(runtime_log_file: str, event: str) -> None:
+    if not runtime_log_file:
+        return
+    try:
+        ts = datetime.datetime.now().strftime("%H:%M:%S")
+        with open(runtime_log_file, "a", encoding="utf-8") as f:
+            f.write(f"[{ts}] {event}\n")
+    except Exception:
+        pass
 
 LANE_CONFIG = {
     "diagnostics": {
@@ -75,6 +108,103 @@ LANE_CONFIG = {
         "log_root": os.path.join(DEV_LOGS_DIR, "manual_launcher_startup_abort_test"),
         "log_root_with_voice": os.path.join(DEV_LOGS_DIR, "manual_launcher_startup_abort_test_with_voice"),
         "crash_folder": "crash",
+    },
+    "bootManualFlow": {
+        "label": "Boot Jarvis Manual Flow",
+        "detail": (
+            "Launches the dev-only main.py boot harness in manual mode so Boot Jarvis reaches "
+            "the first prompt and waits for operator input."
+        ),
+        "quiet_launcher": "launch_jarvis_main_manual_test.vbs",
+        "voice_launcher": "launch_jarvis_main_manual_test_with_voice.vbs",
+        "supports_voice": True,
+        "available_modes": ("quiet", "voice"),
+        "opens_window": True,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_manual_flow"),
+        "crash_folder": "",
+    },
+    "bootAutoHandoffSkipImport": {
+        "label": "Boot Jarvis Auto Handoff (Skip Import)",
+        "detail": (
+            "Launches the dev-only main.py boot harness in auto-handoff mode so Boot Jarvis "
+            "drives the existing engage hud -> no chain and hands off into Desktop Jarvis."
+        ),
+        "quiet_launcher": "launch_jarvis_main_auto_handoff_skip_import.vbs",
+        "voice_launcher": "launch_jarvis_main_auto_handoff_skip_import_with_voice.vbs",
+        "supports_voice": True,
+        "available_modes": ("quiet", "voice"),
+        "opens_window": True,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_auto_handoff_skip_import"),
+        "crash_folder": "",
+    },
+    "bootTransitionVerification": {
+        "label": "Boot To Desktop Handoff Verification",
+        "detail": (
+            "Runs a contained quiet boot-to-desktop verification pass, validates the current "
+            "handoff milestone order, then writes a compact pass/fail report."
+        ),
+        "quiet_launcher": "launch_jarvis_boot_transition_verification.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_transition_verification"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "boot_transition_verification", "reports"),
+        "report_prefix": "BootTransitionVerificationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
+    "bootTransitionCapture": {
+        "label": "Boot Transition Capture",
+        "detail": (
+            "Runs the quiet auto-handoff boot path, captures primary-screen transition frames at key "
+            "handoff markers, and writes a compact report with the saved PNG sequence."
+        ),
+        "quiet_launcher": "launch_jarvis_boot_transition_capture.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_transition_capture"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "boot_transition_capture", "reports"),
+        "report_prefix": "BootTransitionCaptureReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
+    "bootMonitorPreflight": {
+        "label": "Boot Monitor Preflight",
+        "detail": (
+            "Captures the current monitor topology using the same left/center/right assumptions "
+            "as Boot Jarvis and writes a compact readiness report before you run a boot lane."
+        ),
+        "quiet_launcher": "launch_jarvis_boot_monitor_preflight.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_monitor_preflight"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "boot_monitor_preflight", "reports"),
+        "report_prefix": "BootMonitorPreflightReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
+    "bootToolkitValidation": {
+        "label": "Boot Helper Toolkit Validation",
+        "detail": (
+            "Runs a contained offscreen validation of the Boot & Transition helper lanes and verifies "
+            "the Dev Toolkit can launch Boot Monitor Preflight and Boot To Desktop Handoff Verification "
+            "and then reopen their fresh reports."
+        ),
+        "quiet_launcher": "launch_jarvis_boot_toolkit_validation.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_toolkit_validation"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "boot_toolkit_validation", "reports"),
+        "report_prefix": "BootToolkitValidationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
     },
     "voiceRegression": {
         "label": "Voice Regression Harness",
@@ -125,6 +255,42 @@ LANE_CONFIG = {
         "log_root": os.path.join(DEV_LOGS_DIR, "desktop_launcher_healthy_validation"),
         "report_root": os.path.join(DEV_LOGS_DIR, "desktop_launcher_healthy_validation", "reports"),
         "report_prefix": "DesktopLauncherHealthyValidationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
+    "desktopToolkitValidation": {
+        "label": "Desktop Helper Toolkit Validation",
+        "detail": (
+            "Runs a contained offscreen validation of the desktop helper lanes and verifies the "
+            "Dev Toolkit can launch Healthy Desktop Launch Validation and Healthy Launcher Path "
+            "Validation and reopen their fresh reports."
+        ),
+        "quiet_launcher": "launch_jarvis_desktop_toolkit_validation.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "desktop_toolkit_validation"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "desktop_toolkit_validation", "reports"),
+        "report_prefix": "DesktopToolkitValidationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
+    "devToolkitSmokeValidation": {
+        "label": "Dev Toolkit Smoke Validation",
+        "detail": (
+            "Runs the boot-side Toolkit validation and the desktop-side Toolkit validation in sequence, "
+            "then writes one consolidated smoke report so the current helper-lane wiring can be checked "
+            "with a single background run."
+        ),
+        "quiet_launcher": "launch_jarvis_dev_toolkit_smoke_validation.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "dev_toolkit_smoke_validation"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "dev_toolkit_smoke_validation", "reports"),
+        "report_prefix": "DevToolkitSmokeValidationReport_",
         "report_suffix": ".txt",
         "crash_folder": "",
     },
@@ -227,8 +393,26 @@ CONFIG_LANE_GROUPS = (
         "lane_keys": ("diagnostics", "repeatedCrash", "startupAbort"),
     },
     {
+        "label": "Boot & Transition Checks",
+        "lane_keys": (
+            "bootManualFlow",
+            "bootAutoHandoffSkipImport",
+            "bootTransitionVerification",
+            "bootTransitionCapture",
+            "bootMonitorPreflight",
+            "bootToolkitValidation",
+        ),
+    },
+    {
         "label": "Voice, Healthy Start, & Regression",
-        "lane_keys": ("voiceRegression", "desktopHealthy", "launcherHealthy", "launcherRegression"),
+        "lane_keys": (
+            "voiceRegression",
+            "desktopHealthy",
+            "launcherHealthy",
+            "desktopToolkitValidation",
+            "devToolkitSmokeValidation",
+            "launcherRegression",
+        ),
     },
     {
         "label": "Support Bundles & Reporting",
@@ -308,6 +492,99 @@ def latest_directory_named(root_path: str, folder_name: str) -> str:
     return best_path
 
 
+def latest_subdirectory(root_path: str) -> str:
+    if not os.path.isdir(root_path):
+        return ""
+
+    best_path = ""
+    best_time = -1.0
+    for name in os.listdir(root_path):
+        path = os.path.join(root_path, name)
+        if not os.path.isdir(path):
+            continue
+        try:
+            modified = os.path.getmtime(path)
+        except OSError:
+            continue
+        if modified >= best_time:
+            best_time = modified
+            best_path = path
+    return best_path
+
+
+BACKGROUND_PROGRESS_PROFILES = {
+    "default": {
+        "expected_seconds": 28.0,
+        "stages": (
+            (12, "Initializing the selected helper lane."),
+            (34, "Launching the helper process and waiting for its first artifact."),
+            (62, "Running the core validation or capture work."),
+            (86, "Finalizing evidence and writing the latest artifact."),
+            (96, "Waiting for the lane to finish cleanly."),
+        ),
+    },
+    "bootMonitorPreflight": {
+        "expected_seconds": 10.0,
+        "stages": (
+            (18, "Preparing the current monitor-topology probe."),
+            (52, "Reading the left, center, and right monitor assumptions."),
+            (82, "Writing the compact preflight report."),
+            (96, "Waiting for the fresh report artifact to land."),
+        ),
+    },
+    "bootTransitionVerification": {
+        "expected_seconds": 24.0,
+        "stages": (
+            (12, "Preparing the quiet boot-to-desktop verification run."),
+            (34, "Launching the boot harness and waiting for handoff markers."),
+            (68, "Checking the handoff ordering against the expected milestone chain."),
+            (88, "Writing the verification summary report."),
+            (96, "Waiting for the fresh report artifact to land."),
+        ),
+    },
+    "bootTransitionCapture": {
+        "expected_seconds": 26.0,
+        "stages": (
+            (10, "Preparing the quiet auto-handoff capture lane."),
+            (32, "Launching Boot Jarvis and waiting for the transition window."),
+            (70, "Capturing the handoff frames and saving the PNG sequence."),
+            (90, "Writing the capture report and indexing the newest frame set."),
+            (96, "Waiting for the fresh capture artifact to land."),
+        ),
+    },
+    "bootToolkitValidation": {
+        "expected_seconds": 24.0,
+        "stages": (
+            (10, "Preparing the boot-side Toolkit validation run."),
+            (36, "Launching Boot Monitor Preflight through the Toolkit surface."),
+            (68, "Launching Boot To Desktop Handoff Verification through the Toolkit surface."),
+            (88, "Writing the consolidated boot-helper Toolkit validation report."),
+            (96, "Waiting for the fresh report artifact to land."),
+        ),
+    },
+    "desktopToolkitValidation": {
+        "expected_seconds": 26.0,
+        "stages": (
+            (10, "Preparing the desktop-side Toolkit validation run."),
+            (38, "Launching Healthy Desktop Launch Validation through the Toolkit surface."),
+            (68, "Launching Healthy Launcher Path Validation through the Toolkit surface."),
+            (88, "Writing the consolidated desktop-helper Toolkit validation report."),
+            (96, "Waiting for the fresh report artifact to land."),
+        ),
+    },
+    "devToolkitSmokeValidation": {
+        "expected_seconds": 42.0,
+        "stages": (
+            (8, "Preparing the top-level Dev Toolkit smoke validation."),
+            (28, "Running the boot-helper Toolkit validation."),
+            (62, "Running the desktop-helper Toolkit validation."),
+            (90, "Writing the consolidated smoke report."),
+            (96, "Waiting for the fresh smoke artifact to land."),
+        ),
+    },
+}
+
+
 class TitleBar(QFrame):
     def __init__(self, owner):
         super().__init__(owner)
@@ -380,8 +657,9 @@ class GuardedComboBox(QComboBox):
 
 
 class DevLauncherWindow(QWidget):
-    def __init__(self):
+    def __init__(self, runtime_logger=None):
         super().__init__()
+        self.runtime_logger = runtime_logger
         self.setWindowTitle("Jarvis Dev Toolkit")
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
         self.resize(980, 900)
@@ -547,6 +825,28 @@ class DevLauncherWindow(QWidget):
                 color: #d4af37;
             }
 
+            QLabel#statusSubtext {
+                color: #8cc6cf;
+                font-size: 8pt;
+                padding-left: 2px;
+                padding-right: 2px;
+            }
+
+            QProgressBar#statusProgress {
+                border: 1px solid #134353;
+                background: #06111a;
+                color: #d4af37;
+                text-align: center;
+                padding: 1px;
+                font-size: 8pt;
+                min-height: 16px;
+            }
+
+            QProgressBar#statusProgress::chunk {
+                background: #0fe1ff;
+                width: 12px;
+            }
+
             QLabel#headerHint {
                 color: #8cc6cf;
                 font-size: 8pt;
@@ -678,6 +978,20 @@ class DevLauncherWindow(QWidget):
         self.status_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.status_label.setMaximumHeight(26)
         status_panel.layout.addWidget(self.status_label)
+        self.status_detail_label = QLabel("No background lane is running right now.")
+        self.status_detail_label.setObjectName("statusSubtext")
+        self.status_detail_label.setWordWrap(True)
+        self.status_detail_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        self.status_detail_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        status_panel.layout.addWidget(self.status_detail_label)
+        self.status_progress = QProgressBar()
+        self.status_progress.setObjectName("statusProgress")
+        self.status_progress.setRange(0, 100)
+        self.status_progress.setValue(0)
+        self.status_progress.setTextVisible(True)
+        self.status_progress.setFormat("Idle")
+        self.status_progress.setFixedHeight(18)
+        status_panel.layout.addWidget(self.status_progress)
         self.status_panel = status_panel
 
         global_utils_panel = Panel("Global Utilities")
@@ -815,32 +1129,38 @@ class DevLauncherWindow(QWidget):
         self.populate_lane_group_choices("")
 
     def _build_global_utilities_panel(self, layout):
-        button_row = QHBoxLayout()
-        button_row.setContentsMargins(0, 0, 0, 0)
-        button_row.setSpacing(6)
-        button_row.addStretch(1)
-
-        buttons = [
-            ("Jarvis Root", self.open_jarvis_root, "Open Jarvis Root"),
-            ("Dev Folder", self.open_dev_folder, "Open Dev Folder"),
-            ("Dev Logs", self.open_dev_logs_root, "Open Dev Logs Root"),
-            ("Dev Launchers", self.open_launchers_folder, "Open Dev Launchers Folder"),
-        ]
-        for text, handler, tooltip in buttons:
-            btn = QPushButton(text)
-            btn.setObjectName("headerUtilityButton")
-            btn.clicked.connect(handler)
-            btn.setToolTip(tooltip)
-            btn.setMinimumWidth(126)
-            btn.setFixedHeight(30)
-            btn.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
-            button_row.addWidget(btn)
-
-        button_row.addStretch(1)
-        layout.addLayout(button_row)
+        button_rows = (
+            [
+                ("Jarvis Root", self.open_jarvis_root, "Open Jarvis Root"),
+                ("Dev Folder", self.open_dev_folder, "Open Dev Folder"),
+                ("Dev Logs", self.open_dev_logs_root, "Open Dev Logs Root"),
+                ("Latest Toolkit Log", self.open_latest_toolkit_session_log, "Open Latest Toolkit Session Log"),
+            ],
+            [
+                ("Latest Smoke Report", self.open_latest_smoke_report, "Open Latest Dev Toolkit Smoke Report"),
+                ("Latest Transition Capture", self.open_latest_transition_capture, "Open Latest Boot Transition Capture"),
+                ("Dev Launchers", self.open_launchers_folder, "Open Dev Launchers Folder"),
+            ],
+        )
+        for row_buttons in button_rows:
+            button_row = QHBoxLayout()
+            button_row.setContentsMargins(0, 0, 0, 0)
+            button_row.setSpacing(6)
+            button_row.addStretch(1)
+            for text, handler, tooltip in row_buttons:
+                btn = QPushButton(text)
+                btn.setObjectName("headerUtilityButton")
+                btn.clicked.connect(handler)
+                btn.setToolTip(tooltip)
+                btn.setMinimumWidth(132)
+                btn.setFixedHeight(30)
+                btn.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+                button_row.addWidget(btn)
+            button_row.addStretch(1)
+            layout.addLayout(button_row)
 
         note = QLabel(
-            "Stable developer locations that never depend on the selected lane."
+            "Stable developer locations and newest top-level helper artifacts that never depend on the selected lane."
         )
         note.setObjectName("headerHint")
         note.setWordWrap(False)
@@ -927,6 +1247,12 @@ class DevLauncherWindow(QWidget):
         refresh_btn = QPushButton("Refresh Previous Launches")
         refresh_btn.clicked.connect(self.refresh_previous_launches)
         layout.addWidget(refresh_btn)
+
+        self.previous_summary_label = QLabel("Scanning saved dev evidence...")
+        self.previous_summary_label.setObjectName("noteBox")
+        self.previous_summary_label.setWordWrap(True)
+        self.previous_summary_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        layout.addWidget(self.previous_summary_label)
 
         previous_choice_label = QLabel("Previous Launch")
         previous_choice_label.setObjectName("fieldLabel")
@@ -1410,13 +1736,27 @@ class DevLauncherWindow(QWidget):
             return f"{lane_label} | {mode_label} | {timestamp_text} #{run_tag}"
         return f"{lane_label} | {mode_label} | {timestamp_text}"
 
+    def previous_entry_artifact_summary(self, entry: dict) -> str:
+        parts = ["Evidence Root"]
+        if entry.get("runtime_log"):
+            parts.append("Runtime")
+        if entry.get("report_path"):
+            parts.append("Report")
+        if entry.get("crash_folder"):
+            parts.append("Crash Folder")
+        return ", ".join(parts)
+
     def previous_entry_detail(self, entry: dict) -> str:
         wrap_width = self.detail_wrap_width_for_label(self.previous_detail_label)
+        run_tag = self.previous_entry_run_tag(entry)
         lines = [
             f"Lane: {entry['lane_label']}",
             f"Mode: {self.compact_previous_mode_label(entry['mode_label'])}",
             f"Saved Evidence Time: {entry.get('timestamp_text', 'Unknown time')}",
+            f"Artifacts Available: {self.previous_entry_artifact_summary(entry)}",
         ]
+        if run_tag:
+            lines.append(f"Run Tag: {run_tag}")
         self.append_wrapped_detail(lines, "Evidence Root", entry["evidence_root"], width=wrap_width)
         if entry.get("runtime_log"):
             self.append_wrapped_detail(lines, "Runtime", entry["runtime_log"], width=wrap_width)
@@ -1640,8 +1980,29 @@ class DevLauncherWindow(QWidget):
         entries.sort(key=lambda entry: entry["last_activity"], reverse=True)
         return entries
 
+    def update_previous_summary(self):
+        if not hasattr(self, "previous_summary_label"):
+            return
+
+        entry_count = len(self.previous_launch_entries)
+        if not entry_count:
+            self.previous_summary_label.setText(
+                "No saved previous launches were found yet under the current dev evidence roots."
+            )
+            return
+
+        lane_count = len({entry["lane_key"] for entry in self.previous_launch_entries})
+        latest = self.previous_launch_entries[0]
+        latest_mode = self.compact_previous_mode_label(latest["mode_label"])
+        latest_time = latest.get("timestamp_text", "Unknown time")
+        self.previous_summary_label.setText(
+            f"Found {entry_count} saved launch artifact set(s) across {lane_count} lane(s). "
+            f"Latest: {latest['lane_label']} | {latest_mode} | {latest_time}."
+        )
+
     def refresh_previous_launches(self):
         self.previous_launch_entries = self.scan_previous_launch_entries()
+        self.update_previous_summary()
         if not hasattr(self, "previous_launch_combo"):
             return
 
@@ -1662,6 +2023,8 @@ class DevLauncherWindow(QWidget):
             entry["combo_key"] = key
             if previous_value and key == previous_value:
                 selected_index = index
+        if selected_index == 0 and self.previous_launch_entries:
+            selected_index = 1
         self.previous_launch_combo.setCurrentIndex(selected_index)
         self.previous_launch_combo.blockSignals(False)
         self.on_previous_launch_changed()
@@ -1719,9 +2082,32 @@ class DevLauncherWindow(QWidget):
         self.cancel_btn.setEnabled(self.launch_timer.isActive())
         self.refresh_utility_buttons()
 
-    def set_status(self, text: str):
+    def apply_status_widgets(self, text: str, detail: str, progress: int):
+        progress_value = max(0, min(100, int(progress)))
         self.status_label.setText(text)
+        self.status_detail_label.setText(detail)
+        self.status_progress.setValue(progress_value)
+        self.status_progress.setFormat("Idle" if progress_value <= 0 else f"{progress_value}%")
+
+    def set_status(self, text: str, detail: str | None = None, progress: int | None = None):
+        if detail is None:
+            detail = (
+                "A background lane is still running."
+                if self.active_background_run
+                else "No background lane is running right now."
+            )
+        if progress is None:
+            progress = self.status_progress.value() if self.active_background_run else 0
+        self.apply_status_widgets(text, detail, progress)
         self.refresh_utility_buttons()
+
+    def runtime_milestone(self, event: str):
+        if not callable(self.runtime_logger):
+            return
+        try:
+            self.runtime_logger(event)
+        except Exception:
+            pass
 
     def lane_runs_in_background(self, lane: dict) -> bool:
         return bool(lane) and not lane.get("opens_window", False)
@@ -1738,6 +2124,24 @@ class DevLauncherWindow(QWidget):
             return runtime_path
         return ""
 
+    def background_progress_profile(self, lane_key: str) -> dict:
+        return BACKGROUND_PROGRESS_PROFILES.get(lane_key, BACKGROUND_PROGRESS_PROFILES["default"])
+
+    def background_progress_snapshot(self, run: dict, record: dict) -> tuple[int, str]:
+        lane_key = record.get("lane_key", "")
+        profile = self.background_progress_profile(lane_key)
+        expected_seconds = max(1.0, float(profile.get("expected_seconds", 28.0)))
+        started_at_ts = float(run.get("started_at_ts", record.get("launched_at_ts", time.time())))
+        elapsed = max(0.0, time.time() - started_at_ts)
+        progress_value = min(96, max(3, int((elapsed / expected_seconds) * 96)))
+        detail = "Running the selected helper lane."
+        for threshold, stage_text in profile.get("stages", ()):
+            if progress_value <= threshold:
+                detail = stage_text
+                break
+            detail = stage_text
+        return progress_value, detail
+
     def refresh_background_run_status(self):
         run = self.active_background_run
         if not run:
@@ -1748,12 +2152,24 @@ class DevLauncherWindow(QWidget):
             self.active_background_run = {}
             return
 
-        if self.completion_artifact_for_record(record):
+        report_path = self.latest_report_for_record(record, record.get("launched_at_ts", 0.0))
+        artifact_path = report_path or self.latest_runtime_log_for_record(record, record.get("launched_at_ts", 0.0))
+        if artifact_path:
+            artifact_label = "fresh report artifact" if report_path else "fresh runtime artifact"
             self.active_background_run = {}
-            self.status_label.setText(f"Test complete: {run.get('label', 'Selected lane')}")
+            self.apply_status_widgets(
+                f"Test complete: {run.get('label', 'Selected lane')}",
+                f"Finished cleanly and wrote a {artifact_label}. You can open it from the utilities now.",
+                100,
+            )
             return
 
-        self.status_label.setText(f"Test in progress: {run.get('label', 'Selected lane')}")
+        progress_value, detail = self.background_progress_snapshot(run, record)
+        self.apply_status_widgets(
+            f"Test in progress: {run.get('label', 'Selected lane')}",
+            detail,
+            progress_value,
+        )
 
     def refresh_utility_buttons(self):
         current_record = self.current_session_record()
@@ -1886,7 +2302,11 @@ class DevLauncherWindow(QWidget):
         self.launch_btn.setEnabled(False)
         self.cancel_btn.setEnabled(True)
         self.launch_timer.start(delay_seconds * 1000)
-        self.set_status(f"Launching {self.active_label()} in {delay_seconds} second(s)...")
+        self.set_status(
+            f"Launching {self.active_label()} in {delay_seconds} second(s)...",
+            "Waiting for the launch delay to elapse before the selected lane starts.",
+            0,
+        )
 
     def cancel_launch(self, silent: bool = False):
         if self.launch_timer.isActive():
@@ -1895,14 +2315,20 @@ class DevLauncherWindow(QWidget):
         self.launch_btn.setEnabled(True)
         self.cancel_btn.setEnabled(False)
         if not silent:
-            self.set_status("Pending launch cancelled.")
+            self.set_status("Pending launch cancelled.", "No background lane is running right now.", 0)
 
     def run_selected_launcher(self):
         try:
             lane = self.current_lane()
+            lane_key = self.current_lane_key()
+            mode_key = self.current_launch_mode_key()
+            lane_label = lane.get("label", "Unknown lane")
             if lane.get("requires_bundle_input"):
                 source_path = self.select_support_bundle_source()
                 if not source_path:
+                    self.runtime_milestone(
+                        f"TOOLKIT_MAIN|LANE_LAUNCH_CANCELLED|lane={lane_key}|mode={mode_key}|reason=no_source_selected"
+                    )
                     self.set_status("Launch cancelled: no support bundle selected.")
                     return
                 launch_key = self.current_session_artifact_key()
@@ -1911,10 +2337,18 @@ class DevLauncherWindow(QWidget):
                     self.active_background_run = {
                         "artifact_key": launch_key,
                         "label": self.active_label(),
+                        "started_at_ts": time.time(),
                     }
                 subprocess.Popen([PYTHONW_PATH, lane["script_path"], source_path], cwd=ROOT_DIR)
+                self.runtime_milestone(
+                    f"TOOLKIT_MAIN|LANE_LAUNCHED|lane={lane_key}|mode={mode_key}|label={lane_label}"
+                )
                 if self.lane_runs_in_background(lane):
-                    self.set_status(f"Test in progress: {self.active_label()} :: {source_path}")
+                    self.set_status(
+                        f"Test in progress: {self.active_label()} :: {source_path}",
+                        "Launching the selected helper lane with the chosen support bundle source.",
+                        3,
+                    )
                 else:
                     self.set_status(f"Launched: {self.active_label()} :: {source_path}")
                 return
@@ -1926,16 +2360,27 @@ class DevLauncherWindow(QWidget):
                 self.active_background_run = {
                     "artifact_key": launch_key,
                     "label": self.active_label(),
+                    "started_at_ts": time.time(),
                 }
             subprocess.Popen(["wscript.exe", launcher_path], cwd=DEV_LAUNCHERS_DIR)
+            self.runtime_milestone(
+                f"TOOLKIT_MAIN|LANE_LAUNCHED|lane={lane_key}|mode={mode_key}|label={lane_label}"
+            )
             if self.lane_runs_in_background(lane):
-                self.set_status(f"Test in progress: {self.active_label()}")
+                self.set_status(
+                    f"Test in progress: {self.active_label()}",
+                    "Launching the selected helper lane and waiting for its first artifact.",
+                    3,
+                )
             else:
                 self.set_status(f"Launched: {self.active_label()}")
         except Exception as exc:
             if 'launch_key' in locals():
                 self.session_launch_records.pop(launch_key, None)
             self.active_background_run = {}
+            self.runtime_milestone(
+                f"TOOLKIT_MAIN|LANE_LAUNCH_FAILED|lane={self.current_lane_key()}|mode={self.current_launch_mode_key()}|reason={type(exc).__name__}"
+            )
             self.set_status(f"Launch failed: {self.active_label()} :: {exc}")
         finally:
             self.launch_timer.stop()
@@ -1967,6 +2412,33 @@ class DevLauncherWindow(QWidget):
     def open_dev_logs_root(self):
         os.makedirs(DEV_LOGS_DIR, exist_ok=True)
         self.open_path(DEV_LOGS_DIR, f"Opened: Dev logs root :: {DEV_LOGS_DIR}")
+
+    def open_latest_toolkit_session_log(self):
+        latest = latest_file_matching(DEV_TOOLKIT_SESSION_LOG_DIR, "Runtime_")
+        if not latest:
+            self.set_status(f"No toolkit session log found yet in: {DEV_TOOLKIT_SESSION_LOG_DIR}")
+            return
+        self.open_path(latest, f"Opened latest toolkit session log: {latest}")
+
+    def open_latest_smoke_report(self):
+        latest = latest_file_matching(DEV_TOOLKIT_SMOKE_REPORT_DIR, "DevToolkitSmokeValidationReport_", ".txt")
+        if not latest:
+            self.set_status(f"No smoke report found yet in: {DEV_TOOLKIT_SMOKE_REPORT_DIR}")
+            return
+        self.open_path(latest, f"Opened latest smoke report: {latest}")
+
+    def open_latest_transition_capture(self):
+        latest_capture = latest_subdirectory(BOOT_TRANSITION_CAPTURE_FRAMES_DIR)
+        if latest_capture:
+            self.open_path(latest_capture, f"Opened latest transition capture: {latest_capture}")
+            return
+        latest_report = latest_file_matching(BOOT_TRANSITION_CAPTURE_REPORT_DIR, "BootTransitionCaptureReport_", ".txt")
+        if latest_report:
+            self.open_path(latest_report, f"Opened latest transition capture report: {latest_report}")
+            return
+        self.set_status(
+            f"No transition capture artifact found yet under: {BOOT_TRANSITION_CAPTURE_ROOT}"
+        )
 
     def open_launchers_folder(self):
         self.open_path(DEV_LAUNCHERS_DIR, "Opened: Dev launchers folder")
@@ -2187,13 +2659,67 @@ class DevLauncherWindow(QWidget):
         return super().eventFilter(source, event)
 
 
+def install_dev_toolkit_relaunch_monitor(window: DevLauncherWindow, runtime_logger=None):
+    timer = QTimer(window)
+
+    def poll_relaunch_request():
+        if not dev_toolkit_relaunch_signal.consume():
+            return
+        if callable(runtime_logger):
+            runtime_logger("TOOLKIT_MAIN|RELAUNCH_REQUEST_RECEIVED")
+        window.set_status("Relaunch request received. Closing current Dev Toolkit window.")
+        window.close()
+        app = QApplication.instance()
+        if app is not None:
+            QTimer.singleShot(0, app.quit)
+
+    timer.timeout.connect(poll_relaunch_request)
+    timer.start(200)
+    return timer
+
+
 def main():
-    app = QApplication(sys.argv)
+    runtime_log_file = create_dev_toolkit_runtime_log()
+
+    def runtime_milestone(event: str):
+        write_dev_toolkit_runtime_marker(runtime_log_file, event)
+
+    runtime_milestone("TOOLKIT_MAIN|START")
+
+    def log_single_instance_event(event: str):
+        runtime_milestone(f"TOOLKIT_MAIN|{event}")
+
+    if not acquire_or_prompt_replace(
+        dev_toolkit_guard,
+        dev_toolkit_relaunch_signal,
+        "Dev Toolkit Session Active",
+        "A Jarvis Dev Toolkit session is already open.\n\nDo you want to close the current toolkit window and relaunch a fresh Dev Toolkit session?",
+        eyebrow_text="JARVIS DEV TOOLKIT",
+        primary_button_text="Relaunch Dev Toolkit",
+        secondary_button_text="Keep Current Toolkit",
+        event_logger=log_single_instance_event,
+    ):
+        runtime_milestone("TOOLKIT_MAIN|SINGLE_INSTANCE_BLOCKED")
+        runtime_milestone("TOOLKIT_MAIN|EXIT|code=0")
+        return 0
+
+    app = QApplication.instance() or QApplication(sys.argv)
+    runtime_milestone("TOOLKIT_MAIN|QAPPLICATION_READY")
     app.setFont(QFont("Consolas", 10))
-    window = DevLauncherWindow()
+    window = DevLauncherWindow(runtime_logger=runtime_milestone)
+    runtime_milestone("TOOLKIT_MAIN|WINDOW_CONSTRUCTED")
     window.show()
-    sys.exit(app.exec())
+    runtime_milestone("TOOLKIT_MAIN|WINDOW_SHOWN")
+    relaunch_timer = install_dev_toolkit_relaunch_monitor(window, runtime_milestone)
+    try:
+        exit_code = app.exec()
+        runtime_milestone(f"TOOLKIT_MAIN|EXIT|code={exit_code}")
+        return exit_code
+    finally:
+        relaunch_timer.stop()
+        dev_toolkit_guard.release()
+        dev_toolkit_relaunch_signal.close()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

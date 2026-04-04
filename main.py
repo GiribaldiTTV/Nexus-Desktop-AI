@@ -6,6 +6,7 @@ import time
 import ctypes
 import random
 import math
+import datetime
 from ctypes import wintypes
 
 from pynput import keyboard as pynput_keyboard
@@ -19,6 +20,84 @@ from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 from Audio.jarvis_voice import JarvisSpeaker
+from desktop.single_instance import (
+    NamedSignal,
+    SingleInstanceGuard,
+    acquire_or_prompt_replace,
+)
+
+
+VALID_BOOT_PROFILES = {"manual", "auto_handoff_skip_import"}
+VALID_AUDIO_MODES = {"voice", "quiet"}
+BOOT_LOG_ROOTS = {
+    "manual": os.path.join("dev", "logs", "boot_manual_flow"),
+    "auto_handoff_skip_import": os.path.join("dev", "logs", "boot_auto_handoff_skip_import"),
+}
+AUTO_STAGE_COMMANDS = {
+    "command_1": "engage hud",
+    "command_2": "no",
+}
+RUNTIME_INSTANCE_MUTEX = r"Local\JarvisRuntimeSingletonV1"
+RUNTIME_RELAUNCH_EVENT = r"Local\JarvisRuntimeRelaunchRequestV1"
+runtime_instance_guard = SingleInstanceGuard(RUNTIME_INSTANCE_MUTEX)
+runtime_relaunch_signal = NamedSignal(RUNTIME_RELAUNCH_EVENT)
+
+
+def parse_dev_run_config(argv):
+    boot_profile = "manual"
+    audio_mode = "voice"
+    qt_argv = [argv[0]]
+
+    i = 1
+    while i < len(argv):
+        arg = argv[i]
+
+        if arg == "--boot-profile" and i + 1 < len(argv):
+            candidate = argv[i + 1].strip().lower()
+            if candidate in VALID_BOOT_PROFILES:
+                boot_profile = candidate
+            i += 2
+            continue
+
+        if arg == "--audio-mode" and i + 1 < len(argv):
+            candidate = argv[i + 1].strip().lower()
+            if candidate in VALID_AUDIO_MODES:
+                audio_mode = candidate
+            i += 2
+            continue
+
+        qt_argv.append(arg)
+        i += 1
+
+    return {
+        "boot_profile": boot_profile,
+        "audio_mode": audio_mode,
+        "qt_argv": qt_argv,
+    }
+
+
+def resolve_boot_runtime_log_paths(base_dir, boot_profile, audio_mode):
+    relative_root = BOOT_LOG_ROOTS[boot_profile]
+    runtime_root = os.path.join(base_dir, relative_root)
+    os.makedirs(runtime_root, exist_ok=True)
+
+    stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    runtime_file = os.path.join(runtime_root, f"Runtime_{stamp}_{audio_mode}.txt")
+    return runtime_root, runtime_file
+
+
+def write_boot_runtime_marker(runtime_file, event):
+    stamp = datetime.datetime.now().strftime("[%H:%M:%S]")
+    with open(runtime_file, "a", encoding="utf-8") as f:
+        f.write(f"{stamp} {event}\n")
+
+
+def screen_marker(screen):
+    g = screen.geometry()
+    return (
+        f"{screen.name()}"
+        f"@x{g.x()}_y{g.y()}_w{g.width()}_h{g.height()}"
+    )
 
 
 # ---------------------------
@@ -501,11 +580,49 @@ class JarvisBootCenterWindow(BaseWindow):
 
 class JarvisSystem:
     def __init__(self):
-        self.app = QApplication(sys.argv)
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.dev_config = parse_dev_run_config(sys.argv)
+        self.boot_profile = self.dev_config["boot_profile"]
+        self.audio_mode = self.dev_config["audio_mode"]
+        self.runtime_log_root, self.runtime_log_file = resolve_boot_runtime_log_paths(
+            self.base_dir,
+            self.boot_profile,
+            self.audio_mode,
+        )
+
+        def log_single_instance_event(event):
+            write_boot_runtime_marker(self.runtime_log_file, f"BOOT_MAIN|{event}")
+
+        if not acquire_or_prompt_replace(
+            runtime_instance_guard,
+            runtime_relaunch_signal,
+            "Boot Jarvis Session Active",
+            "A Boot Jarvis session is already active.\n\nDo you want to close the current Jarvis session and relaunch from this boot entrypoint?",
+            eyebrow_text="BOOT JARVIS",
+            primary_button_text="Relaunch Boot Jarvis",
+            secondary_button_text="Keep Current Session",
+            event_logger=log_single_instance_event,
+        ):
+            write_boot_runtime_marker(self.runtime_log_file, "BOOT_MAIN|SINGLE_INSTANCE_BLOCKED")
+            raise SystemExit(0)
+
+        self.prompt_markers_emitted = set()
+        self.auto_command_pending_stages = set()
+        self.desktop_settled_logged = False
+        self.shutdown_in_progress = False
+
+        self.runtime_milestone(
+            f"BOOT_MAIN|START|profile={self.boot_profile}|audio={self.audio_mode}"
+        )
+
+        self.app = QApplication.instance() or QApplication(self.dev_config["qt_argv"])
         self.app.setQuitOnLastWindowClosed(False)
+        self.relaunch_timer = QTimer()
+        self.relaunch_timer.timeout.connect(self.check_relaunch_request)
+        self.relaunch_timer.start(200)
 
         self.bus = UIBus()
-        self.speaker = JarvisSpeaker()
+        self.speaker = JarvisSpeaker() if self.audio_mode == "voice" else None
 
         self.awaiting_stage = "boot"
         self.voice_busy = False
@@ -524,6 +641,7 @@ class JarvisSystem:
 
         screens = QGuiApplication.screens()
         if len(screens) < 3:
+            self.runtime_milestone(f"BOOT_MAIN|TOPOLOGY_INVALID|screen_count={len(screens)}")
             print("Error: Need 3 monitors connected.")
             sys.exit(1)
 
@@ -540,8 +658,7 @@ class JarvisSystem:
             self.left_screen = other_sorted[0]
             self.right_screen = other_sorted[1]
 
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        visual_html = os.path.join(base_dir, "jarvis_visual", "jarvis_core.html")
+        visual_html = os.path.join(self.base_dir, "jarvis_visual", "jarvis_core.html")
 
         self.left_window = BootSideWindow(self.left_screen, "LEFT MODULE")
         self.boot_center_window = JarvisBootCenterWindow(self.center_screen, visual_html)
@@ -583,6 +700,15 @@ class JarvisSystem:
             g = screen.geometry()
             print(f"{label}: {screen.name()} | x={g.x()} y={g.y()} w={g.width()} h={g.height()}")
 
+        self.runtime_milestone(
+            "BOOT_MAIN|TOPOLOGY_RESOLVED|"
+            f"screen_count={len(screens)}|"
+            f"left={screen_marker(self.left_screen)}|"
+            f"center={screen_marker(self.center_screen)}|"
+            f"right={screen_marker(self.right_screen)}"
+        )
+        self.runtime_milestone("BOOT_MAIN|WINDOWS_CONSTRUCTED")
+
     def set_visual_state_all(self, state_name):
         self.boot_center_window.set_visual_state(state_name)
         self.desktop_center_window.set_visual_state(state_name)
@@ -601,7 +727,8 @@ class JarvisSystem:
                 and
                 pynput_keyboard.Key.end in self.hotkeys_pressed
             ):
-                self.bus.shutdown_requested.emit()
+                self.runtime_milestone("BOOT_MAIN|HOTKEY_SHUTDOWN_TRIGGERED")
+                self.emit_bus(self.bus.shutdown_requested)
         except Exception:
             pass
 
@@ -610,6 +737,12 @@ class JarvisSystem:
             self.hotkeys_pressed.remove(key)
 
     def shutdown_interface(self):
+        if self.shutdown_in_progress:
+            return
+        self.shutdown_in_progress = True
+        self.runtime_milestone("BOOT_MAIN|SHUTDOWN_REQUESTED")
+        if hasattr(self, "relaunch_timer"):
+            self.relaunch_timer.stop()
         try:
             self.hotkey_listener.stop()
         except Exception:
@@ -617,20 +750,108 @@ class JarvisSystem:
         self.stop_voice_visualizer()
         QApplication.quit()
 
+    def check_relaunch_request(self):
+        if runtime_relaunch_signal.consume():
+            self.runtime_milestone("BOOT_MAIN|RELAUNCH_REQUEST_RECEIVED")
+            self.shutdown_interface()
+
+    def runtime_milestone(self, event):
+        if not self.runtime_log_file:
+            return
+
+        try:
+            ts = datetime.datetime.now().strftime("%H:%M:%S")
+            with open(self.runtime_log_file, "a", encoding="utf-8") as f:
+                f.write(f"[{ts}] {event}\n")
+        except Exception:
+            pass
+
+    def normalized_marker_input(self, text, limit=40):
+        normalized = "_".join(text.strip().lower().split())
+        if not normalized:
+            return "empty"
+
+        cleaned = []
+        for ch in normalized:
+            if ch.isalnum() or ch in {"_", "-"}:
+                cleaned.append(ch)
+            else:
+                cleaned.append("_")
+
+        collapsed = "".join(cleaned).strip("_")
+        while "__" in collapsed:
+            collapsed = collapsed.replace("__", "_")
+
+        if not collapsed:
+            return "empty"
+        return collapsed[:limit]
+
     def sleep_ms(self, ms):
         time.sleep(ms / 1000.0)
 
+    def emit_bus(self, signal, *args):
+        if self.shutdown_in_progress:
+            return False
+        try:
+            signal.emit(*args)
+            return True
+        except RuntimeError:
+            self.shutdown_in_progress = True
+            return False
+
     def log_event(self, text):
-        self.bus.append_overlay_log.emit(text)
+        self.emit_bus(self.bus.append_overlay_log, text)
 
     def set_status(self, text):
-        self.bus.set_overlay_status.emit(text)
+        self.emit_bus(self.bus.set_overlay_status, text)
 
     def set_visual_state(self, state):
-        self.bus.set_visual_state.emit(state)
+        self.emit_bus(self.bus.set_visual_state, state)
 
     def set_voice_level(self, level):
-        self.bus.set_voice_level.emit(level)
+        self.emit_bus(self.bus.set_voice_level, level)
+
+    def mark_prompt_shown(self):
+        marker = ""
+        if self.awaiting_stage == "command_1":
+            marker = "BOOT_MAIN|FIRST_PROMPT_SHOWN"
+        elif self.awaiting_stage == "command_2":
+            marker = "BOOT_MAIN|IMPORT_PROMPT_SHOWN"
+
+        if not marker or marker in self.prompt_markers_emitted:
+            return
+
+        self.prompt_markers_emitted.add(marker)
+        self.runtime_milestone(marker)
+
+    def maybe_schedule_auto_command(self):
+        if self.boot_profile != "auto_handoff_skip_import":
+            return
+
+        stage = self.awaiting_stage
+        command = AUTO_STAGE_COMMANDS.get(stage, "")
+        if not command or stage in self.auto_command_pending_stages:
+            return
+
+        command_marker = command.replace(" ", "_")
+        self.auto_command_pending_stages.add(stage)
+        self.runtime_milestone(
+            f"BOOT_MAIN|AUTO_COMMAND_QUEUED|stage={stage}|command={command_marker}"
+        )
+
+        def worker():
+            self.sleep_ms(220)
+            try:
+                if self.awaiting_stage != stage or self.voice_busy:
+                    return
+                self.runtime_milestone(
+                    f"BOOT_MAIN|AUTO_COMMAND_SUBMITTED|stage={stage}|command={command_marker}"
+                )
+                self.start_command_thread(command)
+            finally:
+                self.auto_command_pending_stages.discard(stage)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def start_voice_visualizer(self, text: str):
         self.stop_voice_visualizer()
@@ -679,9 +900,25 @@ class JarvisSystem:
         self.voice_busy = True
         self.pending_input_after_voice = show_input_after
 
-        self.bus.hide_command_input.emit()
+        self.emit_bus(self.bus.hide_command_input)
+
+        if self.audio_mode == "quiet":
+            self.runtime_milestone(f"BOOT_MAIN|VOICE_BYPASSED|stage={self.awaiting_stage}")
+            self.voice_busy = False
+            self.set_visual_state("idle")
+
+            if self.pending_input_after_voice and self.awaiting_stage != "complete":
+                self.sleep_ms(80)
+                self.emit_bus(self.bus.show_command_input)
+                self.mark_prompt_shown()
+                self.maybe_schedule_auto_command()
+
+            self.pending_input_after_voice = False
+            return
+
         self.set_visual_state("speaking")
         self.start_voice_visualizer(text)
+        self.runtime_milestone(f"BOOT_MAIN|VOICE_STARTED|stage={self.awaiting_stage}")
 
         try:
             asyncio.run(self.speaker.speak(text))
@@ -689,10 +926,13 @@ class JarvisSystem:
             self.stop_voice_visualizer()
             self.voice_busy = False
             self.set_visual_state("idle")
+            self.runtime_milestone(f"BOOT_MAIN|VOICE_COMPLETED|stage={self.awaiting_stage}")
 
             if self.pending_input_after_voice and self.awaiting_stage != "complete":
                 self.sleep_ms(180)
-                self.bus.show_command_input.emit()
+                self.emit_bus(self.bus.show_command_input)
+                self.mark_prompt_shown()
+                self.maybe_schedule_auto_command()
 
             self.pending_input_after_voice = False
 
@@ -701,13 +941,14 @@ class JarvisSystem:
         steps = 18
         delta = max(1, int((target - current) / max(1, steps)))
         if current >= target:
-            self.bus.set_progress.emit(target)
+            self.emit_bus(self.bus.set_progress, target)
             return
 
         value = current
-        while value < target:
+        while value < target and not self.shutdown_in_progress:
             value = min(target, value + delta)
-            self.bus.set_progress.emit(value)
+            if not self.emit_bus(self.bus.set_progress, value):
+                return
             self.sleep_ms(max(10, duration_ms // steps))
 
     def stage_hud_subroutines(self):
@@ -726,23 +967,26 @@ class JarvisSystem:
             left_lines.append(left_text)
             right_lines.append(right_text)
 
-            self.bus.set_left_body.emit("\n".join(left_lines))
-            self.bus.set_right_body.emit("\n".join(right_lines))
+            if not self.emit_bus(self.bus.set_left_body, "\n".join(left_lines)):
+                return
+            if not self.emit_bus(self.bus.set_right_body, "\n".join(right_lines)):
+                return
             self.sleep_ms(300)
 
     def boot_sequence(self):
         self.awaiting_stage = "boot"
+        self.runtime_milestone("BOOT_MAIN|BOOT_SEQUENCE_START")
 
         self.set_visual_state("boot")
-        self.bus.set_overlay_title.emit("Installing Jarvis")
+        self.emit_bus(self.bus.set_overlay_title, "Installing Jarvis")
         self.set_status("PREPARING INSTALLATION")
-        self.bus.set_overlay_log.emit("")
-        self.bus.show_progress.emit()
-        self.bus.set_progress.emit(0)
+        self.emit_bus(self.bus.set_overlay_log, "")
+        self.emit_bus(self.bus.show_progress)
+        self.emit_bus(self.bus.set_progress, 0)
         self.set_voice_level(0.0)
 
-        self.bus.set_left_body.emit("")
-        self.bus.set_right_body.emit("")
+        self.emit_bus(self.bus.set_left_body, "")
+        self.emit_bus(self.bus.set_right_body, "")
 
         install_steps = [
             (8,  "Allocating core memory"),
@@ -758,6 +1002,8 @@ class JarvisSystem:
         ]
 
         for value, text in install_steps:
+            if self.shutdown_in_progress:
+                return
             self.set_status(text)
             self.log_event(f"> {text}")
             self.animate_progress_to(value, duration_ms=420)
@@ -765,7 +1011,10 @@ class JarvisSystem:
 
         self.sleep_ms(500)
 
-        self.bus.set_overlay_title.emit("JARVIS")
+        if self.shutdown_in_progress:
+            return
+
+        self.emit_bus(self.bus.set_overlay_title, "JARVIS")
         self.set_status("COMING ONLINE")
         self.log_event("")
         self.log_event("> Jarvis installation verified")
@@ -780,12 +1029,14 @@ class JarvisSystem:
         ]
 
         for step in online_steps:
+            if self.shutdown_in_progress:
+                return
             self.log_event(f"> {step}")
             self.sleep_ms(420)
 
         self.sleep_ms(700)
 
-        self.bus.hide_progress.emit()
+        self.emit_bus(self.bus.hide_progress)
         self.set_status("ONLINE")
 
         self.awaiting_stage = "command_1"
@@ -806,13 +1057,14 @@ class JarvisSystem:
 
     def handle_command(self, text):
         user_input = text.strip().lower()
-        self.bus.clear_command_input.emit()
+        self.emit_bus(self.bus.clear_command_input)
 
         if self.voice_busy:
             return
 
         if self.awaiting_stage == "command_1":
             if user_input in {"engage hud", "engage heads up display"}:
+                self.runtime_milestone("BOOT_MAIN|FIRST_COMMAND_ACCEPTED|command=engage_hud")
                 self.awaiting_stage = "command_2"
                 self.set_status("CONFIRM IMPORT")
                 self.log_event("> Heads up display request accepted")
@@ -824,35 +1076,49 @@ class JarvisSystem:
                 self.run_voice("Would you like me to import your home preferences?", show_input_after=True)
 
             elif user_input == "shutdown interface":
+                self.runtime_milestone("BOOT_MAIN|SHUTDOWN_COMMAND_ACCEPTED|stage=command_1")
                 self.run_voice("Understood. Shutting down interface.")
-                self.bus.shutdown_requested.emit()
+                self.emit_bus(self.bus.shutdown_requested)
 
             else:
+                normalized_input = self.normalized_marker_input(user_input)
+                self.runtime_milestone(
+                    f"BOOT_MAIN|FIRST_COMMAND_REJECTED|input={normalized_input}"
+                )
                 self.run_voice("Command not recognized.", show_input_after=True)
                 self.set_status("AWAITING COMMAND")
 
         elif self.awaiting_stage == "command_2":
             if user_input in {"yes", "yes sir", "affirmative"}:
+                self.runtime_milestone("BOOT_MAIN|IMPORT_CHOICE_RESOLVED|choice=import_home")
                 self.awaiting_stage = "complete"
-                self.bus.hide_command_input.emit()
+                self.emit_bus(self.bus.hide_command_input)
                 self.run_voice("Importing home preferences.")
                 self.transition_to_hud(import_home=True)
 
             elif user_input in {"no", "negative"}:
+                self.runtime_milestone("BOOT_MAIN|IMPORT_CHOICE_RESOLVED|choice=skip")
                 self.awaiting_stage = "complete"
-                self.bus.hide_command_input.emit()
+                self.emit_bus(self.bus.hide_command_input)
                 self.run_voice("Proceeding without home preferences.")
                 self.transition_to_hud(import_home=False)
 
             elif user_input == "shutdown interface":
+                self.runtime_milestone("BOOT_MAIN|SHUTDOWN_COMMAND_ACCEPTED|stage=command_2")
                 self.run_voice("Understood. Shutting down interface.")
-                self.bus.shutdown_requested.emit()
+                self.emit_bus(self.bus.shutdown_requested)
 
             else:
+                normalized_input = self.normalized_marker_input(user_input)
+                self.runtime_milestone(
+                    f"BOOT_MAIN|IMPORT_CHOICE_REJECTED|input={normalized_input}"
+                )
                 self.set_status("CONFIRM IMPORT")
                 self.run_voice("Please answer yes or no.", show_input_after=True)
 
     def transition_to_hud(self, import_home=True):
+        import_marker = "true" if import_home else "false"
+        self.runtime_milestone(f"BOOT_MAIN|TRANSITION_BEGIN|import_home={import_marker}")
         self.set_status("ENGAGING HEADS UP DISPLAY")
         self.set_visual_state("processing")
 
@@ -867,14 +1133,16 @@ class JarvisSystem:
         else:
             self.log_event("> Home preferences skipped")
 
-        self.bus.set_left_body.emit(
+        self.emit_bus(
+            self.bus.set_left_body,
             "LEFT MODULE ....... RESERVED\n"
             "TARGET ROLE ....... TELEMETRY / SENSORS\n"
             "APP OWNER ......... FUTURE EXTERNAL MODULE\n"
             "STATE ............. READY"
         )
 
-        self.bus.set_right_body.emit(
+        self.emit_bus(
+            self.bus.set_right_body,
             "RIGHT MODULE ...... RESERVED\n"
             "TARGET ROLE ....... STATUS / SENSOR WALL\n"
             "APP OWNER ......... FUTURE EXTERNAL MODULE\n"
@@ -886,15 +1154,23 @@ class JarvisSystem:
         self.log_event("> Center Jarvis core stabilizing into desktop mode")
         self.sleep_ms(120)
 
-        self.bus.begin_desktop_handoff.emit()
+        if self.emit_bus(self.bus.begin_desktop_handoff):
+            self.runtime_milestone("BOOT_MAIN|HANDOFF_SIGNAL_EMITTED")
+        else:
+            self.runtime_milestone(
+                "BOOT_MAIN|HANDOFF_SIGNAL_DROPPED|reason=shutdown_in_progress_or_runtime_error"
+            )
 
     def begin_desktop_handoff(self):
+        desktop_reveal_delay_ms = 140
+        desktop_state_commit_delay_ms = 220
+        desktop_settle_delay_ms = desktop_reveal_delay_ms + desktop_state_commit_delay_ms + 320
+
         self.desktop_center_window.prepare_desktop_geometry()
-        self.desktop_center_window.setWindowOpacity(0.0)
+        self.desktop_center_window.setWindowOpacity(1.0)
         self.desktop_center_window.show()
-        self.desktop_center_window.set_visual_state("dormant")
         self.desktop_center_window.set_voice_level(0.0)
-        self.desktop_center_window.raise_()
+        self.runtime_milestone("BOOT_MAIN|DESKTOP_SHOWN")
 
         self.desktop_center_window.enable_desktop_mode()
         self.reinforce_desktop_mode()
@@ -902,28 +1178,42 @@ class JarvisSystem:
         QTimer.singleShot(900, self.reinforce_desktop_mode)
         QTimer.singleShot(2200, self.reinforce_desktop_mode)
         QTimer.singleShot(5000, self.reinforce_desktop_mode)
-
-        self.desktop_center_window.fade_in(start_opacity=0.0, end_opacity=1.0, duration_ms=900)
+        QTimer.singleShot(desktop_settle_delay_ms, self.mark_desktop_settled)
 
         self.boot_center_window.enter_background_visual_mode()
-        self.boot_center_window.fade_overlay(end_opacity=0.0, duration_ms=650)
-        self.boot_center_window.fade_whole_window(end_opacity=0.0, duration_ms=900)
+        self.boot_center_window.fade_overlay(end_opacity=0.0, duration_ms=260)
 
         self.left_anim = QPropertyAnimation(self.left_window, b"windowOpacity")
-        self.left_anim.setDuration(800)
+        self.left_anim.setDuration(500)
         self.left_anim.setStartValue(self.left_window.windowOpacity())
         self.left_anim.setEndValue(0.0)
         self.left_anim.start()
 
         self.right_anim = QPropertyAnimation(self.right_window, b"windowOpacity")
-        self.right_anim.setDuration(800)
+        self.right_anim.setDuration(500)
         self.right_anim.setStartValue(self.right_window.windowOpacity())
         self.right_anim.setEndValue(0.0)
         self.right_anim.start()
 
-        QTimer.singleShot(980, self.boot_center_window.hide)
-        QTimer.singleShot(980, self.left_window.hide)
-        QTimer.singleShot(980, self.right_window.hide)
+        QTimer.singleShot(
+            desktop_reveal_delay_ms,
+            lambda: self.complete_desktop_visual_handoff(
+                desktop_state_commit_delay_ms,
+            ),
+        )
+
+    def complete_desktop_visual_handoff(self, state_commit_delay_ms=220):
+        self.boot_center_window.hide()
+        self.left_window.hide()
+        self.right_window.hide()
+        self.runtime_milestone("BOOT_MAIN|BOOT_WINDOWS_HIDDEN")
+        self.desktop_center_window.setWindowOpacity(1.0)
+        self.runtime_milestone("BOOT_MAIN|DESKTOP_VISIBLE")
+        QTimer.singleShot(state_commit_delay_ms, self.commit_desktop_state)
+
+    def commit_desktop_state(self):
+        self.desktop_center_window.set_visual_state("dormant")
+        self.runtime_milestone("BOOT_MAIN|DESKTOP_STATE_COMMITTED|state=dormant")
 
     def reinforce_desktop_mode(self):
         hwnd = int(self.desktop_center_window.winId())
@@ -931,10 +1221,17 @@ class JarvisSystem:
         make_window_noninteractive(hwnd)
         self.desktop_center_window.lower()
 
+    def mark_desktop_settled(self):
+        if self.desktop_settled_logged:
+            return
+        self.desktop_settled_logged = True
+        self.runtime_milestone("BOOT_MAIN|DESKTOP_SETTLED|state=dormant")
+
     def start(self):
         self.left_window.show()
         self.boot_center_window.show()
         self.right_window.show()
+        self.runtime_milestone("BOOT_MAIN|WINDOWS_SHOWN")
 
         self.boot_center_window.set_title("JARVIS")
         self.boot_center_window.set_status("BOOTING")
@@ -947,7 +1244,9 @@ class JarvisSystem:
 
         QTimer.singleShot(500, self.start_boot_thread)
 
-        sys.exit(self.app.exec())
+        exit_code = self.app.exec()
+        self.runtime_milestone(f"BOOT_MAIN|EVENT_LOOP_EXIT|code={exit_code}")
+        return exit_code
 
     def start_boot_thread(self):
         threading.Thread(target=self.boot_sequence, daemon=True).start()
@@ -955,4 +1254,4 @@ class JarvisSystem:
 
 if __name__ == "__main__":
     jarvis = JarvisSystem()
-    jarvis.start()
+    raise SystemExit(jarvis.start())
