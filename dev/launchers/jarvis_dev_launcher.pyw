@@ -31,6 +31,7 @@ DEV_DIR = os.path.join(ROOT_DIR, "dev")
 DEV_LAUNCHERS_DIR = os.path.dirname(os.path.abspath(__file__))
 CLIENT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
 DEV_LOGS_DIR = os.path.join(DEV_DIR, "logs")
+DEV_TOOLKIT_SESSION_LOG_DIR = os.path.join(DEV_LOGS_DIR, "dev_toolkit_session")
 SUPPORT_BUNDLE_TRIAGE_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_support_bundle_triage.py")
 
 PYTHONW_PATH = r"C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"
@@ -38,6 +39,23 @@ DEV_TOOLKIT_MUTEX = r"Local\JarvisDevToolkitSingletonV1"
 DEV_TOOLKIT_RELAUNCH_EVENT = r"Local\JarvisDevToolkitRelaunchRequestV1"
 dev_toolkit_guard = SingleInstanceGuard(DEV_TOOLKIT_MUTEX)
 dev_toolkit_relaunch_signal = NamedSignal(DEV_TOOLKIT_RELAUNCH_EVENT)
+
+
+def create_dev_toolkit_runtime_log() -> str:
+    os.makedirs(DEV_TOOLKIT_SESSION_LOG_DIR, exist_ok=True)
+    stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    return os.path.join(DEV_TOOLKIT_SESSION_LOG_DIR, f"Runtime_{stamp}.txt")
+
+
+def write_dev_toolkit_runtime_marker(runtime_log_file: str, event: str) -> None:
+    if not runtime_log_file:
+        return
+    try:
+        ts = datetime.datetime.now().strftime("%H:%M:%S")
+        with open(runtime_log_file, "a", encoding="utf-8") as f:
+            f.write(f"[{ts}] {event}\n")
+    except Exception:
+        pass
 
 LANE_CONFIG = {
     "diagnostics": {
@@ -421,8 +439,9 @@ class GuardedComboBox(QComboBox):
 
 
 class DevLauncherWindow(QWidget):
-    def __init__(self):
+    def __init__(self, runtime_logger=None):
         super().__init__()
+        self.runtime_logger = runtime_logger
         self.setWindowTitle("Jarvis Dev Toolkit")
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
         self.resize(980, 900)
@@ -1764,6 +1783,14 @@ class DevLauncherWindow(QWidget):
         self.status_label.setText(text)
         self.refresh_utility_buttons()
 
+    def runtime_milestone(self, event: str):
+        if not callable(self.runtime_logger):
+            return
+        try:
+            self.runtime_logger(event)
+        except Exception:
+            pass
+
     def lane_runs_in_background(self, lane: dict) -> bool:
         return bool(lane) and not lane.get("opens_window", False)
 
@@ -1941,9 +1968,15 @@ class DevLauncherWindow(QWidget):
     def run_selected_launcher(self):
         try:
             lane = self.current_lane()
+            lane_key = self.current_lane_key()
+            mode_key = self.current_mode_key()
+            lane_label = lane.get("label", "Unknown lane")
             if lane.get("requires_bundle_input"):
                 source_path = self.select_support_bundle_source()
                 if not source_path:
+                    self.runtime_milestone(
+                        f"TOOLKIT_MAIN|LANE_LAUNCH_CANCELLED|lane={lane_key}|mode={mode_key}|reason=no_source_selected"
+                    )
                     self.set_status("Launch cancelled: no support bundle selected.")
                     return
                 launch_key = self.current_session_artifact_key()
@@ -1954,6 +1987,9 @@ class DevLauncherWindow(QWidget):
                         "label": self.active_label(),
                     }
                 subprocess.Popen([PYTHONW_PATH, lane["script_path"], source_path], cwd=ROOT_DIR)
+                self.runtime_milestone(
+                    f"TOOLKIT_MAIN|LANE_LAUNCHED|lane={lane_key}|mode={mode_key}|label={lane_label}"
+                )
                 if self.lane_runs_in_background(lane):
                     self.set_status(f"Test in progress: {self.active_label()} :: {source_path}")
                 else:
@@ -1969,6 +2005,9 @@ class DevLauncherWindow(QWidget):
                     "label": self.active_label(),
                 }
             subprocess.Popen(["wscript.exe", launcher_path], cwd=DEV_LAUNCHERS_DIR)
+            self.runtime_milestone(
+                f"TOOLKIT_MAIN|LANE_LAUNCHED|lane={lane_key}|mode={mode_key}|label={lane_label}"
+            )
             if self.lane_runs_in_background(lane):
                 self.set_status(f"Test in progress: {self.active_label()}")
             else:
@@ -1977,6 +2016,9 @@ class DevLauncherWindow(QWidget):
             if 'launch_key' in locals():
                 self.session_launch_records.pop(launch_key, None)
             self.active_background_run = {}
+            self.runtime_milestone(
+                f"TOOLKIT_MAIN|LANE_LAUNCH_FAILED|lane={self.current_lane_key()}|mode={self.current_mode_key()}|reason={type(exc).__name__}"
+            )
             self.set_status(f"Launch failed: {self.active_label()} :: {exc}")
         finally:
             self.launch_timer.stop()
@@ -2228,12 +2270,14 @@ class DevLauncherWindow(QWidget):
         return super().eventFilter(source, event)
 
 
-def install_dev_toolkit_relaunch_monitor(window: DevLauncherWindow):
+def install_dev_toolkit_relaunch_monitor(window: DevLauncherWindow, runtime_logger=None):
     timer = QTimer(window)
 
     def poll_relaunch_request():
         if not dev_toolkit_relaunch_signal.consume():
             return
+        if callable(runtime_logger):
+            runtime_logger("TOOLKIT_MAIN|RELAUNCH_REQUEST_RECEIVED")
         window.set_status("Relaunch request received. Closing current Dev Toolkit window.")
         window.close()
         app = QApplication.instance()
@@ -2246,6 +2290,16 @@ def install_dev_toolkit_relaunch_monitor(window: DevLauncherWindow):
 
 
 def main():
+    runtime_log_file = create_dev_toolkit_runtime_log()
+
+    def runtime_milestone(event: str):
+        write_dev_toolkit_runtime_marker(runtime_log_file, event)
+
+    runtime_milestone("TOOLKIT_MAIN|START")
+
+    def log_single_instance_event(event: str):
+        runtime_milestone(f"TOOLKIT_MAIN|{event}")
+
     if not acquire_or_prompt_replace(
         dev_toolkit_guard,
         dev_toolkit_relaunch_signal,
@@ -2254,16 +2308,24 @@ def main():
         eyebrow_text="JARVIS DEV TOOLKIT",
         primary_button_text="Relaunch Dev Toolkit",
         secondary_button_text="Keep Current Toolkit",
+        event_logger=log_single_instance_event,
     ):
+        runtime_milestone("TOOLKIT_MAIN|SINGLE_INSTANCE_BLOCKED")
+        runtime_milestone("TOOLKIT_MAIN|EXIT|code=0")
         return 0
 
     app = QApplication.instance() or QApplication(sys.argv)
+    runtime_milestone("TOOLKIT_MAIN|QAPPLICATION_READY")
     app.setFont(QFont("Consolas", 10))
-    window = DevLauncherWindow()
+    window = DevLauncherWindow(runtime_logger=runtime_milestone)
+    runtime_milestone("TOOLKIT_MAIN|WINDOW_CONSTRUCTED")
     window.show()
-    relaunch_timer = install_dev_toolkit_relaunch_monitor(window)
+    runtime_milestone("TOOLKIT_MAIN|WINDOW_SHOWN")
+    relaunch_timer = install_dev_toolkit_relaunch_monitor(window, runtime_milestone)
     try:
-        return app.exec()
+        exit_code = app.exec()
+        runtime_milestone(f"TOOLKIT_MAIN|EXIT|code={exit_code}")
+        return exit_code
     finally:
         relaunch_timer.stop()
         dev_toolkit_guard.release()
