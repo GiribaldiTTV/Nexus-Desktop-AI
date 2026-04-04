@@ -72,7 +72,6 @@ These docs are still valid, but they are not part of the default prompt baseline
 - `docs/v1.8.0_closeout.md`
 - `docs/v1.9.0_closeout.md`
 - `docs/v2.0_closeout.md`
-- `docs/post_v2.0_branch_rebaseline.md`
 
 Use them when the task depends on:
 
@@ -80,7 +79,6 @@ Use them when the task depends on:
 - version closeout facts
 - post-closeout sequencing
 - auditing whether later work reopens closed version behavior
-- implemented post-`v2.0` branch truth before a later version closeout exists
 
 ### Retired / Archive Docs
 
