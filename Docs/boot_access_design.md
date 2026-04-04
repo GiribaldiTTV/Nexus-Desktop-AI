@@ -378,6 +378,28 @@ Acceptable routine friction is limited to:
 
 If normal daily use starts to feel like a ritual, the routine path has become too heavy.
 
+## Routine-To-Stronger Trust Boundary
+
+At planning level, Jarvis should stop treating access as routine when doing so would incorrectly frame the current trust posture as ordinary daily continuity.
+
+Routine access remains sufficient when:
+
+- the user is completing ordinary daily entry and Jarvis trust continuity is still normal enough to be treated as routine
+- the trust moment is still just one ordinary daily confirmation rather than trust restoration or recovery-oriented confirmation
+- a future optional routine-path shortcut such as Windows Hello is unavailable, unset, declined, or fails, but the ordinary typed routine path still applies
+
+The stronger path becomes justified when:
+
+- Jarvis should no longer pretend the current trust posture is ordinary daily continuity
+- the trust moment now carries restoration, recovery-oriented confirmation, or clearly non-routine confirmation meaning
+- trust continuity is meaningfully different from normal daily entry even before any future additive stronger-path hardening factor is considered
+
+This boundary clarification does not mean:
+
+- the stronger path becomes the new default daily path
+- routine access should be escalated just because optional routine-path convenience is unavailable
+- the stronger path is defined by future TOTP mechanics rather than by the underlying non-routine trust posture
+
 ## Stronger Path
 
 The stronger path is not for routine daily use.
