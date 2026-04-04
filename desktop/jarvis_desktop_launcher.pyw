@@ -617,6 +617,20 @@ def pythonw():
     return alt if os.path.exists(alt) else exe
 
 
+def hidden_window_kwargs():
+    if os.name != "nt":
+        return {}
+
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.wShowWindow = 0
+
+    return {
+        "startupinfo": startupinfo,
+        "creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    }
+
+
 def runtime(msg):
     ts = datetime.datetime.now().strftime("%H:%M:%S")
     with open(RUNTIME_FILE, "a", encoding="utf-8") as f:
@@ -1032,7 +1046,10 @@ def launch_diag():
     runtime("Launching diagnostics UI")
     runtime_event("STATUS", "START", "DIAGNOSTICS_UI")
     write_status("TRACE", "Launching diagnostics UI")
-    proc = subprocess.Popen([pythonw(), DIAGNOSTICS_SCRIPT, "--runtime-log", RUNTIME_FILE])
+    proc = subprocess.Popen(
+        [pythonw(), DIAGNOSTICS_SCRIPT, "--runtime-log", RUNTIME_FILE],
+        **hidden_window_kwargs(),
+    )
     runtime(f"Diagnostics PID: {proc.pid}")
     runtime_event("STATUS", "SUCCESS", "DIAGNOSTICS_UI", f"PID={proc.pid}")
     return proc
@@ -1063,7 +1080,7 @@ def speak(spoken_text, display_text=None):
         "--stop-signal", STOP_SIGNAL_FILE,
     ]
     runtime(f"VOICE CMD: {' '.join(cmd[2:])}")
-    result = subprocess.run(cmd)
+    result = subprocess.run(cmd, **hidden_window_kwargs())
     runtime(f"VOICE EXIT CODE: {result.returncode} :: {spoken_text}")
     runtime_event("VOICE", "END", spoken_text, f"EXIT={result.returncode}")
     return result.returncode
@@ -1085,6 +1102,7 @@ def run_renderer():
         text=True,
         encoding="utf-8",
         errors="replace",
+        **hidden_window_kwargs(),
     )
     runtime(f"Renderer PID: {proc.pid}")
     runtime_event("STATUS", "SUCCESS", "RENDERER_PROCESS_SPAWN", f"PID={proc.pid}")
