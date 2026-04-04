@@ -19,7 +19,7 @@ Current branch truth for this rebaseline:
 
 - branch: `feature/v2.1.0-planning`
 - boundary start: `10cd024`
-- current `HEAD`: `b954af7`
+- current `HEAD`: `e14cd53`
 
 When this document conflicts with stale backlog wording from the same workstream, actual code plus commit history is the higher-priority truth.
 
@@ -52,6 +52,14 @@ The branch also added dev-only hidden-window boot launchers under `dev/launchers
 - auto-handoff skip-import voice
 
 Boot-to-desktop handoff behavior was then tightened inside `main.py` so the current transition reads as one continuous Jarvis-controlled flow rather than a visible overlap or a distinct fade-out/fade-in swap.
+
+The later `FB-024` follow-through then closed the remaining narrow boot unhappy-path blind spots in `main.py` by adding explicit markers for:
+
+- rejected first-command input
+- rejected import yes/no input
+- typed shutdown accepted from command stage 1 or 2
+- hotkey-triggered shutdown
+- handoff signal emitted versus dropped
 
 ### Desktop Renderer Observability And Attach Follow-Through
 
@@ -137,21 +145,12 @@ This branch does not close out all later work.
 The following remain deferred:
 
 - broader boot-orchestrator implementation beyond the dev-only harness
-- remaining boot edge-path observability refinement
 - later boot/desktop milestone taxonomy clarification
 - a dedicated Dev Toolkit uploaded-bundle intake surface
 - any full `v2.1` closeout-style version document
 
 ## Doc Sync Implication
 
-The primary doc-sync consequence of this branch is that several backlog items now need implemented-state updates instead of continued deferred wording.
-
-The first sync targets are:
-
-- `FB-021`
-- `FB-022`
-- `FB-023`
-- `FB-024`
-- light truth checks for `FB-025` and `FB-026`
+The current doc-sync consequence of this branch is that backlog truth should now show `FB-021` through `FB-024` as implemented while keeping `FB-025` and `FB-026` deferred.
 
 This rebaseline doc should be used when a task depends on implemented post-`v2.0` branch truth before any later version closeout exists.

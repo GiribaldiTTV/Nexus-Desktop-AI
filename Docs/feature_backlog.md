@@ -908,8 +908,8 @@ This item is now implemented as the first coherent desktop renderer observabilit
 ---
 
 ### [ID: FB-024] Boot harness edge-path observability refinement
-
-Status: Deferred  
+  
+Status: Implemented (v2.1.0 rev4)  
 Priority: Medium  
 Suggested Version: v2.1.0  
 Suggested Revision: rev4  
@@ -921,7 +921,14 @@ Why it matters:
 The current boot harness now records the main happy path well, but unrecognized command loops, invalid import responses, and interrupted shutdown/handoff paths still leave evidence gaps.
 
 Proposed Change:
-Add the smallest boot-harness marker refinement pass in `main.py` for unrecognized commands, invalid yes/no answers, retry loops, handoff signal emission, and boot-side shutdown or exit completion without redesigning the prompt flow.
+Implemented model:
+- `main.py` now emits the remaining narrow boot edge-path markers for:
+  - rejected first-command input
+  - rejected import yes/no input
+  - typed shutdown accepted at command stage 1 or 2
+  - hotkey-triggered shutdown
+  - handoff signal emitted versus dropped
+- the marker pass stayed inside the existing boot harness and did not redesign prompt flow or alter boot behavior
 
 Likely Files Affected:
 - C:/Jarvis/main.py
@@ -939,18 +946,17 @@ Out of Scope:
 - trust or auth behavior changes
 
 Notes:
-The remaining scope for this item is now narrower than the original wording may imply.
-Current repo truth already includes:
-
+ Current repo truth for this item includes:
+  
 - Phase 1 boot-harness seams in `main.py`
 - structured `BOOT_MAIN|...` milestones across the happy path
 - quiet and auto-handoff skip-import support
 - dev-only boot launchers
 - a more continuous boot-to-desktop handoff
 - helper follow-through such as monitor preflight, handoff verification, transition capture, and boot-helper Toolkit validation
+- landed edge-path markers for rejected input, shutdown source, and handoff signal outcome
 
-The remaining work is specifically about unhappy-path and edge-path evidence such as invalid prompt loops, rejected yes/no responses, interrupted handoff, and other non-happy-path marker gaps.
-This should remain sequenced after `FB-023` unless fresh evidence shows those remaining edge-path gaps are now blocking debugging sooner than any later desktop follow-through.
+Later naming cleanup remains deferred under `FB-025`.
 
 ---
 
