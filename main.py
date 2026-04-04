@@ -1059,12 +1059,14 @@ class JarvisSystem:
         self.bus.begin_desktop_handoff.emit()
 
     def begin_desktop_handoff(self):
+        desktop_reveal_delay_ms = 140
+        desktop_state_commit_delay_ms = 220
+        desktop_settle_delay_ms = desktop_reveal_delay_ms + desktop_state_commit_delay_ms + 320
+
         self.desktop_center_window.prepare_desktop_geometry()
-        self.desktop_center_window.setWindowOpacity(0.0)
+        self.desktop_center_window.setWindowOpacity(1.0)
         self.desktop_center_window.show()
-        self.desktop_center_window.set_visual_state("dormant")
         self.desktop_center_window.set_voice_level(0.0)
-        self.desktop_center_window.raise_()
         self.runtime_milestone("BOOT_MAIN|DESKTOP_SHOWN")
 
         self.desktop_center_window.enable_desktop_mode()
@@ -1073,29 +1075,42 @@ class JarvisSystem:
         QTimer.singleShot(900, self.reinforce_desktop_mode)
         QTimer.singleShot(2200, self.reinforce_desktop_mode)
         QTimer.singleShot(5000, self.reinforce_desktop_mode)
-        QTimer.singleShot(1100, self.mark_desktop_settled)
-
-        self.desktop_center_window.fade_in(start_opacity=0.0, end_opacity=1.0, duration_ms=900)
+        QTimer.singleShot(desktop_settle_delay_ms, self.mark_desktop_settled)
 
         self.boot_center_window.enter_background_visual_mode()
-        self.boot_center_window.fade_overlay(end_opacity=0.0, duration_ms=650)
-        self.boot_center_window.fade_whole_window(end_opacity=0.0, duration_ms=900)
+        self.boot_center_window.fade_overlay(end_opacity=0.0, duration_ms=260)
 
         self.left_anim = QPropertyAnimation(self.left_window, b"windowOpacity")
-        self.left_anim.setDuration(800)
+        self.left_anim.setDuration(500)
         self.left_anim.setStartValue(self.left_window.windowOpacity())
         self.left_anim.setEndValue(0.0)
         self.left_anim.start()
 
         self.right_anim = QPropertyAnimation(self.right_window, b"windowOpacity")
-        self.right_anim.setDuration(800)
+        self.right_anim.setDuration(500)
         self.right_anim.setStartValue(self.right_window.windowOpacity())
         self.right_anim.setEndValue(0.0)
         self.right_anim.start()
 
-        QTimer.singleShot(980, self.boot_center_window.hide)
-        QTimer.singleShot(980, self.left_window.hide)
-        QTimer.singleShot(980, self.right_window.hide)
+        QTimer.singleShot(
+            desktop_reveal_delay_ms,
+            lambda: self.complete_desktop_visual_handoff(
+                desktop_state_commit_delay_ms,
+            ),
+        )
+
+    def complete_desktop_visual_handoff(self, state_commit_delay_ms=220):
+        self.boot_center_window.hide()
+        self.left_window.hide()
+        self.right_window.hide()
+        self.runtime_milestone("BOOT_MAIN|BOOT_WINDOWS_HIDDEN")
+        self.desktop_center_window.setWindowOpacity(1.0)
+        self.runtime_milestone("BOOT_MAIN|DESKTOP_VISIBLE")
+        QTimer.singleShot(state_commit_delay_ms, self.commit_desktop_state)
+
+    def commit_desktop_state(self):
+        self.desktop_center_window.set_visual_state("dormant")
+        self.runtime_milestone("BOOT_MAIN|DESKTOP_STATE_COMMITTED|state=dormant")
 
     def reinforce_desktop_mode(self):
         hwnd = int(self.desktop_center_window.winId())
