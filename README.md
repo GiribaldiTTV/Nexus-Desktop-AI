@@ -1,96 +1,109 @@
-# Jarvis Desktop Assistant
+Absolutely — here’s a cleaner, more public-first README draft that still stays accurate and includes backlog-based “what’s next.”
 
-Jarvis is a custom Windows desktop assistant project built around a Jarvis-inspired desktop presence, controlled launch flow, diagnostics tooling, and long-term boot-to-desktop orchestration goals.
+```markdown
+# Jarvis
 
-This repository is an active development project and is not yet a packaged end-user release.
+Jarvis is a Windows desktop intelligence layer built around reliable startup, controlled transitions, and strong diagnostics for testing and stabilization.
 
-## Project Summary
+This repo is in active development. It currently has a **stable manual desktop path** and a **separate dev harness path** for repeatable boot-testing work.
 
-Jarvis currently focuses on:
+## What Jarvis is today
 
-- A controlled Windows desktop launch path
-- Startup reliability and recovery behavior
-- Observability through logs, markers, and validation tooling
-- Dev-only boot and transition testing
-- A modular architecture that separates desktop runtime, diagnostics, audio, and developer tooling
+Jarvis is currently a staged system:
 
-The project is being developed incrementally, with emphasis on evidence-first changes and controlled iteration.
+- User/manual entry is handled through the desktop launcher path.
+- Boot behavior is managed through a separate dev-only harness in `main.py`.
+- Validation and diagnostics are centralized in a Dev Toolkit surface for internal testing.
 
-## Current Status
+It is currently optimized for stability and observability first, with behavior changes coming in narrow, evidence-driven slices.
 
-Jarvis is a work in progress.
+## Project status at a glance
 
-Current active repository behavior includes:
+**Implemented and in use**
+- Controlled desktop launch and restart orchestration
+- Dev-only Boot harness seams for faster testing (`boot profile`, `audio mode`)
+- Boot and desktop logging/markers for stronger troubleshooting
+- Boot-to-desktop transition behavior improvements
+- Single-instance relaunch support for core surfaces
+- Dev Toolkit growth for lane execution, validation, and reporting
 
-- A normal/manual desktop launch path through:
-  - `launch_jarvis_desktop.vbs`
-  - `desktop/jarvis_desktop_launcher.pyw`
-  - `desktop/jarvis_desktop_main.py`
-- A separate dev-only boot harness through `main.py`
-- Boot/desktop transition testing and validation tooling
-- Internal diagnostics, observability, and regression support
+**Still in-progress / deferred**
+- Logging taxonomy cleanup across boot/desktop milestone naming (FB-025)
+- Dedicated toolkit upload intake panel for support bundles (FB-026)
 
-Important note:
-- `main.py` is currently treated as a development harness, not the normal end-user entrypoint.
+## Current architecture (high level)
 
-## Core Goals
+### Manual launch path (default user path)
+`launch_jarvis_desktop.vbs`
+→ `desktop/jarvis_desktop_launcher.pyw`
+→ `desktop/jarvis_desktop_main.py`
 
-- Build a stable Jarvis-style desktop assistant experience on Windows
-- Keep launcher behavior deterministic and recoverable
-- Improve visibility into startup, shutdown, and failure behavior
-- Preserve a modular architecture across desktop, boot, diagnostics, and tooling
-- Reduce visible friction between major Jarvis phases over time
+### Dev boot path (internal testing only)
+`dev/launchers/*`
+→ `main.py`
 
-## High-Level Architecture
+`main.py` is explicitly a **dev/testing harness**, not the normal product launch entrypoint.
 
-Jarvis currently operates in two primary modes:
+## Repository layout
 
-### 1. Desktop Runtime Path
-Normal/manual desktop launch path:
+Top-level folders:
+- `Audio/` — audio/speech related code
+- `desktop/` — launcher, renderer, and desktop runtime/control
+- `dev/` — validators, harnesses, support bundle tools, and dev logs
+- `Docs/` — architecture, governance, and backlog
+- `jarvis_visual/` — visual assets
+- `logs/` — runtime logs/artifacts
+- `__pycache__/` — runtime artifacts
 
-- `launch_jarvis_desktop.vbs`
-- `desktop/jarvis_desktop_launcher.pyw`
-- `desktop/jarvis_desktop_main.py`
+Top-level launch files:
+- `launch_jarvis_desktop.vbs` (primary manual entry)
+- `main.py` (dev-only boot harness)
 
-### 2. Dev Boot / Transition Harness
-Development-focused boot and transition path:
+## How to run
 
-- `main.py`
-- supporting wrappers and launchers under `dev/launchers/`
+### Manual desktop start
+- Launch: `launch_jarvis_desktop.vbs`
 
-This dev path is used for controlled testing, transition checks, and internal validation work.
+### Dev/Test path
+- Open the Dev Toolkit:
+  - `dev\launchers\launch_jarvis_dev_toolkit.vbs`
+- Or run specific dev launchers in `dev/launchers/` for:
+  - Boot manual flow
+  - Boot auto handoff (skip import)
+  - Boot transition verification/capture
+  - Toolkit smoke/validation lanes
+  - Diagnostics and support-bundle triage helpers
 
-### Main Component Areas
+## Backlog and future direction
 
-- `desktop/` — desktop launcher and runtime behavior
-- `Audio/` — voice/audio-related modules
-- `dev/` — developer tooling, launchers, harnesses, and validation utilities
-- `Docs/` — architecture, planning, backlog, and source-of-truth documentation
-- `logs/` — runtime and validation artifacts
+Backlog status is tracked in `Docs/feature_backlog.md`.
 
-## Repository Layout
+### Completed in this stream
+- **FB-021** — Dev-only Boot Jarvis test lane
+- **FB-022** — Boot & Transition Checks in Dev Toolkit
+- **FB-023** — Desktop renderer observability gap closure
+- **FB-024** — Boot edge-path observability refinement
 
-Top-level areas currently include:
+### Next planned work (deferred but intended)
+- **FB-025** — Cross-lane milestone taxonomy cleanup
+- **FB-026** — Dev Toolkit uploaded-bundle intake section
 
-- `Audio/`
-- `desktop/`
-- `dev/`
-- `Docs/`
-- `jarvis_visual/`
-- `logs/`
+## Development mindset
 
-Primary manual launch entry:
+We follow narrow, evidence-first changes:
+- small slices
+- clear markers in logs
+- preserve current boundaries and launcher ownership
+- avoid broad behavior rewrites
+- validate with existing evidence/report lanes
 
-- `launch_jarvis_desktop.vbs`
+## Notes
 
-Primary dev harness entry:
+This is a living README for an engineering repo, not a finished product marketing document.  
+For current architectural decisions and project truth, check:
+- `Docs/Main.md`
+- `Docs/feature_backlog.md`
+- `Docs/post_v2.0_branch_rebaseline.md`
+```
 
-- `main.py`
-
-## How To Run
-
-### Normal / Manual Desktop Launch
-Run:
-
-```text
-launch_jarvis_desktop.vbs
+If you want, I can now draft a **final, commit-ready README.md** version tailored for GitHub (shorter intro + badges + quickstart) and keep this longer one as a developer-first internal readme.
