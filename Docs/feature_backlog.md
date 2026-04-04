@@ -115,19 +115,19 @@ This is now implemented through `v1.9.0` `rev1a` and `rev1b`. `rev1a` defined th
 
 ### [ID: FB-004] Future boot orchestrator layer
 
-Status: Deferred  
+Status: Deferred (planning groundwork complete enough to pause)  
 Priority: High  
-Suggested Version: TBD  
-Suggested Revision: TBD  
+Suggested Version: v2.0  
+Suggested Revision: rev1  
 
 Description:
-Design and implement top-level boot orchestration above the desktop launcher.
+Design and later implement top-level boot orchestration above the desktop launcher.
 
 Why it matters:
 The long-term product direction is for Jarvis to feel like the system-facing experience, with a higher-level boot flow coordinating the transition into the stabilized desktop phase.
 
 Proposed Change:
-Introduce a future boot orchestrator layer that sits above the desktop launcher and coordinates boot presentation, phase transitions, and higher-level startup policy.
+For current repo truth, establish the minimal future boot-orchestrator planning model without authorizing runtime implementation, then defer later implementation-facing work until a separate explicitly approved slice.
 
 Likely Files Affected:
 - main.py
@@ -145,7 +145,7 @@ Out of Scope:
 - voice or UI feature expansion
 
 Notes:
-This is a later architecture track and should not be mixed into the current desktop orchestration revisions.
+Current planning truth already includes the minimal future boot-orchestrator stage model in `docs/architecture.md` and aligned boot-access planning language in `docs/boot_access_design.md`. That completed groundwork is now complete enough to pause. This item therefore remains deferred only for later implementation-facing planning or runtime work and should not be mixed into current desktop orchestration revisions.
 
 ---
 
@@ -515,10 +515,10 @@ This was the safest first implementation target for `v1.8.0` and is now implemen
 
 ### [ID: FB-015] Boot and desktop phase-boundary model
 
-Status: Deferred  
+Status: Deferred (rev1a clarification complete enough to pause)  
 Priority: Medium  
-Suggested Version: TBD  
-Suggested Revision: TBD  
+Suggested Version: v2.0  
+Suggested Revision: rev1a  
 
 Description:
 Define the conceptual boundary between future boot-stage orchestration and the already stabilized desktop-stage launcher layer.
@@ -527,7 +527,7 @@ Why it matters:
 Later boot-level orchestration will need a clean contract for how boot-stage history, diagnostics, and advisory signals relate to desktop-stage truth.
 
 Proposed Change:
-Document phase-boundary rules, ownership boundaries, and data-sharing assumptions between a future boot orchestrator and the existing desktop launcher.
+For current repo truth, document phase-boundary rules, ownership boundaries, and downstream-input assumptions between a future boot orchestrator and the existing desktop launcher, then defer any later follow-through beyond that clarification.
 
 Likely Files Affected:
 - C:/Jarvis/docs/architecture.md
@@ -544,7 +544,7 @@ Out of Scope:
 - launcher behavior changes
 
 Notes:
-This remains preparation work only. An architecture-level `FB-015 rev1a` phase-boundary contract is already captured in `docs/architecture.md`, but broader cross-doc alignment and any later boot-planning follow-through remain deferred. This item must not introduce boot-level runtime control and does not authorize `FB-004` implementation work.
+This remains preparation work only. Current planning truth already includes the architecture-level `FB-015 rev1a` phase-boundary contract in `docs/architecture.md` plus the aligned downstream-input contract in `docs/boot_access_design.md`. That clarification work is now complete enough to pause. Any later boot-planning follow-through remains deferred, this item must not introduce boot-level runtime control, and it still does not authorize `FB-004` implementation work.
 
 ---
 
