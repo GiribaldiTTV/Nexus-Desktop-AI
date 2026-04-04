@@ -999,10 +999,10 @@ Current repo truth now already includes first-class `BOOT_MAIN|...` and `RENDERE
 
 ### [ID: FB-026] Dev Toolkit uploaded-bundle intake surface
 
-Status: Deferred  
+Status: Implemented (v2.2.0 rev1)  
 Priority: Medium  
-Suggested Version: v2.1.0  
-Suggested Revision: rev6  
+Suggested Version: v2.2.0  
+Suggested Revision: rev1  
 
 Description:
 Add a dedicated bottom-of-toolkit intake surface for user-submitted debug bundles so engineers can pick a zip or extracted folder, see what was received, and route it into the right internal helper without leaving the Dev Toolkit.
@@ -1011,12 +1011,16 @@ Why it matters:
 The current toolkit already has support-bundle triage coverage, but intake still feels fragmented. A small, explicit uploaded-bundle area would make the toolkit feel like a one-stop internal debugging surface instead of a set of separate helper entrypoints.
 
 Proposed Change:
-Add a dedicated `Uploads` or similarly named lower-section panel in the Dev Toolkit that accepts a user-submitted zip or extracted bundle folder, shows the current selected source, and routes that source into the existing support-bundle triage helper or later bundle-specific follow-up helpers.
+Implemented model:
+- the Dev Toolkit now includes a dedicated lower `Uploads` intake area
+- the intake surface supports separate support-bundle zip selection and extracted-folder selection
+- the currently staged source is displayed clearly before triage is launched
+- the staged source routes into the existing Support Bundle Triage Helper path rather than a new parallel helper flow
+- dev-only Toolkit validation now covers the staged zip and extracted-folder intake flow end to end
 
 Likely Files Affected:
 - C:/Jarvis/dev/launchers/jarvis_dev_launcher.pyw
-- C:/Jarvis/dev/jarvis_support_bundle_triage.py
-- directly supportive VBS/helper launcher surfaces only if needed
+- C:/Jarvis/dev/jarvis_support_bundle_triage_toolkit_validation.py
 
 Scope:
 - dev-only uploaded-bundle intake UI
@@ -1030,7 +1034,7 @@ Out of Scope:
 - automatic issue submission redesign
 
 Notes:
-This remains deferred.
+This item is now implemented.
 Current repo truth already includes:
 
 - the existing support-bundle triage helper and its Toolkit surfacing
@@ -1038,7 +1042,7 @@ Current repo truth already includes:
 - live status/progress for background lanes
 - latest-artifact convenience utilities
 
-The remaining work is the dedicated lower intake surface itself, not the broader Toolkit foundation around it.
+This landed as a bounded dev-tools-only intake slice and did not change production reporting behavior, issue-submission behavior, or support-bundle schema.
 
 ---
 
