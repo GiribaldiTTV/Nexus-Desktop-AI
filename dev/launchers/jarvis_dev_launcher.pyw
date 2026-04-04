@@ -22,6 +22,11 @@ from PySide6.QtWidgets import (
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from desktop.single_instance import NamedSignal, SingleInstanceGuard, acquire_or_prompt_replace
+
 DEV_DIR = os.path.join(ROOT_DIR, "dev")
 DEV_LAUNCHERS_DIR = os.path.dirname(os.path.abspath(__file__))
 CLIENT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
@@ -29,6 +34,10 @@ DEV_LOGS_DIR = os.path.join(DEV_DIR, "logs")
 SUPPORT_BUNDLE_TRIAGE_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_support_bundle_triage.py")
 
 PYTHONW_PATH = r"C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"
+DEV_TOOLKIT_MUTEX = r"Local\JarvisDevToolkitSingletonV1"
+DEV_TOOLKIT_RELAUNCH_EVENT = r"Local\JarvisDevToolkitRelaunchRequestV1"
+dev_toolkit_guard = SingleInstanceGuard(DEV_TOOLKIT_MUTEX)
+dev_toolkit_relaunch_signal = NamedSignal(DEV_TOOLKIT_RELAUNCH_EVENT)
 
 LANE_CONFIG = {
     "diagnostics": {
@@ -2219,13 +2228,44 @@ class DevLauncherWindow(QWidget):
         return super().eventFilter(source, event)
 
 
+def install_dev_toolkit_relaunch_monitor(window: DevLauncherWindow):
+    timer = QTimer(window)
+
+    def poll_relaunch_request():
+        if not dev_toolkit_relaunch_signal.consume():
+            return
+        window.set_status("Relaunch request received. Closing current Dev Toolkit window.")
+        window.close()
+        app = QApplication.instance()
+        if app is not None:
+            QTimer.singleShot(0, app.quit)
+
+    timer.timeout.connect(poll_relaunch_request)
+    timer.start(200)
+    return timer
+
+
 def main():
+    if not acquire_or_prompt_replace(
+        dev_toolkit_guard,
+        dev_toolkit_relaunch_signal,
+        "Jarvis Dev Toolkit Already Open",
+        "Jarvis Dev Toolkit is already open.\n\nDo you want to close the current toolkit window and open a new one?",
+    ):
+        return 0
+
     app = QApplication(sys.argv)
     app.setFont(QFont("Consolas", 10))
     window = DevLauncherWindow()
     window.show()
-    sys.exit(app.exec())
+    relaunch_timer = install_dev_toolkit_relaunch_monitor(window)
+    try:
+        return app.exec()
+    finally:
+        relaunch_timer.stop()
+        dev_toolkit_guard.release()
+        dev_toolkit_relaunch_signal.close()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

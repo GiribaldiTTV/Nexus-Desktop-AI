@@ -10,6 +10,8 @@ import datetime
 import platform
 import secrets
 
+from single_instance import NamedSignal, SingleInstanceGuard, acquire_or_prompt_replace
+
 
 def env_flag(name):
     value = (os.environ.get(name) or "").strip().casefold()
@@ -34,6 +36,10 @@ DIAGNOSTICS_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "j
 VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_error_voice.py")
 HARNESS_DISABLE_DIAGNOSTICS = env_flag("JARVIS_HARNESS_DISABLE_DIAGNOSTICS")
 HARNESS_DISABLE_VOICE = env_flag("JARVIS_HARNESS_DISABLE_VOICE")
+RUNTIME_INSTANCE_MUTEX = r"Local\JarvisRuntimeSingletonV1"
+RUNTIME_RELAUNCH_EVENT = r"Local\JarvisRuntimeRelaunchRequestV1"
+runtime_instance_guard = SingleInstanceGuard(RUNTIME_INSTANCE_MUTEX)
+runtime_relaunch_signal = NamedSignal(RUNTIME_RELAUNCH_EVENT)
 
 MAX_RECOVERY_ATTEMPTS = 3
 RECOVERY_COOLDOWN_SECONDS = 1.2
@@ -1179,6 +1185,16 @@ def finalize_failure(
 
 def main():
     run_id = create_run_id()
+    if not acquire_or_prompt_replace(
+        runtime_instance_guard,
+        runtime_relaunch_signal,
+        "Jarvis Already Running",
+        "Jarvis is already running.\n\nDo you want to close the current instance and open a new one?",
+    ):
+        runtime("Launcher start blocked: Jarvis is already running")
+        runtime_event("STATUS", "SKIP", "LAUNCHER_RUNTIME", "ALREADY_RUNNING")
+        return 0
+
     ensure_crash_dir("launcher startup")
     reset_status()
 
@@ -1210,7 +1226,24 @@ def main():
     mixed_failure_pattern_logged = False
     recovery_pipeline_end_reason = "MAX_ATTEMPTS_EXHAUSTED"
 
+    def exit_if_relaunch_requested(phase_label=""):
+        if not runtime_relaunch_signal.consume():
+            return False
+
+        runtime("Launcher relaunch request received")
+        if phase_label:
+            runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "RELAUNCH_REQUEST_RECEIVED", f"PHASE={phase_label}")
+        else:
+            runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "RELAUNCH_REQUEST_RECEIVED")
+        delete_file(STOP_SIGNAL_FILE, "launcher relaunch")
+        delete_file(STARTUP_ABORT_SIGNAL_FILE, "launcher relaunch")
+        delete_file(STATUS_FILE, "launcher relaunch")
+        return True
+
     for attempt in range(1, MAX_RECOVERY_ATTEMPTS + 1):
+        if exit_if_relaunch_requested("before_renderer_attempt"):
+            return 0
+
         runtime(f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
         runtime_event("STATUS", "START", "RECOVERY_ATTEMPT", f"INDEX={attempt}", f"MAX={MAX_RECOVERY_ATTEMPTS}")
         write_status("TRACE", f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
@@ -1367,6 +1400,9 @@ def main():
 
             time.sleep(RECOVERY_COOLDOWN_SECONDS)
             runtime_event("STATUS", "SUCCESS", "RECOVERY_COOLDOWN", f"INDEX={attempt}")
+
+    if exit_if_relaunch_requested("before_failure_finalization"):
+        return 0
 
     failure_stability = select_failure_stability(
         mixed_failure_pattern_logged,
