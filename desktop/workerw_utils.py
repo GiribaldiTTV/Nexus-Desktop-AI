@@ -161,7 +161,8 @@ def get_last_workerw_probe_events():
             "WORKERW_HOSTS|"
             f"shell_host_count={len(shell_hosts)}|"
             f"shell_hosts={','.join(host_tokens) if host_tokens else 'none'}|"
-            f"selected_workerw={probe.get('selected_workerw', 'none')}"
+            f"selected_workerw={probe.get('selected_workerw', 'none')}|"
+            f"selection_reason={probe.get('selection_reason', 'none')}"
         ),
         (
             "WORKERW_CANDIDATES|"
@@ -175,6 +176,7 @@ def get_workerw():
     progman = FindWindowW("Progman", None)
     progman_message_sent = False
     progman_message_result = "none"
+    selection_reason = "none"
     if progman:
         result = wintypes.DWORD()
         send_result = SendMessageTimeoutW(
@@ -203,7 +205,9 @@ def get_workerw():
     shell_hosts = []
 
     for hwnd in windows:
-        if _window_class(hwnd) == "WorkerW":
+        window_class = _window_class(hwnd)
+
+        if window_class == "WorkerW":
             workerw_candidates.append(hwnd)
 
         shell_def_view = FindWindowExW(hwnd, None, "SHELLDLL_DefView", None)
@@ -212,13 +216,23 @@ def get_workerw():
             shell_hosts.append(
                 {
                     "hwnd": _hwnd_token(hwnd),
-                    "class": _window_class(hwnd),
+                    "class": window_class,
                     "defview": _hwnd_token(shell_def_view),
                     "next_workerw": _hwnd_token(possible),
                 }
             )
             if workerw is None and possible:
                 workerw = possible
+                selection_reason = "next_workerw"
+            elif (
+                workerw is None
+                and not possible
+                and progman
+                and hwnd == progman
+                and window_class == "Progman"
+            ):
+                workerw = hwnd
+                selection_reason = "progman_fallback"
 
     global _LAST_WORKERW_PROBE
     _LAST_WORKERW_PROBE = {
@@ -230,6 +244,7 @@ def get_workerw():
         "shell_hosts": shell_hosts,
         "workerw_candidates": [_hwnd_token(hwnd) for hwnd in workerw_candidates],
         "selected_workerw": _hwnd_token(workerw),
+        "selection_reason": selection_reason,
     }
     return workerw
 
