@@ -1,11 +1,13 @@
 import os
 import ctypes
+import json
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QApplication
-from PySide6.QtCore import Qt, QTimer, QUrl, QRect
+from PySide6.QtCore import Qt, QTimer, QUrl, QRect, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
+from .interaction_overlay_model import CommandOverlayModel, launch_command_action
 from .workerw_utils import (
     attach_window_to_desktop,
     get_last_workerw_probe_events,
@@ -17,6 +19,8 @@ HTTRANSPARENT = -1
 
 
 class DesktopJarvisWindow(QWidget):
+    command_mode_changed = Signal(bool)
+
     def __init__(self, screen, visual_html_path: str, event_logger=None):
         super().__init__()
 
@@ -29,6 +33,10 @@ class DesktopJarvisWindow(QWidget):
         self._page_ready = False
         self._pending_visual_state = None
         self._pending_voice_level = None
+        self._command_model = CommandOverlayModel()
+        self._result_close_timer = QTimer(self)
+        self._result_close_timer.setSingleShot(True)
+        self._result_close_timer.timeout.connect(self._close_command_overlay_after_result)
 
         # Window configuration (Concept 2 test)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool | Qt.WindowDoesNotAcceptFocus)
@@ -103,6 +111,15 @@ class DesktopJarvisWindow(QWidget):
         self._run_javascript(js)
         self._pending_voice_level = None
 
+    def _apply_command_overlay_state(self):
+        if not self._page_ready:
+            return
+
+        payload = json.dumps(self._command_model.view_payload())
+        self._run_javascript(
+            f"window.setCommandOverlayState && window.setCommandOverlayState({payload});"
+        )
+
     def _on_load_finished(self, ok):
         if not ok:
             self._log_event("RENDERER_MAIN|VISUAL_PAGE_LOAD_FAILED")
@@ -112,6 +129,7 @@ class DesktopJarvisWindow(QWidget):
         self._log_event("RENDERER_MAIN|VISUAL_PAGE_READY")
         self._apply_pending_visual_state()
         self._apply_pending_voice_level()
+        self._apply_command_overlay_state()
 
     def set_visual_state(self, state_name):
         self._pending_visual_state = state_name
@@ -124,6 +142,95 @@ class DesktopJarvisWindow(QWidget):
 
         if self._page_ready:
             self._apply_pending_voice_level()
+
+    def _set_command_mode_active(self, active: bool):
+        self.command_mode_changed.emit(bool(active))
+
+    def open_command_overlay(self):
+        if self._is_shutting_down:
+            return
+
+        self._result_close_timer.stop()
+        self._command_model.open()
+        self._apply_command_overlay_state()
+        self._set_command_mode_active(True)
+        self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_OPENED")
+
+    def close_command_overlay(self):
+        if not self._command_model.visible:
+            return
+
+        self._result_close_timer.stop()
+        self._command_model.close()
+        self._apply_command_overlay_state()
+        self._set_command_mode_active(False)
+        self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_CLOSED")
+
+    def toggle_command_overlay(self):
+        if self._command_model.visible:
+            self.close_command_overlay()
+        else:
+            self.open_command_overlay()
+
+    def handle_command_character(self, char: str):
+        self._command_model.append_text(char)
+        self._apply_command_overlay_state()
+
+    def handle_command_backspace(self):
+        self._command_model.backspace()
+        self._apply_command_overlay_state()
+
+    def handle_command_escape(self):
+        result = self._command_model.escape()
+        self._apply_command_overlay_state()
+
+        if result == "confirm_cancelled":
+            self._log_event("RENDERER_MAIN|COMMAND_CONFIRM_CANCELLED")
+            return
+
+        if result == "closed":
+            self._set_command_mode_active(False)
+            self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_CLOSED")
+
+    def _show_command_result(self, status_kind: str, status_text: str):
+        self._command_model.show_result(status_kind, status_text)
+        self._apply_command_overlay_state()
+        self._set_command_mode_active(False)
+        self._result_close_timer.start(1200)
+
+    def _close_command_overlay_after_result(self):
+        self.close_command_overlay()
+
+    def handle_command_submit(self):
+        result, payload = self._command_model.submit()
+        self._apply_command_overlay_state()
+
+        if result == "confirm_ready":
+            self._log_event(f"RENDERER_MAIN|COMMAND_CONFIRM_READY|action_id={payload.id}")
+            return
+
+        if result == "not_found":
+            self._log_event("RENDERER_MAIN|COMMAND_NOT_FOUND")
+            return
+
+        if result == "ambiguous":
+            self._log_event(f"RENDERER_MAIN|COMMAND_AMBIGUOUS|count={len(payload)}")
+            return
+
+        if result != "execute_confirmed":
+            return
+
+        action = payload
+        self._log_event(f"RENDERER_MAIN|COMMAND_EXECUTION_REQUESTED|action_id={action.id}")
+        try:
+            launch_command_action(action)
+        except Exception as exc:
+            self._log_event(f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED|action_id={action.id}")
+            self._show_command_result("launch_failed", f"Launch failed: {exc}")
+            return
+
+        self._log_event(f"RENDERER_MAIN|COMMAND_LAUNCH_REQUEST_SENT|action_id={action.id}")
+        self._show_command_result("launch_requested", "Launch request sent.")
 
     def nativeEvent(self, eventType, message):
         if self.desktop_mode:
@@ -164,6 +271,7 @@ class DesktopJarvisWindow(QWidget):
 
         self._log_event("RENDERER_MAIN|RENDERER_SHUTDOWN_BEGIN")
         self._is_shutting_down = True
+        self._result_close_timer.stop()
 
         self.webview.stop()
         self.hide()

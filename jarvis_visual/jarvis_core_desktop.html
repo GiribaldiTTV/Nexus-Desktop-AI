@@ -42,6 +42,42 @@
     </div>
   </div>
 
+  <div id="command-overlay" class="command-overlay" aria-hidden="true">
+    <div class="command-panel">
+      <div class="command-kicker">Jarvis Command</div>
+      <div class="command-title">Typed desktop interaction</div>
+      <div class="command-hint" id="command-hint">
+        Type a saved action or alias, then press Enter.
+      </div>
+      <div class="command-input-shell">
+        <span class="command-prompt">&gt;</span>
+        <span id="command-input-text" class="command-input-text"></span>
+        <span class="command-caret"></span>
+      </div>
+      <div id="command-status" class="command-status"></div>
+      <div id="command-ambiguous" class="command-ambiguous"></div>
+      <div id="command-confirmation" class="command-confirmation" hidden>
+        <div class="command-confirm-row">
+          <span class="label">Typed request</span>
+          <span id="command-confirm-request" class="value"></span>
+        </div>
+        <div class="command-confirm-row">
+          <span class="label">Resolved action</span>
+          <span id="command-confirm-title" class="value"></span>
+        </div>
+        <div class="command-confirm-row">
+          <span class="label">Target kind</span>
+          <span id="command-confirm-kind" class="value"></span>
+        </div>
+        <div class="command-confirm-row">
+          <span class="label">Target</span>
+          <span id="command-confirm-target" class="value"></span>
+        </div>
+        <div class="command-confirm-help">Press Enter to confirm or Esc to return.</div>
+      </div>
+    </div>
+  </div>
+
   <script src="jarvis_core.js"></script>
 </body>
 </html>

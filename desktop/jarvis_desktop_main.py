@@ -113,12 +113,19 @@ def main():
             do_shutdown()
 
     bus.shutdown_requested.connect(do_shutdown)
+    bus.command_overlay_toggle_requested.connect(window.toggle_command_overlay)
+    bus.command_character_typed.connect(window.handle_command_character)
+    bus.command_backspace_requested.connect(window.handle_command_backspace)
+    bus.command_enter_requested.connect(window.handle_command_submit)
+    bus.command_escape_requested.connect(window.handle_command_escape)
+    window.command_mode_changed.connect(hotkeys.set_command_mode_active)
     hotkeys.start()
     runtime_milestone("RENDERER_MAIN|HOTKEYS_STARTED")
     if exit_if_startup_abort_requested(hotkeys):
         return 0
 
     print("Jarvis Desktop Concept 1 - Version 1.02")
+    print("Command Overlay: Ctrl + Alt + Home")
     print("Hotkey: Ctrl + Alt + End")
 
     window.show()
