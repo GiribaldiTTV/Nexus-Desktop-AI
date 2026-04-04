@@ -148,6 +148,23 @@ LANE_CONFIG = {
         "report_suffix": ".txt",
         "crash_folder": "",
     },
+    "bootTransitionCapture": {
+        "label": "Boot Transition Capture",
+        "detail": (
+            "Runs the quiet auto-handoff boot path, captures primary-screen transition frames at key "
+            "handoff markers, and writes a compact report with the saved PNG sequence."
+        ),
+        "quiet_launcher": "launch_jarvis_boot_transition_capture.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_transition_capture"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "boot_transition_capture", "reports"),
+        "report_prefix": "BootTransitionCaptureReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
     "bootMonitorPreflight": {
         "label": "Boot Monitor Preflight",
         "detail": (
@@ -232,6 +249,24 @@ LANE_CONFIG = {
         "log_root": os.path.join(DEV_LOGS_DIR, "desktop_launcher_healthy_validation"),
         "report_root": os.path.join(DEV_LOGS_DIR, "desktop_launcher_healthy_validation", "reports"),
         "report_prefix": "DesktopLauncherHealthyValidationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
+    "desktopToolkitValidation": {
+        "label": "Desktop Helper Toolkit Validation",
+        "detail": (
+            "Runs a contained offscreen validation of the desktop helper lanes and verifies the "
+            "Dev Toolkit can launch Healthy Desktop Launch Validation and Healthy Launcher Path "
+            "Validation and reopen their fresh reports."
+        ),
+        "quiet_launcher": "launch_jarvis_desktop_toolkit_validation.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "desktop_toolkit_validation"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "desktop_toolkit_validation", "reports"),
+        "report_prefix": "DesktopToolkitValidationReport_",
         "report_suffix": ".txt",
         "crash_folder": "",
     },
@@ -339,13 +374,20 @@ CONFIG_LANE_GROUPS = (
             "bootManualFlow",
             "bootAutoHandoffSkipImport",
             "bootTransitionVerification",
+            "bootTransitionCapture",
             "bootMonitorPreflight",
             "bootToolkitValidation",
         ),
     },
     {
         "label": "Voice, Healthy Start, & Regression",
-        "lane_keys": ("voiceRegression", "desktopHealthy", "launcherHealthy", "launcherRegression"),
+        "lane_keys": (
+            "voiceRegression",
+            "desktopHealthy",
+            "launcherHealthy",
+            "desktopToolkitValidation",
+            "launcherRegression",
+        ),
     },
     {
         "label": "Support Bundles & Reporting",
@@ -1047,6 +1089,12 @@ class DevLauncherWindow(QWidget):
         refresh_btn.clicked.connect(self.refresh_previous_launches)
         layout.addWidget(refresh_btn)
 
+        self.previous_summary_label = QLabel("Scanning saved dev evidence...")
+        self.previous_summary_label.setObjectName("noteBox")
+        self.previous_summary_label.setWordWrap(True)
+        self.previous_summary_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        layout.addWidget(self.previous_summary_label)
+
         previous_choice_label = QLabel("Previous Launch")
         previous_choice_label.setObjectName("fieldLabel")
         layout.addWidget(previous_choice_label)
@@ -1529,13 +1577,27 @@ class DevLauncherWindow(QWidget):
             return f"{lane_label} | {mode_label} | {timestamp_text} #{run_tag}"
         return f"{lane_label} | {mode_label} | {timestamp_text}"
 
+    def previous_entry_artifact_summary(self, entry: dict) -> str:
+        parts = ["Evidence Root"]
+        if entry.get("runtime_log"):
+            parts.append("Runtime")
+        if entry.get("report_path"):
+            parts.append("Report")
+        if entry.get("crash_folder"):
+            parts.append("Crash Folder")
+        return ", ".join(parts)
+
     def previous_entry_detail(self, entry: dict) -> str:
         wrap_width = self.detail_wrap_width_for_label(self.previous_detail_label)
+        run_tag = self.previous_entry_run_tag(entry)
         lines = [
             f"Lane: {entry['lane_label']}",
             f"Mode: {self.compact_previous_mode_label(entry['mode_label'])}",
             f"Saved Evidence Time: {entry.get('timestamp_text', 'Unknown time')}",
+            f"Artifacts Available: {self.previous_entry_artifact_summary(entry)}",
         ]
+        if run_tag:
+            lines.append(f"Run Tag: {run_tag}")
         self.append_wrapped_detail(lines, "Evidence Root", entry["evidence_root"], width=wrap_width)
         if entry.get("runtime_log"):
             self.append_wrapped_detail(lines, "Runtime", entry["runtime_log"], width=wrap_width)
@@ -1759,8 +1821,29 @@ class DevLauncherWindow(QWidget):
         entries.sort(key=lambda entry: entry["last_activity"], reverse=True)
         return entries
 
+    def update_previous_summary(self):
+        if not hasattr(self, "previous_summary_label"):
+            return
+
+        entry_count = len(self.previous_launch_entries)
+        if not entry_count:
+            self.previous_summary_label.setText(
+                "No saved previous launches were found yet under the current dev evidence roots."
+            )
+            return
+
+        lane_count = len({entry["lane_key"] for entry in self.previous_launch_entries})
+        latest = self.previous_launch_entries[0]
+        latest_mode = self.compact_previous_mode_label(latest["mode_label"])
+        latest_time = latest.get("timestamp_text", "Unknown time")
+        self.previous_summary_label.setText(
+            f"Found {entry_count} saved launch artifact set(s) across {lane_count} lane(s). "
+            f"Latest: {latest['lane_label']} | {latest_mode} | {latest_time}."
+        )
+
     def refresh_previous_launches(self):
         self.previous_launch_entries = self.scan_previous_launch_entries()
+        self.update_previous_summary()
         if not hasattr(self, "previous_launch_combo"):
             return
 
@@ -1781,6 +1864,8 @@ class DevLauncherWindow(QWidget):
             entry["combo_key"] = key
             if previous_value and key == previous_value:
                 selected_index = index
+        if selected_index == 0 and self.previous_launch_entries:
+            selected_index = 1
         self.previous_launch_combo.setCurrentIndex(selected_index)
         self.previous_launch_combo.blockSignals(False)
         self.on_previous_launch_changed()
