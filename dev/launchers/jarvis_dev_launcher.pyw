@@ -2009,7 +2009,7 @@ class DevLauncherWindow(QWidget):
         try:
             lane = self.current_lane()
             lane_key = self.current_lane_key()
-            mode_key = self.current_mode_key()
+            mode_key = self.current_launch_mode_key()
             lane_label = lane.get("label", "Unknown lane")
             if lane.get("requires_bundle_input"):
                 source_path = self.select_support_bundle_source()
@@ -2057,7 +2057,7 @@ class DevLauncherWindow(QWidget):
                 self.session_launch_records.pop(launch_key, None)
             self.active_background_run = {}
             self.runtime_milestone(
-                f"TOOLKIT_MAIN|LANE_LAUNCH_FAILED|lane={self.current_lane_key()}|mode={self.current_mode_key()}|reason={type(exc).__name__}"
+                f"TOOLKIT_MAIN|LANE_LAUNCH_FAILED|lane={self.current_lane_key()}|mode={self.current_launch_mode_key()}|reason={type(exc).__name__}"
             )
             self.set_status(f"Launch failed: {self.active_label()} :: {exc}")
         finally:
