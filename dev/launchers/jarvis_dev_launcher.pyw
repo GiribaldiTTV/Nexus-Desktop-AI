@@ -131,6 +131,40 @@ LANE_CONFIG = {
         "log_root": os.path.join(DEV_LOGS_DIR, "boot_auto_handoff_skip_import"),
         "crash_folder": "",
     },
+    "bootTransitionVerification": {
+        "label": "Boot To Desktop Handoff Verification",
+        "detail": (
+            "Runs a contained quiet boot-to-desktop verification pass, validates the current "
+            "handoff milestone order, then writes a compact pass/fail report."
+        ),
+        "quiet_launcher": "launch_jarvis_boot_transition_verification.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_transition_verification"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "boot_transition_verification", "reports"),
+        "report_prefix": "BootTransitionVerificationReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
+    "bootMonitorPreflight": {
+        "label": "Boot Monitor Preflight",
+        "detail": (
+            "Captures the current monitor topology using the same left/center/right assumptions "
+            "as Boot Jarvis and writes a compact readiness report before you run a boot lane."
+        ),
+        "quiet_launcher": "launch_jarvis_boot_monitor_preflight.vbs",
+        "voice_launcher": "",
+        "supports_voice": False,
+        "available_modes": ("quiet",),
+        "opens_window": False,
+        "log_root": os.path.join(DEV_LOGS_DIR, "boot_monitor_preflight"),
+        "report_root": os.path.join(DEV_LOGS_DIR, "boot_monitor_preflight", "reports"),
+        "report_prefix": "BootMonitorPreflightReport_",
+        "report_suffix": ".txt",
+        "crash_folder": "",
+    },
     "voiceRegression": {
         "label": "Voice Regression Harness",
         "detail": (
@@ -283,7 +317,12 @@ CONFIG_LANE_GROUPS = (
     },
     {
         "label": "Boot & Transition Checks",
-        "lane_keys": ("bootManualFlow", "bootAutoHandoffSkipImport"),
+        "lane_keys": (
+            "bootManualFlow",
+            "bootAutoHandoffSkipImport",
+            "bootTransitionVerification",
+            "bootMonitorPreflight",
+        ),
     },
     {
         "label": "Voice, Healthy Start, & Regression",
@@ -884,6 +923,7 @@ class DevLauncherWindow(QWidget):
             ("Jarvis Root", self.open_jarvis_root, "Open Jarvis Root"),
             ("Dev Folder", self.open_dev_folder, "Open Dev Folder"),
             ("Dev Logs", self.open_dev_logs_root, "Open Dev Logs Root"),
+            ("Latest Toolkit Log", self.open_latest_toolkit_session_log, "Open Latest Toolkit Session Log"),
             ("Dev Launchers", self.open_launchers_folder, "Open Dev Launchers Folder"),
         ]
         for text, handler, tooltip in buttons:
@@ -900,7 +940,7 @@ class DevLauncherWindow(QWidget):
         layout.addLayout(button_row)
 
         note = QLabel(
-            "Stable developer locations that never depend on the selected lane."
+            "Stable developer locations that never depend on the selected lane, including the latest Dev Toolkit session log."
         )
         note.setObjectName("headerHint")
         note.setWordWrap(False)
@@ -2050,6 +2090,13 @@ class DevLauncherWindow(QWidget):
     def open_dev_logs_root(self):
         os.makedirs(DEV_LOGS_DIR, exist_ok=True)
         self.open_path(DEV_LOGS_DIR, f"Opened: Dev logs root :: {DEV_LOGS_DIR}")
+
+    def open_latest_toolkit_session_log(self):
+        latest = latest_file_matching(DEV_TOOLKIT_SESSION_LOG_DIR, "Runtime_")
+        if not latest:
+            self.set_status(f"No toolkit session log found yet in: {DEV_TOOLKIT_SESSION_LOG_DIR}")
+            return
+        self.open_path(latest, f"Opened latest toolkit session log: {latest}")
 
     def open_launchers_folder(self):
         self.open_path(DEV_LAUNCHERS_DIR, "Opened: Dev launchers folder")
