@@ -263,42 +263,41 @@ This was the first real code-moving pass because it addressed the clearest root-
 
 Audio-domain consolidation.
 
-- Step 4 is approved only as a dedicated paired path-sensitive pass
-- it is not a generic isolated audio-folder cleanup
+- Implemented as a dedicated paired path-sensitive pass.
+- It was not treated as a generic isolated audio-folder cleanup.
 
-The minimum in-bounds file set for this paired pass is:
+The in-bounds file set for this paired pass was:
 
 - `main.py`
 - `jarvis_voice.py`
 - `desktop/jarvis_desktop_launcher.pyw`
 - `Audio/jarvis_error_voice.py`
 
-Those four files must be treated as one path-sensitive surface because:
+Those four files were treated as one path-sensitive surface because:
 
-- `main.py` still imports and owns the current root-level `jarvis_voice.py` path
-- `desktop/jarvis_desktop_launcher.pyw` still owns the current `Audio/jarvis_error_voice.py` path assumption
-- the normal-voice and diagnostics/error-voice paths therefore cannot be reorganized as unrelated one-file moves
+- `main.py` owned the normal-voice import path that had to move with `jarvis_voice.py`
+- `desktop/jarvis_desktop_launcher.pyw` owned the current `Audio/jarvis_error_voice.py` path assumption
+- the normal-voice and diagnostics/error-voice paths therefore could not be reorganized as unrelated one-file moves
 
-At planning level, Step 4 is allowed to do only this:
+Step 4 did only this:
 
-- update the paired path assumptions needed to keep those four files coherent as one approved surface
-- move or relink `jarvis_voice.py` only in the same pass that updates `main.py`
-- update the launcher's `Audio/jarvis_error_voice.py` path assumption only if that same paired pass explicitly requires it
-- include tightly necessary path-only naming cleanup inside this four-file surface if selected in the same pass
+- moved `jarvis_voice.py` into `Audio/` as `Audio/jarvis_voice.py`
+- updated `main.py` to import `Audio.jarvis_voice`
+- left the launcher-owned diagnostics/error voice path valid and unchanged at `Audio/jarvis_error_voice.py`
+- kept the move limited to the paired path-sensitive surface without widening into broader folder cleanup
 
-Step 4 must explicitly avoid:
+Step 4 explicitly avoided:
 
 - moving `main.py`
 - touching `launch_jarvis_desktop.vbs`
 - broader folder cleanup outside this four-file surface
-- `Audio` casing cleanup beyond what the paired pass strictly requires
+- `Audio` casing cleanup beyond what the paired pass strictly required
 - launcher retry, recovery, diagnostics, or control-policy changes
 - diagnostics-policy changes
 - voice behavior or content changes
 - top-level experience restructuring
 
-This is now an explicitly bounded later slice rather than a generic blocked move.
-It is approved only as the paired pass defined above and must not be widened into an automatic follow-on from the completed desktop-entrypoint consolidation.
+This completed the bounded audio-domain follow-on move without widening it into an automatic continuation of broader workspace cleanup.
 
 ### Step 5
 
@@ -307,20 +306,20 @@ Defer top-level experience entrypoint work until later.
 - keep `main.py` root-owned until the paused boot or top-level experience track is explicitly resumed
 - keep `launch_jarvis_desktop.vbs` root-owned as the Windows-facing shim unless a dedicated entrypoint pass is approved
 
-## Current Pause Point After Step 3
+## Current Pause Point After Step 4
 
-After the completed desktop-entrypoint consolidation, no further `FB-005` implementation slice is currently approved.
+After the completed desktop-entrypoint consolidation and paired audio-domain follow-on move, no further `FB-005` implementation slice is currently approved.
 
 The remaining `FB-005` sequence is intentionally paused because:
 
-- Step 4 is approved only as the dedicated paired pass defined above, not as a generic folder-organization follow-on
-- launcher-referenced `Audio/` assumptions still require that bounded paired surface
-- broader workspace reorganization remains deferred beyond that bounded paired surface
+- Step 4 is now implemented and no broader Step 5 approval follows automatically from it
+- `main.py` remains root-owned and Step 5 still stays deferred
+- broader workspace reorganization remains deferred beyond the completed paired Step 4 surface
 
 This means the current plan should be read as:
 
 - Step 3 is complete
-- Step 4 is explicitly bounded and approval-ready only as the paired surface above
+- Step 4 is complete
 - Step 5 remains deferred
 - broader workspace reorganization remains paused rather than implicitly queued as the next implementation move
 
