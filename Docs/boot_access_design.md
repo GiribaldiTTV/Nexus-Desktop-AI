@@ -900,10 +900,68 @@ At planning level, that means:
 
 This document intentionally does not define:
 
-- exact settings-surface ownership
-- exact cross-links between trust-state access and later adjustment
+- exact screen or settings-surface layout
 - exact tray, shell, resident UI, or notification mechanics for how later adjustment is reached
 - exact later-adjustment screen flow or safe-undo sequence
+
+## Post-Login Settings Ownership Boundary Contract
+
+At planning level, the post-login settings and control surface remains conceptually split across three adjacent but distinct lanes:
+
+- the resident control anchor
+- later adjustment and safe-undo
+- environment-preference revision
+
+The resident control anchor is allowed to own only:
+
+- current trust-state visibility after login
+- recovery-entry reachability after login
+- concise explanation of current trust-continuity posture
+- calm wayfinding toward ordinary adjustment only when the user issue is comfort or presentation rather than trust restoration
+
+The resident control anchor must not own:
+
+- broad comfort or presentation revision
+- ordinary setup-choice undo
+- environment-preference editing as a primary responsibility
+- reinterpretation of launcher-owned desktop truth or any runtime authority
+
+Later adjustment and safe-undo is allowed to own only:
+
+- revision of prior consumer-facing setup choices after the user has lived with them
+- softening or undoing comfort, guidance, presence, or pacing choices that proved too strong or poorly matched
+- reinforcing that user-facing posture choices remain revisable without implying trust breakage
+- ordinary post-login adjustment paths that feel normal rather than recovery-oriented
+
+Later adjustment and safe-undo must not own:
+
+- trust-state visibility meaning
+- recovery-entry surfacing or bounded-deferral meaning
+- determination of whether the user is in a normal, degraded, or recovery-needed trust state
+- launcher-owned desktop truth, diagnostics authority, or runtime control
+
+Environment-preference revision is allowed to own only:
+
+- the content categories already defined in the environment-preference taxonomy
+- revision of those categories when the user is adjusting how Jarvis feels rather than restoring trust continuity
+- normal-state everyday presence posture as a comfort and presentation concern
+
+Environment-preference revision must not own:
+
+- recovery entry
+- trust-state explanation or trust-state classification
+- post-bypass restoration meaning
+- launcher-owned desktop truth or runtime authority
+
+At planning level, these lanes may conceptually link only as follows:
+
+- the resident control anchor may point the user toward later adjustment when the issue is ordinary comfort or presentation rather than trust restoration
+- later adjustment may expose environment-preference revision as the place where posture choices are actually revised
+- later adjustment may point back to the resident control anchor when the user needs trust-state visibility or recovery entry rather than ordinary adjustment
+- environment-preference revision may remain reachable after login without becoming the owner of trust-state visibility or recovery posture
+
+These conceptual links are allowed to improve clarity and discoverability.
+They must not collapse the three lanes into one mixed settings surface, and they do not authorize any tray, shell, renderer, notification, or implementation mechanics.
 
 ## How Jarvis Stays Present Without Becoming Heavy
 
