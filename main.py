@@ -589,11 +589,16 @@ class JarvisSystem:
             self.boot_profile,
             self.audio_mode,
         )
+
+        def log_single_instance_event(event):
+            write_boot_runtime_marker(self.runtime_log_file, f"BOOT_MAIN|{event}")
+
         if not acquire_or_prompt_replace(
             runtime_instance_guard,
             runtime_relaunch_signal,
             "Jarvis Already Running",
             "Jarvis is already running.\n\nDo you want to close the current instance and open a new one?",
+            event_logger=log_single_instance_event,
         ):
             write_boot_runtime_marker(self.runtime_log_file, "BOOT_MAIN|SINGLE_INSTANCE_BLOCKED")
             raise SystemExit(0)

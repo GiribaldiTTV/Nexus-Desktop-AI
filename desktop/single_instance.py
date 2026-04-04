@@ -2,6 +2,7 @@ import atexit
 import ctypes
 import time
 from ctypes import wintypes
+from typing import Callable
 
 
 kernel32 = ctypes.windll.kernel32
@@ -138,28 +139,48 @@ def acquire_or_prompt_replace(
     message: str,
     wait_seconds: float = 8.0,
     poll_interval_seconds: float = 0.1,
+    event_logger: Callable[[str], None] | None = None,
 ) -> bool:
+    def log_event(event: str) -> None:
+        if not callable(event_logger):
+            return
+        try:
+            event_logger(event)
+        except Exception:
+            pass
+
     if guard.acquire():
         relaunch_signal.clear()
+        log_event("SINGLE_INSTANCE_ACQUIRED")
         return True
 
+    log_event("SINGLE_INSTANCE_CONFLICT_DETECTED")
+
     if not show_replace_running_dialog(title, message):
+        log_event("REPLACE_PROMPT_DECLINED")
         return False
 
+    log_event("REPLACE_PROMPT_ACCEPTED")
+
     if not relaunch_signal.signal():
+        log_event("RELAUNCH_SIGNAL_FAILED")
         show_already_running_dialog(
             title,
             "Jarvis could not signal the current instance to close. Please close it manually and try again.",
         )
         return False
 
+    log_event("RELAUNCH_SIGNAL_SENT")
+
     deadline = time.time() + max(0.5, wait_seconds)
     while time.time() < deadline:
         if guard.acquire():
             relaunch_signal.clear()
+            log_event("RELAUNCH_ACQUIRED_AFTER_WAIT")
             return True
         time.sleep(max(0.05, poll_interval_seconds))
 
+    log_event("RELAUNCH_WAIT_TIMEOUT")
     show_already_running_dialog(
         title,
         "Jarvis is still closing. Please wait a moment and try again.",

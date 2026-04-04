@@ -1185,11 +1185,17 @@ def finalize_failure(
 
 def main():
     run_id = create_run_id()
+
+    def log_single_instance_event(event):
+        runtime(f"Single-instance flow: {event}")
+        runtime_event("STATUS", "TRACE", "LAUNCHER_RUNTIME", event)
+
     if not acquire_or_prompt_replace(
         runtime_instance_guard,
         runtime_relaunch_signal,
         "Jarvis Already Running",
         "Jarvis is already running.\n\nDo you want to close the current instance and open a new one?",
+        event_logger=log_single_instance_event,
     ):
         runtime("Launcher start blocked: Jarvis is already running")
         runtime_event("STATUS", "SKIP", "LAUNCHER_RUNTIME", "ALREADY_RUNNING")
