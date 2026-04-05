@@ -650,9 +650,8 @@ class GuardedComboBox(QComboBox):
         self.setFocusPolicy(Qt.ClickFocus)
 
     def wheelEvent(self, event):
-        if self.hasFocus() or self.view().isVisible() or self.view().hasFocus():
-            super().wheelEvent(event)
-            return
+        # Dev Toolkit selections should change only through explicit clicks,
+        # not incidental scroll-wheel input while the pointer is over a combo.
         event.accept()
 
 
