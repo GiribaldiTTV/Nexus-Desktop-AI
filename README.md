@@ -1,4 +1,3 @@
-```markdown
 # Jarvis
 
 Jarvis is a Windows desktop intelligence layer built around reliable startup, controlled transitions, and strong diagnostics for testing and stabilization.
@@ -102,6 +101,3 @@ For current architectural decisions and project truth, check:
 - `Docs/Main.md`
 - `Docs/feature_backlog.md`
 - `Docs/post_v2.0_branch_rebaseline.md`
-```
-
-If you want, I can now draft a **final, commit-ready README.md** version tailored for GitHub (shorter intro + badges + quickstart) and keep this longer one as a developer-first internal readme.
