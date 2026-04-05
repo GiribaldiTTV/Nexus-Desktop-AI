@@ -1130,6 +1130,66 @@ This item must be staged by slice rather than treated as one single blanket stag
 
 ---
 
+### [ID: FB-028] Relocate launcher history state out of root logs
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Move the launcher-owned historical-memory file out of the user-visible root logs tree into a dedicated launcher-owned runtime state location.
+
+Why it matters:
+`jarvis_history_v1.jsonl` is not a runtime log, crash artifact, or dev evidence root. Keeping it in `C:/Jarvis/logs` makes internal cross-run state look like user-facing log clutter and conflicts with the current root-logs governance rule that the live root logs tree should stay reserved for already-approved launcher/runtime truth surfaces only.
+
+Proposed Change:
+Later bounded relocation slice:
+
+- choose a non-user-facing launcher-owned state root outside `C:/Jarvis/logs` and outside `C:/Jarvis/dev/logs`, preferably `%LOCALAPPDATA%/Jarvis/state`
+- patch the launcher history-path helper to read and write there
+- add a one-time migration from the existing root `C:/Jarvis/logs/jarvis_history_v1.jsonl` if present
+- preserve fail-safe degradation if migration or new-state writes fail
+- update the contained history harness and any other history-path consumers
+- sync the governing docs after the relocation lands
+
+Likely Files Affected:
+- C:/Jarvis/desktop/jarvis_desktop_launcher.pyw
+- C:/Jarvis/desktop/jarvis_history_harness_runner.py
+- C:/Jarvis/docs/development_rules.md
+- C:/Jarvis/docs/architecture.md
+- C:/Jarvis/docs/feature_backlog.md
+
+Scope:
+- launcher-owned historical-state relocation only
+- one-time migration and fallback behavior
+- keeping live runtime/crash roots and dev evidence roots unchanged
+
+Out of Scope:
+- moving runtime logs
+- moving crash logs
+- changing support-bundle locations
+- redesigning historical-memory semantics
+- dev evidence-root cleanup beyond the history file itself
+
+Notes:
+Current explicit decision:
+
+- do not move `jarvis_history_v1.jsonl` during the post-`v2.2.0` logs-cleanup pass
+- keep the current file in place until this later relocation slice is explicitly selected
+
+Detailed future plan:
+
+1. define the dedicated target state root and document it
+2. patch the launcher history path to resolve to that root
+3. add a one-time copy-forward migration from the existing root file
+4. keep clean fallback to existing non-historical behavior if the new root is unavailable
+5. update contained history-harness coverage to prove no writes spill back into live root `logs`
+6. verify the live root `logs` tree no longer exposes the history file after migration
+
+---
+
 ## Completed Items
 
 Move completed backlog items here for history tracking.

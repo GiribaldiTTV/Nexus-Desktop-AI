@@ -65,6 +65,17 @@ After every revision, review:
 - Do not assume behavior without log evidence
 - Prefer structured markers over raw output
 
+## Root Logs Governance
+
+- `C:/Jarvis/logs` and `C:/Jarvis/logs/crash` are reserved for already-approved live launcher/runtime truth surfaces only
+- current approved root-owned surfaces are:
+  - launcher-generated `Runtime_*.txt`
+  - matching live crash logs
+  - launcher control/status files when relevant
+  - the current launcher-owned historical state file `jarvis_history_v1.jsonl` until a later explicitly approved relocation slice moves it
+- dev/test/worker/toolkit evidence must write under `C:/Jarvis/dev/logs/<lane>/...`
+- no new dev/test/worker evidence roots, new subfolders, or new artifact families may be introduced under `C:/Jarvis/logs` or `C:/Jarvis/logs/crash` without explicit user approval
+
 ## Orchestration Philosophy
 
 Build in this order:
