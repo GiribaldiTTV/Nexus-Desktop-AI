@@ -163,11 +163,11 @@ def resolve_user_visible_support_bundle_dir():
     candidate_dirs = []
 
     if home_dir:
-        candidate_dirs.append(os.path.join(home_dir, "Documents", "Jarvis Support Bundles"))
+        candidate_dirs.append(os.path.join(home_dir, "Documents", "Nexus Desktop AI Support Bundles"))
     if local_app_data:
-        candidate_dirs.append(os.path.join(local_app_data, "Jarvis", "Support Bundles"))
+        candidate_dirs.append(os.path.join(local_app_data, "Nexus Desktop AI", "Support Bundles"))
     if home_dir:
-        candidate_dirs.append(os.path.join(home_dir, "Jarvis Support Bundles"))
+        candidate_dirs.append(os.path.join(home_dir, "Nexus Desktop AI Support Bundles"))
 
     for candidate_dir in candidate_dirs:
         try:
@@ -193,7 +193,7 @@ def ensure_support_bundle_dir(root_dir, runtime_log_path):
 
 
 def choose_bundle_basename(support_dir, run_identity):
-    base = f"JarvisSupport_{make_safe_name(run_identity)}"
+    base = f"NexusDesktopAI_Support_{make_safe_name(run_identity)}"
     candidate = base
     suffix = 2
 
@@ -295,7 +295,7 @@ def build_issue_prefill_url(root_dir, bundle_info):
         "",
         "## Run Context",
         "",
-        f"- Jarvis version: `{bundle_info['jarvis_version']}`",
+        f"- Nexus Desktop AI version: `{bundle_info['jarvis_version']}`",
         f"- Run identity: `{bundle_info['run_identity']}`",
     ]
 

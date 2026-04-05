@@ -110,9 +110,9 @@ LANE_CONFIG = {
         "crash_folder": "crash",
     },
     "bootManualFlow": {
-        "label": "Boot Jarvis Manual Flow",
+        "label": "Boot ORIN Manual Flow",
         "detail": (
-            "Launches the dev-only main.py boot harness in manual mode so Boot Jarvis reaches "
+            "Launches the dev-only main.py boot harness in manual mode so Boot ORIN reaches "
             "the first prompt and waits for operator input."
         ),
         "quiet_launcher": "launch_orin_main_manual_test.vbs",
@@ -124,10 +124,10 @@ LANE_CONFIG = {
         "crash_folder": "",
     },
     "bootAutoHandoffSkipImport": {
-        "label": "Boot Jarvis Auto Handoff (Skip Import)",
+        "label": "Boot ORIN Auto Handoff (Skip Import)",
         "detail": (
-            "Launches the dev-only main.py boot harness in auto-handoff mode so Boot Jarvis "
-            "drives the existing engage hud -> no chain and hands off into Desktop Jarvis."
+            "Launches the dev-only main.py boot harness in auto-handoff mode so Boot ORIN "
+            "drives the existing engage hud -> no chain and hands off into Desktop ORIN."
         ),
         "quiet_launcher": "launch_orin_main_auto_handoff_skip_import.vbs",
         "voice_launcher": "launch_orin_main_auto_handoff_skip_import_with_voice.vbs",
@@ -175,7 +175,7 @@ LANE_CONFIG = {
         "label": "Boot Monitor Preflight",
         "detail": (
             "Captures the current monitor topology using the same left/center/right assumptions "
-            "as Boot Jarvis and writes a compact readiness report before you run a boot lane."
+            "as Boot ORIN and writes a compact readiness report before you run a boot lane."
         ),
         "quiet_launcher": "launch_orin_boot_monitor_preflight.vbs",
         "voice_launcher": "",
@@ -546,7 +546,7 @@ BACKGROUND_PROGRESS_PROFILES = {
         "expected_seconds": 26.0,
         "stages": (
             (10, "Preparing the quiet auto-handoff capture lane."),
-            (32, "Launching Boot Jarvis and waiting for the transition window."),
+            (32, "Launching Boot ORIN and waiting for the transition window."),
             (70, "Capturing the handoff frames and saving the PNG sequence."),
             (90, "Writing the capture report and indexing the newest frame set."),
             (96, "Waiting for the fresh capture artifact to land."),
@@ -597,7 +597,7 @@ class TitleBar(QFrame):
         layout.setContentsMargins(10, 6, 10, 6)
         layout.setSpacing(6)
 
-        title = QLabel("JARVIS DEV TOOLKIT // INTERNAL")
+        title = QLabel("NEXUS DESKTOP AI DEV TOOLKIT // INTERNAL")
         title.setObjectName("titleBarLabel")
         layout.addWidget(title, 1)
 
@@ -660,7 +660,7 @@ class DevLauncherWindow(QWidget):
     def __init__(self, runtime_logger=None):
         super().__init__()
         self.runtime_logger = runtime_logger
-        self.setWindowTitle("Jarvis Dev Toolkit")
+        self.setWindowTitle("Nexus Desktop AI Dev Toolkit")
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
         self.resize(980, 900)
         self.setMinimumSize(840, 720)
@@ -948,13 +948,13 @@ class DevLauncherWindow(QWidget):
         banner_layout.setSpacing(1)
         self.banner_frame = banner
 
-        banner_top = QLabel("STARK INDUSTRIES // INTERNAL TOOLING")
+        banner_top = QLabel("NEXUS DESKTOP AI // INTERNAL TOOLING")
         banner_top.setObjectName("bannerTop")
         banner_top.setAlignment(Qt.AlignCenter)
         banner_layout.addWidget(banner_top)
         self.banner_top_label = banner_top
 
-        banner_title = QLabel("JARVIS DEV TOOLKIT")
+        banner_title = QLabel("DEV TOOLKIT")
         banner_title.setObjectName("bannerTitle")
         banner_title.setAlignment(Qt.AlignCenter)
         banner_layout.addWidget(banner_title)
@@ -1137,7 +1137,7 @@ class DevLauncherWindow(QWidget):
     def _build_global_utilities_panel(self, layout):
         button_rows = (
             [
-                ("Jarvis Root", self.open_jarvis_root, "Open Jarvis Root"),
+                ("Project Root", self.open_jarvis_root, "Open Project Root"),
                 ("Dev Folder", self.open_dev_folder, "Open Dev Folder"),
                 ("Dev Logs", self.open_dev_logs_root, "Open Dev Logs Root"),
                 ("Latest Toolkit Log", self.open_latest_toolkit_session_log, "Open Latest Toolkit Session Log"),
@@ -2693,7 +2693,7 @@ class DevLauncherWindow(QWidget):
         self.open_path(source_path, f"Opened selected support bundle source: {source_path}")
 
     def open_jarvis_root(self):
-        self.open_path(ROOT_DIR, f"Opened: Jarvis root :: {ROOT_DIR}")
+        self.open_path(ROOT_DIR, f"Opened: Project root :: {ROOT_DIR}")
 
     def open_dev_folder(self):
         self.open_path(DEV_DIR, f"Opened: Dev folder :: {DEV_DIR}")
@@ -2982,8 +2982,8 @@ def main():
         dev_toolkit_guard,
         dev_toolkit_relaunch_signal,
         "Dev Toolkit Session Active",
-        "A Jarvis Dev Toolkit session is already open.\n\nDo you want to close the current toolkit window and relaunch a fresh Dev Toolkit session?",
-        eyebrow_text="JARVIS DEV TOOLKIT",
+        "A Nexus Desktop AI Dev Toolkit session is already open.\n\nDo you want to close the current toolkit window and relaunch a fresh Dev Toolkit session?",
+        eyebrow_text="NEXUS DESKTOP AI DEV TOOLKIT",
         primary_button_text="Relaunch Dev Toolkit",
         secondary_button_text="Keep Current Toolkit",
         event_logger=log_single_instance_event,

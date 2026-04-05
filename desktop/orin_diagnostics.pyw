@@ -246,13 +246,13 @@ class DiagnosticsWindow(QWidget):
         root.setContentsMargins(18, 18, 18, 18)
         root.setSpacing(10)
 
-        self.stark = QLabel("STARK INDUSTRIES")
+        self.stark = QLabel("NEXUS DESKTOP AI")
         self.stark.setAlignment(Qt.AlignCenter)
         self.stark.setFont(QFont("Consolas", 19, QFont.Bold))
         self.stark.setStyleSheet("color:#d4af37;")
         root.addWidget(self.stark)
 
-        title = QLabel("J.A.R.V.I.S. SYSTEM DIAGNOSTICS")
+        title = QLabel("SYSTEM DIAGNOSTICS")
         title.setAlignment(Qt.AlignCenter)
         title.setFont(QFont("Consolas", 14, QFont.Bold))
         title.setStyleSheet("color:#ff2b2b;")
@@ -298,12 +298,12 @@ class DiagnosticsWindow(QWidget):
         trace_section.addWidget(trace_panel, 1)
         root.addLayout(trace_section, 3)
 
-        jarvis_title = QLabel("JARVIS")
-        jarvis_title.setFont(QFont("Consolas", 12, QFont.Bold))
+        persona_title = QLabel("ORIN")
+        persona_title.setFont(QFont("Consolas", 12, QFont.Bold))
         jarvis_section = QVBoxLayout()
         jarvis_section.setContentsMargins(0, 8, 0, 0)
         jarvis_section.setSpacing(4)
-        jarvis_section.addWidget(jarvis_title)
+        jarvis_section.addWidget(persona_title)
 
         speech_panel = QFrame()
         speech_panel.setObjectName("panel")
@@ -628,9 +628,9 @@ class DiagnosticsWindow(QWidget):
                 self.current_state = state
 
                 mapping = {
-                    "STARTED": "Jarvis State: Starting Diagnostics",
-                    "RECOVERING": "Jarvis State: Attempting Recovery",
-                    "COMPLETE": "Jarvis State: Offline",
+                    "STARTED": "ORIN State: Starting Diagnostics",
+                    "RECOVERING": "ORIN State: Attempting Recovery",
+                    "COMPLETE": "ORIN State: Offline",
                 }
 
                 should_render = True
@@ -638,7 +638,7 @@ class DiagnosticsWindow(QWidget):
                     should_render = False
 
                 if should_render:
-                    display = mapping.get(state, f"Jarvis State: {state}")
+                    display = mapping.get(state, f"ORIN State: {state}")
                     diag_event('state_transition', f'raw={state}', f'display={display}')
                     self.append_trace("")
                     self.append_state_trace(display)
