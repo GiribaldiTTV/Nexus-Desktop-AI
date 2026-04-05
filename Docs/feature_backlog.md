@@ -1200,6 +1200,66 @@ Detailed future plan:
 
 ---
 
+### [ID: FB-029] ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening
+
+Status: Deferred  
+Priority: High  
+Suggested Version: v2.2.1  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Replace the current Jarvis product identity with ORIN, remove Marvel-adjacent branding from tracked repo surfaces, establish the future persona roadmap where ORIN is the shipped male identity for pre-Beta and Beta while ARIA is reserved as a later optional female identity, and harden the repo ownership posture with an explicit licensing and copyright plan.
+
+Why it matters:
+The current Jarvis / Stark-coded identity creates avoidable infringement and confusion risk, and the repo also needs a clear ownership posture so public source availability does not create ambiguity about what others are allowed to do with the work.
+
+Proposed Change:
+Perform one coordinated tracked-source rebrand to ORIN (`Operational Response and Intelligence Nexus`), remove explicit Marvel-coded branding, rename tracked `jarvis_*` and `launch_jarvis_*` source files and references, rewrite tracked historical docs to the new name, add a neutral persona contract that supports a later ARIA (`Adaptive Runtime Intelligence Assistant`) option without exposing that choice in pre-Beta or Beta, and add a repo licensing track that introduces an explicit root `LICENSE`, copyright notice, and README policy language aligned to a closed/proprietary release posture unless a later decision explicitly approves open-source licensing.
+
+Likely Files Affected:
+- current truth docs and supporting docs
+- desktop launcher, diagnostics, support-reporting, renderer, and single-instance surfaces
+- boot harness and voice layer
+- dev toolkit and dev launchers
+- tracked visual assets, filenames, modules, scripts, and path references
+- C:/Jarvis/LICENSE
+- C:/Jarvis/README.md
+- future ownership-notice surfaces such as `NOTICE`, `COPYRIGHT.md`, or contributor policy docs if external contributions are later enabled
+
+Scope:
+- legal-safe ORIN rebrand
+- Marvel-affiliation removal
+- tracked file/module/script rename
+- env var, mutex/event, support-bundle, local-folder, and path rename
+- tracked historical doc rewrite
+- persona contract for future ORIN / ARIA choice
+- repo licensing and copyright notice hardening
+- clear README usage and permission language for a non-open-source release posture
+
+Out of Scope:
+- behavior redesign
+- new feature work unrelated to naming/persona
+- editing generated logs, support bundles, or caches
+- exposing ARIA as a user-facing choice in pre-Beta or Beta
+- choosing a permissive open-source license for public reuse
+- trademark filing or legal opinion
+
+Notes:
+Release-stage rule:
+
+- pre-Beta ships ORIN only
+- Beta ships ORIN only
+- Full may expose user choice between ORIN and ARIA once the persona-selection slice is explicitly approved
+
+Licensing rule:
+
+- add an explicit root `LICENSE` before broader public release so repo permissions are not left ambiguous
+- default recommendation is a restrictive proprietary / all-rights-reserved posture unless a later explicit decision approves open-source licensing
+- track copyright notice updates in public docs and consider copyright registration as a pre-release legal gate if U.S. infringement enforcement is desired
+
+---
+
 ## Completed Items
 
 Move completed backlog items here for history tracking.
