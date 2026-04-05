@@ -58,6 +58,15 @@ def hidden_subprocess_kwargs():
     return kwargs
 
 
+def run_hidden_command(args, timeout_seconds=20):
+    return subprocess.run(
+        args,
+        cwd=ROOT_DIR,
+        timeout=timeout_seconds,
+        **hidden_subprocess_kwargs(),
+    )
+
+
 def ensure_dir(path):
     os.makedirs(path, exist_ok=True)
 
@@ -161,6 +170,84 @@ def resolve_base_log_root(log_root_override=None):
     return DEFAULT_BASE_LOG_ROOT
 
 
+def terminate_process_tree(proc):
+    if proc.poll() is not None:
+        return False
+
+    if os.name == "nt":
+        try:
+            run_hidden_command(["taskkill", "/PID", str(proc.pid), "/T", "/F"], timeout_seconds=10)
+        except Exception:
+            pass
+
+        deadline = time.time() + 5.0
+        while time.time() < deadline:
+            if proc.poll() is not None:
+                return True
+            time.sleep(0.1)
+
+    proc.terminate()
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=5)
+    return True
+
+
+def list_renderer_processes_for_log_root(base_log_root):
+    if os.name != "nt":
+        return []
+
+    script = r"""
+$BaseLogRoot = $args[0]
+Get-CimInstance Win32_Process | Where-Object {
+    ($_.Name -eq 'pythonw.exe' -or $_.Name -eq 'python.exe') -and
+    $_.CommandLine -like '*jarvis_desktop_main.py*' -and
+    $_.CommandLine -like ('*' + $BaseLogRoot + '*')
+} | ForEach-Object {
+    '{0}|{1}' -f $_.ProcessId, $_.CommandLine
+}
+"""
+
+    try:
+        result = run_hidden_command(
+            ["powershell", "-NoProfile", "-Command", script, base_log_root],
+            timeout_seconds=15,
+        )
+    except Exception:
+        return []
+
+    processes = []
+    for raw_line in (result.stdout or "").splitlines():
+        line = raw_line.strip()
+        if not line or "|" not in line:
+            continue
+        pid_text, command_line = line.split("|", 1)
+        try:
+            pid = int(pid_text.strip())
+        except ValueError:
+            continue
+        processes.append({"pid": pid, "command_line": command_line.strip()})
+    return processes
+
+
+def cleanup_renderer_processes_for_log_root(base_log_root):
+    before = list_renderer_processes_for_log_root(base_log_root)
+    killed = []
+
+    for process in before:
+        try:
+            run_hidden_command(["taskkill", "/PID", str(process["pid"]), "/F"], timeout_seconds=10)
+            killed.append(process["pid"])
+        except Exception:
+            pass
+
+    time.sleep(0.3)
+    after = list_renderer_processes_for_log_root(base_log_root)
+    return before, killed, after
+
+
 def reports_dir_for(base_log_root):
     return os.path.join(base_log_root, "reports")
 
@@ -238,12 +325,7 @@ def run_validation(log_root_override=None):
     terminated_by_validator = False
     if proc.poll() is None:
         terminated_by_validator = True
-        proc.terminate()
-        try:
-            proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            proc.kill()
-            proc.wait(timeout=5)
+        terminate_process_tree(proc)
 
     stdout_text, stderr_text = proc.communicate()
     exit_code = proc.returncode if exit_code is None else exit_code
@@ -266,6 +348,10 @@ def run_validation(log_root_override=None):
                 os.remove(artifact_path)
         except Exception:
             pass
+
+    residual_renderer_processes_before, residual_renderer_killed, residual_renderer_processes_after = (
+        cleanup_renderer_processes_for_log_root(base_log_root)
+    )
 
     checks = {
         "launcher_default_target_matches_expected": line_status(
@@ -333,6 +419,23 @@ def run_validation(log_root_override=None):
             "seen"
             if normal_exit_complete_seen
             else f"not seen (launcher process closed by validator after evidence capture, exit={exit_code})",
+        ),
+        "no_residual_renderer_processes_for_log_root": line_status(
+            not residual_renderer_processes_after,
+            "none"
+            if not residual_renderer_processes_after
+            else "; ".join(
+                f"{process['pid']}::{process['command_line']}" for process in residual_renderer_processes_after
+            ),
+        ),
+        "residual_renderer_cleanup_optional": line_status(
+            True,
+            "no residual renderer processes detected"
+            if not residual_renderer_processes_before
+            else (
+                f"detected {len(residual_renderer_processes_before)} residual process(es); "
+                f"killed={','.join(str(pid) for pid in residual_renderer_killed) or 'none'}"
+            ),
         ),
     }
 

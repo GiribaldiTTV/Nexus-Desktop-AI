@@ -31,6 +31,7 @@ class DesktopJarvisWindow(QWidget):
         self.desktop_mode = False
         self._is_shutting_down = False
         self._page_ready = False
+        self._desktop_mode_requested = False
         self._pending_visual_state = None
         self._pending_voice_level = None
         self._command_model = CommandOverlayModel()
@@ -78,7 +79,8 @@ class DesktopJarvisWindow(QWidget):
         super().showEvent(event)
 
         if not self.desktop_mode:
-            QTimer.singleShot(50, self.enable_desktop_mode)
+            self._desktop_mode_requested = True
+            self._schedule_desktop_mode_enable()
 
     def _log_event(self, event):
         if callable(self.event_logger):
@@ -120,6 +122,13 @@ class DesktopJarvisWindow(QWidget):
             f"window.setCommandOverlayState && window.setCommandOverlayState({payload});"
         )
 
+    def _schedule_desktop_mode_enable(self):
+        if not self._desktop_mode_requested or self.desktop_mode or self._is_shutting_down:
+            return
+        if not self._page_ready:
+            return
+        QTimer.singleShot(50, self.enable_desktop_mode)
+
     def _on_load_finished(self, ok):
         if not ok:
             self._log_event("RENDERER_MAIN|VISUAL_PAGE_LOAD_FAILED")
@@ -130,6 +139,7 @@ class DesktopJarvisWindow(QWidget):
         self._apply_pending_visual_state()
         self._apply_pending_voice_level()
         self._apply_command_overlay_state()
+        self._schedule_desktop_mode_enable()
 
     def set_visual_state(self, state_name):
         self._pending_visual_state = state_name
@@ -242,11 +252,12 @@ class DesktopJarvisWindow(QWidget):
         return super().nativeEvent(eventType, message)
 
     def enable_desktop_mode(self):
-        if self.desktop_mode or self._is_shutting_down:
+        if self.desktop_mode or self._is_shutting_down or not self._page_ready:
             return
 
         self._log_event("RENDERER_MAIN|DESKTOP_MODE_ENABLE_BEGIN")
         self.desktop_mode = True
+        self._desktop_mode_requested = False
 
         self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
@@ -256,13 +267,19 @@ class DesktopJarvisWindow(QWidget):
         hwnd = int(self.winId())
 
         attached = attach_window_to_desktop(hwnd)
-        make_window_noninteractive(hwnd)
+        if attached:
+            make_window_noninteractive(hwnd)
+        else:
+            self._log_event("RENDERER_MAIN|DESKTOP_ATTACH_FALLBACK_VISIBLE_MODE")
         self._log_event(
             f"RENDERER_MAIN|DESKTOP_ATTACH_RESULT|success={'true' if attached else 'false'}"
         )
         for probe_event in get_last_workerw_probe_events():
             self._log_event(f"RENDERER_MAIN|{probe_event}")
 
+        self.webview.update()
+        self.update()
+        self._run_javascript("window.dispatchEvent(new Event('resize'));")
         self.lower()
 
     def request_shutdown(self):

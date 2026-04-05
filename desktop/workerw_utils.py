@@ -251,7 +251,8 @@ def get_workerw():
 
 def attach_window_to_desktop(hwnd: int) -> bool:
     workerw = get_workerw()
-    if not workerw:
+    selection_reason = _LAST_WORKERW_PROBE.get("selection_reason", "none")
+    if not workerw or selection_reason != "next_workerw":
         return False
 
     # Parent first so the shell owns the window relationship.
