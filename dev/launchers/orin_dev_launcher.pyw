@@ -38,7 +38,7 @@ DEV_TOOLKIT_SMOKE_REPORT_DIR = os.path.join(DEV_LOGS_DIR, "dev_toolkit_smoke_val
 BOOT_TRANSITION_CAPTURE_ROOT = os.path.join(DEV_LOGS_DIR, "boot_transition_capture")
 BOOT_TRANSITION_CAPTURE_REPORT_DIR = os.path.join(BOOT_TRANSITION_CAPTURE_ROOT, "reports")
 BOOT_TRANSITION_CAPTURE_FRAMES_DIR = os.path.join(BOOT_TRANSITION_CAPTURE_ROOT, "captures")
-SUPPORT_BUNDLE_TRIAGE_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_support_bundle_triage.py")
+SUPPORT_BUNDLE_TRIAGE_SCRIPT = os.path.join(ROOT_DIR, "dev", "orin_support_bundle_triage.py")
 
 PYTHONW_PATH = r"C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"
 DEV_TOOLKIT_MUTEX = r"Local\JarvisDevToolkitSingletonV1"
@@ -70,7 +70,7 @@ LANE_CONFIG = {
             "Launches the standalone diagnostics window with safe manual test content. "
             "Best for focus, monitor, dismiss, and passive-window checks."
         ),
-        "quiet_launcher": "launch_jarvis_diagnostics_manual_test.vbs",
+        "quiet_launcher": "launch_orin_diagnostics_manual_test.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -85,8 +85,8 @@ LANE_CONFIG = {
             "Exercises the real launcher recovery path using a deterministic repeated crash "
             "target until diagnostics completion."
         ),
-        "quiet_launcher": "launch_jarvis_launcher_failure_manual_test.vbs",
-        "voice_launcher": "launch_jarvis_launcher_failure_manual_test_with_voice.vbs",
+        "quiet_launcher": "launch_orin_launcher_failure_manual_test.vbs",
+        "voice_launcher": "launch_orin_launcher_failure_manual_test_with_voice.vbs",
         "supports_voice": True,
         "available_modes": ("quiet", "voice"),
         "opens_window": True,
@@ -100,8 +100,8 @@ LANE_CONFIG = {
             "Exercises launcher stall observation, cooperative startup abort, recovery, "
             "and diagnostics completion."
         ),
-        "quiet_launcher": "launch_jarvis_launcher_startup_abort_manual_test.vbs",
-        "voice_launcher": "launch_jarvis_launcher_startup_abort_manual_test_with_voice.vbs",
+        "quiet_launcher": "launch_orin_launcher_startup_abort_manual_test.vbs",
+        "voice_launcher": "launch_orin_launcher_startup_abort_manual_test_with_voice.vbs",
         "supports_voice": True,
         "available_modes": ("quiet", "voice"),
         "opens_window": True,
@@ -115,8 +115,8 @@ LANE_CONFIG = {
             "Launches the dev-only main.py boot harness in manual mode so Boot Jarvis reaches "
             "the first prompt and waits for operator input."
         ),
-        "quiet_launcher": "launch_jarvis_main_manual_test.vbs",
-        "voice_launcher": "launch_jarvis_main_manual_test_with_voice.vbs",
+        "quiet_launcher": "launch_orin_main_manual_test.vbs",
+        "voice_launcher": "launch_orin_main_manual_test_with_voice.vbs",
         "supports_voice": True,
         "available_modes": ("quiet", "voice"),
         "opens_window": True,
@@ -129,8 +129,8 @@ LANE_CONFIG = {
             "Launches the dev-only main.py boot harness in auto-handoff mode so Boot Jarvis "
             "drives the existing engage hud -> no chain and hands off into Desktop Jarvis."
         ),
-        "quiet_launcher": "launch_jarvis_main_auto_handoff_skip_import.vbs",
-        "voice_launcher": "launch_jarvis_main_auto_handoff_skip_import_with_voice.vbs",
+        "quiet_launcher": "launch_orin_main_auto_handoff_skip_import.vbs",
+        "voice_launcher": "launch_orin_main_auto_handoff_skip_import_with_voice.vbs",
         "supports_voice": True,
         "available_modes": ("quiet", "voice"),
         "opens_window": True,
@@ -143,7 +143,7 @@ LANE_CONFIG = {
             "Runs a contained quiet boot-to-desktop verification pass, validates the current "
             "handoff milestone order, then writes a compact pass/fail report."
         ),
-        "quiet_launcher": "launch_jarvis_boot_transition_verification.vbs",
+        "quiet_launcher": "launch_orin_boot_transition_verification.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -160,7 +160,7 @@ LANE_CONFIG = {
             "Runs the quiet auto-handoff boot path, captures primary-screen transition frames at key "
             "handoff markers, and writes a compact report with the saved PNG sequence."
         ),
-        "quiet_launcher": "launch_jarvis_boot_transition_capture.vbs",
+        "quiet_launcher": "launch_orin_boot_transition_capture.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -177,7 +177,7 @@ LANE_CONFIG = {
             "Captures the current monitor topology using the same left/center/right assumptions "
             "as Boot Jarvis and writes a compact readiness report before you run a boot lane."
         ),
-        "quiet_launcher": "launch_jarvis_boot_monitor_preflight.vbs",
+        "quiet_launcher": "launch_orin_boot_monitor_preflight.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -195,7 +195,7 @@ LANE_CONFIG = {
             "the Dev Toolkit can launch Boot Monitor Preflight and Boot To Desktop Handoff Verification "
             "and then reopen their fresh reports."
         ),
-        "quiet_launcher": "launch_jarvis_boot_toolkit_validation.vbs",
+        "quiet_launcher": "launch_orin_boot_toolkit_validation.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -212,7 +212,7 @@ LANE_CONFIG = {
             "Runs the contained FB-018 voice regression harness across the current launcher-owned "
             "voice lanes and direct diagnostics voice probes, then writes a pass/fail report."
         ),
-        "quiet_launcher": "launch_jarvis_voice_regression_harness.vbs",
+        "quiet_launcher": "launch_orin_voice_regression_harness.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("voice",),
@@ -229,7 +229,7 @@ LANE_CONFIG = {
             "Runs a contained offscreen validation of the current default desktop renderer target "
             "and verifies healthy startup milestones such as WINDOW_SHOW_CALLED and STARTUP_READY."
         ),
-        "quiet_launcher": "launch_jarvis_desktop_entrypoint_validation.vbs",
+        "quiet_launcher": "launch_orin_desktop_entrypoint_validation.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -247,7 +247,7 @@ LANE_CONFIG = {
             "launcher-owned healthy startup markers, then triggers a controlled shutdown and "
             "captures reusable pass/fail evidence for the contained healthy path."
         ),
-        "quiet_launcher": "launch_jarvis_desktop_launcher_healthy_validation.vbs",
+        "quiet_launcher": "launch_orin_desktop_launcher_healthy_validation.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -265,7 +265,7 @@ LANE_CONFIG = {
             "Dev Toolkit can launch Healthy Desktop Launch Validation and Healthy Launcher Path "
             "Validation and reopen their fresh reports."
         ),
-        "quiet_launcher": "launch_jarvis_desktop_toolkit_validation.vbs",
+        "quiet_launcher": "launch_orin_desktop_toolkit_validation.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -283,7 +283,7 @@ LANE_CONFIG = {
             "then writes one consolidated smoke report so the current helper-lane wiring can be checked "
             "with a single background run."
         ),
-        "quiet_launcher": "launch_jarvis_dev_toolkit_smoke_validation.vbs",
+        "quiet_launcher": "launch_orin_dev_toolkit_smoke_validation.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -301,7 +301,7 @@ LANE_CONFIG = {
             "repeated-crash, and startup-abort launcher paths, then writes one consolidated "
             "pass/fail report."
         ),
-        "quiet_launcher": "launch_jarvis_desktop_launcher_regression_harness.vbs",
+        "quiet_launcher": "launch_orin_desktop_launcher_regression_harness.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -319,7 +319,7 @@ LANE_CONFIG = {
             "current supported launcher-owned bundle classes and safe unknown fallback, then "
             "writes one consolidated pass/fail report."
         ),
-        "quiet_launcher": "launch_jarvis_support_bundle_triage_harness.vbs",
+        "quiet_launcher": "launch_orin_support_bundle_triage_harness.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -336,7 +336,7 @@ LANE_CONFIG = {
             "Runs the contained offscreen validator for the raw FB-019 toolkit flow and verifies "
             "toolkit-driven zip-input triage, extracted-folder triage, and latest-report reachability."
         ),
-        "quiet_launcher": "launch_jarvis_support_bundle_triage_toolkit_validation.vbs",
+        "quiet_launcher": "launch_orin_support_bundle_triage_toolkit_validation.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),
@@ -354,7 +354,7 @@ LANE_CONFIG = {
             "and verifies support-bundle creation, manifest manual-submission contract fields, and "
             "GitHub issue-prefill open-attempt handling."
         ),
-        "quiet_launcher": "launch_jarvis_diagnostics_report_issue_validation.vbs",
+        "quiet_launcher": "launch_orin_diagnostics_report_issue_validation.vbs",
         "voice_launcher": "",
         "supports_voice": False,
         "available_modes": ("quiet",),

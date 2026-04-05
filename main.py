@@ -18,7 +18,7 @@ from PySide6.QtCore import Qt, QTimer, QObject, Signal, QPropertyAnimation, QUrl
 from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
-from Audio.jarvis_voice import JarvisSpeaker
+from Audio.orin_voice import JarvisSpeaker
 from desktop.desktop_renderer import DesktopJarvisWindow
 from desktop.workerw_utils import attach_window_to_desktop, make_window_noninteractive
 from desktop.single_instance import (
@@ -516,7 +516,7 @@ class JarvisSystem:
             self.left_screen = other_sorted[0]
             self.right_screen = other_sorted[1]
 
-        visual_html = os.path.join(self.base_dir, "jarvis_visual", "jarvis_core.html")
+        visual_html = os.path.join(self.base_dir, "jarvis_visual", "orin_core.html")
 
         self.left_window = BootSideWindow(self.left_screen, "LEFT MODULE")
         self.boot_center_window = JarvisBootCenterWindow(self.center_screen, visual_html)
