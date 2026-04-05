@@ -1274,6 +1274,8 @@ Current branch-local tracking:
   - diagnostics and error-voice flow were not part of the observed glitch report
 - later Dev Toolkit launcher organization should keep the main user-facing Toolkit launcher forward-facing while moving non-forward-facing helper launchers used by the Toolkit into a separate helper-launchers folder
 - that Toolkit launcher reorganization remains planned follow-through only and should not be mixed into the current repair-first runtime slices until a dedicated path-organization slice is selected
+- the Slice 3 Diagnostics UI Test lane now opens visibly again from the current quiet-mode Dev Toolkit path, the diagnostics shell is inspectable, ORIN remains the assistant persona where intended, and no obvious remaining launch issue was reported for that lane after the narrow launcher-path follow-up
+- canonical display-level ORIN naming guidance now lives in `docs/orin_display_naming_guidance.md`; future wording follow-through should use that source instead of ad hoc per-surface naming choices
 
 ---
 
@@ -1317,6 +1319,86 @@ Out of Scope:
 
 Notes:
 This is a future persona-direction slice, not part of the current repair-first path-coherence work.
+
+---
+
+### [ID: FB-031] Nexus Desktop AI UI/UX overhaul planning
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Plan a future UI/UX overhaul for Nexus Desktop AI so the product presentation can be updated intentionally rather than through piecemeal visual drift during repair-first rebrand work.
+
+Why it matters:
+The current repair-first branch is focused on path coherence and visible naming cleanup, not a full product-experience redesign. A separate tracked planning item is needed so later UI/UX changes can be shaped deliberately across desktop visuals, shell presentation, and user-facing polish.
+
+Proposed Change:
+Do a later bounded planning-first UI/UX pass that defines the desired Nexus-era visual language, presentation priorities, and rollout boundaries before broader implementation begins.
+
+Likely Files Affected:
+- C:/Jarvis/jarvis_visual/*
+- C:/Jarvis/desktop/desktop_renderer.py
+- C:/Jarvis/desktop/orin_desktop_main.py
+- C:/Jarvis/dev/launchers/orin_dev_launcher.pyw
+- future directly supportive design/planning docs
+
+Scope:
+- future UI/UX overhaul planning
+- visual language and presentation direction
+- staged rollout boundaries for later implementation
+
+Out of Scope:
+- current repair-first path fixes
+- ARIA implementation
+- voice/audio redesign implementation
+- repo rename or release-line work
+
+Notes:
+This is planning-only for now. It should remain separate from current path-coherence slices until a dedicated design/planning slice is explicitly selected.
+
+---
+
+### [ID: FB-032] Nexus-era vision and source-of-truth migration
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Migrate the current product-vision and source-of-truth framing from Jarvis-era wording to Nexus Desktop AI / ORIN-era framing in a bounded, canonical-doc-first pass once the naming architecture is stable enough to do so cleanly.
+
+Why it matters:
+Current canonical vision/routing layers still carry older Jarvis-era framing in places. If that migration is not tracked explicitly, the repo risks keeping split identity language across source-of-truth docs even after the runtime rebrand direction is clearer.
+
+Proposed Change:
+Do a later bounded source-of-truth migration pass that updates vision and routing docs to the Nexus-era product identity while preserving historical traceability and avoiding retroactive rewrite of old release history.
+
+Likely Files Affected:
+- C:/Jarvis/docs/orin_vision.md
+- C:/Jarvis/docs/Main.md
+- C:/Jarvis/docs/architecture.md
+- C:/Jarvis/docs/feature_backlog.md
+- optional directly supportive canonical planning docs
+
+Scope:
+- vision-layer wording migration
+- source-of-truth routing cleanup
+- canonical-doc identity alignment
+
+Out of Scope:
+- runtime/code changes
+- repo rename execution
+- release history rewrite
+- README or LICENSE work unless separately approved
+
+Notes:
+This should be treated as a future source-of-truth migration item, not a broad immediate rewrite. The existing `docs/orin_vision.md` remains usable current truth until that dedicated migration pass is intentionally selected.
 
 ---
 

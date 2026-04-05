@@ -34,7 +34,8 @@ These are the default project-governance and product-boundary docs:
 - `docs/development_rules.md`
 - `docs/Main.md`
 - `docs/architecture.md`
-- `docs/jarvis_vision.md`
+- `docs/orin_vision.md`
+- `docs/orin_display_naming_guidance.md`
 - `docs/feature_backlog.md`
 - `docs/orchestration.md`
 - `docs/codex_modes.md`
@@ -43,7 +44,8 @@ These are the default project-governance and product-boundary docs:
 
 Within that core set:
 
-- `docs/jarvis_vision.md` owns the product-wide meaning of `pre-Beta`, `Beta`, and `Full`
+- `docs/orin_vision.md` owns the product-wide meaning of `pre-Beta`, `Beta`, and `Full`
+- `docs/orin_display_naming_guidance.md` owns the display-level ORIN / O.R.I.N. / full-expansion usage pattern
 - `docs/feature_backlog.md` owns per-item or per-slice release-stage assignment
 
 Use these when the task concerns:
@@ -128,7 +130,7 @@ For boot-planning or future boot-access work, prompts should usually include:
 - `docs/Main.md`
 - `docs/boot_access_design.md`
 
-Add `architecture.md`, `jarvis_vision.md`, `feature_backlog.md`, or `orchestration.md` when the task touches authority, vision, backlog scope, or launcher-owned desktop boundaries.
+Add `architecture.md`, `orin_vision.md`, `feature_backlog.md`, or `orchestration.md` when the task touches authority, vision, backlog scope, or launcher-owned desktop boundaries.
 
 ### Workspace / Folder Organization Work
 
