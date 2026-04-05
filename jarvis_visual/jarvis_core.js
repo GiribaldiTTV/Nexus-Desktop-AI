@@ -5,6 +5,7 @@ const bctx = backCanvas.getContext("2d");
 const fctx = frontCanvas.getContext("2d");
 const commandOverlay = document.getElementById("command-overlay");
 const commandHint = document.getElementById("command-hint");
+const commandInputShell = document.getElementById("command-input-shell");
 const commandInputText = document.getElementById("command-input-text");
 const commandStatus = document.getElementById("command-status");
 const commandAmbiguous = document.getElementById("command-ambiguous");
@@ -30,6 +31,7 @@ let smoothedVoiceLevel = 0.0;
 let commandOverlayState = {
   visible: false,
   phase: "hidden",
+  input_armed: false,
   input_text: "",
   status_kind: "idle",
   status_text: "",
@@ -1053,8 +1055,15 @@ function renderCommandOverlay() {
 
   const state = commandOverlayState || {};
   const isVisible = Boolean(state.visible);
+  const isInputArmed = Boolean(state.input_armed) && state.phase === "entry";
+  const isLocked = state.phase === "confirm" || state.phase === "result";
   commandOverlay.classList.toggle("visible", isVisible);
   commandOverlay.setAttribute("aria-hidden", isVisible ? "false" : "true");
+
+  if (commandInputShell) {
+    commandInputShell.classList.toggle("is-armed", isInputArmed);
+    commandInputShell.classList.toggle("is-locked", isLocked);
+  }
 
   if (!isVisible) {
     return;
@@ -1069,7 +1078,13 @@ function renderCommandOverlay() {
     if (state.status_kind && state.status_kind !== "idle") {
       commandStatus.classList.add(`status-${state.status_kind}`);
     }
-    commandStatus.textContent = state.status_text || "";
+    if (state.status_text) {
+      commandStatus.textContent = state.status_text;
+    } else if (state.phase === "entry" && !isInputArmed) {
+      commandStatus.textContent = "Press Enter to activate the command box.";
+    } else {
+      commandStatus.textContent = "";
+    }
   }
 
   if (commandAmbiguous) {
@@ -1079,12 +1094,15 @@ function renderCommandOverlay() {
   }
 
   if (commandHint) {
-    commandHint.textContent =
-      state.phase === "confirm"
-        ? "Review the resolved action before execution."
-        : state.phase === "result"
-        ? "Returning to passive desktop mode."
-        : "Type a saved action or alias, then press Enter.";
+    if (state.phase === "confirm") {
+      commandHint.textContent = "Review the resolved action before execution.";
+    } else if (state.phase === "result") {
+      commandHint.textContent = "Returning to passive desktop mode.";
+    } else if (!isInputArmed) {
+      commandHint.textContent = "Press Enter to activate the command box. Esc closes.";
+    } else {
+      commandHint.textContent = "Type a saved action or alias, then press Enter.";
+    }
   }
 
   const action = state.pending_action || null;

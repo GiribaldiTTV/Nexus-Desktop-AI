@@ -19,7 +19,8 @@ class GlobalHotkeyManager:
         self._pressed = set()
         self._shutdown_fired = False
         self._overlay_toggle_fired = False
-        self._command_mode_active = False
+        self._command_overlay_active = False
+        self._command_text_capture_active = False
 
     def start(self) -> None:
         if self._listener is not None:
@@ -34,13 +35,17 @@ class GlobalHotkeyManager:
         self._pressed.clear()
         self._shutdown_fired = False
         self._overlay_toggle_fired = False
-        self._command_mode_active = False
+        self._command_overlay_active = False
+        self._command_text_capture_active = False
 
     def force_kill(self) -> None:
         os._exit(0)
 
-    def set_command_mode_active(self, active: bool) -> None:
-        self._command_mode_active = bool(active)
+    def set_command_overlay_active(self, active: bool) -> None:
+        self._command_overlay_active = bool(active)
+
+    def set_command_text_capture_active(self, active: bool) -> None:
+        self._command_text_capture_active = bool(active)
 
     def _on_press(self, key) -> None:
         self._pressed.add(key)
@@ -63,7 +68,7 @@ class GlobalHotkeyManager:
             self.bus.command_overlay_toggle_requested.emit()
             return
 
-        if not self._command_mode_active or ctrl_down or alt_down:
+        if not self._command_overlay_active or ctrl_down or alt_down:
             return
 
         if key == pynput_keyboard.Key.esc:
@@ -72,6 +77,9 @@ class GlobalHotkeyManager:
 
         if key == pynput_keyboard.Key.enter:
             self.bus.command_enter_requested.emit()
+            return
+
+        if not self._command_text_capture_active:
             return
 
         if key == pynput_keyboard.Key.backspace:

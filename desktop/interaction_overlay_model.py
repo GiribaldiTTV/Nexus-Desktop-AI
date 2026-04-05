@@ -75,6 +75,7 @@ class CommandOverlayModel:
         self.actions = tuple(actions)
         self.visible = False
         self.phase = "hidden"
+        self.input_armed = False
         self.input_text = ""
         self.status_kind = "idle"
         self.status_text = ""
@@ -85,6 +86,7 @@ class CommandOverlayModel:
     def open(self):
         self.visible = True
         self.phase = "entry"
+        self.input_armed = False
         self.input_text = ""
         self.status_kind = "idle"
         self.status_text = ""
@@ -95,6 +97,7 @@ class CommandOverlayModel:
     def close(self):
         self.visible = False
         self.phase = "hidden"
+        self.input_armed = False
         self.input_text = ""
         self.status_kind = "idle"
         self.status_text = ""
@@ -109,7 +112,7 @@ class CommandOverlayModel:
             self.open()
 
     def append_text(self, char: str):
-        if not self.visible or self.phase != "entry" or not char:
+        if not self.visible or self.phase != "entry" or not self.input_armed or not char:
             return
 
         self.input_text += char
@@ -117,7 +120,7 @@ class CommandOverlayModel:
         self.status_text = ""
 
     def backspace(self):
-        if not self.visible or self.phase != "entry":
+        if not self.visible or self.phase != "entry" or not self.input_armed:
             return
 
         self.input_text = self.input_text[:-1]
@@ -130,6 +133,7 @@ class CommandOverlayModel:
 
         if self.phase == "confirm":
             self.phase = "entry"
+            self.input_armed = True
             self.status_kind = "idle"
             self.status_text = ""
             self.pending_action = None
@@ -144,12 +148,24 @@ class CommandOverlayModel:
             return ("ignored", None)
 
         if self.phase == "entry":
+            if not self.input_armed:
+                self.input_armed = True
+                self.status_kind = "idle"
+                self.status_text = ""
+                return ("input_armed", None)
+
+            if not normalize_command_text(self.input_text):
+                self.status_kind = "idle"
+                self.status_text = ""
+                return ("awaiting_input", None)
+
             self.last_request = self.input_text
             matches = tuple(resolve_command_actions(self.input_text, self.actions))
             self.pending_matches = matches
 
             if len(matches) == 1:
                 self.phase = "confirm"
+                self.input_armed = False
                 self.pending_action = matches[0]
                 self.status_kind = "ready"
                 self.status_text = ""
@@ -172,6 +188,7 @@ class CommandOverlayModel:
 
     def show_result(self, status_kind: str, status_text: str):
         self.phase = "result"
+        self.input_armed = False
         self.status_kind = status_kind
         self.status_text = status_text
 
@@ -180,6 +197,7 @@ class CommandOverlayModel:
         return {
             "visible": self.visible,
             "phase": self.phase,
+            "input_armed": self.input_armed,
             "input_text": self.input_text,
             "status_kind": self.status_kind,
             "status_text": self.status_text,

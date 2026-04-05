@@ -19,7 +19,8 @@ HTTRANSPARENT = -1
 
 
 class DesktopJarvisWindow(QWidget):
-    command_mode_changed = Signal(bool)
+    command_overlay_visibility_changed = Signal(bool)
+    command_text_capture_changed = Signal(bool)
 
     def __init__(self, screen, visual_html_path: str, event_logger=None):
         super().__init__()
@@ -153,8 +154,21 @@ class DesktopJarvisWindow(QWidget):
         if self._page_ready:
             self._apply_pending_voice_level()
 
-    def _set_command_mode_active(self, active: bool):
-        self.command_mode_changed.emit(bool(active))
+    def _set_command_overlay_visible(self, active: bool):
+        self.command_overlay_visibility_changed.emit(bool(active))
+
+    def _set_command_text_capture_active(self, active: bool):
+        self.command_text_capture_changed.emit(bool(active))
+
+    def _sync_command_capture_state(self):
+        overlay_visible = self._command_model.visible
+        text_capture_active = (
+            self._command_model.visible
+            and self._command_model.phase == "entry"
+            and self._command_model.input_armed
+        )
+        self._set_command_overlay_visible(overlay_visible)
+        self._set_command_text_capture_active(text_capture_active)
 
     def open_command_overlay(self):
         if self._is_shutting_down:
@@ -163,7 +177,7 @@ class DesktopJarvisWindow(QWidget):
         self._result_close_timer.stop()
         self._command_model.open()
         self._apply_command_overlay_state()
-        self._set_command_mode_active(True)
+        self._sync_command_capture_state()
         self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_OPENED")
 
     def close_command_overlay(self):
@@ -173,7 +187,7 @@ class DesktopJarvisWindow(QWidget):
         self._result_close_timer.stop()
         self._command_model.close()
         self._apply_command_overlay_state()
-        self._set_command_mode_active(False)
+        self._sync_command_capture_state()
         self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_CLOSED")
 
     def toggle_command_overlay(self):
@@ -185,27 +199,29 @@ class DesktopJarvisWindow(QWidget):
     def handle_command_character(self, char: str):
         self._command_model.append_text(char)
         self._apply_command_overlay_state()
+        self._sync_command_capture_state()
 
     def handle_command_backspace(self):
         self._command_model.backspace()
         self._apply_command_overlay_state()
+        self._sync_command_capture_state()
 
     def handle_command_escape(self):
         result = self._command_model.escape()
         self._apply_command_overlay_state()
+        self._sync_command_capture_state()
 
         if result == "confirm_cancelled":
             self._log_event("RENDERER_MAIN|COMMAND_CONFIRM_CANCELLED")
             return
 
         if result == "closed":
-            self._set_command_mode_active(False)
             self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_CLOSED")
 
     def _show_command_result(self, status_kind: str, status_text: str):
         self._command_model.show_result(status_kind, status_text)
         self._apply_command_overlay_state()
-        self._set_command_mode_active(False)
+        self._sync_command_capture_state()
         self._result_close_timer.start(1200)
 
     def _close_command_overlay_after_result(self):
@@ -214,6 +230,11 @@ class DesktopJarvisWindow(QWidget):
     def handle_command_submit(self):
         result, payload = self._command_model.submit()
         self._apply_command_overlay_state()
+        self._sync_command_capture_state()
+
+        if result == "input_armed":
+            self._log_event("RENDERER_MAIN|COMMAND_ENTRY_ACTIVATED")
+            return
 
         if result == "confirm_ready":
             self._log_event(f"RENDERER_MAIN|COMMAND_CONFIRM_READY|action_id={payload.id}")

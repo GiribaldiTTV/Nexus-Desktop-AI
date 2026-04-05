@@ -36,7 +36,10 @@ body.desktop-mode #front-bloom {
   z-index: 24;
   display: none;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: clamp(240px, calc(50vh + min(18vw, 18vh) + 24px), 74vh);
+  padding-inline: 24px;
+  box-sizing: border-box;
   pointer-events: none;
 }
 
@@ -46,6 +49,7 @@ body.desktop-mode #front-bloom {
 
 .command-panel {
   width: min(78vw, 760px);
+  max-width: 760px;
   padding: 22px 24px 20px;
   border: 1px solid rgba(118, 226, 255, 0.22);
   border-radius: 22px;
@@ -88,6 +92,18 @@ body.desktop-mode #front-bloom {
   border-radius: 16px;
   border: 1px solid rgba(118, 226, 255, 0.18);
   background: rgba(6, 18, 30, 0.76);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.command-input-shell.is-armed {
+  border-color: rgba(118, 226, 255, 0.36);
+  background: rgba(7, 22, 36, 0.86);
+  box-shadow: 0 0 0 1px rgba(118, 226, 255, 0.10) inset;
+}
+
+.command-input-shell.is-locked {
+  border-color: rgba(118, 226, 255, 0.24);
+  background: rgba(8, 18, 30, 0.84);
 }
 
 .command-prompt {
@@ -105,8 +121,12 @@ body.desktop-mode #front-bloom {
 }
 
 .command-input-text:empty::before {
-  content: "Type a saved action or alias";
+  content: "Press Enter to activate command entry";
   color: rgba(150, 180, 198, 0.56);
+}
+
+.command-input-shell.is-armed .command-input-text:empty::before {
+  content: "Type a saved action or alias";
 }
 
 .command-caret {
@@ -116,6 +136,13 @@ body.desktop-mode #front-bloom {
   background: rgba(132, 236, 255, 0.82);
   box-shadow: 0 0 12px rgba(132, 236, 255, 0.44);
   animation: caretPulse 1.05s ease-in-out infinite;
+}
+
+.command-input-shell:not(.is-armed) .command-caret,
+.command-input-shell.is-locked .command-caret {
+  opacity: 0.22;
+  box-shadow: none;
+  animation: none;
 }
 
 .command-status {
