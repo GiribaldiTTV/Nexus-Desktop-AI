@@ -135,6 +135,18 @@ Responsible for:
 - recovery and retry flow
 - runtime and crash logging
 
+### Launcher-Owned Root Log Boundary
+
+Current root-owned live launcher surfaces remain under `C:/Jarvis/logs` only for approved launcher/runtime truth such as:
+
+- launcher-generated `Runtime_*.txt`
+- matching live crash logs under `C:/Jarvis/logs/crash`
+- launcher control/status files when relevant
+- the current launcher-owned historical state file until a later approved relocation moves it elsewhere
+
+Dev/test/worker/toolkit evidence does not belong in the live root logs tree.
+That evidence must write under `C:/Jarvis/dev/logs/<lane>/...` and must not introduce new artifact families or new subfolders under `C:/Jarvis/logs` or `C:/Jarvis/logs/crash` without explicit approval.
+
 ### Renderer (`jarvis_desktop_main.py`)
 
 Responsible for:

@@ -78,7 +78,7 @@ def main():
     if exit_if_startup_abort_requested():
         return 0
 
-    visual_html_path = os.path.join(ROOT_DIR, "jarvis_visual", "jarvis_core_desktop.html")
+    visual_html_path = os.path.join(ROOT_DIR, "jarvis_visual", "jarvis_core.html")
     runtime_milestone("RENDERER_MAIN|VISUAL_HTML_RESOLVED")
     if exit_if_startup_abort_requested():
         return 0
@@ -113,12 +113,14 @@ def main():
             do_shutdown()
 
     bus.shutdown_requested.connect(do_shutdown)
+    bus.command_overlay_toggle_requested.connect(window.toggle_command_overlay)
     hotkeys.start()
     runtime_milestone("RENDERER_MAIN|HOTKEYS_STARTED")
     if exit_if_startup_abort_requested(hotkeys):
         return 0
 
     print("Jarvis Desktop Concept 1 - Version 1.02")
+    print("Command Overlay: Ctrl + Alt + Home")
     print("Hotkey: Ctrl + Alt + End")
 
     window.show()

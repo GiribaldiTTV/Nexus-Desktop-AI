@@ -29,3 +29,191 @@ body.desktop-mode #pulse {
 body.desktop-mode #front-bloom {
   opacity: 0.18;
 }
+
+#command-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 24;
+  display: none;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: clamp(240px, calc(50vh + min(18vw, 18vh) + 24px), 74vh);
+  padding-inline: 24px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+#command-overlay.visible {
+  display: flex;
+}
+
+.command-panel {
+  width: min(78vw, 760px);
+  max-width: 760px;
+  padding: 22px 24px 20px;
+  border: 1px solid rgba(118, 226, 255, 0.22);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(4, 16, 28, 0.94), rgba(2, 8, 16, 0.92));
+  box-shadow:
+    0 0 0 1px rgba(180, 245, 255, 0.06) inset,
+    0 18px 54px rgba(0, 0, 0, 0.46),
+    0 0 36px rgba(40, 170, 230, 0.14);
+  backdrop-filter: blur(18px);
+  color: rgba(225, 245, 255, 0.96);
+}
+
+.command-kicker {
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(118, 226, 255, 0.72);
+}
+
+.command-title {
+  margin-top: 8px;
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(238, 250, 255, 0.96);
+}
+
+.command-hint {
+  margin-top: 10px;
+  font-size: 14px;
+  color: rgba(172, 215, 235, 0.82);
+}
+
+.command-input-shell {
+  margin-top: 18px;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(118, 226, 255, 0.18);
+  background: rgba(6, 18, 30, 0.76);
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.command-input-shell.is-armed {
+  border-color: rgba(118, 226, 255, 0.36);
+  background: rgba(7, 22, 36, 0.86);
+  box-shadow: 0 0 0 1px rgba(118, 226, 255, 0.10) inset;
+}
+
+.command-input-shell.is-locked {
+  border-color: rgba(118, 226, 255, 0.24);
+  background: rgba(8, 18, 30, 0.84);
+}
+
+.command-prompt {
+  font-size: 22px;
+  color: rgba(118, 226, 255, 0.84);
+}
+
+.command-input-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 21px;
+  letter-spacing: 0.01em;
+  color: rgba(238, 248, 255, 0.96);
+  word-break: break-word;
+}
+
+.command-input-text:empty::before {
+  content: "Press Enter to activate command entry";
+  color: rgba(150, 180, 198, 0.56);
+}
+
+.command-input-shell.is-armed .command-input-text:empty::before {
+  content: "Type a saved action or alias";
+}
+
+.command-caret {
+  width: 10px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(132, 236, 255, 0.82);
+  box-shadow: 0 0 12px rgba(132, 236, 255, 0.44);
+  animation: caretPulse 1.05s ease-in-out infinite;
+}
+
+.command-input-shell:not(.is-armed) .command-caret,
+.command-input-shell.is-locked .command-caret {
+  opacity: 0.22;
+  box-shadow: none;
+  animation: none;
+}
+
+.command-status {
+  margin-top: 14px;
+  min-height: 22px;
+  font-size: 14px;
+  color: rgba(174, 215, 232, 0.88);
+}
+
+.command-status.status-not_found,
+.command-status.status-launch_failed {
+  color: rgba(255, 176, 176, 0.95);
+}
+
+.command-status.status-ambiguous {
+  color: rgba(255, 222, 154, 0.95);
+}
+
+.command-status.status-launch_requested,
+.command-status.status-ready {
+  color: rgba(166, 247, 195, 0.94);
+}
+
+.command-ambiguous {
+  min-height: 20px;
+  font-size: 13px;
+  color: rgba(255, 222, 154, 0.9);
+}
+
+.command-confirmation {
+  margin-top: 18px;
+  padding: 16px 18px 14px;
+  border-radius: 18px;
+  background: rgba(10, 22, 38, 0.86);
+  border: 1px solid rgba(118, 226, 255, 0.14);
+}
+
+.command-confirm-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.command-confirm-row:first-child {
+  margin-top: 0;
+}
+
+.command-confirm-row .label {
+  width: 126px;
+  flex: 0 0 auto;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(118, 226, 255, 0.66);
+}
+
+.command-confirm-row .value {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  color: rgba(236, 247, 255, 0.94);
+  word-break: break-word;
+}
+
+.command-confirm-help {
+  margin-top: 14px;
+  font-size: 13px;
+  color: rgba(172, 215, 235, 0.84);
+}
+
+@keyframes caretPulse {
+  0%, 100% { opacity: 0.28; }
+  50% { opacity: 1; }
+}

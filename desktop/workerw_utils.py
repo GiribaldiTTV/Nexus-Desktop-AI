@@ -14,9 +14,12 @@ SetWindowPos = user32.SetWindowPos
 GetWindowLongPtrW = user32.GetWindowLongPtrW
 SetWindowLongPtrW = user32.SetWindowLongPtrW
 GetClassNameW = user32.GetClassNameW
+GetParent = user32.GetParent
+MapWindowPoints = user32.MapWindowPoints
 
 LONG_PTR = ctypes.c_ssize_t
 ULONG_PTR = ctypes.c_size_t
+POINT = wintypes.POINT
 
 SendMessageTimeoutW.argtypes = [
     wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM,
@@ -53,6 +56,10 @@ SetWindowLongPtrW.restype = LONG_PTR
 
 GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
 GetClassNameW.restype = ctypes.c_int
+GetParent.argtypes = [wintypes.HWND]
+GetParent.restype = wintypes.HWND
+MapWindowPoints.argtypes = [wintypes.HWND, wintypes.HWND, ctypes.POINTER(POINT), wintypes.UINT]
+MapWindowPoints.restype = ctypes.c_int
 
 # --- Constants ---
 SMTO_NORMAL = 0x0000
@@ -155,6 +162,7 @@ def get_last_workerw_probe_events():
             f"progman_class={probe.get('progman_class', 'none')}|"
             f"progman_message_sent={probe.get('progman_message_sent', 'false')}|"
             f"progman_message_result={probe.get('progman_message_result', 'none')}|"
+            f"progman_child_workerw={probe.get('progman_child_workerw', 'none')}|"
             f"top_level_window_count={probe.get('top_level_window_count', 0)}"
         ),
         (
@@ -177,6 +185,7 @@ def get_workerw():
     progman_message_sent = False
     progman_message_result = "none"
     selection_reason = "none"
+    progman_child_workerw = None
     if progman:
         result = wintypes.DWORD()
         send_result = SendMessageTimeoutW(
@@ -190,6 +199,7 @@ def get_workerw():
         )
         progman_message_sent = bool(send_result)
         progman_message_result = str(int(result.value))
+        progman_child_workerw = FindWindowExW(progman, None, "WorkerW", None)
 
     workerw = None
     windows = []
@@ -224,15 +234,14 @@ def get_workerw():
             if workerw is None and possible:
                 workerw = possible
                 selection_reason = "next_workerw"
-            elif (
-                workerw is None
-                and not possible
-                and progman
-                and hwnd == progman
-                and window_class == "Progman"
-            ):
-                workerw = hwnd
-                selection_reason = "progman_fallback"
+
+    if workerw is None and progman_child_workerw:
+        workerw = progman_child_workerw
+        selection_reason = "progman_child_workerw"
+
+    if workerw is None and progman:
+        workerw = progman
+        selection_reason = "progman_fallback"
 
     global _LAST_WORKERW_PROBE
     _LAST_WORKERW_PROBE = {
@@ -240,6 +249,7 @@ def get_workerw():
         "progman_class": _window_class(progman),
         "progman_message_sent": "true" if progman_message_sent else "false",
         "progman_message_result": progman_message_result,
+        "progman_child_workerw": _hwnd_token(progman_child_workerw),
         "top_level_window_count": len(windows),
         "shell_hosts": shell_hosts,
         "workerw_candidates": [_hwnd_token(hwnd) for hwnd in workerw_candidates],
@@ -251,7 +261,8 @@ def get_workerw():
 
 def attach_window_to_desktop(hwnd: int) -> bool:
     workerw = get_workerw()
-    if not workerw:
+    selection_reason = _LAST_WORKERW_PROBE.get("selection_reason", "none")
+    if not workerw or selection_reason not in {"next_workerw", "progman_child_workerw", "progman_fallback"}:
         return False
 
     # Parent first so the shell owns the window relationship.
@@ -325,6 +336,40 @@ def make_window_noninteractive(hwnd: int) -> None:
         SWP_NOMOVE
         | SWP_NOSIZE
         | SWP_NOACTIVATE
+        | SWP_SHOWWINDOW
+        | SWP_FRAMECHANGED
+        | SWP_NOOWNERZORDER
+        | SWP_NOSENDCHANGING,
+    )
+
+
+def position_desktop_child(hwnd: int, x: int, y: int, width: int, height: int) -> None:
+    parent = GetParent(hwnd)
+    left = int(x)
+    top = int(y)
+    right = int(x + width)
+    bottom = int(y + height)
+
+    if parent:
+        points = (POINT * 2)()
+        points[0].x = left
+        points[0].y = top
+        points[1].x = right
+        points[1].y = bottom
+        MapWindowPoints(0, parent, points, 2)
+        left = points[0].x
+        top = points[0].y
+        right = points[1].x
+        bottom = points[1].y
+
+    SetWindowPos(
+        hwnd,
+        HWND_BOTTOM,
+        left,
+        top,
+        max(1, right - left),
+        max(1, bottom - top),
+        SWP_NOACTIVATE
         | SWP_SHOWWINDOW
         | SWP_FRAMECHANGED
         | SWP_NOOWNERZORDER

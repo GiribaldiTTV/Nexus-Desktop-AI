@@ -40,6 +40,11 @@ These are the default project-governance and product-boundary docs:
 - `docs/codex_modes.md`
 - `docs/jarvis_task_template.md`
 
+Within that core set:
+
+- `docs/jarvis_vision.md` owns the product-wide meaning of `pre-Beta`, `Beta`, and `Full`
+- `docs/feature_backlog.md` owns per-item or per-slice release-stage assignment
+
 Use these when the task concerns:
 
 - repo-wide rules
@@ -54,11 +59,13 @@ Use these when the task concerns:
 These are the current canonical planning docs for specific active planning areas:
 
 - `docs/boot_access_design.md`
+- `docs/jarvis_interaction_architecture.md`
 - `docs/workspace_layout_plan.md`
 
 Current canonical ownership:
 
 - `boot_access_design.md` is the canonical boot-planning source
+- `jarvis_interaction_architecture.md` is the canonical interaction-planning source
 - `workspace_layout_plan.md` is the canonical workspace-planning source
 
 Use these only when the task is directly about those workstreams.
@@ -72,6 +79,7 @@ These docs are still valid, but they are not part of the default prompt baseline
 - `docs/v1.8.0_closeout.md`
 - `docs/v1.9.0_closeout.md`
 - `docs/v2.0_closeout.md`
+- `docs/v2.2.0_closeout.md`
 
 Use them when the task depends on:
 
@@ -132,7 +140,7 @@ Add `architecture.md` or startup-path docs only if path-sensitive surfaces are d
 
 ### Analysis / Sequencing Work
 
-For “what should we do next,” “is this complete,” or “is this the right target” tasks, prompts should usually include:
+For "what should we do next," "is this complete," or "is this the right target" tasks, prompts should usually include:
 
 - `docs/development_rules.md`
 - `docs/Main.md`

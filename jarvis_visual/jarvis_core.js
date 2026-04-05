@@ -3,6 +3,17 @@ const backCanvas = document.getElementById("fx-back");
 const frontCanvas = document.getElementById("fx-front");
 const bctx = backCanvas.getContext("2d");
 const fctx = frontCanvas.getContext("2d");
+const commandOverlay = document.getElementById("command-overlay");
+const commandHint = document.getElementById("command-hint");
+const commandInputShell = document.getElementById("command-input-shell");
+const commandInputText = document.getElementById("command-input-text");
+const commandStatus = document.getElementById("command-status");
+const commandAmbiguous = document.getElementById("command-ambiguous");
+const commandConfirmation = document.getElementById("command-confirmation");
+const commandConfirmRequest = document.getElementById("command-confirm-request");
+const commandConfirmTitle = document.getElementById("command-confirm-title");
+const commandConfirmKind = document.getElementById("command-confirm-kind");
+const commandConfirmTarget = document.getElementById("command-confirm-target");
 
 let w = 0;
 let h = 0;
@@ -17,6 +28,17 @@ let bootStartTime = null;
 
 let voiceLevel = 0.0;
 let smoothedVoiceLevel = 0.0;
+let commandOverlayState = {
+  visible: false,
+  phase: "hidden",
+  input_armed: false,
+  input_text: "",
+  status_kind: "idle",
+  status_text: "",
+  typed_request: "",
+  pending_action: null,
+  ambiguous_titles: []
+};
 
 const backParticles = [];
 const frontParticles = [];
@@ -1028,6 +1050,83 @@ function drawForegroundSweep() {
   fctx.filter = "none";
 }
 
+function renderCommandOverlay() {
+  if (!commandOverlay) return;
+
+  const state = commandOverlayState || {};
+  const isVisible = Boolean(state.visible);
+  const isInputArmed = Boolean(state.input_armed) && state.phase === "entry";
+  const isLocked = state.phase === "confirm" || state.phase === "result";
+  commandOverlay.classList.toggle("visible", isVisible);
+  commandOverlay.setAttribute("aria-hidden", isVisible ? "false" : "true");
+
+  if (commandInputShell) {
+    commandInputShell.classList.toggle("is-armed", isInputArmed);
+    commandInputShell.classList.toggle("is-locked", isLocked);
+  }
+
+  if (!isVisible) {
+    return;
+  }
+
+  if (commandInputText) {
+    commandInputText.textContent = state.input_text || "";
+  }
+
+  if (commandStatus) {
+    commandStatus.className = "command-status";
+    if (state.status_kind && state.status_kind !== "idle") {
+      commandStatus.classList.add(`status-${state.status_kind}`);
+    }
+    if (state.status_text) {
+      commandStatus.textContent = state.status_text;
+    } else if (state.phase === "entry" && !isInputArmed) {
+      commandStatus.textContent = "Press Enter to activate the command box.";
+    } else {
+      commandStatus.textContent = "";
+    }
+  }
+
+  if (commandAmbiguous) {
+    const titles = Array.isArray(state.ambiguous_titles) ? state.ambiguous_titles : [];
+    commandAmbiguous.textContent =
+      titles.length > 0 ? `Matches: ${titles.join(" • ")}` : "";
+  }
+
+  if (commandHint) {
+    if (state.phase === "confirm") {
+      commandHint.textContent = "Review the resolved action before execution.";
+    } else if (state.phase === "result") {
+      commandHint.textContent = "Returning to passive desktop mode.";
+    } else if (!isInputArmed) {
+      commandHint.textContent = "Press Enter to activate the command box. Esc closes.";
+    } else {
+      commandHint.textContent = "Type a saved action or alias, then press Enter.";
+    }
+  }
+
+  const action = state.pending_action || null;
+  const showConfirm = state.phase === "confirm" && action;
+  if (commandConfirmation) {
+    commandConfirmation.hidden = !showConfirm;
+  }
+
+  if (showConfirm) {
+    if (commandConfirmRequest) {
+      commandConfirmRequest.textContent = state.typed_request || "";
+    }
+    if (commandConfirmTitle) {
+      commandConfirmTitle.textContent = action.title || "";
+    }
+    if (commandConfirmKind) {
+      commandConfirmKind.textContent = action.target_kind || "";
+    }
+    if (commandConfirmTarget) {
+      commandConfirmTarget.textContent = action.target || "";
+    }
+  }
+}
+
 function frame(ts) {
   t = ts;
   if (currentState === "boot" && bootStartTime === null) bootStartTime = t;
@@ -1086,6 +1185,12 @@ window.setJarvisVoiceLevel = function(level) {
   voiceLevel = clamp(Number(level) || 0, 0, 1);
 };
 
+window.setCommandOverlayState = function(state) {
+  commandOverlayState = Object.assign({}, commandOverlayState, state || {});
+  renderCommandOverlay();
+};
+
 window.setJarvisState("boot");
 window.setJarvisVoiceLevel(0);
+window.setCommandOverlayState({ visible: false });
 requestAnimationFrame(frame);

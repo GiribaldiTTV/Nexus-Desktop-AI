@@ -119,6 +119,7 @@ Status: Deferred (planning groundwork complete enough to pause)
 Priority: High  
 Suggested Version: v2.0  
 Suggested Revision: rev1  
+Release Stage: Slice-staged  
 
 Description:
 Design and later implement top-level boot orchestration above the desktop launcher.
@@ -147,6 +148,13 @@ Out of Scope:
 Notes:
 Current planning truth already includes the minimal future boot-orchestrator stage model in `docs/architecture.md` and aligned boot-access planning language in `docs/boot_access_design.md`. That completed groundwork is now complete enough to pause. This item therefore remains deferred only for later implementation-facing planning or runtime work and should not be mixed into current desktop orchestration revisions.
 
+Release-stage mapping:
+
+- completed planning groundwork is historical completion, not future-stage work
+- later internal implementation-facing groundwork belongs to `pre-Beta`
+- any later packaged or installable user-facing boot-orchestrator delivery belongs no earlier than `Beta`
+- broader mature boot-layer delivery belongs to `Full`
+
 ---
 
 ### [ID: FB-005] Workspace and folder organization
@@ -155,6 +163,7 @@ Status: Deferred (partial implementation through Step 4)
 Priority: Low  
 Suggested Version: v2.0  
 Suggested Revision: rev1  
+Release Stage: Slice-staged  
 
 Description:
 Continue staged project-directory cleanup for clarity and scalability while keeping top-level entrypoint and broader workspace restructuring deferred.
@@ -191,9 +200,17 @@ Completed slices now include:
 Step 5 and broader workspace work remain intentionally deferred.
 That means:
 
+- the current `FB-005` workspace slice is closed at the completed Step 4 boundary
 - `main.py` remains root-owned
 - `launch_jarvis_desktop.vbs` remains root-owned
+- the remaining root-owned entrypoint boundary no longer belongs to the active workspace-cleanup lane and should be treated as later boot / entrypoint-ownership work outside `FB-005`
 - broader folder cleanup, broader `Audio` casing normalization, and `logs/` reorganization remain out of scope until a later explicitly approved slice
+
+Release-stage mapping:
+
+- completed Steps 3 and 4 are historical completion, not future-stage work
+- Step 5 is a later `pre-Beta` internal path-shaping slice if intentionally resumed
+- broader workspace follow-through should remain separately approved rather than being treated as an automatic `Beta` or `Full` product feature lane
 
 ---
 
@@ -266,10 +283,10 @@ This should remain a reporting refinement only and must not change launcher beha
 
 ### [ID: FB-008] Shutdown voice degradation effect
 
-Status: On Hold  
+Status: Implemented (v2.2.0 rev2)  
 Priority: Low  
-Suggested Version: TBD  
-Suggested Revision: TBD  
+Suggested Version: v2.2.0  
+Suggested Revision: rev2  
 
 Description:
 Refine the existing staged degradation effect on the final "Shutting down" voice line so Jarvis sounds more convincingly like he is losing power during terminal shutdown.
@@ -278,10 +295,14 @@ Why it matters:
 Shutdown-line tuning would make Jarvis feel more state-aware and physically present during failure termination without widening the diagnostics/error voice path.
 
 Proposed Change:
-Tune the existing shutdown-only voice envelope using staged slowdown, optional pitch drop, and final tail fade or hesitation. Keep the work limited to shutdown-line-only envelope refinement rather than first-time implementation or broader voice-path redesign.
+Implemented model:
+- the final `Shutting down.` line remains routed through the existing dedicated shutdown-only path in `Audio/jarvis_error_voice.py`
+- the late shutdown envelope is now tuned so the collapse stays concentrated on `down` while the tail remains degraded but intelligible
+- the existing dev-only voice regression harness remains the regression guard for the launcher-owned shutdown line, and its normal-voice probe path now matches the current `Audio/jarvis_voice.py` repo layout
 
 Likely Files Affected:
 - C:/Jarvis/Audio/jarvis_error_voice.py
+- C:/Jarvis/dev/jarvis_voice_regression_harness.py
 
 Scope:
 - shutdown voice-effect refinement
@@ -293,8 +314,13 @@ Out of Scope:
 - renderer changes
 
 Notes:
-Current repo truth already includes a dedicated shutdown-only effect path for the final "Shutting down." line inside the diagnostics/error voice script. This item now represents any future shutdown-envelope tuning on top of that existing path, not first implementation of a shutdown-specific branch.
-This item is intentionally paused behind `FB-020` so the Dev Toolkit utility model and dev-only evidence-root cleanup can land first without mixing voice refinement into the current developer-surface rework.
+This item is now implemented as a tiny shutdown-line-only refinement.
+Current repo truth already includes:
+
+- the pre-existing dedicated shutdown-only effect path for the final `Shutting down.` line inside the diagnostics/error voice script
+- a bounded late-tail tuning pass in `apply_shutdown_source_slowdown()` so the collapse remains focused on `down` without over-dragging the final suffix
+- a directly supportive dev-only voice-harness path correction so the normal-voice probe resolves the live `Audio/jarvis_voice.py` location
+- passing voice-regression evidence across repeated-crash, startup-abort, direct diagnostics/error probes, and direct normal-voice probe coverage
 
 ---
 
@@ -519,6 +545,7 @@ Status: Deferred (rev1a clarification complete enough to pause)
 Priority: Medium  
 Suggested Version: v2.0  
 Suggested Revision: rev1a  
+Release Stage: Slice-staged  
 
 Description:
 Define the conceptual boundary between future boot-stage orchestration and the already stabilized desktop-stage launcher layer.
@@ -545,6 +572,11 @@ Out of Scope:
 
 Notes:
 This remains preparation work only. Current planning truth already includes the architecture-level `FB-015 rev1a` phase-boundary contract in `docs/architecture.md` plus the aligned downstream-input contract in `docs/boot_access_design.md`. That clarification work is now complete enough to pause. Any later boot-planning follow-through remains deferred, this item must not introduce boot-level runtime control, and it still does not authorize `FB-004` implementation work.
+
+Release-stage mapping:
+
+- completed `rev1a` clarification is historical completion, not future-stage work
+- any later follow-through remains `pre-Beta` internal clarification unless a separate later slice explicitly widens beyond that planning boundary
 
 ---
 
@@ -966,6 +998,7 @@ Status: Deferred
 Priority: Low  
 Suggested Version: v2.1.0  
 Suggested Revision: rev5  
+Release Stage: pre-Beta  
 
 Description:
 Clarify the shared naming shape between `BOOT_MAIN|...` and `RENDERER_MAIN|...` milestone families once both lanes have enough core markers to make cross-lane evidence easier to compare.
@@ -1043,6 +1076,117 @@ Current repo truth already includes:
 - latest-artifact convenience utilities
 
 This landed as a bounded dev-tools-only intake slice and did not change production reporting behavior, issue-submission behavior, or support-bundle schema.
+
+---
+
+### [ID: FB-027] Jarvis interaction surfaces and shared action model
+
+Status: Deferred  
+Priority: High  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: Slice-staged  
+
+Description:
+Define and later deliver the Jarvis interaction system as a voice-first, typed-sufficient, user-customizable command surface with one shared action model underneath typed commands, future voice commands, aliases, routines, and profiles.
+
+Why it matters:
+This is the clearest future product-facing lane for turning Jarvis from a stabilized orchestration foundation into a system-facing interaction layer the user can actually shape and use day to day.
+
+Proposed Change:
+For current repo truth, keep the canonical interaction architecture in `docs/jarvis_interaction_architecture.md` and deliver it through staged slices rather than one broad feature push.
+
+Likely Files Affected:
+- C:/Jarvis/docs/jarvis_interaction_architecture.md
+- future typed command overlay surfaces
+- future shared action-model surfaces
+- future action-customization surfaces
+- future install and setup surfaces
+
+Scope:
+- Jarvis interaction planning and staged delivery
+- typed command overlay
+- shared action model
+- customizable actions, aliases, routines, and profiles
+- later voice-first parity through the same model
+
+Out of Scope:
+- auth or trust mechanics
+- launcher-policy changes
+- shell, tray, renderer, or notification implementation mechanics
+- plugin implementation mechanics
+- broader boot-orchestrator runtime implementation
+
+Notes:
+Current planning truth already lives in `docs/jarvis_interaction_architecture.md`.
+
+Release-stage mapping:
+
+- `pre-Beta`: typed-first interaction foundation, including the quick command overlay, natural-language typed entry, minimal shared action model, direct actions and saved aliases, and desktop-mode command confirmation before execution
+- `Beta`: packaged and installable user-facing release with practical setup expectations and broader customization beyond the first internal slice
+- `Full`: later wake-word voice invocation, richer routines and profiles, and any future plugin capability if the shared action model proves stable enough
+
+This item must be staged by slice rather than treated as one single blanket stage.
+
+---
+
+### [ID: FB-028] Relocate launcher history state out of root logs
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Move the launcher-owned historical-memory file out of the user-visible root logs tree into a dedicated launcher-owned runtime state location.
+
+Why it matters:
+`jarvis_history_v1.jsonl` is not a runtime log, crash artifact, or dev evidence root. Keeping it in `C:/Jarvis/logs` makes internal cross-run state look like user-facing log clutter and conflicts with the current root-logs governance rule that the live root logs tree should stay reserved for already-approved launcher/runtime truth surfaces only.
+
+Proposed Change:
+Later bounded relocation slice:
+
+- choose a non-user-facing launcher-owned state root outside `C:/Jarvis/logs` and outside `C:/Jarvis/dev/logs`, preferably `%LOCALAPPDATA%/Jarvis/state`
+- patch the launcher history-path helper to read and write there
+- add a one-time migration from the existing root `C:/Jarvis/logs/jarvis_history_v1.jsonl` if present
+- preserve fail-safe degradation if migration or new-state writes fail
+- update the contained history harness and any other history-path consumers
+- sync the governing docs after the relocation lands
+
+Likely Files Affected:
+- C:/Jarvis/desktop/jarvis_desktop_launcher.pyw
+- C:/Jarvis/desktop/jarvis_history_harness_runner.py
+- C:/Jarvis/docs/development_rules.md
+- C:/Jarvis/docs/architecture.md
+- C:/Jarvis/docs/feature_backlog.md
+
+Scope:
+- launcher-owned historical-state relocation only
+- one-time migration and fallback behavior
+- keeping live runtime/crash roots and dev evidence roots unchanged
+
+Out of Scope:
+- moving runtime logs
+- moving crash logs
+- changing support-bundle locations
+- redesigning historical-memory semantics
+- dev evidence-root cleanup beyond the history file itself
+
+Notes:
+Current explicit decision:
+
+- do not move `jarvis_history_v1.jsonl` during the post-`v2.2.0` logs-cleanup pass
+- keep the current file in place until this later relocation slice is explicitly selected
+
+Detailed future plan:
+
+1. define the dedicated target state root and document it
+2. patch the launcher history path to resolve to that root
+3. add a one-time copy-forward migration from the existing root file
+4. keep clean fallback to existing non-historical behavior if the new root is unavailable
+5. update contained history-harness coverage to prove no writes spill back into live root `logs`
+6. verify the live root `logs` tree no longer exposes the history file after migration
 
 ---
 

@@ -23,6 +23,13 @@ def normalize_path(path):
     return os.path.normcase(os.path.normpath(os.path.abspath(path)))
 
 
+def path_is_within(path, parent):
+    try:
+        return os.path.commonpath([normalize_path(path), normalize_path(parent)]) == normalize_path(parent)
+    except ValueError:
+        return False
+
+
 def derive_run_identity(runtime_log_path):
     stem = os.path.splitext(os.path.basename(runtime_log_path))[0]
     if stem.startswith("Runtime_"):
@@ -150,8 +157,37 @@ def build_environment_summary():
     }
 
 
-def ensure_support_bundle_dir(runtime_log_path):
-    support_dir = os.path.join(os.path.dirname(runtime_log_path), SUPPORT_BUNDLE_FOLDER)
+def resolve_user_visible_support_bundle_dir():
+    home_dir = os.path.expanduser("~")
+    local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
+    candidate_dirs = []
+
+    if home_dir:
+        candidate_dirs.append(os.path.join(home_dir, "Documents", "Jarvis Support Bundles"))
+    if local_app_data:
+        candidate_dirs.append(os.path.join(local_app_data, "Jarvis", "Support Bundles"))
+    if home_dir:
+        candidate_dirs.append(os.path.join(home_dir, "Jarvis Support Bundles"))
+
+    for candidate_dir in candidate_dirs:
+        try:
+            os.makedirs(candidate_dir, exist_ok=True)
+            return candidate_dir
+        except OSError:
+            continue
+
+    raise SupportBundleError("Could not create a writable support-bundle folder outside the live logs tree.")
+
+
+def ensure_support_bundle_dir(root_dir, runtime_log_path):
+    runtime_dir = os.path.dirname(runtime_log_path)
+    live_logs_dir = os.path.join(root_dir, "logs")
+    dev_logs_dir = os.path.join(root_dir, "dev", "logs")
+
+    if path_is_within(runtime_dir, live_logs_dir) and not path_is_within(runtime_dir, dev_logs_dir):
+        return resolve_user_visible_support_bundle_dir()
+
+    support_dir = os.path.join(runtime_dir, SUPPORT_BUNDLE_FOLDER)
     os.makedirs(support_dir, exist_ok=True)
     return support_dir
 
@@ -180,7 +216,7 @@ def create_support_bundle(root_dir, runtime_log_path, crash_dir):
         raise SupportBundleError("The runtime log for this report could not be found.")
 
     run_identity = derive_run_identity(runtime_log_path)
-    support_dir = ensure_support_bundle_dir(runtime_log_path)
+    support_dir = ensure_support_bundle_dir(root_dir, runtime_log_path)
     bundle_basename = choose_bundle_basename(support_dir, run_identity)
     staging_dir = os.path.join(support_dir, bundle_basename)
     bundle_path = os.path.join(support_dir, f"{bundle_basename}.zip")

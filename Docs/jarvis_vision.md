@@ -72,6 +72,28 @@ This vision does not mean all boot ownership should be implemented immediately.
 
 Boot ownership, startup immersion, login and launch timing, shell behavior, and Windows integration should be handled as later dedicated revision tracks after orchestration is stable.
 
+## Product Release-Stage Framing
+
+Across the Jarvis product, release stages should be understood as:
+
+- `pre-Beta`
+  - internal or tightly controlled delivery of the first usable system slices
+  - architecture proof, interaction proof, and product-shape validation rather than installable public-facing distribution
+- `Beta`
+  - a packaged, installable, user-facing release with a real `.exe` or installer path, practical setup expectations, and enough stability for broader real-world testing
+- `Full`
+  - the broader mature product beyond the first installable/testing release
+
+This means Jarvis may have meaningful pre-Beta implementation progress without yet being considered Beta.
+
+Beta should not be assumed merely because:
+
+- a lane becomes user-visible internally
+- a planning doc defines a first deliverable
+- one subsystem becomes coherent enough for controlled internal use
+
+The product should not be treated as Beta until the installable and user-facing release threshold is intentionally reached.
+
 ## Behavior Philosophy (Early Definition)
 
 Jarvis should behave conservatively first:

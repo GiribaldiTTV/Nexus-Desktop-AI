@@ -7,7 +7,6 @@ import ctypes
 import random
 import math
 import datetime
-from ctypes import wintypes
 
 from pynput import keyboard as pynput_keyboard
 
@@ -20,6 +19,8 @@ from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 from Audio.jarvis_voice import JarvisSpeaker
+from desktop.desktop_renderer import DesktopJarvisWindow
+from desktop.workerw_utils import attach_window_to_desktop, make_window_noninteractive
 from desktop.single_instance import (
     NamedSignal,
     SingleInstanceGuard,
@@ -101,101 +102,11 @@ def screen_marker(screen):
 
 
 # ---------------------------
-# Win32 desktop / WorkerW helpers
+# Win32 desktop helpers
 # ---------------------------
-
-user32 = ctypes.windll.user32
-
-SendMessageTimeoutW = user32.SendMessageTimeoutW
-EnumWindows = user32.EnumWindows
-FindWindowW = user32.FindWindowW
-FindWindowExW = user32.FindWindowExW
-SetParent = user32.SetParent
-ShowWindow = user32.ShowWindow
-SetWindowPos = user32.SetWindowPos
-GetWindowLongPtrW = user32.GetWindowLongPtrW
-SetWindowLongPtrW = user32.SetWindowLongPtrW
-
-SMTO_NORMAL = 0x0000
-SW_SHOW = 5
-
-HWND_BOTTOM = 1
-SWP_NOSIZE = 0x0001
-SWP_NOMOVE = 0x0002
-SWP_NOACTIVATE = 0x0010
-SWP_SHOWWINDOW = 0x0040
-SWP_NOOWNERZORDER = 0x0200
-SWP_NOSENDCHANGING = 0x0400
-
-GWL_EXSTYLE = -20
-WS_EX_TOOLWINDOW = 0x00000080
-WS_EX_TRANSPARENT = 0x00000020
-WS_EX_NOACTIVATE = 0x08000000
 
 WM_NCHITTEST = 0x0084
 HTTRANSPARENT = -1
-
-WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
-
-
-def get_workerw():
-    progman = FindWindowW("Progman", None)
-    if progman:
-        result = wintypes.DWORD()
-        SendMessageTimeoutW(
-            progman,
-            0x052C,
-            0,
-            0,
-            SMTO_NORMAL,
-            1000,
-            ctypes.byref(result)
-        )
-
-    workerw = None
-
-    @WNDENUMPROC
-    def enum_windows_proc(hwnd, lParam):
-        nonlocal workerw
-        shell_def_view = FindWindowExW(hwnd, None, "SHELLDLL_DefView", None)
-        if shell_def_view:
-            possible = FindWindowExW(None, hwnd, "WorkerW", None)
-            if possible:
-                workerw = possible
-                return False
-        return True
-
-    EnumWindows(enum_windows_proc, 0)
-    return workerw
-
-
-def attach_window_to_desktop(hwnd):
-    workerw = get_workerw()
-    if not workerw:
-        return False
-
-    SetParent(hwnd, workerw)
-    ShowWindow(hwnd, SW_SHOW)
-    SetWindowPos(
-        hwnd,
-        HWND_BOTTOM,
-        0, 0, 0, 0,
-        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING
-    )
-    return True
-
-
-def make_window_noninteractive(hwnd):
-    exstyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
-    exstyle |= WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW
-    SetWindowLongPtrW(hwnd, GWL_EXSTYLE, exstyle)
-
-    SetWindowPos(
-        hwnd,
-        HWND_BOTTOM,
-        0, 0, 0, 0,
-        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING
-    )
 
 
 # ---------------------------
@@ -309,60 +220,6 @@ class BootSideWindow(BaseWindow):
 
     def set_body(self, text):
         self.body.setText(text)
-
-
-class DesktopVisualWindow(BaseWindow):
-    def __init__(self, screen, visual_html_path):
-        super().__init__(screen)
-        self.full_geo = screen.geometry()
-        self.compact_geo = self.compute_compact_geometry()
-
-        self.setStyleSheet("background-color: rgb(0, 0, 0);")
-        self.setGeometry(self.compact_geo)
-
-        root = QVBoxLayout(self)
-        root.setContentsMargins(0, 0, 0, 0)
-        root.setSpacing(0)
-
-        self.webview = QWebEngineView()
-        self.webview.setContextMenuPolicy(Qt.NoContextMenu)
-        self.webview.setFocusPolicy(Qt.NoFocus)
-        self.webview.setStyleSheet("background-color: rgb(0, 0, 0); border: none;")
-        self.webview.load(QUrl.fromLocalFile(os.path.abspath(visual_html_path)))
-
-        root.addWidget(self.webview)
-
-    def compute_compact_geometry(self):
-        g = self.screen_ref.geometry()
-
-        width = int(g.width() * 0.46)
-        height = int(g.height() * 0.68)
-
-        x = g.x() + (g.width() - width) // 2
-        y = g.y() + int((g.height() - height) * 0.40)
-
-        return QRect(x, y, width, height)
-
-    def prepare_desktop_geometry(self):
-        self.compact_geo = self.compute_compact_geometry()
-        self.setGeometry(self.compact_geo)
-
-    def set_visual_state(self, state_name):
-        js = f"window.setJarvisState && window.setJarvisState('{state_name}');"
-        self.webview.page().runJavaScript(js)
-
-    def set_voice_level(self, level):
-        level = max(0.0, min(1.0, float(level)))
-        js = f"window.setJarvisVoiceLevel && window.setJarvisVoiceLevel({level:.4f});"
-        self.webview.page().runJavaScript(js)
-
-    def fade_in(self, start_opacity=0.0, end_opacity=1.0, duration_ms=900):
-        self.setWindowOpacity(start_opacity)
-        self.fade_in_anim = QPropertyAnimation(self, b"windowOpacity")
-        self.fade_in_anim.setDuration(duration_ms)
-        self.fade_in_anim.setStartValue(start_opacity)
-        self.fade_in_anim.setEndValue(end_opacity)
-        self.fade_in_anim.start()
 
 
 class JarvisBootCenterWindow(BaseWindow):
@@ -632,6 +489,7 @@ class JarvisSystem:
         self.command_lock = threading.Lock()
 
         self.hotkeys_pressed = set()
+        self.command_overlay_hotkey_fired = False
         self.hotkey_listener = pynput_keyboard.Listener(
             on_press=self.on_key_press,
             on_release=self.on_key_release
@@ -662,7 +520,11 @@ class JarvisSystem:
 
         self.left_window = BootSideWindow(self.left_screen, "LEFT MODULE")
         self.boot_center_window = JarvisBootCenterWindow(self.center_screen, visual_html)
-        self.desktop_center_window = DesktopVisualWindow(self.center_screen, visual_html)
+        self.desktop_center_window = DesktopJarvisWindow(
+            self.center_screen,
+            visual_html,
+            event_logger=self.runtime_milestone,
+        )
         self.right_window = BootSideWindow(self.right_screen, "RIGHT MODULE")
 
         self.desktop_center_window.hide()
@@ -720,21 +582,52 @@ class JarvisSystem:
     def on_key_press(self, key):
         self.hotkeys_pressed.add(key)
         try:
+            ctrl_down = (
+                pynput_keyboard.Key.ctrl_l in self.hotkeys_pressed
+                or pynput_keyboard.Key.ctrl_r in self.hotkeys_pressed
+            )
+            alt_down = (
+                pynput_keyboard.Key.alt_l in self.hotkeys_pressed
+                or pynput_keyboard.Key.alt_r in self.hotkeys_pressed
+            )
+
             if (
-                (pynput_keyboard.Key.ctrl_l in self.hotkeys_pressed or pynput_keyboard.Key.ctrl_r in self.hotkeys_pressed)
+                ctrl_down
                 and
-                (pynput_keyboard.Key.alt_l in self.hotkeys_pressed or pynput_keyboard.Key.alt_r in self.hotkeys_pressed)
+                alt_down
                 and
                 pynput_keyboard.Key.end in self.hotkeys_pressed
             ):
                 self.runtime_milestone("BOOT_MAIN|HOTKEY_SHUTDOWN_TRIGGERED")
                 self.emit_bus(self.bus.shutdown_requested)
+
+            if (
+                ctrl_down
+                and
+                alt_down
+                and
+                pynput_keyboard.Key.home in self.hotkeys_pressed
+                and
+                not self.command_overlay_hotkey_fired
+            ):
+                self.command_overlay_hotkey_fired = True
+                if getattr(self.desktop_center_window, "desktop_mode", False):
+                    self.runtime_milestone("BOOT_MAIN|HOTKEY_COMMAND_OVERLAY_TRIGGERED")
+                    self.desktop_center_window.toggle_command_overlay()
         except Exception:
             pass
 
     def on_key_release(self, key):
         if key in self.hotkeys_pressed:
             self.hotkeys_pressed.remove(key)
+        if key in (
+            pynput_keyboard.Key.home,
+            pynput_keyboard.Key.ctrl_l,
+            pynput_keyboard.Key.ctrl_r,
+            pynput_keyboard.Key.alt_l,
+            pynput_keyboard.Key.alt_r,
+        ):
+            self.command_overlay_hotkey_fired = False
 
     def shutdown_interface(self):
         if self.shutdown_in_progress:
@@ -1164,7 +1057,13 @@ class JarvisSystem:
     def begin_desktop_handoff(self):
         desktop_reveal_delay_ms = 140
         desktop_state_commit_delay_ms = 220
-        desktop_settle_delay_ms = desktop_reveal_delay_ms + desktop_state_commit_delay_ms + 320
+        # Let the renderer own its bounded post-attach stabilization passes so
+        # the Boot handoff does not keep re-positioning the desktop child for
+        # several extra seconds after transition begins.
+        desktop_settle_delay_ms = max(
+            desktop_reveal_delay_ms + desktop_state_commit_delay_ms + 320,
+            1150,
+        )
 
         self.desktop_center_window.prepare_desktop_geometry()
         self.desktop_center_window.setWindowOpacity(1.0)
@@ -1173,11 +1072,6 @@ class JarvisSystem:
         self.runtime_milestone("BOOT_MAIN|DESKTOP_SHOWN")
 
         self.desktop_center_window.enable_desktop_mode()
-        self.reinforce_desktop_mode()
-        QTimer.singleShot(300, self.reinforce_desktop_mode)
-        QTimer.singleShot(900, self.reinforce_desktop_mode)
-        QTimer.singleShot(2200, self.reinforce_desktop_mode)
-        QTimer.singleShot(5000, self.reinforce_desktop_mode)
         QTimer.singleShot(desktop_settle_delay_ms, self.mark_desktop_settled)
 
         self.boot_center_window.enter_background_visual_mode()
@@ -1216,10 +1110,7 @@ class JarvisSystem:
         self.runtime_milestone("BOOT_MAIN|DESKTOP_STATE_COMMITTED|state=dormant")
 
     def reinforce_desktop_mode(self):
-        hwnd = int(self.desktop_center_window.winId())
-        attach_window_to_desktop(hwnd)
-        make_window_noninteractive(hwnd)
-        self.desktop_center_window.lower()
+        self.desktop_center_window.reinforce_desktop_mode()
 
     def mark_desktop_settled(self):
         if self.desktop_settled_logged:
