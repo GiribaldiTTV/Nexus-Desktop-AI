@@ -10,7 +10,7 @@ if ROOT_DIR not in sys.path:
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
 
-from desktop.desktop_renderer import DesktopJarvisWindow
+from desktop.desktop_renderer import DesktopRuntimeWindow
 from desktop.hotkeys import ShutdownBus, GlobalHotkeyManager
 
 
@@ -20,7 +20,7 @@ def main():
     visual_html_path = os.path.join(ROOT_DIR, "jarvis_visual", "jarvis_core_desktop.html")
 
     screen = app.primaryScreen()
-    window = DesktopJarvisWindow(screen, visual_html_path)
+    window = DesktopRuntimeWindow(screen, visual_html_path)
 
     bus = ShutdownBus()
     hotkeys = GlobalHotkeyManager(bus)

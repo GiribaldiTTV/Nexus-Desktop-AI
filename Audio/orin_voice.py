@@ -11,7 +11,7 @@ from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtWidgets import QApplication
 
 
-class JarvisSpeaker:
+class OrinSpeaker:
     def __init__(self):
         self.app = QApplication.instance() or QApplication(sys.argv)
         self.audio_output = QAudioOutput()
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     text, mode = parse_args(sys.argv)
     settings = mode_settings(mode, text)
 
-    speaker = JarvisSpeaker()
+    speaker = OrinSpeaker()
     asyncio.run(
         speaker.speak(
             text=settings["text"],

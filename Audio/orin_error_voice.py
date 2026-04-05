@@ -50,7 +50,7 @@ def write_status(status_file: str, stop_signal_file: str, kind: str, msg: str):
         pass
 
 
-class JarvisErrorSpeaker:
+class OrinErrorSpeaker:
     def __init__(self, status_file: str = "", display_text: str = "", stop_signal_file: str = ""):
         self.app = QApplication.instance() or QApplication(sys.argv)
         self.audio_output = QAudioOutput()
@@ -838,7 +838,7 @@ def apply_shutdown_effect(source_path):
 
 if __name__ == "__main__":
     text, display_text, status_file, stop_signal_file = parse_args(sys.argv)
-    speaker = JarvisErrorSpeaker(
+    speaker = OrinErrorSpeaker(
         status_file=status_file,
         display_text=display_text,
         stop_signal_file=stop_signal_file,

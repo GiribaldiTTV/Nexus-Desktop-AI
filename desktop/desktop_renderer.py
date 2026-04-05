@@ -403,7 +403,7 @@ class CommandOverlayPanel(QWidget):
             self.confirm_target_value.setText(action.get("target", ""))
 
 
-class DesktopJarvisWindow(QWidget):
+class DesktopRuntimeWindow(QWidget):
 
     def __init__(self, screen, visual_html_path: str, event_logger=None):
         super().__init__()

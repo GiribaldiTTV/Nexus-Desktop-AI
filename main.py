@@ -18,8 +18,8 @@ from PySide6.QtCore import Qt, QTimer, QObject, Signal, QPropertyAnimation, QUrl
 from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
-from Audio.orin_voice import JarvisSpeaker
-from desktop.desktop_renderer import DesktopJarvisWindow
+from Audio.orin_voice import OrinSpeaker
+from desktop.desktop_renderer import DesktopRuntimeWindow
 from desktop.workerw_utils import attach_window_to_desktop, make_window_noninteractive
 from desktop.single_instance import (
     NamedSignal,
@@ -223,7 +223,7 @@ class BootSideWindow(BaseWindow):
         self.body.setText(text)
 
 
-class JarvisBootCenterWindow(BaseWindow):
+class BootRuntimeWindow(BaseWindow):
     command_submitted = Signal(str)
 
     def __init__(self, screen, visual_html_path):
@@ -439,7 +439,7 @@ class JarvisBootCenterWindow(BaseWindow):
 # Main Jarvis system
 # ---------------------------
 
-class JarvisSystem:
+class BootRuntimeSystem:
     def __init__(self):
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.dev_config = parse_dev_run_config(sys.argv)
@@ -483,7 +483,7 @@ class JarvisSystem:
         self.relaunch_timer.start(200)
 
         self.bus = UIBus()
-        self.speaker = JarvisSpeaker() if self.audio_mode == "voice" else None
+        self.speaker = OrinSpeaker() if self.audio_mode == "voice" else None
 
         self.awaiting_stage = "boot"
         self.voice_busy = False
@@ -523,8 +523,8 @@ class JarvisSystem:
         visual_html = os.path.join(self.base_dir, "jarvis_visual", "orin_core.html")
 
         self.left_window = BootSideWindow(self.left_screen, "LEFT MODULE")
-        self.boot_center_window = JarvisBootCenterWindow(self.center_screen, visual_html)
-        self.desktop_center_window = DesktopJarvisWindow(
+        self.boot_center_window = BootRuntimeWindow(self.center_screen, visual_html)
+        self.desktop_center_window = DesktopRuntimeWindow(
             self.center_screen,
             visual_html,
             event_logger=self.runtime_milestone,
@@ -1152,5 +1152,5 @@ class JarvisSystem:
 
 
 if __name__ == "__main__":
-    jarvis = JarvisSystem()
-    raise SystemExit(jarvis.start())
+    runtime = BootRuntimeSystem()
+    raise SystemExit(runtime.start())

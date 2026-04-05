@@ -255,7 +255,7 @@ spec = importlib.util.spec_from_file_location("jarvis_voice_probe", module_path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-speaker = module.JarvisSpeaker()
+speaker = module.OrinSpeaker()
 statuses = []
 states = []
 

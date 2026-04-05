@@ -11,7 +11,7 @@ if ROOT_DIR not in sys.path:
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
 
-from desktop.desktop_renderer import DesktopJarvisWindow
+from desktop.desktop_renderer import DesktopRuntimeWindow
 from desktop.hotkeys import ShutdownBus, GlobalHotkeyManager
 from desktop.single_instance import NamedSignal
 
@@ -84,7 +84,7 @@ def main():
         return 0
 
     screen = app.primaryScreen()
-    window = DesktopJarvisWindow(screen, visual_html_path, event_logger=runtime_milestone)
+    window = DesktopRuntimeWindow(screen, visual_html_path, event_logger=runtime_milestone)
     runtime_milestone("RENDERER_MAIN|WINDOW_CONSTRUCTED")
     if exit_if_startup_abort_requested():
         return 0
