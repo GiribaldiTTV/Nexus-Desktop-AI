@@ -48,6 +48,22 @@ If the user is asked to run a Dev Toolkit instruction, the `User Test Summary` m
 
 The desktop `.txt` file should carry the same four fields exactly when it is created for a Dev Toolkit run.
 
+For Dev Toolkit runs, these fields must be copied from the visible Dev Toolkit dropdown selections exactly as shown in the UI.
+
+- `Launch Mode` must use the exact combo label, for example `Quiet (No Audio / No Voice)` or `With Voice / Audio`
+- `Purpose` must use the exact Purpose dropdown group label, not a prose explanation
+- `Test / Helper` must use the exact lane label shown in the Test / Helper dropdown
+- `Delay` must use the exact Launch Delay dropdown label, for example `Now`, `3s`, `5s`, or `10s`
+
+Do not replace these four fields with paraphrases such as:
+
+- `quiet`
+- `none`
+- `Validate Slice 3 shell-branding neutralization`
+- `Dev Toolkit -> Diagnostics UI Test`
+
+If a Dev Toolkit run is part of the handoff, the user-facing steps should also tell the user which exact dropdown options to choose before launching the lane.
+
 ## Filename Guidance
 
 Use a clear slice- or workstream-based desktop filename, for example:
