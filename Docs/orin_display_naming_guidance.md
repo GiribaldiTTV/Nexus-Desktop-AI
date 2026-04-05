@@ -78,6 +78,18 @@ Current preferred direction from diagnostics validation:
 
 Future diagnostics wording changes should use this direction unless a later explicit planning decision replaces it.
 
+## Current Boot Reveal Evaluation
+
+Current preferred direction from the latest Slice 4A validation:
+
+- the assistant reveal title may be better as:
+  - `O.R.I.N.`
+- the reveal subtitle should remain:
+  - `Operational Response and Intelligence Nexus`
+
+This is not yet a universal hard rule.
+Treat it as a targeted current preference for the boot reveal surface that should be implemented and revalidated in a later approved slice before it replaces the default short-form rule more broadly.
+
 ## Future Persona Rule
 
 If ARIA is later exposed as a user-facing persona, it should follow the same three-form model:
@@ -87,4 +99,3 @@ If ARIA is later exposed as a user-facing persona, it should follow the same thr
 - full expansion when explanatory or header clarity is useful
 
 Do not assume the exact ARIA presentation rules are finalized yet.
-

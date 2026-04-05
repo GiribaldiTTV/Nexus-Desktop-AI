@@ -72,6 +72,19 @@ This vision does not mean all boot ownership should be implemented immediately.
 
 Boot ownership, startup immersion, login and launch timing, shell behavior, and Windows integration should be handled as later dedicated revision tracks after orchestration is stable.
 
+## Future Boot Preference Model
+
+Before `Beta`, the Boot portion of Nexus Desktop AI should become a user-controlled preference rather than an assumed always-on behavior.
+
+That future model should mean:
+
+- the user can intentionally enable or disable the Boot experience
+- if setup requires Windows login, startup, or boot-configuration changes, the product should guide the user through a detailed setup flow rather than expecting manual system tweaking
+- the setup path should explain what is changing, why it is needed, and how to undo it safely
+
+This is future product and setup planning only.
+It does not authorize immediate boot-ownership implementation.
+
 ## Product Release-Stage Framing
 
 Across the Jarvis product, release stages should be understood as:

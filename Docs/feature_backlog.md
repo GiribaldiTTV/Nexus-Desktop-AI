@@ -148,6 +148,12 @@ Out of Scope:
 Notes:
 Current planning truth already includes the minimal future boot-orchestrator stage model in `docs/architecture.md` and aligned boot-access planning language in `docs/boot_access_design.md`. That completed groundwork is now complete enough to pause. This item therefore remains deferred only for later implementation-facing planning or runtime work and should not be mixed into current desktop orchestration revisions.
 
+Additional future-product requirement now preserved:
+
+- before `Beta`, the Boot portion of Nexus Desktop AI should become a user-controlled preference rather than an assumed default path
+- if enabling that Boot path requires Windows login, startup, or boot-configuration changes, the product should provide a detailed guided setup flow rather than relying on ad hoc manual system changes
+- that enable/disable and setup model remains future planning only until a dedicated boot/setup slice is explicitly selected
+
 Release-stage mapping:
 
 - completed planning groundwork is historical completion, not future-stage work
@@ -1276,6 +1282,17 @@ Current branch-local tracking:
 - that Toolkit launcher reorganization remains planned follow-through only and should not be mixed into the current repair-first runtime slices until a dedicated path-organization slice is selected
 - the Slice 3 Diagnostics UI Test lane now opens visibly again from the current quiet-mode Dev Toolkit path, the diagnostics shell is inspectable, ORIN remains the assistant persona where intended, and no obvious remaining launch issue was reported for that lane after the narrow launcher-path follow-up
 - canonical display-level ORIN naming guidance now lives in `docs/orin_display_naming_guidance.md`; future wording follow-through should use that source instead of ad hoc per-surface naming choices
+- latest Slice 4A validation now also preserves:
+  - the boot overlay opens correctly
+  - the shell identity is now `Nexus Desktop AI`
+  - the startup subtitle `SYSTEM STARTUP INTERFACE` looked correct
+  - no remaining visible Jarvis-era wording was observed in the changed boot/runtime text
+  - desktop handoff still felt normal
+  - no regression was observed in the manual desktop path
+- current boot-reveal preference to preserve for later implementation evaluation:
+  - the reveal title may be better as `O.R.I.N.` instead of `ORIN`
+  - the reveal subtitle `Operational Response and Intelligence Nexus` looked correct
+  - treat that reveal-title preference as a targeted pending evaluation note, not a universal hard rule, until a later approved implementation and validation pass confirms it
 
 ---
 
@@ -1359,6 +1376,12 @@ Out of Scope:
 
 Notes:
 This is planning-only for now. It should remain separate from current path-coherence slices until a dedicated design/planning slice is explicitly selected.
+
+Current future-design notes now preserved here:
+
+- the current Boot shell text placement can visually cover the core render and should be revisited in the later UI/UX overhaul rather than being patched ad hoc during repair-first runtime slices
+- future text styling direction should feel more futuristic and more intentionally system-like rather than staying near plain utility styling
+- those presentation follow-through items should be evaluated together with the broader Nexus-era visual-language pass instead of as isolated micro-tweaks
 
 ---
 
