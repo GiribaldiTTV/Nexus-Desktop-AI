@@ -1258,6 +1258,19 @@ Licensing rule:
 - default recommendation is a restrictive proprietary / all-rights-reserved posture unless a later explicit decision approves open-source licensing
 - track copyright notice updates in public docs and consider copyright registration as a pre-release legal gate if U.S. infringement enforcement is desired
 
+Current branch-local tracking:
+
+- the repair-first ORIN manual desktop path on `codex/orin-rebrand-foundation` is now working well enough to continue through the current manual launch chain
+- manual validation also surfaced a brief visual glitch/stutter during the ORIN manual desktop launch / handoff path
+- that glitch was not fixed in the later command-label follow-up, which only corrected the visible command-surface wording
+- the glitch is now tracked in GitHub Issue #17: `Investigate brief visual glitch/stutter during ORIN manual desktop launch`
+- GitHub issue link: `https://github.com/GiribaldiTTV/Jarvis/issues/17`
+- future work that closes this launch/handoff glitch should also resolve and close GitHub Issue #17
+- observed context to preserve:
+  - the issue was seen during manual ORIN desktop launch validation after the first launch-chain repair was working
+  - the ORIN visual asset chain was loading well enough to continue
+  - diagnostics and error-voice flow were not part of the observed glitch report
+
 ---
 
 ## Completed Items
