@@ -1,5 +1,6 @@
 import os
 import ctypes
+import datetime
 
 from PySide6.QtWidgets import (
     QWidget,
@@ -425,6 +426,7 @@ class DesktopRuntimeWindow(QWidget):
         self.screen_ref = screen
         self.visual_html_path = os.path.abspath(visual_html_path)
         self.event_logger = event_logger
+        self._startup_snapshot_dir = (os.environ.get("JARVIS_HARNESS_STARTUP_SNAPSHOT_DIR") or "").strip()
 
         self.desktop_mode = False
         self._is_shutting_down = False
@@ -499,6 +501,21 @@ class DesktopRuntimeWindow(QWidget):
         if page is not None:
             page.runJavaScript(script)
 
+    def _capture_startup_snapshot(self, label: str):
+        if not self._startup_snapshot_dir or self._is_shutting_down:
+            return
+
+        try:
+            os.makedirs(self._startup_snapshot_dir, exist_ok=True)
+            stamp = datetime.datetime.now().strftime("%H%M%S_%f")
+            path = os.path.join(self._startup_snapshot_dir, f"{stamp}_{label}.png")
+            if self.grab().save(path, "PNG"):
+                self._log_event(f"RENDERER_MAIN|STARTUP_SNAPSHOT|label={label}|path={path}")
+            else:
+                self._log_event(f"RENDERER_MAIN|STARTUP_SNAPSHOT_FAILED|label={label}|reason=save_failed")
+        except Exception as exc:
+            self._log_event(f"RENDERER_MAIN|STARTUP_SNAPSHOT_FAILED|label={label}|reason={exc}")
+
     def _log_native_window_state(self, label: str, hwnd: int):
         rect = ctypes.wintypes.RECT()
         rect_ok = bool(GetWindowRect(hwnd, ctypes.byref(rect)))
@@ -517,6 +534,22 @@ class DesktopRuntimeWindow(QWidget):
             f"|visible={'true' if visible else 'false'}"
             f"|parent={hex(int(parent)) if parent else 'none'}"
             f"|x={x}|y={y}|w={w}|h={h}"
+        )
+
+    def _native_window_matches_target(self, hwnd: int, target_geometry: QRect) -> bool:
+        rect = ctypes.wintypes.RECT()
+        if not GetWindowRect(hwnd, ctypes.byref(rect)):
+            return False
+
+        parent = GetParentW(hwnd)
+        width = max(0, rect.right - rect.left)
+        height = max(0, rect.bottom - rect.top)
+
+        return bool(parent) and (
+            rect.left == target_geometry.x()
+            and rect.top == target_geometry.y()
+            and width == target_geometry.width()
+            and height == target_geometry.height()
         )
 
     def _apply_pending_visual_state(self):
@@ -547,6 +580,16 @@ class DesktopRuntimeWindow(QWidget):
 
         target_geometry = self.compute_compact_geometry()
         hwnd = int(self.winId())
+
+        if self._native_window_matches_target(hwnd, target_geometry):
+            self._log_event(
+                "RENDERER_MAIN|DESKTOP_GEOMETRY_RESET_SKIPPED"
+                f"|x={target_geometry.x()}|y={target_geometry.y()}"
+                f"|w={target_geometry.width()}|h={target_geometry.height()}"
+                "|reason=stable"
+            )
+            self.lower()
+            return
 
         self.setGeometry(target_geometry)
         attached = attach_window_to_desktop(hwnd)
@@ -752,6 +795,12 @@ class DesktopRuntimeWindow(QWidget):
         if not self.webview.isVisible():
             self.webview.show()
             self._log_event("RENDERER_MAIN|WEBVIEW_REVEALED_AFTER_ATTACH")
+            QTimer.singleShot(50, lambda: self._capture_startup_snapshot("after_attach_reveal"))
+            QTimer.singleShot(300, lambda: self._capture_startup_snapshot("after_300ms"))
+            QTimer.singleShot(600, lambda: self._capture_startup_snapshot("after_600ms"))
+            QTimer.singleShot(1000, lambda: self._capture_startup_snapshot("after_1000ms"))
+            QTimer.singleShot(1600, lambda: self._capture_startup_snapshot("after_1600ms"))
+            QTimer.singleShot(2200, lambda: self._capture_startup_snapshot("after_2200ms"))
 
         self._log_event(
             f"RENDERER_MAIN|DESKTOP_ATTACH_RESULT|success={'true' if attached else 'false'}"
