@@ -1,6 +1,7 @@
 import os
 import ctypes
 import datetime
+import time
 
 from PySide6.QtWidgets import (
     QWidget,
@@ -47,6 +48,8 @@ class CommandInputLineEdit(QLineEdit):
     submit_requested = Signal()
     escape_requested = Signal()
     input_armed_changed = Signal(bool)
+    focus_acquired = Signal()
+    focus_lost = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -104,6 +107,8 @@ class CommandOverlayPanel(QWidget):
     escape_requested = Signal()
     input_text_changed = Signal(str)
     input_armed_changed = Signal(bool)
+    input_focus_acquired = Signal()
+    input_focus_lost = Signal()
     ambiguous_match_selected = Signal(int)
 
     def __init__(self):
@@ -157,6 +162,8 @@ class CommandOverlayPanel(QWidget):
         self.input_line.submit_requested.connect(self.submit_requested)
         self.input_line.escape_requested.connect(self.escape_requested)
         self.input_line.input_armed_changed.connect(self.input_armed_changed)
+        self.input_line.focus_acquired.connect(self.input_focus_acquired)
+        self.input_line.focus_lost.connect(self.input_focus_lost)
         input_layout.addWidget(self.input_line, 1)
 
         self.caret = QFrame(self.input_shell)
@@ -371,6 +378,14 @@ class CommandOverlayPanel(QWidget):
 
         super().keyPressEvent(event)
 
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        self.focus_acquired.emit()
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        self.focus_lost.emit()
+
     def _resolve_ambiguous_choice_index(self, event) -> int | None:
         if self._visible_ambiguous_count <= 0:
             return None
@@ -538,10 +553,13 @@ class DesktopRuntimeWindow(QWidget):
         self._command_panel.escape_requested.connect(self.handle_command_escape)
         self._command_panel.input_text_changed.connect(self.handle_command_text_changed)
         self._command_panel.input_armed_changed.connect(self.handle_command_input_armed_changed)
+        self._command_panel.input_focus_acquired.connect(self.handle_command_input_focus_acquired)
         self._command_panel.ambiguous_match_selected.connect(self.handle_ambiguous_match_selected)
         self._result_close_timer = QTimer(self)
         self._result_close_timer.setSingleShot(True)
         self._result_close_timer.timeout.connect(self._close_command_overlay_after_result)
+        self._overlay_input_capture_until = 0.0
+        self._overlay_local_input_engaged = False
 
         # Align the standalone desktop route with the proven Boot handoff window model.
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
@@ -673,6 +691,18 @@ class DesktopRuntimeWindow(QWidget):
     def _apply_command_overlay_state(self):
         self._command_panel.render_payload(self._command_model.view_payload())
 
+    def _arm_overlay_input_capture(self, seconds: float = 1.35):
+        self._overlay_input_capture_until = time.monotonic() + max(0.0, seconds)
+
+    def _refresh_overlay_input_capture(self, seconds: float = 0.95):
+        self._arm_overlay_input_capture(seconds)
+
+    def _clear_overlay_input_capture(self):
+        self._overlay_input_capture_until = 0.0
+
+    def _overlay_input_capture_active(self) -> bool:
+        return time.monotonic() < self._overlay_input_capture_until
+
     def _reinforce_desktop_mode(self):
         if not self.desktop_mode or self._is_shutting_down:
             return
@@ -751,22 +781,27 @@ class DesktopRuntimeWindow(QWidget):
             return
 
         self._result_close_timer.stop()
+        self._overlay_local_input_engaged = False
+        self._arm_overlay_input_capture()
         self._command_model.open(arm_input=True)
         self._apply_command_overlay_state()
         self._command_panel.show_for_geometry(
             self.compute_compact_geometry(),
             self.screen_ref.availableGeometry(),
         )
-        self._command_panel.focus_input_after_show()
         self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_OPENED")
 
     def overlay_needs_global_input_capture(self):
-        if not self._command_model.visible or self._is_shutting_down:
+        if (
+            not self._command_model.visible
+            or self._is_shutting_down
+            or not self._overlay_input_capture_active()
+        ):
             return False
 
         phase = self._command_model.phase
         if phase == "entry":
-            return not self._command_panel.input_line.hasFocus()
+            return not self._overlay_local_input_engaged
 
         if phase in {"choose", "confirm"}:
             return not self._command_panel.isActiveWindow()
@@ -778,6 +813,8 @@ class DesktopRuntimeWindow(QWidget):
             return
 
         self._result_close_timer.stop()
+        self._clear_overlay_input_capture()
+        self._overlay_local_input_engaged = False
         self._command_panel.hide()
         self._command_model.close()
         self._apply_command_overlay_state()
@@ -797,6 +834,7 @@ class DesktopRuntimeWindow(QWidget):
         if not text or not self.overlay_needs_global_input_capture():
             return
 
+        self._refresh_overlay_input_capture()
         if self._command_model.phase == "choose":
             if text.isdigit():
                 self.handle_ambiguous_match_selected(int(text) - 1)
@@ -813,6 +851,7 @@ class DesktopRuntimeWindow(QWidget):
         if not self.overlay_needs_global_input_capture() or self._command_model.phase != "entry":
             return
 
+        self._refresh_overlay_input_capture()
         self._command_model.input_armed = True
         self._command_model.backspace()
         self._apply_command_overlay_state()
@@ -820,11 +859,14 @@ class DesktopRuntimeWindow(QWidget):
     def handle_overlay_submit_requested(self):
         if not self.overlay_needs_global_input_capture():
             return
+        self._refresh_overlay_input_capture()
         self.handle_command_submit()
 
     def handle_overlay_escape_requested(self):
         if not self._command_model.visible:
             return
+        if self.overlay_needs_global_input_capture():
+            self._refresh_overlay_input_capture()
         self.handle_command_escape()
 
     def handle_command_input_armed_changed(self, armed: bool):
@@ -833,17 +875,28 @@ class DesktopRuntimeWindow(QWidget):
         self._command_model.input_armed = bool(armed)
         self._apply_command_overlay_state()
 
+    def handle_command_input_focus_acquired(self):
+        if self._command_model.visible and self._command_model.phase == "entry":
+            self._overlay_local_input_engaged = True
+            self._clear_overlay_input_capture()
+
     def handle_command_escape(self):
         result = self._command_model.escape()
         self._apply_command_overlay_state()
 
         if result == "choice_cancelled":
-            self._command_panel.focus_input()
+            if self._overlay_local_input_engaged:
+                self._command_panel.focus_input()
+            else:
+                self._arm_overlay_input_capture()
             self._log_event("RENDERER_MAIN|COMMAND_DISAMBIGUATION_CANCELLED")
             return
 
         if result == "confirm_cancelled":
-            self._command_panel.focus_input()
+            if self._overlay_local_input_engaged:
+                self._command_panel.focus_input()
+            else:
+                self._arm_overlay_input_capture()
             self._log_event("RENDERER_MAIN|COMMAND_CONFIRM_CANCELLED")
             return
 
@@ -866,7 +919,10 @@ class DesktopRuntimeWindow(QWidget):
         if result != "confirm_ready":
             return
 
-        self._command_panel.setFocus(Qt.ActiveWindowFocusReason)
+        if self._overlay_local_input_engaged:
+            self._command_panel.setFocus(Qt.ActiveWindowFocusReason)
+        else:
+            self._refresh_overlay_input_capture()
         self._log_event(
             f"RENDERER_MAIN|COMMAND_DISAMBIGUATION_SELECTED|index={index}|action_id={payload.id}"
         )
@@ -877,7 +933,10 @@ class DesktopRuntimeWindow(QWidget):
         self._apply_command_overlay_state()
 
         if result == "confirm_ready":
-            self._command_panel.setFocus(Qt.ActiveWindowFocusReason)
+            if self._overlay_local_input_engaged:
+                self._command_panel.setFocus(Qt.ActiveWindowFocusReason)
+            else:
+                self._refresh_overlay_input_capture()
             self._log_event(f"RENDERER_MAIN|COMMAND_CONFIRM_READY|action_id={payload.id}")
             return
 
@@ -886,6 +945,10 @@ class DesktopRuntimeWindow(QWidget):
             return
 
         if result == "ambiguous":
+            if self._overlay_local_input_engaged:
+                self._command_panel.setFocus(Qt.ActiveWindowFocusReason)
+            else:
+                self._refresh_overlay_input_capture()
             self._log_event(f"RENDERER_MAIN|COMMAND_AMBIGUOUS|count={len(payload)}")
             return
 
