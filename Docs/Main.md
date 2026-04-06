@@ -63,12 +63,14 @@ These are the current canonical planning docs for specific active planning areas
 
 - `docs/boot_access_design.md`
 - `docs/jarvis_interaction_architecture.md`
+- `docs/ownership_ip_plan.md`
 - `docs/workspace_layout_plan.md`
 
 Current canonical ownership:
 
 - `boot_access_design.md` is the canonical boot-planning source
 - `jarvis_interaction_architecture.md` is the canonical interaction-planning source
+- `ownership_ip_plan.md` is the canonical ownership / licensing / IP-planning source
 - `workspace_layout_plan.md` is the canonical workspace-planning source
 
 Use these only when the task is directly about those workstreams.
