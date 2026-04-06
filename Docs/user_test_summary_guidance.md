@@ -9,6 +9,8 @@ This document is the canonical source-of-truth guidance for when Jarvis work sho
 
 It exists so future Codex work follows one consistent manual-test handoff model instead of recreating that behavior ad hoc in chat history.
 
+Returned `User Test Summary` files must be treated as active evidence inputs, not as disposable notes.
+
 ## When A User Test Summary Is Needed
 
 Create a `User Test Summary` whenever the active task results in a user-visible validation handoff, especially when the user needs to:
@@ -39,6 +41,73 @@ The desktop file should:
   - `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt`
 - be treated as the rolling current test handoff file rather than creating a new filename for each slice
 - be overwritten or refreshed with the newest test instructions whenever a new user-visible test handoff replaces the old one
+
+## Required Structure For The Desktop File
+
+When the desktop `User Test Summary.txt` file is created or refreshed, it should prefer this structure:
+
+- `Workstream`
+- `What This Test Is Checking`
+- `Expected Outcome`
+- `Test Steps`
+- `Observed Results`
+- `New Ideas / Requests Raised During Testing`
+- `Questions / Confusions Raised During Testing`
+- `Regression Notes`
+
+For any step that expects a user reply, the file should include an explicit response slot directly under that step, such as:
+
+- `Response:`
+- `Notes:`
+
+Do not force the user to guess where feedback should go.
+Do not make the user answer the same validation question again later in a second redundant section.
+
+If a later summary section exists, it should synthesize the step responses rather than repeat the same yes/no prompts.
+
+## User Additions During Testing
+
+User additions raised during testing must not be silently discarded just because they appear inside the `User Test Summary.txt` file.
+
+These additions may include:
+
+- new product ideas
+- new constraints
+- naming concerns
+- hotkey requests
+- privacy expectations
+- clarification requests
+- newly noticed bugs or regressions
+
+Codex should preserve those additions in the file under a clearly separate section such as:
+
+- `New Ideas / Requests Raised During Testing`
+- `Questions / Confusions Raised During Testing`
+- `Regression Notes`
+
+This separation is important:
+
+- test-result evidence should stay readable as test evidence
+- new ideas should still be captured for later digestion
+
+## Digest Rule After Submission
+
+After the user returns a filled `User Test Summary.txt`, Codex must explicitly digest it before recommending the next move.
+
+That digest should separate:
+
+- what passed
+- what failed
+- what remained unclear or confusing
+- what new ideas or requests were introduced during testing
+- what belongs to the current slice
+- what should be deferred into backlog or future source-of-truth consideration
+
+Codex must not:
+
+- ignore newly introduced user requests
+- treat every new idea as automatically in scope for the current patch
+- leave the file unanalyzed after the user submits it
 
 ## Required Dev Toolkit Metadata
 
@@ -88,6 +157,7 @@ When a `User Test Summary` is needed:
 - keep it short and action-oriented
 - include expected results, not just steps
 - explicitly call out anything that is intentionally not part of the current slice
+- keep the step wording concrete enough that the user can tell what visual or runtime outcome they are supposed to confirm
 - avoid redundant adjacent steps that sound like the same action unless the second step clearly explains the additional verification target
 - when two nearby steps are related but not identical, state the distinction directly so the user knows whether the second step means "launch it" versus "confirm a separate behavior after launch"
 
@@ -96,3 +166,4 @@ When the desktop `User Test Summary.txt` file is also created or refreshed:
 - keep the response summary and desktop file aligned
 - do not let the desktop file contain extra hidden requirements that were not shown to the user in the response
 - reference the same desktop file path in the response rather than inventing a new filename for the current slice
+- make sure any prompted user response line has a visible blank line or direct `Response:` slot under it
