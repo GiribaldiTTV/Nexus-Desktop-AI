@@ -5,7 +5,7 @@
 This document is the canonical source-of-truth guidance for when Jarvis work should produce:
 
 - a user-facing `User Test Summary` in the response
-- a desktop `.txt` test-instructions file for the user
+- the desktop `User Test Summary.txt` file for the user
 
 It exists so future Codex work follows one consistent manual-test handoff model instead of recreating that behavior ad hoc in chat history.
 
@@ -21,21 +21,24 @@ Create a `User Test Summary` whenever the active task results in a user-visible 
 
 Do not add a separate `User Test Summary` for purely internal analysis or for docs-only work that does not require the user to run anything.
 
-## When A Desktop `.txt` Test File Is Needed
+## When The Desktop `User Test Summary.txt` File Is Needed
 
-Create a desktop `.txt` test-instructions file when:
+Create or update the desktop `User Test Summary.txt` file when:
 
 - the user explicitly asks for one
 - the manual test steps are long enough that a durable desktop copy will help
 - the task depends on a multi-step launch or validation flow that the user is likely to follow outside the chat window
 - the task uses a Dev Toolkit lane or helper and the exact launch/test metadata must be preserved cleanly
 
-The desktop `.txt` file should:
+The desktop file should:
 
 - mirror the user-facing manual steps given in the response
-- use a clear slice- or workstream-based filename
 - be written to the desktop location the user actually sees
 - prefer the visible OneDrive desktop path when the machine uses a OneDrive-backed desktop
+- use one uniform filename:
+  - `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt`
+- be treated as the rolling current test handoff file rather than creating a new filename for each slice
+- be overwritten or refreshed with the newest test instructions whenever a new user-visible test handoff replaces the old one
 
 ## Required Dev Toolkit Metadata
 
@@ -46,7 +49,7 @@ If the user is asked to run a Dev Toolkit instruction, the `User Test Summary` m
 - `Test / Helper`
 - `Delay`
 
-The desktop `.txt` file should carry the same four fields exactly when it is created for a Dev Toolkit run.
+The desktop `User Test Summary.txt` file should carry the same four fields exactly when it is created or refreshed for a Dev Toolkit run.
 
 For Dev Toolkit runs, these fields must be copied from the visible Dev Toolkit dropdown selections exactly as shown in the UI.
 
@@ -64,15 +67,19 @@ Do not replace these four fields with paraphrases such as:
 
 If a Dev Toolkit run is part of the handoff, the user-facing steps should also tell the user which exact dropdown options to choose before launching the lane.
 
-## Filename Guidance
+## Desktop File Convention
 
-Use a clear slice- or workstream-based desktop filename, for example:
+Use one stable desktop filename for user-facing manual test handoff:
 
-- `Nexus_Desktop_AI_Slice1_User_Test_Summary.txt`
-- `ORIN_Boot_Path_Slice2_User_Test_Summary.txt`
-- `Dev_Toolkit_Boot_Helper_User_Test_Summary.txt`
+- `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt`
 
-Prefer stable, readable filenames over generic names like `test.txt` or `notes.txt`.
+Do not create a new slice-specific or workstream-specific desktop filename unless the user explicitly asks for a separate durable record.
+
+Default rule:
+
+- one rolling desktop file
+- same visible filename every time
+- newest active manual-test instructions replace the previous contents
 
 ## Response Rule
 
@@ -84,7 +91,8 @@ When a `User Test Summary` is needed:
 - avoid redundant adjacent steps that sound like the same action unless the second step clearly explains the additional verification target
 - when two nearby steps are related but not identical, state the distinction directly so the user knows whether the second step means "launch it" versus "confirm a separate behavior after launch"
 
-When a desktop `.txt` file is also created:
+When the desktop `User Test Summary.txt` file is also created or refreshed:
 
 - keep the response summary and desktop file aligned
 - do not let the desktop file contain extra hidden requirements that were not shown to the user in the response
+- reference the same desktop file path in the response rather than inventing a new filename for the current slice
