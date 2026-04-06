@@ -1136,6 +1136,19 @@ Current repo truth now includes the first implemented `pre-Beta` slice in `v2.2.
 - confirmed execution shows a brief result state and then returns the desktop to passive mode
 - directly supportive route-parity and stability follow-through in the same lane closed desktop host positioning, overlay input-ownership, and Boot-handoff reset-churn issues for the first slice
 
+Current branch-local follow-through above that same foundation now also includes:
+
+- command-overlay target clarity follow-through so ambiguous choices and confirmation make path-sensitive destinations easier to tell apart before execution
+- overlay-usability follow-through so opening the overlay from the hotkey path now leaves entry ready for immediate typing
+- bounded keyboard-first ambiguous selection so visible ambiguous choices can be resolved locally with number keys before the existing confirmation step
+- preserved explicit confirmation before execution for both mouse and keyboard choice paths
+- preserved local-only typing behavior with no restored global printable-key capture outside the visible overlay
+- alternate desktop hotkeys now also exist on this branch:
+  - `Ctrl+Alt+1` as an alternate overlay toggle path alongside `Ctrl+Alt+Home`
+  - `Ctrl+Alt+2` as an alternate shutdown path alongside `Ctrl+Alt+End`
+
+These branch-local follow-through items remain part of the same staged `FB-027` interaction lane rather than separate backlog items.
+
 Release-stage mapping:
 
 - `pre-Beta`: first typed-first interaction foundation slice is now implemented in `v2.2.1 rev1`; later pre-Beta work remains limited to additional interaction-model follow-through above the same desktop overlay foundation

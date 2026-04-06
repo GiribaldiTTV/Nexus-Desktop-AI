@@ -120,8 +120,8 @@ def main():
         return 0
 
     print("Nexus Desktop AI Desktop Runtime - Version 1.02")
-    print("Command Overlay: Ctrl + Alt + Home")
-    print("Hotkey: Ctrl + Alt + End")
+    print("Command Overlay: Ctrl + Alt + Home or Ctrl + Alt + 1")
+    print("Hotkey: Ctrl + Alt + End or Ctrl + Alt + 2")
 
     window.show()
     runtime_milestone("RENDERER_MAIN|WINDOW_SHOW_CALLED")

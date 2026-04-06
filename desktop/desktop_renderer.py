@@ -52,7 +52,7 @@ class CommandInputLineEdit(QLineEdit):
         super().__init__(parent)
         self._input_armed = False
         self.setContextMenuPolicy(Qt.NoContextMenu)
-        self.setPlaceholderText("Left-click or right-click to activate command entry")
+        self.setPlaceholderText("Type a saved action or alias")
         self.setReadOnly(True)
 
     def is_input_armed(self) -> bool:
@@ -111,6 +111,7 @@ class CommandOverlayPanel(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setObjectName("commandOverlayWindow")
+        self._visible_ambiguous_count = 0
 
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -362,7 +363,25 @@ class CommandOverlayPanel(QWidget):
             event.accept()
             return
 
+        ambiguous_index = self._resolve_ambiguous_choice_index(event)
+        if ambiguous_index is not None:
+            self.ambiguous_match_selected.emit(ambiguous_index)
+            event.accept()
+            return
+
         super().keyPressEvent(event)
+
+    def _resolve_ambiguous_choice_index(self, event) -> int | None:
+        if self._visible_ambiguous_count <= 0:
+            return None
+
+        text = event.text() or ""
+        if text.isdigit():
+            index = int(text) - 1
+            if 0 <= index < self._visible_ambiguous_count:
+                return index
+
+        return None
 
     def show_for_geometry(self, host_geometry: QRect, bounds_geometry: QRect | None = None):
         width = max(460, min(720, int(host_geometry.width() * 0.72)))
@@ -418,6 +437,8 @@ class CommandOverlayPanel(QWidget):
         phase = payload.get("phase", "hidden")
         armed = bool(payload.get("input_armed")) and phase == "entry"
         locked = phase in {"choose", "confirm", "result"}
+        ambiguous_matches = payload.get("ambiguous_matches") or []
+        self._visible_ambiguous_count = len(ambiguous_matches)
 
         self.input_shell.setProperty("armed", "true" if armed else "false")
         self.input_shell.setProperty("locked", "true" if locked else "false")
@@ -437,12 +458,12 @@ class CommandOverlayPanel(QWidget):
         if phase == "confirm":
             self.hint_label.setText("Review the resolved action before execution.")
         elif phase == "choose":
-            self.hint_label.setText("Choose the intended saved action, then confirm it before launch.")
+            self.hint_label.setText("Press a number key or click the intended saved action, then confirm it before launch.")
         elif phase == "result":
             self.hint_label.setText("Returning to passive desktop mode.")
         else:
             self.hint_label.setText(
-                "Left-click or right-click the command box to activate."
+                "Type a saved action or alias, then press Enter."
                 if not armed
                 else "Type a saved action or alias, then press Enter."
             )
@@ -455,16 +476,18 @@ class CommandOverlayPanel(QWidget):
         if payload.get("status_text"):
             self.status_label.setText(payload["status_text"])
         elif phase == "entry" and not armed:
-            self.status_label.setText("Click inside the command box to begin typing.")
+            self.status_label.setText("Type a saved action or alias to begin.")
         else:
             self.status_label.setText("")
 
         titles = payload.get("ambiguous_titles") or []
         if phase == "choose" and titles:
-            self.ambiguous_label.setText("Multiple saved actions matched your request. Review the destination detail below.")
+            self.ambiguous_label.setText(
+                "Multiple saved actions matched your request. Press a number key or click a choice after reviewing the destination detail below."
+            )
         else:
             self.ambiguous_label.setText(f"Matches: {' | '.join(titles)}" if titles else "")
-        self._populate_ambiguous_choice_buttons(payload.get("ambiguous_matches") or [])
+        self._populate_ambiguous_choice_buttons(ambiguous_matches)
 
         action = payload.get("pending_action") or {}
         show_confirm = phase == "confirm" and bool(action)
@@ -712,8 +735,7 @@ class DesktopRuntimeWindow(QWidget):
             return
 
         self._result_close_timer.stop()
-        self._command_model.open()
-        self._command_model.input_armed = False
+        self._command_model.open(arm_input=True)
         self._apply_command_overlay_state()
         self._command_panel.show_for_geometry(
             self.compute_compact_geometry(),

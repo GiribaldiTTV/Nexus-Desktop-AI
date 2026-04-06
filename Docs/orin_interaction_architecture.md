@@ -106,6 +106,14 @@ The purpose of this direction is:
 
 This direction does not authorize immediate implementation of configurable shortcut management or a broad keybinding system.
 
+Current branch-local desktop follow-through now includes:
+
+- `Ctrl+Alt+1` as an alternate user-usable quick-command-overlay path alongside `Ctrl+Alt+Home`
+- `Ctrl+Alt+2` as an alternate user-usable desktop shutdown path alongside `Ctrl+Alt+End`
+
+This branch-local follow-through remains a bounded usability refinement only.
+It does not authorize broader shortcut customization, settings UI, or profile-based keybinding management.
+
 ### 3. Action Studio
 
 The customization surface is the place where the user defines and edits saved actions, aliases, routines, and profiles.
@@ -194,6 +202,13 @@ The purpose of this rule is:
 - to keep confirmation useful instead of decorative
 - to help the user understand why one match differs from another
 - to reduce accidental launches when multiple choices are similar
+
+Current branch-local desktop overlay follow-through now also includes:
+
+- immediate typed-entry readiness when the overlay is opened from the current hotkey path
+- bounded keyboard-first ambiguous-choice resolution through visible number-key selection
+- preserved explicit confirmation before launch after keyboard selection
+- preserved clean `Esc` back-out behavior and local-only keyboard ownership inside the visible overlay
 
 ## Nexus-Era User-Facing Naming Rule
 

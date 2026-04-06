@@ -126,10 +126,10 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
 
-    def open(self):
+    def open(self, *, arm_input: bool = False):
         self.visible = True
         self.phase = "entry"
-        self.input_armed = False
+        self.input_armed = bool(arm_input)
         self.input_text = ""
         self.status_kind = "idle"
         self.status_text = ""
@@ -212,7 +212,7 @@ class CommandOverlayModel:
         if self.phase == "entry":
             if not self.input_armed:
                 self.status_kind = "idle"
-                self.status_text = "Click inside the command box to begin typing."
+                self.status_text = "Type a saved action or alias to begin."
                 return ("awaiting_click_arm", None)
 
             if not normalize_command_text(self.input_text):
@@ -241,7 +241,7 @@ class CommandOverlayModel:
             self.phase = "choose"
             self.input_armed = False
             self.status_kind = "ambiguous"
-            self.status_text = "Select the intended action below."
+            self.status_text = "Press a number key or click the intended action below."
             return ("ambiguous", matches)
 
         if self.phase == "confirm" and self.pending_action is not None:
