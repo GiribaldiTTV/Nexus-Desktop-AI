@@ -15,7 +15,7 @@ MANIFEST_FILENAME = "manifest.json"
 VERSION_CLOSEOUT_PATTERN = re.compile(r"^v(\d+)\.(\d+)\.(\d+)_closeout\.md$")
 PLANNED_PUBLIC_RELEASE_LABEL = (
     "Pre-Beta baseline defined; planned first public release: "
-    "Nexus Desktop AI — Pre-Beta v1.0.0 (tag: v1.0.0-prebeta.1)"
+    "Nexus Desktop AI — Pre-Beta v1.0.0 (tag: v1.0.0-prebeta)"
 )
 
 

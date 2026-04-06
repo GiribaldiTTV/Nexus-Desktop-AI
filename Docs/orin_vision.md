@@ -114,7 +114,8 @@ The Nexus public release line begins after the preserved Jarvis historical relea
 For the first Nexus public release baseline:
 
 - first public release title: `Nexus Desktop AI — Pre-Beta v1.0.0`
-- first public tag: `v1.0.0-prebeta.1`
+- first public tag: `v1.0.0-prebeta`
+- next release after that: `v1.0.1-prebeta`
 - all `pre-Beta` and `Beta` GitHub releases must be published as prereleases
 - old Jarvis-tagged releases and tags remain preserved as legacy/internal historical records
 - old Jarvis-tagged releases and tags do not define the active Nexus public line
