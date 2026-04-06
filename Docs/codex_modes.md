@@ -212,6 +212,18 @@ Backlog sync remains controlled:
 - only the exact active workstream truth may be synced
 - unrelated backlog cleanup must stay separate
 
+### Docs-Only Governance Pass Batching
+
+When the user explicitly approves a docs-only governance or source-of-truth pass, that pass may batch several directly related clarifications when they all serve one coherent workflow or canon end-state.
+
+This is allowed only when:
+
+- the edits stay inside one governance lane
+- the file scope stays minimal
+- the pass does not widen into unrelated repo cleanup
+- the pass does not mix in runtime implementation work
+- backlog status or priority changes are not made without separate approval
+
 ## Grouped Workstream Branch Rule
 
 For `pre-Beta` planning, Codex may recommend or use a grouped workstream branch when:
@@ -234,9 +246,22 @@ Instead, it means:
 
 - one branch may host a sequence of approved narrow slices
 - one focused branch may also carry multiple small related patches when they all serve the same project-focus lane
+- one focus-group lane may also carry one larger coherent implementation when that is still the smallest safe milestone inside the same subsystem
 - each slice inside that branch still needs clear scope and verification
 - each small patch inside that branch must still stay narrow, validated, and within the same subsystem boundary
 - unrelated ideas should still be split out even if they are all deferred work
+
+For `pre-Beta`, the default branch strategy should usually prefer focus-group lanes over one branch per micro-fix when:
+
+- the lane stays inside one subsystem or category
+- the lane still follows one coherent milestone path
+- the resulting branch does not become a grab-bag of unrelated follow-through
+
+For those `pre-Beta` focus-group lanes:
+
+- merge cadence should follow meaningful lane milestones rather than every tiny follow-through
+- release cadence should follow meaningful lane milestones when a release is appropriate
+- grouped branches must still be split if the work starts crossing subsystem boundaries or accumulating unrelated fixes
 
 At `Beta` and later, the default recommendation should usually shift toward:
 
@@ -245,6 +270,18 @@ At `Beta` and later, the default recommendation should usually shift toward:
 - single-idea branches
 
 unless a grouped branch remains clearly justified.
+
+## Fresh Branch Start After A Closed Workstream
+
+After a prior workstream branch has been merged, released if applicable, and deleted, the next workstream should start from updated `main` on a fresh branch.
+
+Codex should not create that next branch until:
+
+- the live post-merge or post-release repo state has been verified
+- the next workstream plan is clearly established
+- the user has approved that next branch path
+
+Once those conditions are met, creating the fresh branch may be the first Workflow-mode step of the new workstream.
 
 ---
 
@@ -261,6 +298,41 @@ These rules apply in both modes:
 - production behavior must remain unchanged unless explicitly in scope
 - logs, code, and current repo docs are the source of truth for implemented behavior
 - when a source-of-truth conflict exists, call it out explicitly before proceeding
+
+## Live-State Readiness Sanity Check
+
+Before Codex generates any readiness or release package such as:
+
+- merge-ready or release-ready judgments
+- version bump recommendations
+- PR title or PR body output
+- release title or release notes output
+
+Codex must verify live repo state first.
+
+That live-state check must include:
+
+- whether the referenced branch is still active
+- whether that branch has already been merged
+- whether related tag or release state already exists
+- whether the prompt framing is stale relative to current repo or GitHub state
+
+If the prompt framing is stale, Codex must not generate a fresh hypothetical readiness package.
+
+Instead, Codex should:
+
+- report the actual current state
+- explain which assumptions in the prompt were stale
+- recommend the true next move from the live state
+
+## Readiness Output Content Rule
+
+When Codex is asked to provide PR-ready or release-ready output, the default should be to describe what is included in the work under review.
+
+Codex should not add a `Not included` section unless:
+
+- the user explicitly asks for one
+- omitting it would create a real scope misunderstanding for the active task
 
 In slice-sizing terms:
 
