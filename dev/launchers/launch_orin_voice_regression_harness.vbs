@@ -1,0 +1,12 @@
+Set WshShell = CreateObject("WScript.Shell")
+Set Fso = CreateObject("Scripting.FileSystemObject")
+
+PythonwPath = "C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"
+ScriptDir = Fso.GetParentFolderName(WScript.ScriptFullName)
+DevDir = Fso.GetParentFolderName(ScriptDir)
+TargetScript = Fso.BuildPath(DevDir, "orin_voice_regression_harness.py")
+
+WshShell.Run """" & PythonwPath & """ """ & TargetScript & """ --open-report", 0
+
+Set Fso = Nothing
+Set WshShell = Nothing

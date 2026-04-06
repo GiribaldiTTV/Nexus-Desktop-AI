@@ -148,6 +148,12 @@ Out of Scope:
 Notes:
 Current planning truth already includes the minimal future boot-orchestrator stage model in `docs/architecture.md` and aligned boot-access planning language in `docs/boot_access_design.md`. That completed groundwork is now complete enough to pause. This item therefore remains deferred only for later implementation-facing planning or runtime work and should not be mixed into current desktop orchestration revisions.
 
+Additional future-product requirement now preserved:
+
+- before `Beta`, the Boot portion of Nexus Desktop AI should become a user-controlled preference rather than an assumed default path
+- if enabling that Boot path requires Windows login, startup, or boot-configuration changes, the product should provide a detailed guided setup flow rather than relying on ad hoc manual system changes
+- that enable/disable and setup model remains future planning only until a dedicated boot/setup slice is explicitly selected
+
 Release-stage mapping:
 
 - completed planning groundwork is historical completion, not future-stage work
@@ -1197,6 +1203,228 @@ Detailed future plan:
 4. keep clean fallback to existing non-historical behavior if the new root is unavailable
 5. update contained history-harness coverage to prove no writes spill back into live root `logs`
 6. verify the live root `logs` tree no longer exposes the history file after migration
+
+---
+
+### [ID: FB-029] ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening
+
+Status: Deferred  
+Priority: High  
+Suggested Version: v2.2.1  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Replace the current Jarvis product identity with ORIN, remove Marvel-adjacent branding from tracked repo surfaces, establish the future persona roadmap where ORIN is the shipped male identity for pre-Beta and Beta while ARIA is reserved as a later optional female identity, and harden the repo ownership posture with an explicit licensing and copyright plan.
+
+Why it matters:
+The current Jarvis / Stark-coded identity creates avoidable infringement and confusion risk, and the repo also needs a clear ownership posture so public source availability does not create ambiguity about what others are allowed to do with the work.
+
+Proposed Change:
+Perform one coordinated tracked-source rebrand to ORIN (`Operational Response and Intelligence Nexus`), remove explicit Marvel-coded branding, rename tracked `jarvis_*` and `launch_jarvis_*` source files and references, rewrite tracked historical docs to the new name, add a neutral persona contract that supports a later ARIA (`Adaptive Runtime Intelligence Assistant`) option without exposing that choice in pre-Beta or Beta, and add a repo licensing track that introduces an explicit root `LICENSE`, copyright notice, and README policy language aligned to a closed/proprietary release posture unless a later decision explicitly approves open-source licensing.
+
+Likely Files Affected:
+- current truth docs and supporting docs
+- desktop launcher, diagnostics, support-reporting, renderer, and single-instance surfaces
+- boot harness and voice layer
+- dev toolkit and dev launchers
+- tracked visual assets, filenames, modules, scripts, and path references
+- C:/Jarvis/LICENSE
+- C:/Jarvis/README.md
+- future ownership-notice surfaces such as `NOTICE`, `COPYRIGHT.md`, or contributor policy docs if external contributions are later enabled
+
+Scope:
+- legal-safe ORIN rebrand
+- Marvel-affiliation removal
+- tracked file/module/script rename
+- env var, mutex/event, support-bundle, local-folder, and path rename
+- tracked historical doc rewrite
+- persona contract for future ORIN / ARIA choice
+- repo licensing and copyright notice hardening
+- clear README usage and permission language for a non-open-source release posture
+
+Out of Scope:
+- behavior redesign
+- new feature work unrelated to naming/persona
+- editing generated logs, support bundles, or caches
+- exposing ARIA as a user-facing choice in pre-Beta or Beta
+- choosing a permissive open-source license for public reuse
+- trademark filing or legal opinion
+
+Notes:
+Release-stage rule:
+
+- pre-Beta ships ORIN only
+- Beta ships ORIN only
+- Full may expose user choice between ORIN and ARIA once the persona-selection slice is explicitly approved
+
+Licensing rule:
+
+- add an explicit root `LICENSE` before broader public release so repo permissions are not left ambiguous
+- default recommendation is a restrictive proprietary / all-rights-reserved posture unless a later explicit decision approves open-source licensing
+- track copyright notice updates in public docs and consider copyright registration as a pre-release legal gate if U.S. infringement enforcement is desired
+
+Current branch-local tracking:
+
+- the repair-first ORIN manual desktop path on `codex/orin-rebrand-foundation` is now working well enough to continue through the current manual launch chain
+- manual validation also surfaced a brief visual glitch/stutter during the ORIN manual desktop launch / handoff path
+- that glitch was not fixed in the later command-label follow-up, which only corrected the visible command-surface wording
+- the glitch is now tracked in GitHub Issue #17: `Investigate brief visual glitch/stutter during ORIN manual desktop launch`
+- GitHub issue link: `https://github.com/GiribaldiTTV/Jarvis/issues/17`
+- future work that closes this launch/handoff glitch should also resolve and close GitHub Issue #17
+- additional observed symptom now preserved under the same issue linkage: during the glitch, Jarvis appears to jump briefly toward the cursor and then return to center
+- unless later evidence clearly separates it, that cursor-jump symptom should continue to be treated as more evidence for GitHub Issue #17 rather than a separate issue
+- observed context to preserve:
+  - the issue was seen during manual ORIN desktop launch validation after the first launch-chain repair was working
+  - the ORIN visual asset chain was loading well enough to continue
+  - diagnostics and error-voice flow were not part of the observed glitch report
+- later Dev Toolkit launcher organization should keep the main user-facing Toolkit launcher forward-facing while moving non-forward-facing helper launchers used by the Toolkit into a separate helper-launchers folder
+- that Toolkit launcher reorganization remains planned follow-through only and should not be mixed into the current repair-first runtime slices until a dedicated path-organization slice is selected
+- the Slice 3 Diagnostics UI Test lane now opens visibly again from the current quiet-mode Dev Toolkit path, the diagnostics shell is inspectable, ORIN remains the assistant persona where intended, and no obvious remaining launch issue was reported for that lane after the narrow launcher-path follow-up
+- canonical display-level ORIN naming guidance now lives in `docs/orin_display_naming_guidance.md`; future wording follow-through should use that source instead of ad hoc per-surface naming choices
+- latest Slice 4A validation now also preserves:
+  - the boot overlay opens correctly
+  - the shell identity is now `Nexus Desktop AI`
+  - the startup subtitle `SYSTEM STARTUP INTERFACE` looked correct
+  - no remaining visible Jarvis-era wording was observed in the changed boot/runtime text
+  - desktop handoff still felt normal
+  - no regression was observed in the manual desktop path
+- current boot-reveal preference to preserve for later implementation evaluation:
+  - the reveal title may be better as `O.R.I.N.` instead of `ORIN`
+  - the reveal subtitle `Operational Response and Intelligence Nexus` looked correct
+  - treat that reveal-title preference as a targeted pending evaluation note, not a universal hard rule, until a later approved implementation and validation pass confirms it
+
+---
+
+### [ID: FB-030] ORIN voice/audio direction refinement
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Refine the current ORIN assistant voice/audio direction so the speaking assistant feels more like the intended ORIN persona rather than only a functional default voice path.
+
+Why it matters:
+The rebrand direction now depends on ORIN feeling distinct as a persona. If the normal assistant voice does not support that identity well enough, the product presentation will lag behind the rest of the rebrand work.
+
+Proposed Change:
+Do a later bounded ORIN normal-voice direction pass that evaluates voice choice, pacing, delivery, and any light supportive processing so the assistant feels:
+
+- organic human
+- slight AI in how it speaks
+- futuristic in nature
+
+Likely Files Affected:
+- C:/Jarvis/Audio/orin_voice.py
+- C:/Jarvis/assistant_personas.py
+- optional directly supportive ORIN voice-test helpers if needed
+
+Scope:
+- ORIN normal assistant voice direction
+- persona-facing delivery refinement
+- bounded voice/presentation tuning for the shipped ORIN path
+
+Out of Scope:
+- ARIA implementation
+- diagnostics/error voice redesign unless explicitly approved later
+- speech-to-text or wake-word work
+- broad audio engine replacement
+- unrelated rebrand/file-rename cleanup
+
+Notes:
+This is a future persona-direction slice, not part of the current repair-first path-coherence work.
+
+---
+
+### [ID: FB-031] Nexus Desktop AI UI/UX overhaul planning
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Plan a future UI/UX overhaul for Nexus Desktop AI so the product presentation can be updated intentionally rather than through piecemeal visual drift during repair-first rebrand work.
+
+Why it matters:
+The current repair-first branch is focused on path coherence and visible naming cleanup, not a full product-experience redesign. A separate tracked planning item is needed so later UI/UX changes can be shaped deliberately across desktop visuals, shell presentation, and user-facing polish.
+
+Proposed Change:
+Do a later bounded planning-first UI/UX pass that defines the desired Nexus-era visual language, presentation priorities, and rollout boundaries before broader implementation begins.
+
+Likely Files Affected:
+- C:/Jarvis/jarvis_visual/*
+- C:/Jarvis/desktop/desktop_renderer.py
+- C:/Jarvis/desktop/orin_desktop_main.py
+- C:/Jarvis/dev/launchers/orin_dev_launcher.pyw
+- future directly supportive design/planning docs
+
+Scope:
+- future UI/UX overhaul planning
+- visual language and presentation direction
+- staged rollout boundaries for later implementation
+
+Out of Scope:
+- current repair-first path fixes
+- ARIA implementation
+- voice/audio redesign implementation
+- repo rename or release-line work
+
+Notes:
+This is planning-only for now. It should remain separate from current path-coherence slices until a dedicated design/planning slice is explicitly selected.
+
+Current future-design notes now preserved here:
+
+- the current Boot shell text placement can visually cover the core render and should be revisited in the later UI/UX overhaul rather than being patched ad hoc during repair-first runtime slices
+- future text styling direction should feel more futuristic and more intentionally system-like rather than staying near plain utility styling
+- those presentation follow-through items should be evaluated together with the broader Nexus-era visual-language pass instead of as isolated micro-tweaks
+- later Dev Toolkit chrome follow-through should evaluate whether the current top banner is visually redundant with the main manual-validation surface, and whether minimize / dismiss controls should be folded into the lower surface instead of being repeated in separate stacked bars
+- later Dev Toolkit launch-status follow-through should evaluate replacing or de-emphasizing the current progress bar in favor of a clearer recent-history trace that can show 2-4 lines of status context plus an explicit terminal outcome for when a custom launch ends by design, by user action, or by error
+- later Dev Toolkit launch-control follow-through should evaluate whether custom launches need a bounded max runtime or explicit post-slice timeout model, and whether additional logging is needed to support a trustworthy terminal status display
+
+---
+
+### [ID: FB-032] Nexus-era vision and source-of-truth migration
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Migrate the current product-vision and source-of-truth framing from Jarvis-era wording to Nexus Desktop AI / ORIN-era framing in a bounded, canonical-doc-first pass once the naming architecture is stable enough to do so cleanly.
+
+Why it matters:
+Current canonical vision/routing layers still carry older Jarvis-era framing in places. If that migration is not tracked explicitly, the repo risks keeping split identity language across source-of-truth docs even after the runtime rebrand direction is clearer.
+
+Proposed Change:
+Do a later bounded source-of-truth migration pass that updates vision and routing docs to the Nexus-era product identity while preserving historical traceability and avoiding retroactive rewrite of old release history.
+
+Likely Files Affected:
+- C:/Jarvis/docs/orin_vision.md
+- C:/Jarvis/docs/Main.md
+- C:/Jarvis/docs/architecture.md
+- C:/Jarvis/docs/feature_backlog.md
+- optional directly supportive canonical planning docs
+
+Scope:
+- vision-layer wording migration
+- source-of-truth routing cleanup
+- canonical-doc identity alignment
+
+Out of Scope:
+- runtime/code changes
+- repo rename execution
+- release history rewrite
+- README or LICENSE work unless separately approved
+
+Notes:
+This should be treated as a future source-of-truth migration item, not a broad immediate rewrite. The existing `docs/orin_vision.md` remains usable current truth until that dedicated migration pass is intentionally selected.
 
 ---
 

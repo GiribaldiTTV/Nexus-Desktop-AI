@@ -1,103 +1,83 @@
-# Jarvis
+# Nexus Desktop AI
 
-Jarvis is a Windows desktop intelligence layer built around reliable startup, controlled transitions, and strong diagnostics for testing and stabilization.
+This repository is the current engineering workspace for **Nexus Desktop AI**.
 
-This repo is in active development. It currently has a **stable manual desktop path** and a **separate dev harness path** for repeatable boot-testing work.
+`Nexus Desktop AI` is the product/platform identity. `ORIN` is the shipped assistant persona for `pre-Beta` and `Beta`. `ARIA` is reserved as a future optional persona for `Full` and is not currently shipped.
 
-## What Jarvis is today
+Older legacy/internal releases and tags remain preserved as historical internal context. The future public product line begins later under `Nexus Desktop AI`; this README does not imply that public release work is already complete.
 
-Jarvis is currently a staged system:
+## Current Status
 
-- User/manual entry is handled through the desktop launcher path.
-- Boot behavior is managed through a separate dev-only harness in `main.py`.
-- Validation and diagnostics are centralized in a Dev Toolkit surface for internal testing.
+This repo is in active internal development.
 
-It is currently optimized for stability and observability first, with behavior changes coming in narrow, evidence-driven slices.
+What is currently true on this branch:
+- the manual desktop launch path is working well enough for continued validation
+- the dev/boot harness path remains separate from the normal desktop entrypoint
+- diagnostics and Dev Toolkit flows exist to support internal testing and repair-first iteration
 
-## Project status at a glance
+This is an engineering README, not a public product-launch page.
 
-**Implemented and in use**
-- Controlled desktop launch and restart orchestration
-- Dev-only Boot harness seams for faster testing (`boot profile`, `audio mode`)
-- Boot and desktop logging/markers for stronger troubleshooting
-- Boot-to-desktop transition behavior improvements
-- Single-instance relaunch support for core surfaces
-- Dev Toolkit growth for lane execution, validation, and reporting
+## Current Entry Paths
 
-**Still in-progress / deferred**
-- Logging taxonomy cleanup across boot/desktop milestone naming (FB-025)
-- Dedicated toolkit upload intake panel for support bundles (FB-026)
+### Manual desktop launch path
 
-## Current architecture (high level)
+The current manual desktop entry path is:
 
-### Manual launch path (default user path)
-`launch_jarvis_desktop.vbs`
-→ `desktop/jarvis_desktop_launcher.pyw`
-→ `desktop/jarvis_desktop_main.py`
+`launch_orin_desktop.vbs`  
+`-> desktop/orin_desktop_launcher.pyw`  
+`-> desktop/orin_desktop_main.py`
 
-### Dev boot path (internal testing only)
-`dev/launchers/*`
-→ `main.py`
+This is the current normal desktop entrypoint for manual runs.
 
-`main.py` is explicitly a **dev/testing harness**, not the normal product launch entrypoint.
+### Dev Toolkit entry
 
-## Repository layout
+The current Dev Toolkit entry is:
 
-Top-level folders:
-- `Audio/` — audio/speech related code
-- `desktop/` — launcher, renderer, and desktop runtime/control
-- `dev/` — validators, harnesses, support bundle tools, and dev logs
-- `Docs/` — architecture, governance, and backlog
-- `jarvis_visual/` — visual assets
-- `logs/` — runtime logs/artifacts
-- `__pycache__/` — runtime artifacts
+`dev\launchers\launch_orin_dev_toolkit.vbs`
 
-Top-level launch files:
-- `launch_jarvis_desktop.vbs` (primary manual entry)
-- `main.py` (dev-only boot harness)
+The Dev Toolkit is an internal testing surface used for launch lanes, diagnostics, validation helpers, and related repair-first workflows.
 
-## How to run
+### Boot/dev harness path
 
-### Manual desktop start
-- Launch: `launch_jarvis_desktop.vbs`
+`main.py` is the current dev-only boot harness path.
 
-### Dev/Test path
-- Open the Dev Toolkit:
-  - `dev\launchers\launch_jarvis_dev_toolkit.vbs`
-- Or run specific dev launchers in `dev/launchers/` for:
-  - Boot manual flow
-  - Boot auto handoff (skip import)
-  - Boot transition verification/capture
-  - Toolkit smoke/validation lanes
-  - Diagnostics and support-bundle triage helpers
+It is not the normal user desktop entrypoint. It exists to support controlled boot-path testing, transition checks, and related internal validation work.
 
-## Backlog and future direction
+## Naming And Release Posture
 
-Backlog status is tracked in `Docs/feature_backlog.md`.
+- product/platform identity: `Nexus Desktop AI`
+- shipped persona in `pre-Beta` and `Beta`: `ORIN`
+- future persona option in `Full`: `ARIA`
+- older legacy/internal releases and tags remain preserved as historical internal context
+- the new public product line begins later under `Nexus Desktop AI`
 
-### Completed in this stream
-- **FB-021** — Dev-only Boot Jarvis test lane
-- **FB-022** — Boot & Transition Checks in Dev Toolkit
-- **FB-023** — Desktop renderer observability gap closure
-- **FB-024** — Boot edge-path observability refinement
+## Repository Layout
 
-### Next planned work (deferred but intended)
-- **FB-025** — Cross-lane milestone taxonomy cleanup
-- **FB-026** — Dev Toolkit uploaded-bundle intake section
+Top-level folders currently include:
+- `Audio/` for voice/audio code
+- `desktop/` for launcher, renderer, runtime, and diagnostics surfaces
+- `dev/` for toolkit, validators, harnesses, and related internal helpers
+- `docs/` for project truth, architecture, backlog, and guidance
+- the current visual assets and bridge-side UI resources
+- `logs/` for local runtime artifacts
 
-## Development mindset
+Top-level launch/runtime surfaces currently include:
+- `launch_orin_desktop.vbs`
+- `main.py`
 
-We follow narrow, evidence-first changes:
-- small slices
-- clear markers in logs
-- preserve current boundaries and launcher ownership
-- avoid broad behavior rewrites
-- validate with existing evidence/report lanes
+## Current Working Boundary
 
-## Notes
+This branch is being advanced through narrow, evidence-driven slices:
+- preserve working launch paths first
+- fix visible rebrand gaps before deeper cleanup
+- keep runtime behavior stable while reducing outdated pre-rebrand user-facing surfaces
+- defer larger UX, release, repo-rename, and public-launch work until separately approved
 
-This is a living README for an engineering repo, not a finished product marketing document.  
-For current architectural decisions and project truth, check:
-- `Docs/Main.md`
-- `Docs/feature_backlog.md`
-- `Docs/post_v2.0_branch_rebaseline.md`
+## Current Source Of Truth
+
+For the current project truth and routing, use:
+- `docs/Main.md`
+- `docs/feature_backlog.md`
+- `docs/orin_display_naming_guidance.md`
+- `docs/orin_vision.md`
+- `docs/user_test_summary_guidance.md`

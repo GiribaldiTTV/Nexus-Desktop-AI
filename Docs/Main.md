@@ -34,15 +34,18 @@ These are the default project-governance and product-boundary docs:
 - `docs/development_rules.md`
 - `docs/Main.md`
 - `docs/architecture.md`
-- `docs/jarvis_vision.md`
+- `docs/orin_vision.md`
+- `docs/orin_display_naming_guidance.md`
 - `docs/feature_backlog.md`
 - `docs/orchestration.md`
 - `docs/codex_modes.md`
 - `docs/jarvis_task_template.md`
+- `docs/user_test_summary_guidance.md`
 
 Within that core set:
 
-- `docs/jarvis_vision.md` owns the product-wide meaning of `pre-Beta`, `Beta`, and `Full`
+- `docs/orin_vision.md` owns the product-wide meaning of `pre-Beta`, `Beta`, and `Full`
+- `docs/orin_display_naming_guidance.md` owns the display-level ORIN / O.R.I.N. / full-expansion usage pattern
 - `docs/feature_backlog.md` owns per-item or per-slice release-stage assignment
 
 Use these when the task concerns:
@@ -60,12 +63,14 @@ These are the current canonical planning docs for specific active planning areas
 
 - `docs/boot_access_design.md`
 - `docs/jarvis_interaction_architecture.md`
+- `docs/ownership_ip_plan.md`
 - `docs/workspace_layout_plan.md`
 
 Current canonical ownership:
 
 - `boot_access_design.md` is the canonical boot-planning source
 - `jarvis_interaction_architecture.md` is the canonical interaction-planning source
+- `ownership_ip_plan.md` is the canonical ownership / licensing / IP-planning source
 - `workspace_layout_plan.md` is the canonical workspace-planning source
 
 Use these only when the task is directly about those workstreams.
@@ -127,7 +132,7 @@ For boot-planning or future boot-access work, prompts should usually include:
 - `docs/Main.md`
 - `docs/boot_access_design.md`
 
-Add `architecture.md`, `jarvis_vision.md`, `feature_backlog.md`, or `orchestration.md` when the task touches authority, vision, backlog scope, or launcher-owned desktop boundaries.
+Add `architecture.md`, `orin_vision.md`, `feature_backlog.md`, or `orchestration.md` when the task touches authority, vision, backlog scope, or launcher-owned desktop boundaries.
 
 ### Workspace / Folder Organization Work
 
@@ -172,6 +177,7 @@ For prompt-governance or workflow-governance tasks, prompts should usually inclu
 - `docs/Main.md`
 - `docs/codex_modes.md`
 - `docs/jarvis_task_template.md`
+- `docs/user_test_summary_guidance.md`
 
 Add other canonical docs only if the governance wording depends on them.
 

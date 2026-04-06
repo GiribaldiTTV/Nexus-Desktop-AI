@@ -107,7 +107,7 @@ class CommandOverlayPanel(QWidget):
         layout.setContentsMargins(24, 22, 24, 20)
         layout.setSpacing(0)
 
-        self.kicker_label = QLabel("JARVIS COMMAND", self.panel)
+        self.kicker_label = QLabel("O.R.I.N. Command Prompt", self.panel)
         self.kicker_label.setObjectName("commandKicker")
         layout.addWidget(self.kicker_label)
 
@@ -403,7 +403,7 @@ class CommandOverlayPanel(QWidget):
             self.confirm_target_value.setText(action.get("target", ""))
 
 
-class DesktopJarvisWindow(QWidget):
+class DesktopRuntimeWindow(QWidget):
 
     def __init__(self, screen, visual_html_path: str, event_logger=None):
         super().__init__()
@@ -489,7 +489,7 @@ class DesktopJarvisWindow(QWidget):
             return
 
         state_name = self._pending_visual_state
-        js = f"window.setJarvisState && window.setJarvisState('{state_name}');"
+        js = f"window.setCoreVisualState && window.setCoreVisualState('{state_name}');"
         self._run_javascript(js)
         self._log_event(f"RENDERER_MAIN|VISUAL_STATE_APPLIED|state={state_name}")
         self._pending_visual_state = None
@@ -499,7 +499,7 @@ class DesktopJarvisWindow(QWidget):
             return
 
         level = self._pending_voice_level
-        js = f"window.setJarvisVoiceLevel && window.setJarvisVoiceLevel({level:.4f});"
+        js = f"window.setCoreVoiceLevel && window.setCoreVoiceLevel({level:.4f});"
         self._run_javascript(js)
         self._pending_voice_level = None
 
