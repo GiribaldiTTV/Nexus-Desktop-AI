@@ -53,6 +53,7 @@ If privacy, cleaner contracting, or commercial control matter by that stage, the
 
 - form the LLC/entity before broader public-facing or commercial stages if practical
 - decide whether repo-root ownership references should remain personal temporarily or be updated after written transfer
+- review whether the current root `LICENSE` should remain a minimal restrictive notice or be expanded into a fuller proprietary license instrument before broader public-facing distribution
 
 ### Before Commercialization / Monetization
 
@@ -61,6 +62,7 @@ Before meaningful commercialization, monetization, or broader productization:
 - re-check whether personal ownership is still the right posture
 - consider entity formation if it has not happened yet
 - make sure any later ownership transfer is handled in writing
+- consider replacing the minimal restrictive repo-root `LICENSE` with a fuller proprietary license text if the project is moving into broader public, commercial, or enforcement-sensitive use
 
 ### After LLC / Entity Formation
 
