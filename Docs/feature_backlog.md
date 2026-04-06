@@ -1382,6 +1382,9 @@ Current future-design notes now preserved here:
 - the current Boot shell text placement can visually cover the core render and should be revisited in the later UI/UX overhaul rather than being patched ad hoc during repair-first runtime slices
 - future text styling direction should feel more futuristic and more intentionally system-like rather than staying near plain utility styling
 - those presentation follow-through items should be evaluated together with the broader Nexus-era visual-language pass instead of as isolated micro-tweaks
+- later Dev Toolkit chrome follow-through should evaluate whether the current top banner is visually redundant with the main manual-validation surface, and whether minimize / dismiss controls should be folded into the lower surface instead of being repeated in separate stacked bars
+- later Dev Toolkit launch-status follow-through should evaluate replacing or de-emphasizing the current progress bar in favor of a clearer recent-history trace that can show 2-4 lines of status context plus an explicit terminal outcome for when a custom launch ends by design, by user action, or by error
+- later Dev Toolkit launch-control follow-through should evaluate whether custom launches need a bounded max runtime or explicit post-slice timeout model, and whether additional logging is needed to support a trustworthy terminal status display
 
 ---
 
