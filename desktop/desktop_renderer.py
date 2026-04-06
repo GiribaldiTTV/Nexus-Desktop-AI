@@ -40,9 +40,6 @@ IsWindowVisible.restype = ctypes.c_bool
 GetParentW = user32.GetParent
 GetParentW.argtypes = [ctypes.wintypes.HWND]
 GetParentW.restype = ctypes.wintypes.HWND
-SetForegroundWindowW = user32.SetForegroundWindow
-SetForegroundWindowW.argtypes = [ctypes.wintypes.HWND]
-SetForegroundWindowW.restype = ctypes.c_bool
 SW_HIDE = 0
 
 
@@ -409,7 +406,6 @@ class CommandOverlayPanel(QWidget):
     def focus_input(self, reason=Qt.ShortcutFocusReason):
         self.raise_()
         self.activateWindow()
-        SetForegroundWindowW(int(self.winId()))
         window_handle = self.windowHandle()
         if window_handle is not None:
             window_handle.requestActivate()
@@ -764,6 +760,14 @@ class DesktopRuntimeWindow(QWidget):
         self._command_panel.focus_input_after_show()
         self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_OPENED")
 
+    def overlay_needs_global_input_capture(self):
+        return (
+            self._command_model.visible
+            and not self._is_shutting_down
+            and self._command_model.phase in {"entry", "choose", "confirm"}
+            and not self._command_panel.isActiveWindow()
+        )
+
     def close_command_overlay(self):
         if not self._command_model.visible:
             return
@@ -783,6 +787,40 @@ class DesktopRuntimeWindow(QWidget):
     def handle_command_text_changed(self, text: str):
         self._command_model.set_input_text(text)
         self._apply_command_overlay_state()
+
+    def handle_overlay_text_requested(self, text: str):
+        if not text or not self.overlay_needs_global_input_capture():
+            return
+
+        if self._command_model.phase == "choose":
+            if text.isdigit():
+                self.handle_ambiguous_match_selected(int(text) - 1)
+            return
+
+        if self._command_model.phase != "entry":
+            return
+
+        self._command_model.input_armed = True
+        self._command_model.append_text(text)
+        self._apply_command_overlay_state()
+
+    def handle_overlay_backspace_requested(self):
+        if not self.overlay_needs_global_input_capture() or self._command_model.phase != "entry":
+            return
+
+        self._command_model.input_armed = True
+        self._command_model.backspace()
+        self._apply_command_overlay_state()
+
+    def handle_overlay_submit_requested(self):
+        if not self.overlay_needs_global_input_capture():
+            return
+        self.handle_command_submit()
+
+    def handle_overlay_escape_requested(self):
+        if not self._command_model.visible:
+            return
+        self.handle_command_escape()
 
     def handle_command_input_armed_changed(self, armed: bool):
         if not self._command_model.visible or self._command_model.phase != "entry":

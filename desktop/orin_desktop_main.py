@@ -114,6 +114,11 @@ def main():
 
     bus.shutdown_requested.connect(do_shutdown)
     bus.command_overlay_toggle_requested.connect(window.toggle_command_overlay)
+    bus.command_overlay_text_requested.connect(window.handle_overlay_text_requested)
+    bus.command_overlay_backspace_requested.connect(window.handle_overlay_backspace_requested)
+    bus.command_overlay_submit_requested.connect(window.handle_overlay_submit_requested)
+    bus.command_overlay_escape_requested.connect(window.handle_overlay_escape_requested)
+    hotkeys.set_overlay_input_enabled_provider(window.overlay_needs_global_input_capture)
     hotkeys.start()
     runtime_milestone("RENDERER_MAIN|HOTKEYS_STARTED")
     if exit_if_startup_abort_requested(hotkeys):

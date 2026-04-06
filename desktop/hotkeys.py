@@ -6,6 +6,10 @@ from pynput import keyboard as pynput_keyboard
 class ShutdownBus(QObject):
     shutdown_requested = Signal()
     command_overlay_toggle_requested = Signal()
+    command_overlay_text_requested = Signal(str)
+    command_overlay_backspace_requested = Signal()
+    command_overlay_submit_requested = Signal()
+    command_overlay_escape_requested = Signal()
 
 
 class GlobalHotkeyManager:
@@ -19,6 +23,7 @@ class GlobalHotkeyManager:
         self._overlay_digit_vks = {49}
         self._shutdown_digit_chars = {"2"}
         self._shutdown_digit_vks = {50}
+        self._overlay_input_enabled_provider = lambda: False
 
     def start(self) -> None:
         if self._listener is not None:
@@ -36,6 +41,9 @@ class GlobalHotkeyManager:
 
     def force_kill(self) -> None:
         os._exit(0)
+
+    def set_overlay_input_enabled_provider(self, provider) -> None:
+        self._overlay_input_enabled_provider = provider if callable(provider) else (lambda: False)
 
     def _ctrl_down(self) -> bool:
         return pynput_keyboard.Key.ctrl_l in self._pressed or pynput_keyboard.Key.ctrl_r in self._pressed
@@ -72,6 +80,20 @@ class GlobalHotkeyManager:
     def _shutdown_key_down(self) -> bool:
         return any(self._key_matches_shutdown_trigger(key) for key in self._pressed)
 
+    def _overlay_input_enabled(self) -> bool:
+        try:
+            return bool(self._overlay_input_enabled_provider())
+        except Exception:
+            return False
+
+    def _overlay_text_from_key(self, key):
+        if key == pynput_keyboard.Key.space:
+            return " "
+        char = self._key_char(key)
+        if isinstance(char, str) and char.isprintable() and char:
+            return char
+        return None
+
     def _on_press(self, key) -> None:
         self._pressed.add(key)
         ctrl_down = self._ctrl_down()
@@ -88,6 +110,25 @@ class GlobalHotkeyManager:
             self._overlay_toggle_fired = True
             self.bus.command_overlay_toggle_requested.emit()
             return
+
+        if ctrl_down or alt_down or not self._overlay_input_enabled():
+            return
+
+        if key in (pynput_keyboard.Key.enter, pynput_keyboard.KeyCode.from_vk(13)):
+            self.bus.command_overlay_submit_requested.emit()
+            return
+
+        if key == pynput_keyboard.Key.esc:
+            self.bus.command_overlay_escape_requested.emit()
+            return
+
+        if key == pynput_keyboard.Key.backspace:
+            self.bus.command_overlay_backspace_requested.emit()
+            return
+
+        text = self._overlay_text_from_key(key)
+        if text:
+            self.bus.command_overlay_text_requested.emit(text)
 
     def _on_release(self, key) -> None:
         self._pressed.discard(key)
