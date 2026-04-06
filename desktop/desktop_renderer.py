@@ -40,6 +40,9 @@ IsWindowVisible.restype = ctypes.c_bool
 GetParentW = user32.GetParent
 GetParentW.argtypes = [ctypes.wintypes.HWND]
 GetParentW.restype = ctypes.wintypes.HWND
+SetForegroundWindowW = user32.SetForegroundWindow
+SetForegroundWindowW.argtypes = [ctypes.wintypes.HWND]
+SetForegroundWindowW.restype = ctypes.c_bool
 SW_HIDE = 0
 
 
@@ -406,6 +409,7 @@ class CommandOverlayPanel(QWidget):
     def focus_input(self, reason=Qt.ShortcutFocusReason):
         self.raise_()
         self.activateWindow()
+        SetForegroundWindowW(int(self.winId()))
         window_handle = self.windowHandle()
         if window_handle is not None:
             window_handle.requestActivate()
@@ -413,9 +417,14 @@ class CommandOverlayPanel(QWidget):
         self.input_line.setFocus(reason)
         self.input_line.setCursorPosition(len(self.input_line.text()))
 
-    def focus_input_after_show(self):
+    def ensure_typing_ready(self):
+        self.input_line.set_input_armed(True, notify=False)
         self.focus_input(Qt.ShortcutFocusReason)
-        QTimer.singleShot(0, lambda: self.focus_input(Qt.ShortcutFocusReason))
+
+    def focus_input_after_show(self):
+        self.ensure_typing_ready()
+        QTimer.singleShot(0, self.ensure_typing_ready)
+        QTimer.singleShot(40, self.ensure_typing_ready)
 
     def _clear_ambiguous_choice_buttons(self):
         while self.ambiguous_choices_layout.count():

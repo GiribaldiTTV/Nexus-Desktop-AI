@@ -76,11 +76,17 @@ def resolve_command_actions(text: str, actions=DEFAULT_COMMAND_ACTIONS):
 
 
 def launch_command_action(action: CommandAction):
+    target = os.path.normpath(action.target)
+
     if action.target_kind == "app":
-        subprocess.Popen([action.target], shell=False)
+        subprocess.Popen([target], shell=False)
         return
 
-    os.startfile(action.target)
+    if action.target_kind == "folder":
+        subprocess.Popen(["explorer.exe", target], shell=False)
+        return
+
+    os.startfile(target)
 
 
 def format_command_target_display(target_kind: str, target: str, max_length: int = 72) -> str:
