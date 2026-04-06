@@ -21,17 +21,29 @@ class CommandAction:
 DEFAULT_COMMAND_ACTIONS = (
     CommandAction(
         id="open_jarvis_workspace",
-        title="Open Jarvis Workspace",
+        title="Open Nexus Workspace",
         target_kind="folder",
         target=str(ROOT_DIR),
-        aliases=("open jarvis workspace", "open workspace", "open jarvis folder"),
+        aliases=(
+            "open nexus workspace",
+            "open nexus folder",
+            "open workspace",
+            "open jarvis workspace",
+            "open jarvis folder",
+        ),
     ),
     CommandAction(
         id="open_jarvis_docs",
-        title="Open Jarvis Docs",
+        title="Open Nexus Docs",
         target_kind="folder",
         target=str(ROOT_DIR / "docs"),
-        aliases=("open jarvis docs", "open docs", "open jarvis folder"),
+        aliases=(
+            "open nexus docs",
+            "open docs",
+            "open jarvis docs",
+            "open jarvis folder",
+            "open nexus folder",
+        ),
     ),
     CommandAction(
         id="open_windows_explorer",

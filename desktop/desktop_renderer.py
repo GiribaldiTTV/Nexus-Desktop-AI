@@ -403,8 +403,19 @@ class CommandOverlayPanel(QWidget):
         self.show()
         self.raise_()
 
-    def focus_input(self):
-        self.input_line.setFocus(Qt.MouseFocusReason)
+    def focus_input(self, reason=Qt.ShortcutFocusReason):
+        self.raise_()
+        self.activateWindow()
+        window_handle = self.windowHandle()
+        if window_handle is not None:
+            window_handle.requestActivate()
+        self.setFocus(Qt.ActiveWindowFocusReason)
+        self.input_line.setFocus(reason)
+        self.input_line.setCursorPosition(len(self.input_line.text()))
+
+    def focus_input_after_show(self):
+        self.focus_input(Qt.ShortcutFocusReason)
+        QTimer.singleShot(0, lambda: self.focus_input(Qt.ShortcutFocusReason))
 
     def _clear_ambiguous_choice_buttons(self):
         while self.ambiguous_choices_layout.count():
@@ -741,7 +752,7 @@ class DesktopRuntimeWindow(QWidget):
             self.compute_compact_geometry(),
             self.screen_ref.availableGeometry(),
         )
-        self._command_panel.focus_input()
+        self._command_panel.focus_input_after_show()
         self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_OPENED")
 
     def close_command_overlay(self):
