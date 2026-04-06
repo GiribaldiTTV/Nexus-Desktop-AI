@@ -81,6 +81,8 @@ When a `User Test Summary` is needed:
 - keep it short and action-oriented
 - include expected results, not just steps
 - explicitly call out anything that is intentionally not part of the current slice
+- avoid redundant adjacent steps that sound like the same action unless the second step clearly explains the additional verification target
+- when two nearby steps are related but not identical, state the distinction directly so the user knows whether the second step means "launch it" versus "confirm a separate behavior after launch"
 
 When a desktop `.txt` file is also created:
 
