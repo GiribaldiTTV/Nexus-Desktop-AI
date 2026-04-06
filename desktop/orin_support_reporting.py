@@ -9,7 +9,7 @@ import urllib.parse
 import zipfile
 
 
-DEFAULT_GITHUB_ISSUES_NEW_URL = "https://github.com/GiribaldiTTV/Jarvis/issues/new"
+DEFAULT_GITHUB_ISSUES_NEW_URL = ""
 SUPPORT_BUNDLE_FOLDER = "support_bundles"
 MANIFEST_FILENAME = "manifest.json"
 VERSION_CLOSEOUT_PATTERN = re.compile(r"^v(\d+)\.(\d+)\.(\d+)_closeout\.md$")
@@ -132,6 +132,11 @@ def parse_github_repo_url(remote_url):
     return f"https://github.com/{parts[0]}/{parts[1]}"
 
 
+def repo_url_contains_legacy_branding(repo_url):
+    lowered = (repo_url or "").casefold()
+    return any(token in lowered for token in ("/jarvis", "/marvel", "stark"))
+
+
 def detect_github_issues_new_url(root_dir):
     config_path = os.path.join(root_dir, ".git", "config")
 
@@ -141,7 +146,7 @@ def detect_github_issues_new_url(root_dir):
         for section_name in ('remote "origin"', 'remote "upstream"'):
             if parser.has_option(section_name, "url"):
                 repo_url = parse_github_repo_url(parser.get(section_name, "url"))
-                if repo_url:
+                if repo_url and not repo_url_contains_legacy_branding(repo_url):
                     return f"{repo_url}/issues/new"
     except Exception:
         pass
@@ -275,6 +280,8 @@ def create_support_bundle(root_dir, runtime_log_path, crash_dir):
 
 def build_issue_prefill_url(root_dir, bundle_info):
     issues_new_url = detect_github_issues_new_url(root_dir)
+    if not issues_new_url:
+        return None
     crash_log_label = bundle_info["crash_log_name"] or "not included"
 
     body_lines = [

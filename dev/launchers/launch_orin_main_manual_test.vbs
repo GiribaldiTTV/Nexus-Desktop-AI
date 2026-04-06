@@ -1,3 +1,13 @@
 Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run """C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"" ""C:\Jarvis\main.py"" --boot-profile manual --audio-mode quiet", 0
+Set Fso = CreateObject("Scripting.FileSystemObject")
+
+PythonwPath = "C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe"
+ScriptDir = Fso.GetParentFolderName(WScript.ScriptFullName)
+DevDir = Fso.GetParentFolderName(ScriptDir)
+RootDir = Fso.GetParentFolderName(DevDir)
+MainPath = Fso.BuildPath(RootDir, "main.py")
+
+WshShell.Run """" & PythonwPath & """ """ & MainPath & """ --boot-profile manual --audio-mode quiet", 0
+
+Set Fso = Nothing
 Set WshShell = Nothing

@@ -1,10 +1,10 @@
-# Jarvis Repository
+# Nexus Desktop AI
 
 This repository is the current engineering workspace for **Nexus Desktop AI**.
 
 `Nexus Desktop AI` is the product/platform identity. `ORIN` is the shipped assistant persona for `pre-Beta` and `Beta`. `ARIA` is reserved as a future optional persona for `Full` and is not currently shipped.
 
-The repository itself is still named `Jarvis`. Older Jarvis-tagged releases and tags remain preserved as legacy/internal history. The future public product line begins later under `Nexus Desktop AI`; this README does not imply that repo rename or public release work has already happened.
+Older legacy/internal releases and tags remain preserved as historical internal context. The future public product line begins later under `Nexus Desktop AI`; this README does not imply that public release work is already complete.
 
 ## Current Status
 
@@ -48,8 +48,7 @@ It is not the normal user desktop entrypoint. It exists to support controlled bo
 - product/platform identity: `Nexus Desktop AI`
 - shipped persona in `pre-Beta` and `Beta`: `ORIN`
 - future persona option in `Full`: `ARIA`
-- repo name remains `Jarvis` for now
-- old Jarvis-tagged releases/tags remain preserved as legacy/internal history
+- older legacy/internal releases and tags remain preserved as historical internal context
 - the new public product line begins later under `Nexus Desktop AI`
 
 ## Repository Layout
@@ -59,7 +58,7 @@ Top-level folders currently include:
 - `desktop/` for launcher, renderer, runtime, and diagnostics surfaces
 - `dev/` for toolkit, validators, harnesses, and related internal helpers
 - `docs/` for project truth, architecture, backlog, and guidance
-- `jarvis_visual/` for current visual assets and bridge-side UI resources
+- the current visual assets and bridge-side UI resources
 - `logs/` for local runtime artifacts
 
 Top-level launch/runtime surfaces currently include:
@@ -71,7 +70,7 @@ Top-level launch/runtime surfaces currently include:
 This branch is being advanced through narrow, evidence-driven slices:
 - preserve working launch paths first
 - fix visible rebrand gaps before deeper cleanup
-- keep runtime behavior stable while reducing outdated Jarvis-era user-facing surfaces
+- keep runtime behavior stable while reducing outdated pre-rebrand user-facing surfaces
 - defer larger UX, release, repo-rename, and public-launch work until separately approved
 
 ## Current Source Of Truth

@@ -1031,7 +1031,7 @@ class DevLauncherWindow(QWidget):
             "- Custom Launch utilities only light up for evidence created by launches started in this Dev Toolkit session.\n"
             "- Previous Launches lets you reopen earlier dev evidence without mixing it into the active Custom Launch flow.\n"
             "- Global Utilities only open stable developer locations and never depend on the selected lane.\n"
-            "- Dev Toolkit evidence writes under C:\\Jarvis\\dev\\logs lane roots instead of the active client-facing logs root.\n"
+            "- Dev Toolkit evidence writes under the workspace's dev\\logs lane roots instead of the active client-facing logs root.\n"
             "- Uploads stages a support-bundle zip or extracted folder and routes it into the existing Support Bundle Triage Helper."
         )
         notes_label.setObjectName("noteBox")

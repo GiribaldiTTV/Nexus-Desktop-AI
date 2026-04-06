@@ -703,19 +703,23 @@ class DiagnosticsWindow(QWidget):
             diag_event("report_issue", "bundle_folder_failed", exc)
 
         browser_opened = False
-        try:
-            browser_opened = webbrowser.open(issue_url, new=2)
-        except Exception as exc:
-            self.append_trace(f"GitHub issue page open failed: {exc}")
-            diag_event("report_issue", "issue_open_failed", exc)
+        if issue_url:
+            try:
+                browser_opened = webbrowser.open(issue_url, new=2)
+            except Exception as exc:
+                self.append_trace(f"GitHub issue page open failed: {exc}")
+                diag_event("report_issue", "issue_open_failed", exc)
 
         if browser_opened:
             self.append_trace("GitHub issue draft opened in your default browser.")
             self.append_trace("Attach the support bundle manually and submit the issue manually.")
             diag_event("report_issue", "issue_opened", bundle_info["run_identity"])
-        else:
-            self.append_trace("The support bundle is ready. Open the GitHub issues page manually to file the report.")
+        elif issue_url:
+            self.append_trace("The support bundle is ready. Open the issue page manually to file the report.")
             diag_event("report_issue", "issue_open_unconfirmed", bundle_info["run_identity"])
+        else:
+            self.append_trace("The support bundle is ready. Review it locally and file the report manually once the public issue target is ready.")
+            diag_event("report_issue", "issue_open_skipped_no_public_target", bundle_info["run_identity"])
 
 def main():
     configure_launch_args(sys.argv)
