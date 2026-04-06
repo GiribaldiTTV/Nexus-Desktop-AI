@@ -1428,6 +1428,49 @@ This should be treated as a future source-of-truth migration item, not a broad i
 
 ---
 
+### [ID: FB-033] Dev-only startup snapshot harness follow-through
+
+Status: Deferred  
+Priority: Medium  
+Suggested Version: TBD  
+Suggested Revision: rev1  
+Release Stage: pre-Beta  
+
+Description:
+Track the current env-gated startup snapshot harness as intentional dev-only debugging infrastructure so future desktop-launch investigations can reuse it cleanly without turning it into normal product behavior.
+
+Why it matters:
+Issue `#17` showed that normal desktop capture APIs can be unreliable or blind once the ORIN desktop child is reparented under the desktop shell. A small startup snapshot harness gives developers a direct evidence path for first-visible startup behavior, zero-state versus warm-start comparison, and bounded attach/reveal debugging.
+
+Proposed Change:
+Keep the startup snapshot path strictly harness-gated, then later do one bounded follow-through pass that decides:
+
+- whether the current snapshot timing set is the right permanent minimum
+- whether the helper should be surfaced through a dedicated dev-only launcher or toolkit path
+- what cleanup or usage guidance should travel with the helper long-term
+
+Likely Files Affected:
+- C:/Nexus Desktop AI/desktop/desktop_renderer.py
+- optional directly supportive dev-only launch/test surfaces
+- optional directly supportive canonical docs for dev-only usage guidance
+
+Scope:
+- env-gated startup snapshot debugging
+- first-visible frame evidence capture for desktop launch investigations
+- bounded dev-only follow-through for repeatable startup diagnostics
+
+Out of Scope:
+- normal user-facing screenshot or recording features
+- always-on runtime capture
+- release or support-bundle changes
+- broad desktop renderer redesign
+- unrelated Dev Toolkit expansion unless explicitly approved later
+
+Notes:
+Current branch-local evidence indicates the helper is useful for internal startup debugging, but it should remain clearly separate from normal runtime behavior and should only be kept long-term if it stays harness-gated, low-noise, and bounded to developer investigation needs.
+
+---
+
 ## Completed Items
 
 Move completed backlog items here for history tracking.

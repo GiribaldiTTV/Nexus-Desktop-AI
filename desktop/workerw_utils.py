@@ -64,6 +64,7 @@ MapWindowPoints.restype = ctypes.c_int
 # --- Constants ---
 SMTO_NORMAL = 0x0000
 SW_SHOW = 5
+SW_HIDE = 0
 
 HWND_BOTTOM = 1
 SWP_NOSIZE = 0x0001
@@ -278,8 +279,9 @@ def attach_window_to_desktop(hwnd: int) -> bool:
         | WS_MINIMIZEBOX
         | WS_MAXIMIZEBOX
         | WS_SYSMENU
+        | WS_VISIBLE
     )
-    style |= WS_CHILD | WS_VISIBLE
+    style |= WS_CHILD
     _set_window_long_ptr(hwnd, GWL_STYLE, style)
 
     exstyle = int(GetWindowLongPtrW(hwnd, GWL_EXSTYLE))
@@ -287,7 +289,6 @@ def attach_window_to_desktop(hwnd: int) -> bool:
     exstyle |= WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW
     _set_window_long_ptr(hwnd, GWL_EXSTYLE, exstyle)
 
-    ShowWindow(hwnd, SW_SHOW)
     SetWindowPos(
         hwnd,
         HWND_BOTTOM,
@@ -298,7 +299,6 @@ def attach_window_to_desktop(hwnd: int) -> bool:
         SWP_NOMOVE
         | SWP_NOSIZE
         | SWP_NOACTIVATE
-        | SWP_SHOWWINDOW
         | SWP_FRAMECHANGED
         | SWP_NOOWNERZORDER
         | SWP_NOSENDCHANGING,
@@ -317,8 +317,9 @@ def make_window_noninteractive(hwnd: int) -> None:
         | WS_MINIMIZEBOX
         | WS_MAXIMIZEBOX
         | WS_SYSMENU
+        | WS_VISIBLE
     )
-    style |= WS_CHILD | WS_VISIBLE
+    style |= WS_CHILD
     _set_window_long_ptr(hwnd, GWL_STYLE, style)
 
     exstyle = int(GetWindowLongPtrW(hwnd, GWL_EXSTYLE))
@@ -336,7 +337,6 @@ def make_window_noninteractive(hwnd: int) -> None:
         SWP_NOMOVE
         | SWP_NOSIZE
         | SWP_NOACTIVATE
-        | SWP_SHOWWINDOW
         | SWP_FRAMECHANGED
         | SWP_NOOWNERZORDER
         | SWP_NOSENDCHANGING,

@@ -76,6 +76,18 @@ After every revision, review:
 - dev/test/worker/toolkit evidence must write under `C:/Jarvis/dev/logs/<lane>/...`
 - no new dev/test/worker evidence roots, new subfolders, or new artifact families may be introduced under `C:/Jarvis/logs` or `C:/Jarvis/logs/crash` without explicit user approval
 
+## Dev-Only Startup Snapshot Harness
+
+For desktop attach, first-visible frame, or startup-freeze debugging, Codex may use the env-gated startup snapshot harness in the desktop renderer when that is the smallest reliable evidence path.
+
+Rules:
+
+- the harness must remain opt-in through `JARVIS_HARNESS_STARTUP_SNAPSHOT_DIR`
+- snapshot output must write to an explicitly chosen dev/test evidence path, not to root `logs`
+- the harness is for internal debugging only and must not become normal user-facing behavior
+- snapshot timing should stay bounded to the startup window under investigation
+- if the harness is not needed for the active task, leave it disabled
+
 ## Orchestration Philosophy
 
 Build in this order:
