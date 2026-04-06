@@ -400,8 +400,15 @@ class CommandOverlayPanel(QWidget):
             index = int(match.get("index", -1))
             title = match.get("title", "")
             target_kind = match.get("target_kind", "")
-            button = QPushButton(f"{index + 1}. {title} ({target_kind})", self.ambiguous_choices_frame)
+            target_display = match.get("target_display") or match.get("target", "")
+            button_text = f"{index + 1}. {title}"
+            if target_display:
+                button_text += f"\n{target_kind}: {target_display}"
+            elif target_kind:
+                button_text += f"\n{target_kind}"
+            button = QPushButton(button_text, self.ambiguous_choices_frame)
             button.setProperty("choiceRole", "ambiguous")
+            button.setToolTip(match.get("target", ""))
             button.clicked.connect(lambda _checked=False, idx=index: self.ambiguous_match_selected.emit(idx))
             self.ambiguous_choices_layout.addWidget(button)
         self.ambiguous_choices_frame.setVisible(bool(matches))
@@ -454,7 +461,7 @@ class CommandOverlayPanel(QWidget):
 
         titles = payload.get("ambiguous_titles") or []
         if phase == "choose" and titles:
-            self.ambiguous_label.setText("Multiple saved actions matched your request.")
+            self.ambiguous_label.setText("Multiple saved actions matched your request. Review the destination detail below.")
         else:
             self.ambiguous_label.setText(f"Matches: {' | '.join(titles)}" if titles else "")
         self._populate_ambiguous_choice_buttons(payload.get("ambiguous_matches") or [])
@@ -466,7 +473,8 @@ class CommandOverlayPanel(QWidget):
             self.confirm_request_value.setText(payload.get("typed_request", ""))
             self.confirm_title_value.setText(action.get("title", ""))
             self.confirm_kind_value.setText(action.get("target_kind", ""))
-            self.confirm_target_value.setText(action.get("target", ""))
+            self.confirm_target_value.setText(action.get("target_display") or action.get("target", ""))
+            self.confirm_target_value.setToolTip(action.get("target", ""))
 
 
 class DesktopRuntimeWindow(QWidget):

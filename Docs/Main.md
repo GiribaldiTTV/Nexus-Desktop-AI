@@ -56,6 +56,7 @@ Use these when the task concerns:
 - backlog control
 - orchestration ownership
 - prompt or workflow governance, including batched-workstream execution rules
+- grouped-workstream branch strategy and multi-developer workflow boundaries
 
 ### Canonical Workstream Docs
 
@@ -180,6 +181,14 @@ For prompt-governance or workflow-governance tasks, prompts should usually inclu
 - `docs/user_test_summary_guidance.md`
 
 Add other canonical docs only if the governance wording depends on them.
+
+This governance lane includes:
+
+- user-test-summary handling rules
+- backlog-control rules
+- batched-workstream execution rules
+- grouped-workstream branch strategy for `pre-Beta`
+- multi-developer workflow and GitHub/tooling governance boundaries
 
 ## When To Add Closeout Docs
 

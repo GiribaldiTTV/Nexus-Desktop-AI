@@ -90,6 +90,15 @@ This separation is important:
 - test-result evidence should stay readable as test evidence
 - new ideas should still be captured for later digestion
 
+User additions should also be treated as raw inputs rather than final canon wording.
+
+That means Codex should:
+
+- preserve the user's original request or concern faithfully
+- refine or clarify the idea when helpful using repo truth, current architecture boundaries, and the product vision
+- avoid changing the intended meaning of the user's request while improving precision, scope clarity, or terminology
+- explicitly distinguish between the user's raw idea and Codex's refined recommendation when summarizing follow-through
+
 ## Digest Rule After Submission
 
 After the user returns a filled `User Test Summary.txt`, Codex must explicitly digest it before recommending the next move.
@@ -103,11 +112,68 @@ That digest should separate:
 - what belongs to the current slice
 - what should be deferred into backlog or future source-of-truth consideration
 
+That digest should also include:
+
+- whether each new idea aligns with the current product vision and architecture boundaries
+- whether Codex recommends refining the user's wording before any truth-doc or backlog carry-forward
+- whether the idea is best treated as:
+  - current-slice follow-through
+  - future source-of-truth clarification
+  - future backlog candidate
+  - not currently recommended
+
+Codex should use project truth when refining ideas, including:
+
+- `docs/orin_vision.md`
+- `docs/architecture.md`
+- the canonical doc for the active workstream
+- any directly relevant closeout or planning doc
+
 Codex must not:
 
 - ignore newly introduced user requests
 - treat every new idea as automatically in scope for the current patch
 - leave the file unanalyzed after the user submits it
+
+## Approval Rule For Carry-Forward
+
+Ideas surfaced through a returned `User Test Summary.txt` must not be silently added to:
+
+- `docs/feature_backlog.md`
+- canonical planning docs
+- active source-of-truth docs that materially expand planned behavior
+
+until Codex first provides the user with:
+
+- a concise digest of the relevant test evidence
+- a summary of the extracted ideas
+- any recommended refinement to align the idea with repo truth, product vision, or architecture boundaries
+- a clear recommendation for where the idea belongs
+
+and the user explicitly approves that carry-forward.
+
+This approval rule exists even when the idea is good.
+
+The purpose is:
+
+- to preserve user control over backlog and canon growth
+- to avoid silent scope expansion from live testing feedback
+- to make sure Codex analyzes and refines ideas before proposing them as truth
+
+Directly supportive truth-doc updates for the active approved code task may still be bundled into the same workstream when the user has already approved that truth pass, but new ideas discovered during testing remain approval-gated.
+
+## Historical Summary Review Rule
+
+When the user explicitly asks Codex to revisit earlier `User Test Summary` submissions, Codex should review any recoverable prior summaries or directly preserved returned evidence before recommending new carry-forward.
+
+That review should separate:
+
+- what older summary artifacts are still recoverable
+- what ideas were already carried into canon or code
+- what ideas appear to have been missed
+- which missed ideas should now be proposed for approval-gated carry-forward
+
+If older summaries are no longer recoverable from the local environment, Codex should say so clearly and rely only on the evidence still available rather than pretending a historical review was complete.
 
 ## Required Dev Toolkit Metadata
 

@@ -3,6 +3,7 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse, unquote
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -68,6 +69,48 @@ def launch_command_action(action: CommandAction):
         return
 
     os.startfile(action.target)
+
+
+def format_command_target_display(target_kind: str, target: str, max_length: int = 72) -> str:
+    target = (target or "").strip()
+    if not target:
+        return ""
+
+    if target_kind in {"folder", "file"}:
+        path = Path(target)
+        normalized = str(path)
+        if len(normalized) <= max_length:
+            return normalized
+
+        anchor = path.anchor
+        parts = [part for part in path.parts if part and part != anchor]
+        if not parts:
+            return normalized
+
+        tail_parts = parts[-3:] if len(parts) >= 3 else parts
+        tail = "\\".join(tail_parts)
+        if anchor:
+            return f"{anchor}...\\{tail}"
+        return f"...\\{tail}"
+
+    if target_kind == "url":
+        parsed = urlparse(target)
+        if parsed.scheme and parsed.netloc:
+            path = unquote(parsed.path or "")
+            compact = f"{parsed.netloc}{path}"
+            if parsed.query:
+                compact += "?"
+            if len(compact) <= max_length:
+                return compact
+            trimmed = path[-max(0, max_length - len(parsed.netloc) - 4):]
+            return f"{parsed.netloc}...{trimmed}"
+
+    if target_kind == "app":
+        return Path(target).name or target
+
+    if len(target) <= max_length:
+        return target
+    return f"{target[: max_length - 3]}..."
 
 
 class CommandOverlayModel:
@@ -244,6 +287,10 @@ class CommandOverlayModel:
                 "title": action.title,
                 "target_kind": action.target_kind,
                 "target": action.target,
+                "target_display": format_command_target_display(
+                    action.target_kind,
+                    action.target,
+                ),
             },
             "ambiguous_titles": [match.title for match in self.pending_matches] if self.status_kind == "ambiguous" else [],
             "ambiguous_matches": [
@@ -253,6 +300,10 @@ class CommandOverlayModel:
                     "title": match.title,
                     "target_kind": match.target_kind,
                     "target": match.target,
+                    "target_display": format_command_target_display(
+                        match.target_kind,
+                        match.target,
+                    ),
                 }
                 for index, match in enumerate(self.pending_matches)
             ]
