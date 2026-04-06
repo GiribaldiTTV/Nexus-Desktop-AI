@@ -212,6 +212,38 @@ Backlog sync remains controlled:
 - only the exact active workstream truth may be synced
 - unrelated backlog cleanup must stay separate
 
+## Grouped Workstream Branch Rule
+
+For `pre-Beta` planning, Codex may recommend or use a grouped workstream branch when:
+
+- the work belongs to one clear category or subsystem
+- several related ideas are better handled as one lane than as disconnected micro-branches
+- the lane is suitable for multi-developer coordination
+- each actual revision inside the branch can still stay narrow and validated
+
+Examples of valid grouped workstream branches:
+
+- interaction
+- UI / UX
+- workflow / GitHub infrastructure
+- diagnostics / tooling
+
+A grouped workstream branch does not authorize one broad patch.
+
+Instead, it means:
+
+- one branch may host a sequence of approved narrow slices
+- each slice inside that branch still needs clear scope and verification
+- unrelated ideas should still be split out even if they are all deferred work
+
+At `Beta` and later, the default recommendation should usually shift toward:
+
+- issue-specific branches
+- bug-fix branches
+- single-idea branches
+
+unless a grouped branch remains clearly justified.
+
 ---
 
 ## Shared Rules Across Both Modes

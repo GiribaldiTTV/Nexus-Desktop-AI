@@ -16,6 +16,42 @@
 4. No blind iteration
 5. Run a post-revision Analyze pass before recommending the next revision
 
+## Workstream Organization
+
+During `pre-Beta`, the project may organize work through grouped workstreams by category or subsystem when that is the clearest way to support multi-developer progress.
+
+Examples may include:
+
+- interaction work
+- UI / UX work
+- diagnostics / tooling work
+- release-prep or repo-admin work
+- workflow or GitHub-infrastructure work
+
+This grouping rule does not replace one-fix-per-revision discipline.
+
+It means:
+
+- the branch or workstream may group related ideas under one coherent lane
+- each approved revision or patch inside that lane must still stay narrow, validated, and architecture-safe
+- unrelated categories must not be silently mixed just because they are all "nice to do"
+
+The purpose of grouped workstreams is:
+
+- clearer backlog-to-branch mapping
+- cleaner multi-developer coordination
+- less churn from fragmenting every release into isolated micro-branches when the work is obviously part of one coherent lane
+
+Until `Beta`, grouped workstreams are allowed when they remain coherent by subsystem and end-state.
+
+At `Beta` and later, the default planning posture should shift back toward narrower:
+
+- issue branches
+- bug-fix branches
+- single-idea follow-through branches
+
+unless a grouped workstream is explicitly justified.
+
 ## Change Discipline
 
 - Changes must be minimal and isolated
@@ -278,3 +314,52 @@ Codex assists in managing it, but the user retains final authority over:
 - prioritization
 - status changes
 - completion
+
+## Backlog Grouping And Planning Rule
+
+When planning future work, Codex may scan the backlog for related ideas by type or subsystem so the user can choose a more organized workstream model.
+
+Examples:
+
+- several UI / UX ideas grouped into one UI / UX lane
+- several interaction-surface ideas grouped into one interaction lane
+- several workflow / tooling ideas grouped into one infrastructure lane
+
+Codex may:
+
+- identify clusters of related ideas
+- recommend a grouped workstream branch
+- suggest which items should travel together versus stay separate
+
+Codex may not:
+
+- silently reorder backlog items into categories
+- silently relabel backlog status or priority
+- silently create a new grouped workstream in backlog truth without approval
+
+Grouped-workstream planning must still preserve:
+
+- backlog control
+- explicit user approval
+- clear subsystem boundaries
+- minimal per-revision scope inside the larger lane
+
+## GitHub / Tooling Expansion Rule
+
+Potential GitHub follow-through such as:
+
+- repo scripts
+- helper automation
+- bots
+- workflow tooling
+- multi-developer coordination helpers
+
+should be treated as explicit infrastructure work, not as silent side work attached to product slices.
+
+Codex may recommend those expansions when they materially improve project organization, validation, or collaboration.
+
+Codex must not silently add them without:
+
+- a clear explanation of why they are worth adding
+- a recommendation for where they belong
+- explicit user approval for the resulting workstream

@@ -86,6 +86,26 @@ The current preferred default hotkey is:
 
 That hotkey should be treated as a planning-level default, not a permanently fixed non-configurable rule.
 
+### Alternate Desktop Hotkey Direction
+
+For current Nexus-era desktop interaction, the default desktop hotkeys remain:
+
+- `Ctrl+Alt+Home` for the quick command overlay
+- `Ctrl+Alt+End` for the current desktop shutdown path
+
+Future interaction follow-through should preserve room for:
+
+- one alternate user-usable binding for opening and closing the quick command overlay
+- one alternate user-usable binding for the current desktop shutdown path
+
+The purpose of this direction is:
+
+- to reduce dependence on one exact physical-key path
+- to support broader usability across keyboards and user preference
+- to leave room for later bounded shortcut follow-through without forcing a full shortcut-customization system immediately
+
+This direction does not authorize immediate implementation of configurable shortcut management or a broad keybinding system.
+
 ### 3. Action Studio
 
 The customization surface is the place where the user defines and edits saved actions, aliases, routines, and profiles.
