@@ -10,7 +10,7 @@ This document formalizes the two Codex collaboration modes used in the Jarvis pr
 The purpose of these modes is to keep planning, execution, and verification disciplined without weakening user authority, backlog control, or locked architecture boundaries.
 
 This document is operational guidance for how Codex should collaborate inside Jarvis work.
-It does not override `development_rules.md`, `jarvis_task_template.md`, version closeout facts, or explicit user approval requirements.
+It does not override `development_rules.md`, `orin_task_template.md`, version closeout facts, or explicit user approval requirements.
 
 ---
 
@@ -46,6 +46,9 @@ Use Analysis mode when:
 - identifying risks, missing evidence, or drift traps
 - defining the safest scope for a future docs-only or patch task
 - validating whether a proposed next move conflicts with source-of-truth docs
+- investigating runtime bugs, behavior regressions, or other systems-level failures before patching
+- tracing architecture-sensitive behavior where a shallow file-reference answer would be risky
+- performing readiness or risk analysis that could directly lead to a patch recommendation
 - performing post-version planning such as deciding whether `FB-015` is the correct next architecture-first target
 
 ### What Codex Should Do
@@ -59,6 +62,36 @@ Codex should:
 - separate confirmed facts from inference
 - call out risks, blockers, and conflicts directly
 - recommend doc-first clarification when implementation boundaries are not yet tight enough
+
+### Required Analysis Depth
+
+Analysis mode is not one fixed depth for every task.
+
+For a tiny docs review, narrow sanity check, or lightweight source-of-truth drift check, Codex should use only the analysis depth needed to answer the question cleanly.
+
+For runtime bugs, behavior regressions, systems investigations, architecture-sensitive work, or readiness/risk analysis that could lead to patching, Analysis mode must become deep investigative analysis rather than shallow reference review.
+
+Deep investigative analysis is also required for branch-level merge-readiness, PR-readiness, release-readiness, version-bump, or release-package review, even when no patch is being proposed.
+
+When that deeper investigation applies, Codex should:
+
+- trace the full execution or behavior chain from entry point to affected output
+- identify direct files, indirect files, and regression-risk files
+- explain current behavior versus intended behavior
+- identify the relevant validators, state transitions, logging surfaces, config usage, and user-visible side effects
+- list assumptions, unknowns, and evidence still needed
+- define the smallest safe patch scope when a patch may be needed
+- define the verification plan, including commands, log review, and user-test needs, before recommending patching or readiness
+
+Analysis mode should follow those same requirements even when the user invokes it with only a short cue such as:
+
+- `Analyze and Report`
+- `Analyze for drift`
+- `Analysis mode`
+- `reference docs for the following`
+
+Those shorthand prompts are mode selectors, not reduced-quality requests.
+Codex should still load the default baseline from `docs/Main.md` and the directly relevant canonical docs before reporting.
 
 ### First Prompt Rule For New Post-Closeout Version Chats
 
@@ -92,6 +125,14 @@ Analysis mode outputs should usually include:
 - whether a docs-only clarification should happen before patching
 - recommended next move
 
+When deep investigative analysis applies, outputs should also include:
+
+- affected-chain summary
+- current behavior versus intended behavior
+- explicit assumptions, unknowns, and missing evidence
+- smallest safe patch scope when patching is still a live outcome
+- verification and user-test plan
+
 Analysis mode should leave the repo unchanged.
 
 ---
@@ -116,21 +157,41 @@ Use Workflow mode when:
 Codex should:
 
 - still analyze first
+- complete the required deep Analysis-mode investigation before editing when the task involves runtime bugs, behavior regressions, systems investigations, architecture-sensitive work, or readiness/risk analysis that could lead to patching
 - define the exact narrow scope before editing
 - make only the approved isolated change
 - verify the result directly
+- run the same user-facing test path or the closest faithful equivalent before handing that path back to the user when feasible
 - report what changed and what was verified
 - keep the source-of-truth docs aligned with actual implemented state
 - stop and report if the task would require reopening locked architecture or widening beyond one controlled revision
 
+Workflow mode should follow those same requirements even when the user invokes it with only a short cue such as:
+
+- `Workflow mode`
+- `docs-only pass`
+- `patch this`
+- `continue on this branch`
+
+Those shorthand prompts are execution selectors, not permission to skip truth-doc reading, validation, or scope control.
+Codex should still load the default baseline from `docs/Main.md`, infer the directly relevant canonical docs, and keep the same validation standard as a longer structured prompt.
+
 Workflow mode means Codex carries the task responsibly, not mechanically.
 Codex should behave like a careful senior collaborator who keeps progress moving without bypassing control boundaries.
+
+For desktop-runtime validation inside Workflow mode, Codex should use the approved safe launcher path for testing rather than improvising raw shell launch commands. In practice, that means:
+
+- prefer an approved helper in `dev/launchers/`
+- or launch `desktop/orin_desktop_launcher.pyw` directly through `pythonw.exe`
+
+Codex should only use the user-facing VBS or desktop shortcut path when the task specifically requires validating that wrapper layer itself.
 
 ### What Codex Must Not Do
 
 Codex must not:
 
 - treat workflow ownership as permission to widen scope
+- patch runtime, behavior, or systems-impacting work before the required pre-patch investigation is complete
 - silently change backlog status or priorities without explicit approval
 - reopen version-closed behavior as a "small improvement"
 - merge multiple conceptual fixes into one revision
@@ -146,6 +207,10 @@ Workflow mode outputs should usually include:
 - exact minimal changes made
 - why the change is sufficient
 - verification summary
+- whether validation is:
+  - self-validated
+  - helper-validated
+  - or still user-only for the final gap
 - any docs intentionally left unchanged
 - commit summary
 - commit description
@@ -310,12 +375,21 @@ Before Codex generates any readiness or release package such as:
 
 Codex must verify live repo state first.
 
+Those readiness reviews are Analysis-mode work and must use deep investigative analysis rather than shallow branch-summary reasoning.
+
 That live-state check must include:
 
 - whether the referenced branch is still active
 - whether that branch has already been merged
 - whether related tag or release state already exists
 - whether the prompt framing is stale relative to current repo or GitHub state
+
+For branch-level merge-ready or release-ready review, that deeper analysis should also cover:
+
+- the actual branch scope and what changed on that branch
+- whether any active bug, unresolved drift, or dirty worktree state remains
+- whether verification evidence is strong enough for the claimed readiness level
+- whether closed guarantees, milestone expectations, or release facts could be reopened by the current branch state
 
 If the prompt framing is stale, Codex must not generate a fresh hypothetical readiness package.
 
@@ -380,14 +454,14 @@ If backlog state needs to change, user approval is still required even in Workfl
 
 ---
 
-## Relationship To `jarvis_task_template.md`
+## Relationship To `orin_task_template.md`
 
-`docs/jarvis_task_template.md` remains the per-task execution scaffold.
+`docs/orin_task_template.md` remains the per-task execution scaffold.
 
 This document does not replace the template.
 Instead:
 
-- `jarvis_task_template.md` defines the structure of an individual task request
+- `orin_task_template.md` defines the structure of an individual task request
 - `codex_modes.md` defines the collaboration posture Codex should take while handling that task
 
 In practice:
@@ -436,6 +510,8 @@ Once a version has a closeout doc and the directly supportive truth-sync items a
 - omit validator, harness, and reachability details that are already captured in the closeout and backlog truth unless the new task depends on them directly
 - avoid repeating the full batched-workstream rule block when `codex_modes.md` is already part of the prompt baseline
 
+Closeout cadence and whether a new closeout is actually needed should follow `docs/closeout_guidance.md` rather than being assumed mechanically from the existence of a release, branch merge, or docs-only pass.
+
 ### Current Boot-Planning Example
 
 For current Jarvis work, `docs/Main.md` should be the default docs index and prompt-baseline map.
@@ -447,7 +523,7 @@ That means future boot-access prompts should usually prefer:
 - `development_rules.md`
 - `Main.md`
 - `architecture.md`
-- `jarvis_vision.md`
+- `orin_vision.md`
 - `feature_backlog.md`
 - `orchestration.md`
 - `boot_access_design.md`

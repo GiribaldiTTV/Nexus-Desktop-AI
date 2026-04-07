@@ -1100,10 +1100,10 @@ Why it matters:
 This is the clearest future product-facing lane for turning Jarvis from a stabilized orchestration foundation into a system-facing interaction layer the user can actually shape and use day to day.
 
 Proposed Change:
-For current repo truth, keep the canonical interaction architecture in `docs/jarvis_interaction_architecture.md` and deliver it through staged slices rather than one broad feature push.
+For current repo truth, keep the canonical interaction architecture in `docs/orin_interaction_architecture.md` and deliver it through staged slices rather than one broad feature push.
 
 Likely Files Affected:
-- C:/Jarvis/docs/jarvis_interaction_architecture.md
+- C:/Nexus Desktop AI/Docs/orin_interaction_architecture.md
 - future typed command overlay surfaces
 - future shared action-model surfaces
 - future action-customization surfaces
@@ -1124,7 +1124,7 @@ Out of Scope:
 - broader boot-orchestrator runtime implementation
 
 Notes:
-Current planning truth already lives in `docs/jarvis_interaction_architecture.md`.
+Current planning truth already lives in `docs/orin_interaction_architecture.md`.
 
 Current repo truth now includes the first implemented `pre-Beta` slice in `v2.2.1 rev1`:
 
@@ -1135,6 +1135,19 @@ Current repo truth now includes the first implemented `pre-Beta` slice in `v2.2.
 - zero-match and ambiguous-match outcomes stay non-executing and visible inside the overlay
 - confirmed execution shows a brief result state and then returns the desktop to passive mode
 - directly supportive route-parity and stability follow-through in the same lane closed desktop host positioning, overlay input-ownership, and Boot-handoff reset-churn issues for the first slice
+
+Current branch-local follow-through above that same foundation now also includes:
+
+- command-overlay target clarity follow-through so ambiguous choices and confirmation make path-sensitive destinations easier to tell apart before execution
+- overlay-usability follow-through so opening the overlay from the hotkey path now leaves entry ready for immediate typing
+- bounded keyboard-first ambiguous selection so visible ambiguous choices can be resolved locally with number keys before the existing confirmation step
+- preserved explicit confirmation before execution for both mouse and keyboard choice paths
+- preserved local-only typing behavior with no restored global printable-key capture outside the visible overlay
+- alternate desktop hotkeys now also exist on this branch:
+  - `Ctrl+Alt+1` as an alternate overlay toggle path alongside `Ctrl+Alt+Home`
+  - `Ctrl+Alt+2` as an alternate shutdown path alongside `Ctrl+Alt+End`
+
+These branch-local follow-through items remain part of the same staged `FB-027` interaction lane rather than separate backlog items.
 
 Release-stage mapping:
 

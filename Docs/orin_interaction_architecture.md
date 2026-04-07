@@ -19,7 +19,7 @@ It does not define implementation mechanics for wake-word detection, speech-to-t
 This document is downstream of:
 
 - `architecture.md` for launcher-owned desktop authority and higher-layer read-only limits
-- `jarvis_vision.md` for Jarvis as the intended system-facing experience
+- `orin_vision.md` for Jarvis as the intended system-facing experience
 - `boot_access_design.md` for future pre-desktop access, trust, recovery, and resident trust-state boundaries
 - `feature_backlog.md` for workstream status and scope control
 
@@ -105,6 +105,14 @@ The purpose of this direction is:
 - to leave room for later bounded shortcut follow-through without forcing a full shortcut-customization system immediately
 
 This direction does not authorize immediate implementation of configurable shortcut management or a broad keybinding system.
+
+Current branch-local desktop follow-through now includes:
+
+- `Ctrl+Alt+1` as an alternate user-usable quick-command-overlay path alongside `Ctrl+Alt+Home`
+- `Ctrl+Alt+2` as an alternate user-usable desktop shutdown path alongside `Ctrl+Alt+End`
+
+This branch-local follow-through remains a bounded usability refinement only.
+It does not authorize broader shortcut customization, settings UI, or profile-based keybinding management.
 
 ### 3. Action Studio
 
@@ -195,6 +203,13 @@ The purpose of this rule is:
 - to help the user understand why one match differs from another
 - to reduce accidental launches when multiple choices are similar
 
+Current branch-local desktop overlay follow-through now also includes:
+
+- immediate typed-entry readiness when the overlay is opened from the current hotkey path
+- bounded keyboard-first ambiguous-choice resolution through visible number-key selection
+- preserved explicit confirmation before launch after keyboard selection
+- preserved clean `Esc` back-out behavior and local-only keyboard ownership inside the visible overlay
+
 ## Nexus-Era User-Facing Naming Rule
 
 For Nexus Desktop AI / ORIN-era interaction surfaces, user-facing command labels and choices should prefer current Nexus-era naming rather than legacy Jarvis branding unless the user is explicitly interacting with preserved historical context.
@@ -241,7 +256,7 @@ Those later capabilities should remain:
 
 ## Release-Stage Model
 
-At planning level, the release stages for this interaction lane should follow the product-wide release-stage framing in `jarvis_vision.md`:
+At planning level, the release stages for this interaction lane should follow the product-wide release-stage framing in `orin_vision.md`:
 
 - `pre-Beta`
   - internal or tightly controlled delivery of the first usable interaction slices

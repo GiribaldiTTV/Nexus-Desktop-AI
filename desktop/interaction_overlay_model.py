@@ -21,17 +21,29 @@ class CommandAction:
 DEFAULT_COMMAND_ACTIONS = (
     CommandAction(
         id="open_jarvis_workspace",
-        title="Open Jarvis Workspace",
+        title="Open Nexus Workspace",
         target_kind="folder",
         target=str(ROOT_DIR),
-        aliases=("open jarvis workspace", "open workspace", "open jarvis folder"),
+        aliases=(
+            "open nexus workspace",
+            "open nexus folder",
+            "open workspace",
+            "open jarvis workspace",
+            "open jarvis folder",
+        ),
     ),
     CommandAction(
         id="open_jarvis_docs",
-        title="Open Jarvis Docs",
+        title="Open Nexus Docs",
         target_kind="folder",
         target=str(ROOT_DIR / "docs"),
-        aliases=("open jarvis docs", "open docs", "open jarvis folder"),
+        aliases=(
+            "open nexus docs",
+            "open docs",
+            "open jarvis docs",
+            "open jarvis folder",
+            "open nexus folder",
+        ),
     ),
     CommandAction(
         id="open_windows_explorer",
@@ -64,11 +76,17 @@ def resolve_command_actions(text: str, actions=DEFAULT_COMMAND_ACTIONS):
 
 
 def launch_command_action(action: CommandAction):
+    target = os.path.normpath(action.target)
+
     if action.target_kind == "app":
-        subprocess.Popen([action.target], shell=False)
+        subprocess.Popen([target], shell=False)
         return
 
-    os.startfile(action.target)
+    if action.target_kind == "folder":
+        subprocess.Popen(["explorer.exe", target], shell=False)
+        return
+
+    os.startfile(target)
 
 
 def format_command_target_display(target_kind: str, target: str, max_length: int = 72) -> str:
@@ -126,10 +144,10 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
 
-    def open(self):
+    def open(self, *, arm_input: bool = False):
         self.visible = True
         self.phase = "entry"
-        self.input_armed = False
+        self.input_armed = bool(arm_input)
         self.input_text = ""
         self.status_kind = "idle"
         self.status_text = ""
@@ -212,7 +230,7 @@ class CommandOverlayModel:
         if self.phase == "entry":
             if not self.input_armed:
                 self.status_kind = "idle"
-                self.status_text = "Click inside the command box to begin typing."
+                self.status_text = "Type a saved action or alias to begin."
                 return ("awaiting_click_arm", None)
 
             if not normalize_command_text(self.input_text):
@@ -241,7 +259,7 @@ class CommandOverlayModel:
             self.phase = "choose"
             self.input_armed = False
             self.status_kind = "ambiguous"
-            self.status_text = "Select the intended action below."
+            self.status_text = "Press a number key or click the intended action below."
             return ("ambiguous", matches)
 
         if self.phase == "confirm" and self.pending_action is not None:

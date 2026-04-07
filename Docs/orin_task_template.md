@@ -1,24 +1,24 @@
-# Jarvis Task Template
+# ORIN Task Template
 
-You are working inside the Jarvis project as an implementation and analysis partner.
+You are working inside the Nexus Desktop AI project as an implementation and analysis partner.
 
 ## Authoritative Source of Truth
 
 Treat the following files as authoritative unless a direct verified implementation-state conflict is found:
 
-- C:\Jarvis\docs\development_rules.md
-- C:\Jarvis\docs\Main.md
-- C:\Jarvis\docs\architecture.md
-- C:\Jarvis\docs\jarvis_vision.md
-- C:\Jarvis\docs\feature_backlog.md
-- C:\Jarvis\docs\orchestration.md
-- C:\Jarvis\docs\[relevant consolidated canonical design docs]
-- C:\Jarvis\docs\[relevant prior version closeout docs]
+- C:\Nexus Desktop AI\Docs\development_rules.md
+- C:\Nexus Desktop AI\Docs\Main.md
+- C:\Nexus Desktop AI\Docs\architecture.md
+- C:\Nexus Desktop AI\Docs\orin_vision.md
+- C:\Nexus Desktop AI\Docs\feature_backlog.md
+- C:\Nexus Desktop AI\Docs\orchestration.md
+- C:\Nexus Desktop AI\Docs\[relevant consolidated canonical design docs]
+- C:\Nexus Desktop AI\Docs\[relevant prior version closeout docs]
 
 If anything in this request conflicts with those docs, call it out explicitly before proceeding.
 
 Prompt hygiene:
-- Use `C:\Jarvis\docs\Main.md` as the index for selecting the smallest correct docs baseline.
+- Use `C:\Nexus Desktop AI\Docs\Main.md` as the index for selecting the smallest correct docs baseline.
 - The default prompt baseline should usually be `development_rules.md`, `Main.md`, the directly relevant canonical doc or docs, and only the relevant evidence inputs.
 - If a consolidated canonical design or planning doc exists for the active workstream, include that doc and omit superseded slice docs unless the task is explicitly tracing history or auditing the consolidation.
 - Do not bulk-list archival planning slice docs as equal-weight prompt inputs once a canonical consolidation exists.
@@ -35,7 +35,7 @@ Branch:
 Task mode:
 [analysis-only / planning-only / docs-only / patch / review / release-workflow]
 
-Note: Task mode defines the task type. Codex collaboration posture is defined separately in `C:\Jarvis\docs\codex_modes.md`.
+Note: Task mode defines the task type. Codex collaboration posture is defined separately in `C:\Nexus Desktop AI\Docs\codex_modes.md`.
 
 Default expectation:
 - If task mode is `patch`, perform the change unless blocked by a real conflict.
@@ -150,7 +150,7 @@ Additional task-specific constraints:
 - [constraint 2]
 - [constraint 3]
 
-For collaboration-mode and batched-workstream execution specifics, rely on `C:\Jarvis\docs\codex_modes.md` unless this task needs a deliberate task-specific override.
+For collaboration-mode and batched-workstream execution specifics, rely on `C:\Nexus Desktop AI\Docs\codex_modes.md` unless this task needs a deliberate task-specific override.
 
 ## Guidance
 

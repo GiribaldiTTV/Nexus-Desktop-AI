@@ -218,6 +218,21 @@ Default rule:
 
 ## Response Rule
 
+## Self-Validation Before Handoff
+
+Before Codex gives the user a manual `User Test Summary` handoff for a runtime or UI path, Codex should first run that same path or the closest faithful equivalent when feasible.
+
+When this is possible, the handoff should reflect what Codex already verified directly.
+
+When this is not possible, Codex must say so clearly and identify:
+
+- what was self-validated
+- what was only helper-validated
+- what still requires user-only validation
+- why the remaining gap could not be closed locally
+
+Codex must not imply that a user-facing path was personally verified if the actual path could not be run reliably from the current environment.
+
 When a `User Test Summary` is needed:
 
 - keep it short and action-oriented

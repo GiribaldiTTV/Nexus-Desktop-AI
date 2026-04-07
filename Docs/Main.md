@@ -25,6 +25,29 @@ For most Jarvis tasks, prompts should include:
 
 Add closeout docs, historical docs, or extra planning docs only when they are materially needed for the specific task.
 
+Short prompts may still rely on this baseline.
+
+If the user uses a brief cue rather than a full structured prompt, such as:
+
+- `Analyze and Report`
+- `Analyze for drift`
+- `Analysis mode`
+- `Workflow mode`
+- `docs-only pass`
+- `reference docs for the following`
+
+Codex should treat that cue as shorthand, not as permission to skip the source-of-truth baseline.
+
+Default shorthand behavior:
+
+1. load `docs/development_rules.md`
+2. load `docs/Main.md`
+3. infer the directly relevant canonical doc or docs from the active branch, task wording, and current workstream
+4. pull only the evidence inputs needed for that task
+5. ask a clarifying question only if the task is still materially ambiguous after that baseline is applied
+
+For the deeper Analysis mode workflow contract and when deep investigative analysis is required, use `docs/codex_modes.md`.
+
 ## Current Source-Of-Truth Structure
 
 ### Core Authoritative Docs
@@ -39,7 +62,9 @@ These are the default project-governance and product-boundary docs:
 - `docs/feature_backlog.md`
 - `docs/orchestration.md`
 - `docs/codex_modes.md`
-- `docs/jarvis_task_template.md`
+- `docs/orin_task_template.md`
+- `docs/codex_user_guide.md`
+- `docs/closeout_guidance.md`
 - `docs/user_test_summary_guidance.md`
 
 Within that core set:
@@ -63,14 +88,14 @@ Use these when the task concerns:
 These are the current canonical planning docs for specific active planning areas:
 
 - `docs/boot_access_design.md`
-- `docs/jarvis_interaction_architecture.md`
+- `docs/orin_interaction_architecture.md`
 - `docs/ownership_ip_plan.md`
 - `docs/workspace_layout_plan.md`
 
 Current canonical ownership:
 
 - `boot_access_design.md` is the canonical boot-planning source
-- `jarvis_interaction_architecture.md` is the canonical interaction-planning source
+- `orin_interaction_architecture.md` is the canonical interaction-planning source
 - `ownership_ip_plan.md` is the canonical ownership / licensing / IP-planning source
 - `workspace_layout_plan.md` is the canonical workspace-planning source
 
@@ -80,13 +105,14 @@ Use these only when the task is directly about those workstreams.
 
 These docs are still valid, but they are not part of the default prompt baseline for every task:
 
-- `docs/v1.6.0_closeout.md`
-- `docs/v1.7.0_closeout.md`
-- `docs/v1.8.0_closeout.md`
-- `docs/v1.9.0_closeout.md`
-- `docs/v2.0_closeout.md`
-- `docs/v2.2.0_closeout.md`
-- `docs/v2.2.1_closeout.md`
+- `docs/closeouts/v1.6.0_closeout.md`
+- `docs/closeouts/v1.7.0_closeout.md`
+- `docs/closeouts/v1.8.0_closeout.md`
+- `docs/closeouts/v1.9.0_closeout.md`
+- `docs/closeouts/v2.0_closeout.md`
+- `docs/closeouts/v2.2.0_closeout.md`
+- `docs/closeouts/v2.2.1_closeout.md`
+- `docs/closeout_index.md`
 
 Use them when the task depends on:
 
@@ -113,6 +139,8 @@ For most tasks, start with:
 - relevant evidence inputs
 
 Do not bulk-list unrelated docs by default.
+
+This same minimal baseline should also apply when the user gives only a short cue or shorthand prompt rather than a fully expanded task request.
 
 ### Code Progression / Patch Work
 
@@ -154,6 +182,11 @@ For "what should we do next," "is this complete," or "is this the right target" 
 - the canonical doc for the active workstream
 - relevant closeout docs only if version guarantees or sequencing are part of the question
 
+For merge-ready, PR-ready, release-ready, or version-bump review, also include:
+
+- `docs/codex_modes.md`
+- the relevant closeout or rebaseline docs when readiness depends on closed guarantees or milestone facts
+
 ### First Post-Closeout Version Planning
 
 For the first planning prompt after a version closes, prompts should usually include:
@@ -177,7 +210,9 @@ For prompt-governance or workflow-governance tasks, prompts should usually inclu
 - `docs/development_rules.md`
 - `docs/Main.md`
 - `docs/codex_modes.md`
-- `docs/jarvis_task_template.md`
+- `docs/orin_task_template.md`
+- `docs/codex_user_guide.md`
+- `docs/closeout_guidance.md` when closeout policy, cadence, cleanup, or post-release baseline questions are in scope
 - `docs/user_test_summary_guidance.md`
 
 Add other canonical docs only if the governance wording depends on them.
@@ -189,6 +224,10 @@ This governance lane includes:
 - batched-workstream execution rules
 - grouped-workstream branch strategy for `pre-Beta`
 - multi-developer workflow and GitHub/tooling governance boundaries
+- shorthand prompt and default-baseline behavior
+- human-operator shorthand guidance for reliable short prompts
+
+For reusable human-facing prompt patterns and operator shorthand examples, use `docs/codex_user_guide.md`.
 
 ## When To Add Closeout Docs
 
@@ -200,6 +239,10 @@ Add closeout docs when the task:
 - needs version-specific implementation facts that are not already captured elsewhere
 
 Do not include all closeout docs by default if only one is relevant.
+
+For closeout policy, cadence, cleanup, or drift questions, use `docs/closeout_guidance.md` alongside the relevant closeout doc or docs.
+
+For historical closeout lookup and browsing, use `docs/closeout_index.md`.
 
 ## When To Add Historical Or Archival Docs
 
