@@ -285,8 +285,12 @@ class CommandOverlayModel:
     def show_result(self, status_kind: str, status_text: str):
         self.phase = "result"
         self.input_armed = False
+        self.input_text = ""
         self.status_kind = status_kind
         self.status_text = status_text
+        self.last_request = ""
+        self.pending_action = None
+        self.pending_matches = ()
 
     def view_payload(self):
         action = self.pending_action

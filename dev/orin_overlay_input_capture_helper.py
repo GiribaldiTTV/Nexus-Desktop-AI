@@ -158,6 +158,23 @@ class _FakeBus:
         self.command_overlay_escape_requested = _RecorderSignal(self.events, "escape")
 
 
+def _assert_clean_entry_baseline(window, message_prefix="overlay"):
+    _assert(window._command_model.phase == "entry", f"{message_prefix} should reopen in entry phase")
+    _assert(window._command_model.input_armed, f"{message_prefix} should reopen with input armed")
+    _assert(window._command_model.input_text == "", f"{message_prefix} should reopen with no stale input text")
+    _assert(window._command_model.last_request == "", f"{message_prefix} should reopen with no stale typed request")
+    _assert(window._command_model.pending_action is None, f"{message_prefix} should reopen with no stale pending action")
+    _assert(window._command_model.pending_matches == (), f"{message_prefix} should reopen with no stale pending matches")
+    _assert(window._command_model.status_kind == "idle", f"{message_prefix} should reopen with idle status")
+    _assert(window._command_model.status_text == "", f"{message_prefix} should reopen with no stale status text")
+    _assert(window._command_panel.last_payload.get("phase") == "entry", f"{message_prefix} payload should reopen in entry phase")
+    _assert(window._command_panel.last_payload.get("input_text", "") == "", f"{message_prefix} payload should reopen with no stale input")
+    _assert(window._command_panel.last_payload.get("typed_request", "") == "", f"{message_prefix} payload should reopen with no stale typed request")
+    _assert(window._command_panel.last_payload.get("pending_action") is None, f"{message_prefix} payload should reopen with no pending action")
+    _assert(window._command_panel.last_payload.get("ambiguous_matches") == [], f"{message_prefix} payload should reopen with no stale choices")
+    _assert(window._command_panel.last_payload.get("status_kind") == "idle", f"{message_prefix} payload should reopen idle")
+
+
 def _test_first_open_capture_allows_typing():
     window = _make_window()
     window.open_command_overlay()
@@ -405,6 +422,79 @@ def _test_confirm_cancel_refreshes_panel_layout_after_return_to_entry():
     )
 
 
+def _test_launch_requested_result_clears_transient_state_immediately():
+    window = _make_window()
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda _action: None
+    try:
+        window.open_command_overlay()
+        window._command_model.input_text = "open file explorer"
+        window.handle_command_submit(source="fallback")
+        window.handle_command_submit(source="fallback")
+        _assert(window._command_model.phase == "result", "successful launch should enter result state")
+        _assert(window._command_model.input_text == "", "result state should clear stale input text immediately")
+        _assert(window._command_model.last_request == "", "result state should clear stale typed request immediately")
+        _assert(window._command_model.pending_action is None, "result state should clear stale pending action immediately")
+        _assert(window._command_model.pending_matches == (), "result state should clear stale pending matches immediately")
+        _assert(window._command_panel.last_payload.get("pending_action") is None, "result payload should not retain confirm metadata")
+        _assert(window._command_panel.last_payload.get("typed_request", "") == "", "result payload should not retain typed request metadata")
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_launch_requested_timeout_close_and_reopen_is_clean():
+    window = _make_window()
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda _action: None
+    try:
+        window.open_command_overlay()
+        window._command_model.input_text = "open file explorer"
+        window.handle_command_submit(source="fallback")
+        window.handle_command_submit(source="fallback")
+        window._close_command_overlay_after_result()
+        window.open_command_overlay()
+        _assert_clean_entry_baseline(window, "launch-requested reopen")
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_launch_failed_result_clears_transient_state_and_reopen_is_clean():
+    window = _make_window()
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda _action: (_ for _ in ()).throw(RuntimeError("boom"))
+    try:
+        window.open_command_overlay()
+        window._command_model.input_text = "open file explorer"
+        window.handle_command_submit(source="fallback")
+        window.handle_command_submit(source="fallback")
+        _assert(window._command_model.phase == "result", "launch failure should enter result state")
+        _assert(window._command_model.status_kind == "launch_failed", "launch failure should surface launch_failed status")
+        _assert(window._command_model.input_text == "", "launch-failed result should clear stale input text immediately")
+        _assert(window._command_model.last_request == "", "launch-failed result should clear stale typed request immediately")
+        _assert(window._command_model.pending_action is None, "launch-failed result should clear stale pending action immediately")
+        window._close_command_overlay_after_result()
+        window.open_command_overlay()
+        _assert_clean_entry_baseline(window, "launch-failed reopen")
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_manual_result_close_and_reopen_is_clean():
+    window = _make_window()
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda _action: None
+    try:
+        window.open_command_overlay()
+        window._command_model.input_text = "open file explorer"
+        window.handle_command_submit(source="fallback")
+        window.handle_command_submit(source="fallback")
+        window.close_command_overlay()
+        window.open_command_overlay()
+        _assert_clean_entry_baseline(window, "manual-close reopen")
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
 def _test_ambiguous_choose_confirm_execute_path():
     window = _make_window()
     launches = []
@@ -488,6 +578,15 @@ def _test_hotkey_grace_stands_down_after_manual_local_engagement():
     _assert(not bus.events, "launch grace should not keep forwarding typing after real local input ownership is established")
 
 
+def _test_shutdown_hotkey_still_emits_shutdown():
+    bus = _FakeBus()
+    manager = hotkeys_mod.GlobalHotkeyManager(bus)
+    manager._on_press(pynput_keyboard.Key.ctrl_l)
+    manager._on_press(pynput_keyboard.Key.alt_l)
+    manager._on_press(pynput_keyboard.KeyCode.from_char("2"))
+    _assert(("shutdown", ()) in bus.events, "shutdown hotkey should still emit shutdown after reset hardening changes")
+
+
 def _test_fallback_text_is_suppressed_underlay_and_forwarded():
     bus = _FakeBus()
     manager = hotkeys_mod.GlobalHotkeyManager(bus)
@@ -552,12 +651,17 @@ def main():
         ("confirm cancel rearms capture for human retry", _test_confirm_cancel_rearms_capture_for_human_retry_delay),
         ("choose cancel refreshes layout after return to entry", _test_choose_cancel_refreshes_panel_layout_after_return_to_entry),
         ("confirm cancel refreshes layout after return to entry", _test_confirm_cancel_refreshes_panel_layout_after_return_to_entry),
+        ("launch-requested result clears transient state", _test_launch_requested_result_clears_transient_state_immediately),
+        ("launch-requested timeout close reopens clean", _test_launch_requested_timeout_close_and_reopen_is_clean),
+        ("launch-failed result clears and reopens clean", _test_launch_failed_result_clears_transient_state_and_reopen_is_clean),
+        ("manual result close reopens clean", _test_manual_result_close_and_reopen_is_clean),
         ("choose-confirm execute path", _test_ambiguous_choose_confirm_execute_path),
         ("capture expiry", _test_capture_expiry_stands_down_fallback),
         ("line edit focus methods", _test_line_edit_focus_methods_present),
         ("hotkey launch grace", _test_hotkey_launch_grace_bridges_open_gap),
         ("hotkey grace expiry", _test_hotkey_grace_expires_cleanly),
         ("hotkey grace stops after local engagement", _test_hotkey_grace_stands_down_after_manual_local_engagement),
+        ("shutdown hotkey remains available", _test_shutdown_hotkey_still_emits_shutdown),
         ("fallback text suppresses underlay", _test_fallback_text_is_suppressed_underlay_and_forwarded),
         ("fallback submit suppresses underlay", _test_fallback_submit_is_suppressed_underlay_and_forwarded),
         ("win32 text suppression is synchronous", _test_win32_text_suppression_happens_before_callback_delivery),
