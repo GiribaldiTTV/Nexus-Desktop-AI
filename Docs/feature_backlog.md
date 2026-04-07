@@ -1100,10 +1100,10 @@ Why it matters:
 This is the clearest future product-facing lane for turning Jarvis from a stabilized orchestration foundation into a system-facing interaction layer the user can actually shape and use day to day.
 
 Proposed Change:
-For current repo truth, keep the canonical interaction architecture in `docs/jarvis_interaction_architecture.md` and deliver it through staged slices rather than one broad feature push.
+For current repo truth, keep the canonical interaction architecture in `docs/orin_interaction_architecture.md` and deliver it through staged slices rather than one broad feature push.
 
 Likely Files Affected:
-- C:/Jarvis/docs/jarvis_interaction_architecture.md
+- C:/Nexus Desktop AI/Docs/orin_interaction_architecture.md
 - future typed command overlay surfaces
 - future shared action-model surfaces
 - future action-customization surfaces
@@ -1124,7 +1124,7 @@ Out of Scope:
 - broader boot-orchestrator runtime implementation
 
 Notes:
-Current planning truth already lives in `docs/jarvis_interaction_architecture.md`.
+Current planning truth already lives in `docs/orin_interaction_architecture.md`.
 
 Current repo truth now includes the first implemented `pre-Beta` slice in `v2.2.1 rev1`:
 
