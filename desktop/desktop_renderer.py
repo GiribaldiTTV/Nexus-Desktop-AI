@@ -54,6 +54,9 @@ class CommandInputLineEdit(QLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._input_armed = False
+        self._manual_focus_requested = False
+        self._last_focus_was_manual = False
+        self._local_typing_enabled = False
         self.setContextMenuPolicy(Qt.NoContextMenu)
         self.setPlaceholderText("Type a saved action or alias")
         self.setReadOnly(True)
@@ -69,14 +72,20 @@ class CommandInputLineEdit(QLineEdit):
         self._input_armed = armed
         self.setReadOnly(not armed)
         if not armed:
+            self._local_typing_enabled = False
             self.clearFocus()
         if notify:
             self.input_armed_changed.emit(armed)
+
+    def set_local_typing_enabled(self, enabled: bool):
+        self._local_typing_enabled = bool(enabled)
 
     def mousePressEvent(self, event):
         if event.button() in (Qt.LeftButton, Qt.RightButton):
             if not self._input_armed:
                 self.set_input_armed(True)
+            self._manual_focus_requested = True
+            self._local_typing_enabled = True
             self.setFocus(Qt.MouseFocusReason)
             if event.button() == Qt.RightButton:
                 event.accept()
@@ -99,15 +108,26 @@ class CommandInputLineEdit(QLineEdit):
             event.accept()
             return
 
+        if not self._local_typing_enabled:
+            event.accept()
+            return
+
         super().keyPressEvent(event)
 
     def focusInEvent(self, event):
         super().focusInEvent(event)
+        self._last_focus_was_manual = self._manual_focus_requested or event.reason() == Qt.MouseFocusReason
+        self._manual_focus_requested = False
         self.focus_acquired.emit()
 
     def focusOutEvent(self, event):
         super().focusOutEvent(event)
+        self._last_focus_was_manual = False
+        self._manual_focus_requested = False
         self.focus_lost.emit()
+
+    def last_focus_was_manual(self) -> bool:
+        return self._last_focus_was_manual
 
 
 class CommandOverlayPanel(QWidget):
@@ -540,7 +560,6 @@ class DesktopRuntimeWindow(QWidget):
         self.visual_html_path = os.path.abspath(visual_html_path)
         self.event_logger = event_logger
         self._startup_snapshot_dir = (os.environ.get("JARVIS_HARNESS_STARTUP_SNAPSHOT_DIR") or "").strip()
-
         self.desktop_mode = False
         self._is_shutting_down = False
         self._page_ready = False
@@ -789,20 +808,20 @@ class DesktopRuntimeWindow(QWidget):
             self.compute_compact_geometry(),
             self.screen_ref.availableGeometry(),
         )
+        self._command_panel.input_line.set_local_typing_enabled(False)
         self._command_panel.focus_input_after_show()
         self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_OPENED")
 
     def overlay_needs_global_input_capture(self):
-        if (
-            not self._command_model.visible
-            or self._is_shutting_down
-            or not self._overlay_input_capture_active()
-        ):
+        if not self._command_model.visible or self._is_shutting_down:
             return False
 
         phase = self._command_model.phase
         if phase == "entry":
             return not self._overlay_local_input_engaged
+
+        if not self._overlay_input_capture_active():
+            return False
 
         if phase in {"choose", "confirm"}:
             return not self._command_panel.isActiveWindow()
@@ -866,6 +885,7 @@ class DesktopRuntimeWindow(QWidget):
     def handle_overlay_escape_requested(self):
         if not self._command_model.visible:
             return
+
         if self.overlay_needs_global_input_capture():
             self._refresh_overlay_input_capture()
         self.handle_command_escape()
@@ -880,11 +900,14 @@ class DesktopRuntimeWindow(QWidget):
         if self._command_model.visible and self._command_model.phase == "entry":
             panel_is_active = self._command_panel.isActiveWindow()
             input_has_focus = self._command_panel.input_line.hasFocus()
-            if panel_is_active and input_has_focus:
+            manual_focus = self._command_panel.input_line.last_focus_was_manual()
+            if panel_is_active and input_has_focus and manual_focus:
+                self._command_panel.input_line.set_local_typing_enabled(True)
                 self._overlay_local_input_engaged = True
                 self._clear_overlay_input_capture()
                 return
 
+            self._command_panel.input_line.set_local_typing_enabled(False)
             self._overlay_local_input_engaged = False
             self._refresh_overlay_input_capture()
 

@@ -49,9 +49,21 @@ class _FakeTimer:
 class _FakeInputLine:
     def __init__(self):
         self.focused = False
+        self._last_focus_was_manual = False
+        self.value = ""
+        self.local_typing_enabled = False
 
     def hasFocus(self):
         return self.focused
+
+    def last_focus_was_manual(self):
+        return self._last_focus_was_manual
+
+    def text(self):
+        return self.value
+
+    def set_local_typing_enabled(self, enabled: bool):
+        self.local_typing_enabled = bool(enabled)
 
 
 class _FakePanel:
@@ -64,6 +76,7 @@ class _FakePanel:
 
     def render_payload(self, payload):
         self.last_payload = payload
+        self.input_line.value = payload.get("input_text", "")
 
     def show_for_geometry(self, *_args, **_kwargs):
         self.visible = True
@@ -151,15 +164,45 @@ def _test_active_panel_without_input_focus_still_uses_capture():
     )
 
 
+def _test_active_entry_keeps_capture_after_timeout():
+    window = _make_window()
+    window.open_command_overlay()
+    window._command_panel.active = True
+    window._command_panel.input_line.focused = True
+    window._overlay_input_capture_until = time.monotonic() - 0.01
+    _assert(
+        window.overlay_needs_global_input_capture(),
+        "entry capture should stay alive while the overlay remains the active window, even after the short launch timer expires",
+    )
+
+
+def _test_programmatic_focus_does_not_disable_capture():
+    window = _make_window()
+    window.open_command_overlay()
+    window._command_panel.active = True
+    window._command_panel.input_line.focused = True
+    window._command_panel.input_line._last_focus_was_manual = False
+    window.handle_command_input_focus_acquired()
+    _assert(
+        window.overlay_needs_global_input_capture(),
+        "programmatic first-open focus should not disable fallback capture before real keyboard ownership exists",
+    )
+
+
 def _test_local_focus_clears_capture_and_stops_mirroring():
     window = _make_window()
     window.open_command_overlay()
     window._command_panel.active = True
     window._command_panel.input_line.focused = True
+    window._command_panel.input_line._last_focus_was_manual = True
     window.handle_command_input_focus_acquired()
     _assert(
         not window.overlay_needs_global_input_capture(),
         "capture should stand down once the panel really owns active focused input",
+    )
+    _assert(
+        window._command_panel.input_line.local_typing_enabled,
+        "manual focus should enable local typing once the user explicitly clicks into the line edit",
     )
     window._command_panel.active = False
     window._command_panel.input_line.focused = False
@@ -180,6 +223,7 @@ def _test_false_focus_acquire_keeps_capture_alive():
     window.open_command_overlay()
     window._command_panel.active = False
     window._command_panel.input_line.focused = True
+    window._command_panel.input_line._last_focus_was_manual = False
     window.handle_command_input_focus_acquired()
     _assert(
         not window._overlay_local_input_engaged,
@@ -196,6 +240,7 @@ def _test_reopen_rearms_capture():
     window.open_command_overlay()
     window._command_panel.active = True
     window._command_panel.input_line.focused = True
+    window._command_panel.input_line._last_focus_was_manual = True
     window.handle_command_input_focus_acquired()
     window._command_panel.active = False
     window._command_panel.input_line.focused = False
@@ -229,8 +274,12 @@ def _test_ambiguous_choose_confirm_execute_path():
 def _test_capture_expiry_stands_down_fallback():
     window = _make_window()
     window.open_command_overlay()
+    window._command_model.phase = "confirm"
     window._overlay_input_capture_until = time.monotonic() - 0.01
-    _assert(not window.overlay_needs_global_input_capture(), "expired capture session should not keep forwarding keys")
+    _assert(
+        not window.overlay_needs_global_input_capture(),
+        "expired capture session should still stand down fallback outside the entry-phase typing path",
+    )
 
 
 def _test_line_edit_focus_methods_present():
@@ -277,6 +326,8 @@ def main():
     tests = [
         ("first-open capture", _test_first_open_capture_allows_typing),
         ("entry capture while input lacks focus", _test_active_panel_without_input_focus_still_uses_capture),
+        ("active entry survives timeout", _test_active_entry_keeps_capture_after_timeout),
+        ("programmatic focus keeps capture", _test_programmatic_focus_does_not_disable_capture),
         ("local focus clears mirroring", _test_local_focus_clears_capture_and_stops_mirroring),
         ("false focus acquire keeps capture", _test_false_focus_acquire_keeps_capture_alive),
         ("reopen rearms capture", _test_reopen_rearms_capture),
