@@ -16,6 +16,18 @@
 4. No blind iteration
 5. Run a post-revision Analyze pass before recommending the next revision
 
+Short prompts, shorthand cues, or mode-only requests do not waive source-of-truth reading.
+
+If the user gives a brief cue such as:
+
+- `Analyze and Report`
+- `Analyze for drift`
+- `Workflow Mode`
+- `docs-only pass`
+- `reference docs for the following`
+
+Codex must still load the default truth baseline from `docs/Main.md`, then add the directly relevant canonical docs and evidence inputs needed for the task.
+
 ## Workstream Organization
 
 During `pre-Beta`, the project may organize work through grouped workstreams by category or subsystem when that is the clearest way to support multi-developer progress.
@@ -237,7 +249,7 @@ When a code workstream directly establishes or changes truth that should be reco
 
 Prefer milestone-level or canonical doc sync when meaningful, rather than forcing repeated separate micro-passes for every small code slice, unless a docs-only clarification is the safest boundary-setting move.
 
-When using Codex or ChatGPT for project tasks, prefer the structured prompt format in `docs/jarvis_task_template.md` so requests include clear goal, context, evidence, constraints, allowed surfaces, and done-when criteria.
+When using Codex or ChatGPT for project tasks, prefer the structured prompt format in `docs/orin_task_template.md` so requests include clear goal, context, evidence, constraints, allowed surfaces, and done-when criteria.
 
 ## Historical Intelligence Rules
 

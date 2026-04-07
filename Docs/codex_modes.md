@@ -10,7 +10,7 @@ This document formalizes the two Codex collaboration modes used in the Jarvis pr
 The purpose of these modes is to keep planning, execution, and verification disciplined without weakening user authority, backlog control, or locked architecture boundaries.
 
 This document is operational guidance for how Codex should collaborate inside Jarvis work.
-It does not override `development_rules.md`, `jarvis_task_template.md`, version closeout facts, or explicit user approval requirements.
+It does not override `development_rules.md`, `orin_task_template.md`, version closeout facts, or explicit user approval requirements.
 
 ---
 
@@ -59,6 +59,16 @@ Codex should:
 - separate confirmed facts from inference
 - call out risks, blockers, and conflicts directly
 - recommend doc-first clarification when implementation boundaries are not yet tight enough
+
+Analysis mode should follow those same requirements even when the user invokes it with only a short cue such as:
+
+- `Analyze and Report`
+- `Analyze for drift`
+- `Analysis mode`
+- `reference docs for the following`
+
+Those shorthand prompts are mode selectors, not reduced-quality requests.
+Codex should still load the default baseline from `docs/Main.md` and the directly relevant canonical docs before reporting.
 
 ### First Prompt Rule For New Post-Closeout Version Chats
 
@@ -123,6 +133,16 @@ Codex should:
 - report what changed and what was verified
 - keep the source-of-truth docs aligned with actual implemented state
 - stop and report if the task would require reopening locked architecture or widening beyond one controlled revision
+
+Workflow mode should follow those same requirements even when the user invokes it with only a short cue such as:
+
+- `Workflow mode`
+- `docs-only pass`
+- `patch this`
+- `continue on this branch`
+
+Those shorthand prompts are execution selectors, not permission to skip truth-doc reading, validation, or scope control.
+Codex should still load the default baseline from `docs/Main.md`, infer the directly relevant canonical docs, and keep the same validation standard as a longer structured prompt.
 
 Workflow mode means Codex carries the task responsibly, not mechanically.
 Codex should behave like a careful senior collaborator who keeps progress moving without bypassing control boundaries.
@@ -385,14 +405,14 @@ If backlog state needs to change, user approval is still required even in Workfl
 
 ---
 
-## Relationship To `jarvis_task_template.md`
+## Relationship To `orin_task_template.md`
 
-`docs/jarvis_task_template.md` remains the per-task execution scaffold.
+`docs/orin_task_template.md` remains the per-task execution scaffold.
 
 This document does not replace the template.
 Instead:
 
-- `jarvis_task_template.md` defines the structure of an individual task request
+- `orin_task_template.md` defines the structure of an individual task request
 - `codex_modes.md` defines the collaboration posture Codex should take while handling that task
 
 In practice:
@@ -452,7 +472,7 @@ That means future boot-access prompts should usually prefer:
 - `development_rules.md`
 - `Main.md`
 - `architecture.md`
-- `jarvis_vision.md`
+- `orin_vision.md`
 - `feature_backlog.md`
 - `orchestration.md`
 - `boot_access_design.md`

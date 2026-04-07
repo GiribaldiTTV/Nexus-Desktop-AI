@@ -19,7 +19,7 @@ It does not define implementation mechanics for wake-word detection, speech-to-t
 This document is downstream of:
 
 - `architecture.md` for launcher-owned desktop authority and higher-layer read-only limits
-- `jarvis_vision.md` for Jarvis as the intended system-facing experience
+- `orin_vision.md` for Jarvis as the intended system-facing experience
 - `boot_access_design.md` for future pre-desktop access, trust, recovery, and resident trust-state boundaries
 - `feature_backlog.md` for workstream status and scope control
 
@@ -256,7 +256,7 @@ Those later capabilities should remain:
 
 ## Release-Stage Model
 
-At planning level, the release stages for this interaction lane should follow the product-wide release-stage framing in `jarvis_vision.md`:
+At planning level, the release stages for this interaction lane should follow the product-wide release-stage framing in `orin_vision.md`:
 
 - `pre-Beta`
   - internal or tightly controlled delivery of the first usable interaction slices

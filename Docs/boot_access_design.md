@@ -21,7 +21,7 @@ This document is now the current canonical source for boot access design.
 This document is downstream of:
 
 - `architecture.md` for boot/desktop authority boundaries
-- `jarvis_vision.md` for long-term product identity
+- `orin_vision.md` for long-term product identity
 - `feature_backlog.md` for workstream status and scope control
 - `orchestration.md` for launcher-owned desktop-phase control limits
 
