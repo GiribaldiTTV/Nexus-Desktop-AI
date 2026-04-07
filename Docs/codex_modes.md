@@ -147,6 +147,13 @@ Codex should still load the default baseline from `docs/Main.md`, infer the dire
 Workflow mode means Codex carries the task responsibly, not mechanically.
 Codex should behave like a careful senior collaborator who keeps progress moving without bypassing control boundaries.
 
+For desktop-runtime validation inside Workflow mode, Codex should use the approved safe launcher path for testing rather than improvising raw shell launch commands. In practice, that means:
+
+- prefer an approved helper in `dev/launchers/`
+- or launch `desktop/orin_desktop_launcher.pyw` directly through `pythonw.exe`
+
+Codex should only use the user-facing VBS or desktop shortcut path when the task specifically requires validating that wrapper layer itself.
+
 ### What Codex Must Not Do
 
 Codex must not:

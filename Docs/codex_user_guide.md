@@ -187,6 +187,15 @@ Useful add-ons:
 - `use helper if needed`
 - `self-validate before handoff`
 
+### Run Desktop Runtime Tests Reliably
+
+When the task needs Codex to launch the Nexus desktop runtime for testing, the safe default is:
+
+- use the approved launcher helper in `dev/launchers/`
+- or launch `desktop/orin_desktop_launcher.pyw` directly through `pythonw.exe`
+
+Codex should not rely on ad hoc raw `wscript.exe` shell launches for test automation, because path-with-spaces failures can create misleading Windows Script Host errors unrelated to the actual product behavior.
+
 ### Review A Returned User Test Summary
 
 Use:

@@ -99,6 +99,15 @@ Before handing a user-visible runtime, UI, or manual validation path back to the
 
 If Codex cannot self-run the same path reliably, Codex must say so explicitly and identify the exact validation gap rather than implying the path was personally verified.
 
+For Nexus desktop-runtime testing, Codex must not use fragile ad hoc shell invocations such as raw `wscript.exe` path calls against launchers with spaces in their path.
+
+Codex should prefer:
+
+- an approved launcher helper under `dev/launchers/`
+- or direct `pythonw.exe` launch of `desktop/orin_desktop_launcher.pyw`
+
+If Codex uses a launcher helper for testing, that helper becomes the default testing launch path unless the active task explicitly requires validating the user-facing desktop shortcut or VBS wrapper itself.
+
 ## Standard Analyze Pass
 
 After every revision, review:
