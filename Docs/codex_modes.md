@@ -119,6 +119,7 @@ Codex should:
 - define the exact narrow scope before editing
 - make only the approved isolated change
 - verify the result directly
+- run the same user-facing test path or the closest faithful equivalent before handing that path back to the user when feasible
 - report what changed and what was verified
 - keep the source-of-truth docs aligned with actual implemented state
 - stop and report if the task would require reopening locked architecture or widening beyond one controlled revision
@@ -146,6 +147,10 @@ Workflow mode outputs should usually include:
 - exact minimal changes made
 - why the change is sufficient
 - verification summary
+- whether validation is:
+  - self-validated
+  - helper-validated
+  - or still user-only for the final gap
 - any docs intentionally left unchanged
 - commit summary
 - commit description

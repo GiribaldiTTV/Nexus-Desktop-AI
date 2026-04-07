@@ -83,6 +83,10 @@ Every revision must include:
 - Crash log review (if present)
 - Artifact cleanup verification
 
+Before handing a user-visible runtime, UI, or manual validation path back to the user, Codex must run that same path or the closest faithful equivalent when feasible.
+
+If Codex cannot self-run the same path reliably, Codex must say so explicitly and identify the exact validation gap rather than implying the path was personally verified.
+
 ## Standard Analyze Pass
 
 After every revision, review:
