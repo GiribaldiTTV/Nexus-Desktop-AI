@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Iterable
 from urllib.parse import urlparse, unquote
 
+from .saved_action_source import load_saved_action_source
+
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -55,6 +57,8 @@ DEFAULT_COMMAND_ACTIONS = (
     ),
 )
 
+SUPPORTED_ACTION_TARGET_KINDS = frozenset({"app", "folder", "file", "url"})
+
 
 class CommandActionCatalog:
     def __init__(self, actions: Iterable[CommandAction] = DEFAULT_COMMAND_ACTIONS):
@@ -74,14 +78,115 @@ class CommandActionCatalog:
         return format_command_target_display(target_kind, target, max_length=max_length)
 
 
-DEFAULT_COMMAND_ACTION_CATALOG = CommandActionCatalog()
-
-
 def normalize_command_text(text: str) -> str:
     normalized = (text or "").strip().casefold()
     normalized = re.sub(r"\s+", " ", normalized)
     normalized = re.sub(r"[.!?]+$", "", normalized)
     return normalized.strip()
+
+
+def _normalized_action_phrases(action: CommandAction) -> set[str]:
+    normalized_phrases: set[str] = set()
+    for phrase in (action.title, *action.aliases):
+        normalized = normalize_command_text(phrase)
+        if not normalized:
+            raise ValueError("Action phrases must be non-empty.")
+        normalized_phrases.add(normalized)
+    return normalized_phrases
+
+
+def _require_saved_action_string(record: dict, field_name: str) -> str:
+    value = record.get(field_name)
+    if not isinstance(value, str):
+        raise ValueError(f"Saved action field '{field_name}' must be a string.")
+
+    normalized = value.strip()
+    if not normalized:
+        raise ValueError(f"Saved action field '{field_name}' must not be empty.")
+    return normalized
+
+
+def _coerce_saved_action_aliases(record: dict) -> tuple[str, ...]:
+    aliases = record.get("aliases", ())
+    if aliases in (None, ""):
+        return ()
+
+    if not isinstance(aliases, (list, tuple)):
+        raise ValueError("Saved action aliases must be a list of strings.")
+
+    normalized_aliases: list[str] = []
+    for alias in aliases:
+        if not isinstance(alias, str):
+            raise ValueError("Saved action aliases must contain only strings.")
+        normalized = alias.strip()
+        if not normalized:
+            raise ValueError("Saved action aliases must not be empty.")
+        normalized_aliases.append(normalized)
+
+    return tuple(normalized_aliases)
+
+
+def _command_action_from_saved_record(record: object) -> CommandAction:
+    if not isinstance(record, dict):
+        raise ValueError("Saved action records must be objects.")
+
+    target_kind = _require_saved_action_string(record, "target_kind").casefold()
+    if target_kind not in SUPPORTED_ACTION_TARGET_KINDS:
+        raise ValueError("Saved action target_kind is unsupported.")
+
+    return CommandAction(
+        id=_require_saved_action_string(record, "id"),
+        title=_require_saved_action_string(record, "title"),
+        target_kind=target_kind,
+        target=_require_saved_action_string(record, "target"),
+        aliases=_coerce_saved_action_aliases(record),
+    )
+
+
+def load_saved_command_actions(
+    source_path: str | os.PathLike[str] | None = None,
+) -> tuple[CommandAction, ...]:
+    payload = load_saved_action_source(source_path)
+    if payload is None:
+        return ()
+
+    try:
+        seen_ids = {action.id.casefold() for action in DEFAULT_COMMAND_ACTIONS}
+        seen_phrases: set[str] = set()
+        for action in DEFAULT_COMMAND_ACTIONS:
+            seen_phrases.update(_normalized_action_phrases(action))
+
+        saved_actions: list[CommandAction] = []
+        for record in payload.actions:
+            action = _command_action_from_saved_record(record)
+            normalized_id = action.id.casefold()
+            if normalized_id in seen_ids:
+                raise ValueError("Saved action id collides with an existing action.")
+
+            normalized_phrases = _normalized_action_phrases(action)
+            if normalized_phrases & seen_phrases:
+                raise ValueError("Saved action title or alias collides with an existing action.")
+
+            seen_ids.add(normalized_id)
+            seen_phrases.update(normalized_phrases)
+            saved_actions.append(action)
+
+        return tuple(saved_actions)
+    except ValueError:
+        return ()
+
+
+def build_default_command_action_catalog(
+    source_path: str | os.PathLike[str] | None = None,
+) -> CommandActionCatalog:
+    saved_actions = load_saved_command_actions(source_path)
+    if not saved_actions:
+        return CommandActionCatalog(DEFAULT_COMMAND_ACTIONS)
+
+    return CommandActionCatalog((*DEFAULT_COMMAND_ACTIONS, *saved_actions))
+
+
+DEFAULT_COMMAND_ACTION_CATALOG = build_default_command_action_catalog()
 
 
 def resolve_command_actions(text: str, actions=DEFAULT_COMMAND_ACTIONS):
