@@ -1165,7 +1165,7 @@ That document should be treated as the canonical reference for:
 Current repo truth remains conservative:
 
 - NCP hardening is still FB-027 follow-through, not a separate backlog item
-- `launch_failed` user-visible failure-state predictability is the current validation-first candidate, not an automatic patch target
+- the approved NCP hardening lane is now runtime-complete enough for branch-level closure review, with no current repo-truth need for another automatic NCP hardening patch
 
 Release-stage mapping:
 
