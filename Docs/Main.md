@@ -96,7 +96,7 @@ These are the current canonical planning docs for specific active planning areas
 Current canonical ownership:
 
 - `boot_access_design.md` is the canonical boot-planning source
-- `ncp_hardening_assessment.md` is the canonical NCP hardening and sequencing source for the active typed-first FB-027 follow-through lane
+- `ncp_hardening_assessment.md` is the canonical typed-first NCP hardening reference for the now-closed FB-027 hardening follow-through
 - `orin_interaction_architecture.md` is the canonical interaction-planning source
 - `ownership_ip_plan.md` is the canonical ownership / licensing / IP-planning source
 - `workspace_layout_plan.md` is the canonical workspace-planning source

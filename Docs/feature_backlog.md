@@ -1142,18 +1142,23 @@ Current repo truth now includes the first implemented `pre-Beta` slice in `v2.2.
 - confirmed execution shows a brief result state and then returns the desktop to passive mode
 - directly supportive route-parity and stability follow-through in the same lane closed desktop host positioning, overlay input-ownership, and Boot-handoff reset-churn issues for the first slice
 
-Current branch-local follow-through above that same foundation now also includes:
+Current merged follow-through above that same foundation now also includes:
 
 - command-overlay target clarity follow-through so ambiguous choices and confirmation make path-sensitive destinations easier to tell apart before execution
 - overlay-usability follow-through so opening the overlay from the hotkey path now leaves entry ready for immediate typing
 - bounded keyboard-first ambiguous selection so visible ambiguous choices can be resolved locally with number keys before the existing confirmation step
 - preserved explicit confirmation before execution for both mouse and keyboard choice paths
 - preserved local-only typing behavior with no restored global printable-key capture outside the visible overlay
-- alternate desktop hotkeys now also exist on this branch:
+- alternate desktop hotkeys now also exist on `main`:
   - `Ctrl+Alt+1` as an alternate overlay toggle path alongside `Ctrl+Alt+Home`
   - `Ctrl+Alt+2` as an alternate shutdown path alongside `Ctrl+Alt+End`
+- a first reusable shared action model extraction so the built-in desktop action definitions and shared helpers no longer live only inside the overlay-local model
+- overlay consumption normalization through a cohesive shared action catalog surface rather than scattered helper/default imports
+- a first bounded non-UI saved-action source seam for direct actions and aliases above the shared action model
+- strict built-in fallback when the saved-action source is missing, unreadable, empty, or invalid
+- conservative saved-action validation for supported target kinds plus id/title/alias collision rejection against built-ins or other saved actions
 
-These branch-local follow-through items remain part of the same staged `FB-027` interaction lane rather than separate backlog items.
+These merged follow-through items remain part of the same staged `FB-027` interaction lane rather than separate backlog items.
 
 Current NCP hardening and sequencing truth for that same follow-through now lives in `docs/ncp_hardening_assessment.md`.
 That document should be treated as the canonical reference for:
@@ -1165,11 +1170,13 @@ That document should be treated as the canonical reference for:
 Current repo truth remains conservative:
 
 - NCP hardening is still FB-027 follow-through, not a separate backlog item
-- the approved NCP hardening lane is now runtime-complete enough for branch-level closure review, with no current repo-truth need for another automatic NCP hardening patch
+- the approved NCP hardening lane is now closed on `main`, with no current repo-truth need for another automatic NCP hardening patch
+- the shared-action-model and saved-action-source follow-through slices are also now merged on `main`
+- the next pre-Beta interaction step, if resumed later, should start above the current shared action model and saved-action-source seam rather than reopening NCP hardening by inertia
 
 Release-stage mapping:
 
-- `pre-Beta`: first typed-first interaction foundation slice is now implemented in `v2.2.1 rev1`; later pre-Beta work remains limited to additional interaction-model follow-through above the same desktop overlay foundation
+- `pre-Beta`: the typed-first interaction foundation, shared action model, and first saved-action-source seam are now implemented on `main`; later pre-Beta work remains limited to additional interaction-model follow-through above that same desktop overlay and shared-action foundation
 - `Beta`: packaged and installable user-facing release with practical setup expectations and broader customization beyond the first internal slice
 - `Full`: later wake-word voice invocation, richer routines and profiles, and any future plugin capability if the shared action model proves stable enough
 

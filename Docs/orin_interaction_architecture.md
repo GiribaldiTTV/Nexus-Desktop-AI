@@ -106,12 +106,12 @@ The purpose of this direction is:
 
 This direction does not authorize immediate implementation of configurable shortcut management or a broad keybinding system.
 
-Current branch-local desktop follow-through now includes:
+Current merged desktop follow-through now includes:
 
 - `Ctrl+Alt+1` as an alternate user-usable quick-command-overlay path alongside `Ctrl+Alt+Home`
 - `Ctrl+Alt+2` as an alternate user-usable desktop shutdown path alongside `Ctrl+Alt+End`
 
-This branch-local follow-through remains a bounded usability refinement only.
+This merged follow-through remains a bounded usability refinement only.
 It does not authorize broader shortcut customization, settings UI, or profile-based keybinding management.
 
 ### 3. Action Studio
@@ -203,12 +203,15 @@ The purpose of this rule is:
 - to help the user understand why one match differs from another
 - to reduce accidental launches when multiple choices are similar
 
-Current branch-local desktop overlay follow-through now also includes:
+Current merged desktop overlay follow-through now also includes:
 
 - immediate typed-entry readiness when the overlay is opened from the current hotkey path
 - bounded keyboard-first ambiguous-choice resolution through visible number-key selection
 - preserved explicit confirmation before launch after keyboard selection
 - preserved clean `Esc` back-out behavior and local-only keyboard ownership inside the visible overlay
+- a reusable shared action model so the built-in desktop command actions and shared helpers no longer live only inside the overlay-local model
+- normalized overlay consumption of that shared action model through a cohesive shared catalog surface
+- a bounded non-UI saved-action source seam for direct actions and aliases with strict built-in fallback when the saved source is missing or invalid
 
 ## Nexus-Era User-Facing Naming Rule
 
@@ -294,6 +297,14 @@ The first pre-Beta deliverable should be the smallest typed-first slice of this 
 - desktop-mode confirmation before executing the resolved action
 
 This first deliverable should not require the full Action Studio, wake-word support, or advanced routine graphing.
+
+Current merged repo truth is already one step beyond that first deliverable.
+
+The repo now also includes:
+
+- the first reusable shared action model underneath the typed command surface
+- the first bounded non-UI saved-action source seam above that shared action model
+- preserved exact-match resolution semantics and the existing typed-first confirm-before-execute contract while those architectural seams were introduced
 
 ## Beta Release Direction
 
