@@ -215,6 +215,7 @@ For prompt-governance or workflow-governance tasks, prompts should usually inclu
 - `docs/orin_task_template.md`
 - `docs/codex_user_guide.md`
 - `docs/closeout_guidance.md` when closeout policy, cadence, cleanup, or post-release baseline questions are in scope
+- `docs/prebeta_roadmap.md` when current near-term sequencing, lane choice, or provisional version-impact questions are in scope
 - `docs/user_test_summary_guidance.md`
 
 Add other canonical docs only if the governance wording depends on them.
@@ -230,6 +231,13 @@ This governance lane includes:
 - human-operator shorthand guidance for reliable short prompts
 
 For reusable human-facing prompt patterns and operator shorthand examples, use `docs/codex_user_guide.md`.
+
+For current near-term roadmap, branch-sequencing, or provisional version-impact questions, use `docs/prebeta_roadmap.md`.
+That roadmap remains subordinate to:
+
+- `docs/orin_vision.md` for release-stage meaning
+- `docs/closeout_guidance.md` for closeout and rebaseline cadence
+- `docs/feature_backlog.md` for detailed backlog-item ownership
 
 ## When To Add Closeout Docs
 

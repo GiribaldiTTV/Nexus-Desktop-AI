@@ -304,6 +304,7 @@ The repo now also includes:
 
 - the first reusable shared action model underneath the typed command surface
 - the first bounded non-UI saved-action source seam above that shared action model
+- the first restart-based starter bootstrap path for `saved_actions.json` at the default runtime source location
 - preserved exact-match resolution semantics and the existing typed-first confirm-before-execute contract while those architectural seams were introduced
 
 ## Beta Release Direction

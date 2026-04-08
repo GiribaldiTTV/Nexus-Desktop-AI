@@ -1157,6 +1157,8 @@ Current merged follow-through above that same foundation now also includes:
 - a first bounded non-UI saved-action source seam for direct actions and aliases above the shared action model
 - strict built-in fallback when the saved-action source is missing, unreadable, empty, or invalid
 - conservative saved-action validation for supported target kinds plus id/title/alias collision rejection against built-ins or other saved actions
+- a first restart-based starter bootstrap path for `saved_actions.json` inside the saved-action source layer
+- starter-file auto-creation only for the default runtime path, while explicit custom source paths remain conservative and fallback-only
 
 These merged follow-through items remain part of the same staged `FB-027` interaction lane rather than separate backlog items.
 
@@ -1171,12 +1173,12 @@ Current repo truth remains conservative:
 
 - NCP hardening is still FB-027 follow-through, not a separate backlog item
 - the approved NCP hardening lane is now closed on `main`, with no current repo-truth need for another automatic NCP hardening patch
-- the shared-action-model and saved-action-source follow-through slices are also now merged on `main`
-- the next pre-Beta interaction step, if resumed later, should start above the current shared action model and saved-action-source seam rather than reopening NCP hardening by inertia
+- the shared-action-model, saved-action-source, and starter-bootstrap follow-through slices are also now merged on `main`
+- the next pre-Beta interaction step, if resumed later, should start above the current shared action model and saved-action bootstrap foundation rather than reopening NCP hardening by inertia
 
 Release-stage mapping:
 
-- `pre-Beta`: the typed-first interaction foundation, shared action model, and first saved-action-source seam are now implemented on `main`; later pre-Beta work remains limited to additional interaction-model follow-through above that same desktop overlay and shared-action foundation
+- `pre-Beta`: the typed-first interaction foundation, shared action model, first saved-action-source seam, and first starter bootstrap path are now implemented on `main`; later pre-Beta work remains limited to additional interaction-model follow-through above that same desktop overlay and shared-action foundation
 - `Beta`: packaged and installable user-facing release with practical setup expectations and broader customization beyond the first internal slice
 - `Full`: later wake-word voice invocation, richer routines and profiles, and any future plugin capability if the shared action model proves stable enough
 
