@@ -433,6 +433,18 @@ Codex should instead return:
 
 If actual file review is needed, the file should be reviewed outside Codex by uploading it for inspection.
 
+## Pull Request Opening Boundary
+
+Codex may open or submit a pull request directly only for an approved docs-only branch.
+
+For code branches or mixed code/docs branches, Codex may:
+
+- perform PR-readiness analysis
+- provide the exact PR title and PR body
+- provide merge and release posture guidance
+
+For those non-docs-only branches, Codex should stop short of opening the PR.
+
 ---
 
 ## Backlog-Control Reminder
