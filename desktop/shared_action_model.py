@@ -3,6 +3,7 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Iterable
 from urllib.parse import urlparse, unquote
 
 
@@ -53,6 +54,27 @@ DEFAULT_COMMAND_ACTIONS = (
         aliases=("open windows explorer", "open file explorer", "windows explorer"),
     ),
 )
+
+
+class CommandActionCatalog:
+    def __init__(self, actions: Iterable[CommandAction] = DEFAULT_COMMAND_ACTIONS):
+        self._actions = tuple(actions)
+
+    @property
+    def actions(self) -> tuple[CommandAction, ...]:
+        return self._actions
+
+    def normalize_text(self, text: str) -> str:
+        return normalize_command_text(text)
+
+    def resolve_actions(self, text: str) -> tuple[CommandAction, ...]:
+        return tuple(resolve_command_actions(text, self._actions))
+
+    def format_target_display(self, target_kind: str, target: str, max_length: int = 72) -> str:
+        return format_command_target_display(target_kind, target, max_length=max_length)
+
+
+DEFAULT_COMMAND_ACTION_CATALOG = CommandActionCatalog()
 
 
 def normalize_command_text(text: str) -> str:

@@ -1,14 +1,20 @@
 from .shared_action_model import (
-    DEFAULT_COMMAND_ACTIONS,
-    format_command_target_display,
-    normalize_command_text,
-    resolve_command_actions,
+    CommandActionCatalog,
+    DEFAULT_COMMAND_ACTION_CATALOG,
 )
 
 
 class CommandOverlayModel:
-    def __init__(self, actions=DEFAULT_COMMAND_ACTIONS):
-        self.actions = tuple(actions)
+    def __init__(self, actions=None, action_catalog: CommandActionCatalog | None = None):
+        if action_catalog is None:
+            action_catalog = (
+                DEFAULT_COMMAND_ACTION_CATALOG
+                if actions is None
+                else CommandActionCatalog(actions)
+            )
+
+        self.action_catalog = action_catalog
+        self.actions = tuple(action_catalog.actions)
         self.visible = False
         self.phase = "hidden"
         self.input_armed = False
@@ -113,13 +119,13 @@ class CommandOverlayModel:
                 self.status_text = "Type a saved action or alias to begin."
                 return ("awaiting_click_arm", None)
 
-            if not normalize_command_text(self.input_text):
+            if not self.action_catalog.normalize_text(self.input_text):
                 self.status_kind = "idle"
                 self.status_text = ""
                 return ("awaiting_input", None)
 
             self.last_request = self.input_text
-            matches = tuple(resolve_command_actions(self.input_text, self.actions))
+            matches = self.action_catalog.resolve_actions(self.input_text)
             self.pending_matches = matches
 
             if len(matches) == 1:
@@ -189,7 +195,7 @@ class CommandOverlayModel:
                 "title": action.title,
                 "target_kind": action.target_kind,
                 "target": action.target,
-                "target_display": format_command_target_display(
+                "target_display": self.action_catalog.format_target_display(
                     action.target_kind,
                     action.target,
                 ),
@@ -202,7 +208,7 @@ class CommandOverlayModel:
                     "title": match.title,
                     "target_kind": match.target_kind,
                     "target": match.target,
-                    "target_display": format_command_target_display(
+                    "target_display": self.action_catalog.format_target_display(
                         match.target_kind,
                         match.target,
                     ),
