@@ -63,6 +63,7 @@ The following areas are complete enough now:
 - focus and reopen behavior for the success-path and cancel/retry flows already exercised
 - `entry` / `choose` / `confirm` transition integrity for the current typed command surface
 - result-state reset and clean reopen behavior for the validated success path
+- `launch_failed` result handling and retry/reset posture for the current typed command surface
 - target clarity and execution clarity for the current command set
 - visual state consistency of the NCP surface, including compact reset after backing out of expanded states
 
@@ -76,36 +77,22 @@ Current repo truth supports this classification because the merged overlay-usabi
 - layout reset after `Esc` from `choose` / `confirm`
 - success-path clean result close / reopen reset
 - stale retry-state carry-over for current non-success back-out flows
+- `launch_failed` visible failure-result handling, clean reopen/reset posture, and retry cleanliness for the current command surface
 
 ## Mostly Hardened But Under-Validated
 
 `Mostly hardened but under-validated` means the model, runtime, or helper evidence is stronger than the current live user-validation depth.
 
-The clearest current case is:
+No currently meaningful NCP subsystem remains in this category for the active branch scope.
 
-- `launch_failed` result handling and retry/reset posture
-
-Why it belongs here:
-
-- helper coverage already exercises failure-result clearing and clean reopen/reset behavior
-- the current model and renderer state cleanup path is conservative
-- but this path has not been closed by the same level of fresh live user validation as the success-path and cancel/retry slices
-
-The helper / regression surface itself is also stronger than the live validation depth for some failure-oriented paths.
-That is useful and intentional, but it should not be mistaken for equal-weight user confirmation.
+The helper / regression surface may still be stronger than the live validation depth for some future failure-oriented or cross-system paths.
+That is useful and intentional, but it is no longer the gating question for the current NCP hardening lane.
 
 ## Still Needs Hardening
 
 No currently reproduced runtime bug forces another NCP patch at the moment.
 
-The only meaningful near-term candidate that still belongs in this lane is:
-
-- `launch_failed` user-visible failure-state predictability
-
-This should be treated as a validation-first candidate, not as an automatically approved new patch.
-
-The current question is not whether a broader failure system should be redesigned.
-The current question is only whether the visible `launch_failed` path feels as reset-clean and predictable as the now-validated success path.
+No currently meaningful near-term NCP hardening candidate remains inside this lane before branch-level closure review.
 
 Broader failure-class, diagnostics-surface, reporting, or voice-role contract work now belongs to `docs/architecture.md` rather than this NCP hardening doc.
 That later cross-system work should not be treated as an automatic continuation of the current typed-first NCP hardening lane.
@@ -115,7 +102,6 @@ That later cross-system work should not be treated as an automatic continuation 
 These items are relevant to future NCP follow-through but are not active work right now:
 
 - broader non-success-path polish beyond a reproduced issue
-- branch-level readiness and closure review after the `launch_failed` validation-first decision
 - any later slice that is only justified if new live evidence reopens a typed-interaction regression
 
 ## Not Ready Yet Due To Future Integration Dependencies
@@ -135,11 +121,10 @@ That does not make voice part of current NCP hardening.
 The current recommended next step is:
 
 1. do not patch automatically
-2. do one validation-first step for `launch_failed` user-visible failure-state predictability
-3. if that validation passes, move to branch-level readiness / closure review for `feature/fb-027-ncp-hardening`
+2. treat the approved NCP hardening lane as runtime-complete enough for its current scope
+3. move to branch-level readiness / closure review for `feature/fb-027-ncp-hardening`
 
-This is the conservative next step because current repo truth does not show a newly reproduced failure.
-It shows one remaining area where helper confidence still leads live validation depth.
+This is the conservative next step because the latest returned live user validation closed the `launch_failed` validation-first question without reopening a new NCP runtime bug.
 
 ## What Should Wait Until Later
 
