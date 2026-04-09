@@ -407,6 +407,10 @@ unless a grouped branch remains clearly justified.
 
 After a prior workstream branch has been merged, released if applicable, and deleted, the next workstream should start from updated `main` on a fresh branch.
 
+If the first required post-merge or post-release work is a docs-only roadmap, rebaseline, or drift-refresh pass so shared canon matches live repo truth, Codex may create that fresh docs-only branch immediately after verifying the live repo state.
+
+In that case, the docs-only refresh branch itself counts as the first new workstream branch and should land before a new implementation branch is created from the refreshed shared baseline.
+
 Codex should not create that next branch until:
 
 - the live post-merge or post-release repo state has been verified
