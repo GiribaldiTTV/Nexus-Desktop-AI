@@ -86,6 +86,9 @@ DEFAULT_COMMAND_ACTIONS = (
 )
 
 SUPPORTED_ACTION_TARGET_KINDS = frozenset({"app", "folder", "file"})
+LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS = frozenset(
+    {"open_saved_actions_file", "open_saved_actions_folder"}
+)
 
 
 class CommandActionCatalog:
@@ -121,6 +124,14 @@ def _normalized_action_phrases(action: CommandAction) -> set[str]:
             raise ValueError("Action phrases must be non-empty.")
         normalized_phrases.add(normalized)
     return normalized_phrases
+
+
+LEGACY_SAVED_ACTIONS_ACCESS_ACTION_PHRASES = frozenset(
+    normalized_phrase
+    for action in DEFAULT_COMMAND_ACTIONS
+    if action.id in LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS
+    for normalized_phrase in _normalized_action_phrases(action)
+)
 
 
 def _require_saved_action_string(record: dict, field_name: str) -> str:
@@ -179,24 +190,41 @@ def load_saved_command_actions(
         return ()
 
     try:
-        seen_ids = {action.id.casefold() for action in DEFAULT_COMMAND_ACTIONS}
-        seen_phrases: set[str] = set()
+        built_in_ids = {action.id.casefold() for action in DEFAULT_COMMAND_ACTIONS}
+        built_in_phrases: set[str] = set()
         for action in DEFAULT_COMMAND_ACTIONS:
-            seen_phrases.update(_normalized_action_phrases(action))
+            built_in_phrases.update(_normalized_action_phrases(action))
 
+        seen_saved_ids: set[str] = set()
+        seen_saved_phrases: set[str] = set()
         saved_actions: list[CommandAction] = []
         for record in payload.actions:
             action = _command_action_from_saved_record(record)
             normalized_id = action.id.casefold()
-            if normalized_id in seen_ids:
-                raise ValueError("Saved action id collides with an existing action.")
-
             normalized_phrases = _normalized_action_phrases(action)
-            if normalized_phrases & seen_phrases:
-                raise ValueError("Saved action title or alias collides with an existing action.")
+            if normalized_id in seen_saved_ids:
+                raise ValueError("Saved action id collides with another saved action.")
+            if normalized_phrases & seen_saved_phrases:
+                raise ValueError("Saved action title or alias collides with another saved action.")
 
-            seen_ids.add(normalized_id)
-            seen_phrases.update(normalized_phrases)
+            built_in_phrase_collisions = normalized_phrases & built_in_phrases
+            if normalized_id in built_in_ids or built_in_phrase_collisions:
+                # Preserve backward compatibility for users who already added these
+                # same file/folder helpers manually before they became built-ins.
+                incompatible_id_collision = (
+                    normalized_id in built_in_ids
+                    and normalized_id not in LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS
+                )
+                incompatible_phrase_collision = bool(
+                    built_in_phrase_collisions
+                    - LEGACY_SAVED_ACTIONS_ACCESS_ACTION_PHRASES
+                )
+                if incompatible_id_collision or incompatible_phrase_collision:
+                    raise ValueError("Saved action title or alias collides with an existing action.")
+                continue
+
+            seen_saved_ids.add(normalized_id)
+            seen_saved_phrases.update(normalized_phrases)
             saved_actions.append(action)
 
         return tuple(saved_actions)
