@@ -298,3 +298,23 @@ def build_issue_prefill_url(root_dir, bundle_info):
         }
     )
     return f"{issues_new_url}?{query}"
+
+
+def prepare_manual_issue_report(root_dir, runtime_log_path, crash_dir):
+    bundle_info = create_support_bundle(root_dir, runtime_log_path, crash_dir)
+    issue_url = build_issue_prefill_url(root_dir, bundle_info)
+    crash_log_label = bundle_info["crash_log_name"] or "not included"
+
+    return {
+        "bundle_info": bundle_info,
+        "issue_url": issue_url,
+        "trace_lines": [
+            "",
+            f"Support bundle created: {bundle_info['bundle_name']}",
+            f"Runtime log included: {bundle_info['runtime_log_name']}",
+            f"Crash log included: {crash_log_label}",
+            "Review the local support bundle before sharing.",
+        ],
+        "manual_review_required": True,
+        "manual_issue_submission_required": True,
+    }
