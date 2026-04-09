@@ -328,6 +328,24 @@ For those `pre-Beta` focus-group lanes:
 - release cadence should follow meaningful lane milestones when a release is appropriate
 - grouped branches must still be split if the work starts crossing subsystem boundaries or accumulating unrelated fixes
 
+## Grouped Lane Milestone Gate
+
+For an active `pre-Beta` grouped workstream branch, Codex should define before implementation:
+
+- the lane milestone target
+- the minimum merge-ready threshold
+- the tightly coupled groundwork that still belongs inside the same branch
+
+Codex should not treat the first validated revision inside that branch as PR-ready by default.
+
+Instead, Codex should continue through additional narrow slices inside the same branch until:
+
+- the declared minimum merge-ready threshold is reached
+- a real blocker appears
+- or the user explicitly chooses to stop early
+
+If enabling groundwork and the first usable outcome are tightly coupled inside one subsystem and remain low-risk, they should usually stay in the same grouped branch rather than being split into separate micro-branches or premature PRs.
+
 At `Beta` and later, the default recommendation should usually shift toward:
 
 - issue-specific branches

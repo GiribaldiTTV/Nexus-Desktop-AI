@@ -80,6 +80,19 @@ Handling rule:
 - move closed or superseded items out of the active near-term horizon once they stop helping next-lane planning
 - keep detailed implementation truth in `docs/feature_backlog.md`, not here
 
+## Lane Milestone Fields
+
+For each `active` grouped lane, and for the current best next `candidate` when one is named here, include:
+
+- `milestone target`
+- `minimum merge-ready threshold`
+
+These fields are still provisional planning guidance.
+
+They do not guarantee that a lane will continue unchanged if live repo truth shifts or a blocker appears.
+
+They do require Codex to judge PR-readiness against the lane milestone rather than against the first clean internal revision.
+
 ## Refresh Triggers
 
 Refresh this roadmap when:
@@ -87,6 +100,7 @@ Refresh this roadmap when:
 - a meaningful milestone merges to `main`
 - a public prerelease is cut
 - a docs-only rebaseline materially changes the planning baseline
+- the current best next lane changes lifecycle state between `candidate`, `active`, `merged`, `closed`, `deferred`, or `superseded`
 - `main` materially advances beyond the latest public release and this roadmap no longer matches live repo truth
 
 This roadmap should usually be refreshed by one narrow docs-only governance or rebaseline pass rather than by ad hoc wording drift across multiple unrelated branches.
@@ -97,15 +111,17 @@ This is the current best provisional sequencing horizon from live repo truth aft
 
 ### 1. `feature/prebeta-roadmap-rebaseline`
 
-- status: `active`
+- status: `merged`
 - version impact: `no release`
 - purpose: docs-only governance and planning reset so near-term sequencing and provisional version-impact planning have one canonical interface
 
 ### 2. `feature/fb-027-saved-action-usability`
 
-- status: `candidate`
+- status: `active`
 - version impact: `candidate patch prerelease`
 - purpose: grouped FB-027 usability follow-through above the current shared-action, saved-action-source, and starter-bootstrap baseline
+- milestone target: the first coherent saved-action usability milestone above the current starter-bootstrap baseline
+- minimum merge-ready threshold: the current command surface can do more than create the starter file; it must also help the user reach or use that source in a practical bounded way without widening into Action Studio, live reload, or broader interaction redesign
 
 ### 3. `feature/prebeta-v1.2.1-rebaseline`
 
