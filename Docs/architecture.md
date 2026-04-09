@@ -586,7 +586,9 @@ This class may later gain a bounded report affordance if explicitly approved, bu
 
 This means something meaningful went against normal expected Nexus behavior, but the persona and runtime remain operational enough to continue guiding the user.
 
-This class is a future planning boundary, not a broadly implemented current behavior.
+This class is not yet a broadly implemented current behavior.
+
+Current repo truth now includes one bounded desktop example: repeated identical `launch_failed` for the same action in a still-running session may prepare a local support bundle and issue draft once while keeping the local/manual reporting boundary intact.
 
 When later approved for a specific subsystem, this class may use:
 
@@ -622,7 +624,7 @@ The current recommended surface mapping is:
 
 - Class 1 -> inline or contained guidance only
 - Class 2 -> inline or contained recoverable failure only
-- Class 3 -> recoverable diagnostics or reporting surface when later explicitly approved for a bounded incident class
+- Class 3 -> recoverable diagnostics or reporting surface for an explicitly approved bounded incident class
 - Class 4 -> existing launcher-owned diagnostics completion path
 
 This contract does not by itself authorize new diagnostics triggers or UI surfaces.

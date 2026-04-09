@@ -1515,17 +1515,17 @@ Current branch-local evidence indicates the helper is useful for internal startu
 
 ### [ID: FB-034] Recoverable incident diagnostics surface and failure-class follow-through
 
-Status: Deferred
+Status: Deferred (first bounded recoverable-diagnostics milestone implemented in v1.2.2-prebeta)
 Priority: Medium
 Suggested Version: TBD
-Suggested Revision: rev1
+Suggested Revision: rev2
 Release Stage: pre-Beta
 
 Description:
-Define a later bounded follow-through for recoverable incidents that should surface diagnostics or reporting while Nexus remains operational, without collapsing those incidents into the fatal launcher diagnostics path.
+Track any later bounded follow-through beyond the first shipped recoverable-diagnostics milestone, without collapsing recoverable incidents into the fatal launcher diagnostics path.
 
 Why it matters:
-Current repo truth now distinguishes between contained recoverable action failures, future recoverable operational incidents, and fatal launcher/runtime/persona failures. Without a tracked follow-through item, later work could drift into ad hoc diagnostics triggers, inconsistent voice behavior, or silent reporting-policy expansion.
+Current repo truth now includes one bounded recoverable-operational-incident path in `v1.2.2-prebeta`, but that does not authorize automatic continuation into broader diagnostics triggers, reporting-policy expansion, or voice-path widening. A deferred follow-through item keeps future work explicit and revalidatable.
 
 Proposed Change:
 Use the failure-class / diagnostics-surface contract in `docs/architecture.md` as the planning baseline for a later bounded slice that:
@@ -1566,9 +1566,9 @@ Current source-of-truth ownership now lives in `docs/architecture.md`.
 That contract is intentionally conservative:
 
 - contained recoverable action failures such as current NCP `launch_failed` remain inline by default
-- recoverable diagnostics or reporting surfaces are future bounded work, not automatic current behavior
+- the first bounded shipped Class 3 example now exists in `v1.2.2-prebeta`: repeated identical `launch_failed` for the same action in a still-running session prepares a local support bundle and issue draft once while preserving manual review and submission boundaries
 - fatal launcher/runtime/persona failures keep the existing launcher-owned diagnostics completion path
-- later implementation should begin with one bounded recoverable incident class rather than a blanket new diagnostics trigger
+- any later implementation should remain a fresh bounded incident-class follow-through rather than a blanket new diagnostics trigger or automatic continuation of the released milestone
 
 This item should remain separate from `FB-027` and `FB-017`.
 It is cross-system planning work, not a pure NCP hardening slice and not only a `Report Issue` UX refinement.

@@ -141,21 +141,26 @@ While release debt exists:
 
 ## Current Near-Term Roadmap Horizon
 
-This is the current best provisional sequencing horizon from live repo truth after the live `v1.2.1-prebeta` release.
+This is the current best provisional sequencing horizon from live repo truth after the live `v1.2.2-prebeta` release.
 
-### 1. `feature/fb-034-recoverable-diagnostics`
+No active non-doc implementation lane is selected yet from this released baseline.
 
-- status: `active`
-- lane type: `implementation`
-- release floor: `patch prerelease`
-- target version: `v1.2.2-prebeta`
-- purpose: first bounded recoverable diagnostics and reporting lane above the current Class 2/Class 4 boundary
-- milestone target: the first bounded recoverable-operational-incident milestone while Nexus remains alive, using one explicit incident class and the existing local/manual reporting boundary
-- minimum merge-ready threshold: keep first single `launch_failed` inline, preserve fatal launcher/runtime diagnostics ownership, and add one bounded recoverable path where repeated identical `launch_failed` for the same action prepares a local support bundle and issue draft once without widening into blanket diagnostics or reporting redesign
+The next implementation branch should be chosen by a fresh next-lane analysis from updated shared canon rather than by automatic continuation of the just-closed `feature/fb-034-recoverable-diagnostics` lane.
 
 ## Recently Closed Or Superseded Lanes
 
-These entries remain here only long enough to keep the post-`v1.2.1-prebeta` transition explicit.
+These entries remain here only long enough to keep the post-`v1.2.2-prebeta` transition explicit.
+
+### `feature/fb-034-recoverable-diagnostics`
+
+- status: `closed`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `v1.2.2-prebeta`
+- release state: `released`
+- purpose: first bounded recoverable diagnostics and reporting lane above the current Class 2/Class 4 boundary
+- milestone target: the first bounded recoverable-operational-incident milestone while Nexus remains alive, using one explicit incident class and the existing local/manual reporting boundary
+- minimum merge-ready threshold: keep first single `launch_failed` inline, preserve fatal launcher/runtime diagnostics ownership, and add one bounded recoverable path where repeated identical `launch_failed` for the same action prepares a local support bundle and issue draft once without widening into blanket diagnostics or reporting redesign
 
 ### `feature/prebeta-roadmap-rebaseline`
 
@@ -187,12 +192,12 @@ These entries remain here only long enough to keep the post-`v1.2.1-prebeta` tra
 
 Current repo truth indicates:
 
-- the latest public prerelease is now `v1.2.1-prebeta`
+- the latest public prerelease is now `v1.2.2-prebeta`
 - `main` is aligned with that released commit
-- the `feature/fb-027-saved-action-usability` lane is now released and closed
-- the prior release debt between `v1.2.0-prebeta` and `main` is cleared
-- broader sequencing may resume from clean post-release truth
-- the current best next implementation candidate from canon is `feature/fb-034-recoverable-diagnostics`, but it remains provisional until the next lane is explicitly selected
+- the `feature/fb-034-recoverable-diagnostics` lane is now released and closed
+- the prior release debt between `v1.2.1-prebeta` and `main` is cleared
+- no new implementation lane is automatically active just because the prior patch milestone released
+- broader sequencing should resume from a fresh next-lane analysis on this released baseline
 
 That does **not** mean every listed lane should automatically happen.
 It does mean non-doc implementation lanes should be treated as version-bearing milestones rather than as merge-only background follow-through.
