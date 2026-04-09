@@ -305,7 +305,11 @@ The repo now also includes:
 - the first reusable shared action model underneath the typed command surface
 - the first bounded non-UI saved-action source seam above that shared action model
 - the first restart-based starter bootstrap path for `saved_actions.json` at the default runtime source location
+- built-in direct actions to open the default saved-actions file and its containing folder from the same typed command surface
+- backward-compatible preservation of unrelated valid saved actions when legacy saved-actions file or folder helpers collide with those built-ins
 - preserved exact-match resolution semantics and the existing typed-first confirm-before-execute contract while those architectural seams were introduced
+
+Current merged repo truth now reaches the first coherent saved-action usability milestone above that starter-bootstrap baseline.
 
 ## Beta Release Direction
 

@@ -141,9 +141,21 @@ While release debt exists:
 
 ## Current Near-Term Roadmap Horizon
 
-This is the current best provisional sequencing horizon from live repo truth after the merged post-`v1.2.0-prebeta` follow-through on `main`.
+This is the current best provisional sequencing horizon from live repo truth after the live `v1.2.1-prebeta` release.
 
-### 1. `feature/prebeta-roadmap-rebaseline`
+### 1. `feature/fb-034-recoverable-diagnostics`
+
+- status: `candidate`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `v1.2.2-prebeta`
+- purpose: first bounded recoverable diagnostics and reporting lane if later analysis confirms it is the right next subsystem milestone
+
+## Recently Closed Or Superseded Lanes
+
+These entries remain here only long enough to keep the post-`v1.2.1-prebeta` transition explicit.
+
+### `feature/prebeta-roadmap-rebaseline`
 
 - status: `merged`
 - lane type: `docs-only`
@@ -151,40 +163,34 @@ This is the current best provisional sequencing horizon from live repo truth aft
 - release state: `closed`
 - purpose: docs-only governance and planning reset so near-term sequencing and provisional version-impact planning have one canonical interface
 
-### 2. `feature/fb-027-saved-action-usability`
+### `feature/fb-027-saved-action-usability`
 
-- status: `active`
+- status: `closed`
 - lane type: `implementation`
 - release floor: `patch prerelease`
 - target version: `v1.2.1-prebeta`
-- release state: `merged unreleased`
-- purpose: grouped FB-027 usability follow-through above the current shared-action, saved-action-source, and starter-bootstrap baseline
+- release state: `released`
+- purpose: released FB-027 usability milestone above the current shared-action, saved-action-source, and starter-bootstrap baseline
 - milestone target: the first coherent saved-action usability milestone above the current starter-bootstrap baseline
 - minimum merge-ready threshold: the current command surface can do more than create the starter file; it must also help the user reach or use that source in a practical bounded way, and the resulting lane should be strong enough to justify the declared patch prerelease rather than another merge-only code delta
 
-### 3. `feature/prebeta-v1.2.1-rebaseline`
+### `feature/prebeta-v1.2.1-rebaseline`
 
-- status: `candidate`
+- status: `superseded`
 - lane type: `rebaseline`
 - release floor: `no release`
-- purpose: only if a prior lane becomes release-worthy, do a milestone closure and release-baseline sync pass without treating that branch as a separate public version by itself
-
-### 4. `feature/fb-034-recoverable-diagnostics`
-
-- status: `candidate`
-- lane type: `implementation`
-- release floor: `patch prerelease`
-- target version: `TBD after current release-debt resolution`
-- purpose: first bounded recoverable diagnostics and reporting lane if later analysis confirms it is the right next subsystem milestone
+- purpose: direct release execution plus this roadmap refresh closed the `v1.2.1-prebeta` baseline drift without needing a separate rebaseline branch
 
 ## Current Reading
 
 Current repo truth indicates:
 
-- the latest public prerelease is still `v1.2.0-prebeta`
-- `main` has moved ahead through several merged follow-through slices, including merged unreleased implementation work
-- the next best move is still to prefer milestone-shaped grouped lanes over more micro-branches
-- the current gap between `v1.2.0-prebeta` and `main` should be treated as release debt, not as normal background drift
+- the latest public prerelease is now `v1.2.1-prebeta`
+- `main` is aligned with that released commit
+- the `feature/fb-027-saved-action-usability` lane is now released and closed
+- the prior release debt between `v1.2.0-prebeta` and `main` is cleared
+- broader sequencing may resume from clean post-release truth
+- the current best next implementation candidate from canon is `feature/fb-034-recoverable-diagnostics`, but it remains provisional until the next lane is explicitly selected
 
 That does **not** mean every listed lane should automatically happen.
 It does mean non-doc implementation lanes should be treated as version-bearing milestones rather than as merge-only background follow-through.
