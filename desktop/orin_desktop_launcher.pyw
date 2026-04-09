@@ -349,7 +349,32 @@ def migrate_history_file_if_needed(target_path, legacy_path):
     if not target_parent_dir:
         raise ValueError("Historical state target path has no parent directory.")
     os.makedirs(target_parent_dir, exist_ok=True)
-    shutil.copy2(resolved_legacy_path, resolved_target_path)
+
+    migration_temp_path = resolved_target_path + ".migrating"
+    if os.path.exists(migration_temp_path):
+        if os.path.isfile(migration_temp_path):
+            os.remove(migration_temp_path)
+        else:
+            raise IsADirectoryError(f"Historical state migration temp path is a directory: {migration_temp_path}")
+
+    target_created = False
+    try:
+        shutil.copy2(resolved_legacy_path, migration_temp_path)
+        os.replace(migration_temp_path, resolved_target_path)
+        target_created = True
+        os.remove(resolved_legacy_path)
+    except Exception:
+        if os.path.isfile(migration_temp_path):
+            try:
+                os.remove(migration_temp_path)
+            except Exception:
+                pass
+        if target_created and os.path.isfile(resolved_target_path) and os.path.isfile(resolved_legacy_path):
+            try:
+                os.remove(resolved_target_path)
+            except Exception:
+                pass
+        raise
 
 
 def history_timestamp():

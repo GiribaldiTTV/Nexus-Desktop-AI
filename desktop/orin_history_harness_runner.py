@@ -323,6 +323,10 @@ def validate_history_path_contract(workspace_root):
         "Runtime history copy-forward did not preserve the legacy history contents.",
     )
     assert_true(
+        not fake_legacy_history_path.exists(),
+        f"Legacy runtime history path remained exposed after successful migration: {fake_legacy_history_path}",
+    )
+    assert_true(
         live_log_snapshot_before == live_log_snapshot_after,
         "Normal runtime history preparation wrote to or modified the live production logs tree.",
     )
