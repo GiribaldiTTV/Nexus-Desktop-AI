@@ -1158,6 +1158,8 @@ Current merged follow-through above that same foundation now also includes:
 - strict built-in fallback when the saved-action source is missing, unreadable, empty, or invalid
 - conservative saved-action validation for supported target kinds plus id/title/alias collision rejection against built-ins or other saved actions
 - a first restart-based starter bootstrap path for `saved_actions.json` inside the saved-action source layer
+- built-in direct actions to open the default saved-actions file and its containing folder from the current typed command surface
+- backward-compatible preservation of unrelated valid saved actions when legacy saved-actions file or folder helpers collide with those built-ins
 - starter-file auto-creation only for the default runtime path, while explicit custom source paths remain conservative and fallback-only
 
 These merged follow-through items remain part of the same staged `FB-027` interaction lane rather than separate backlog items.
@@ -1173,8 +1175,8 @@ Current repo truth remains conservative:
 
 - NCP hardening is still FB-027 follow-through, not a separate backlog item
 - the approved NCP hardening lane is now closed on `main`, with no current repo-truth need for another automatic NCP hardening patch
-- the shared-action-model, saved-action-source, and starter-bootstrap follow-through slices are also now merged on `main`
-- the next pre-Beta interaction step, if resumed later, should start above the current shared action model and saved-action bootstrap foundation rather than reopening NCP hardening by inertia
+- the shared-action-model, saved-action-source, starter-bootstrap, and first saved-action-usability follow-through slices are now merged on `main`, with that saved-action usability milestone shipped in `v1.2.1-prebeta`
+- the next pre-Beta interaction step, if resumed later, should start above the current shared action model, saved-action bootstrap, and released saved-actions access foundation rather than reopening NCP hardening by inertia
 
 Release-stage mapping:
 
