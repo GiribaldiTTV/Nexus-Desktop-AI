@@ -600,7 +600,8 @@ class DesktopRuntimeWindow(QWidget):
             "yes",
             "on",
         }
-        self._startup_snapshot_dir = (os.environ.get("JARVIS_HARNESS_STARTUP_SNAPSHOT_DIR") or "").strip()
+        startup_snapshot_dir = (os.environ.get("JARVIS_HARNESS_STARTUP_SNAPSHOT_DIR") or "").strip()
+        self._startup_snapshot_dir = os.path.abspath(startup_snapshot_dir) if startup_snapshot_dir else ""
         self.desktop_mode = False
         self._is_shutting_down = False
         self._page_ready = False

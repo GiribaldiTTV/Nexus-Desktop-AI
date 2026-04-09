@@ -1190,7 +1190,7 @@ This item must be staged by slice rather than treated as one single blanket stag
 
 ### [ID: FB-028] Relocate launcher history state out of root logs
 
-Status: Active  
+Status: Implemented (v1.2.3-prebeta)  
 Priority: Medium  
 Suggested Version: v1.2.3-prebeta  
 Suggested Revision: rev1  
@@ -1203,7 +1203,7 @@ Why it matters:
 `jarvis_history_v1.jsonl` is not a runtime log, crash artifact, or dev evidence root. Keeping it in `C:/Jarvis/logs` makes internal cross-run state look like user-facing log clutter and conflicts with the current root-logs governance rule that the live root logs tree should stay reserved for already-approved launcher/runtime truth surfaces only.
 
 Proposed Change:
-Current active lane truth:
+Implemented lane truth:
 
 - normal runtime history now resolves under `%LOCALAPPDATA%/Nexus Desktop AI/state/jarvis_history_v1.jsonl`
 - successful migration no longer leaves the legacy root-log history file exposed after the new state-root copy succeeds
@@ -1231,19 +1231,11 @@ Out of Scope:
 - dev evidence-root cleanup beyond the history file itself
 
 Notes:
-Current explicit decision:
-
-- do not move `jarvis_history_v1.jsonl` during the post-`v2.2.0` logs-cleanup pass
-- keep the current file in place until this later relocation slice is explicitly selected
+Released in `v1.2.3-prebeta`.
 
 Detailed future plan:
 
-1. define the dedicated target state root and document it
-2. patch the launcher history path to resolve to that root
-3. add a one-time copy-forward migration from the existing root file
-4. keep clean fallback to existing non-historical behavior if the new root is unavailable
-5. update contained history-harness coverage to prove no writes spill back into live root `logs`
-6. verify the live root `logs` tree no longer exposes the history file after migration
+- use a later explicitly selected follow-through item only if future evidence shows the released relocation behavior needs more bounded refinement
 
 ---
 
@@ -1471,9 +1463,9 @@ This should be treated as a future source-of-truth migration item, not a broad i
 
 ### [ID: FB-033] Dev-only startup snapshot harness follow-through
 
-Status: Deferred  
+Status: Active  
 Priority: Medium  
-Suggested Version: TBD  
+Suggested Version: v1.2.4-prebeta  
 Suggested Revision: rev1  
 Release Stage: pre-Beta  
 
@@ -1484,11 +1476,12 @@ Why it matters:
 Issue `#17` showed that normal desktop capture APIs can be unreliable or blind once the ORIN desktop child is reparented under the desktop shell. A small startup snapshot harness gives developers a direct evidence path for first-visible startup behavior, zero-state versus warm-start comparison, and bounded attach/reveal debugging.
 
 Proposed Change:
-Keep the startup snapshot path strictly harness-gated, then later do one bounded follow-through pass that decides:
+Current active lane target:
 
-- whether the current snapshot timing set is the right permanent minimum
-- whether the helper should be surfaced through a dedicated dev-only launcher or toolkit path
-- what cleanup or usage guidance should travel with the helper long-term
+- keep the startup snapshot path strictly harness-gated and dev-only
+- stabilize the owned trigger/env contract and output location for contained launch investigations
+- add a bounded contained validation path that proves healthy startup capture without spilling artifacts into live root logs or normal runtime state by default
+- defer permanent timing-set decisions, failure-oriented follow-through, and any dedicated dev-launcher surfacing until later evidence justifies them
 
 Likely Files Affected:
 - C:/Nexus Desktop AI/desktop/desktop_renderer.py
