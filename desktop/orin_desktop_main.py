@@ -89,7 +89,12 @@ def main():
         return 0
 
     screen = app.primaryScreen()
-    window = DesktopRuntimeWindow(screen, visual_html_path, event_logger=runtime_milestone)
+    window = DesktopRuntimeWindow(
+        screen,
+        visual_html_path,
+        event_logger=runtime_milestone,
+        runtime_log_path=RUNTIME_LOG_FILE,
+    )
     runtime_milestone("RENDERER_MAIN|WINDOW_CONSTRUCTED")
     if exit_if_startup_abort_requested():
         return 0

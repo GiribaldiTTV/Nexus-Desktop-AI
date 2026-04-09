@@ -145,11 +145,13 @@ This is the current best provisional sequencing horizon from live repo truth aft
 
 ### 1. `feature/fb-034-recoverable-diagnostics`
 
-- status: `candidate`
+- status: `active`
 - lane type: `implementation`
 - release floor: `patch prerelease`
 - target version: `v1.2.2-prebeta`
-- purpose: first bounded recoverable diagnostics and reporting lane if later analysis confirms it is the right next subsystem milestone
+- purpose: first bounded recoverable diagnostics and reporting lane above the current Class 2/Class 4 boundary
+- milestone target: the first bounded recoverable-operational-incident milestone while Nexus remains alive, using one explicit incident class and the existing local/manual reporting boundary
+- minimum merge-ready threshold: keep first single `launch_failed` inline, preserve fatal launcher/runtime diagnostics ownership, and add one bounded recoverable path where repeated identical `launch_failed` for the same action prepares a local support bundle and issue draft once without widening into blanket diagnostics or reporting redesign
 
 ## Recently Closed Or Superseded Lanes
 

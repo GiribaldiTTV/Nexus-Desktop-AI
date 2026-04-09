@@ -11,8 +11,7 @@ from PySide6.QtCore import Qt, QTimer, QPoint, QRect
 from PySide6.QtGui import QFont, QGuiApplication, QTextBlockFormat, QTextCharFormat
 from orin_support_reporting import (
     SupportBundleError,
-    build_issue_prefill_url,
-    create_support_bundle,
+    prepare_manual_issue_report,
 )
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -675,8 +674,7 @@ class DiagnosticsWindow(QWidget):
         self.report_btn.setEnabled(False)
 
         try:
-            bundle_info = create_support_bundle(ROOT_DIR, RUNTIME_LOG_FILE, CRASH_FOLDER)
-            issue_url = build_issue_prefill_url(ROOT_DIR, bundle_info)
+            report_prep = prepare_manual_issue_report(ROOT_DIR, RUNTIME_LOG_FILE, CRASH_FOLDER)
         except SupportBundleError as exc:
             self.append_trace(f"Support bundle creation failed: {exc}")
             diag_event("report_issue", "bundle_failed", exc)
@@ -688,12 +686,10 @@ class DiagnosticsWindow(QWidget):
         finally:
             self.report_btn.setEnabled(True)
 
-        crash_log_label = bundle_info["crash_log_name"] or "not included"
-        self.append_trace("")
-        self.append_trace(f"Support bundle created: {bundle_info['bundle_name']}")
-        self.append_trace(f"Runtime log included: {bundle_info['runtime_log_name']}")
-        self.append_trace(f"Crash log included: {crash_log_label}")
-        self.append_trace("Review the local support bundle before sharing.")
+        bundle_info = report_prep["bundle_info"]
+        issue_url = report_prep["issue_url"]
+        for trace_line in report_prep["trace_lines"]:
+            self.append_trace(trace_line)
 
         try:
             os.startfile(os.path.dirname(bundle_info["bundle_path"]))

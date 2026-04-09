@@ -2,6 +2,7 @@ import os
 import ctypes
 import datetime
 import time
+import webbrowser
 
 from PySide6.QtWidgets import (
     QWidget,
@@ -20,6 +21,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 
 from .interaction_overlay_model import CommandOverlayModel
 from .shared_action_model import launch_command_action
+from .orin_support_reporting import SupportBundleError, prepare_manual_issue_report
 from .workerw_utils import (
     attach_window_to_desktop,
     get_last_workerw_probe_events,
@@ -54,6 +56,7 @@ GetParentW = user32.GetParent
 GetParentW.argtypes = [ctypes.wintypes.HWND]
 GetParentW.restype = ctypes.wintypes.HWND
 SW_HIDE = 0
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class CommandInputLineEdit(QLineEdit):
@@ -584,12 +587,13 @@ class CommandOverlayPanel(QWidget):
 
 class DesktopRuntimeWindow(QWidget):
 
-    def __init__(self, screen, visual_html_path: str, event_logger=None):
+    def __init__(self, screen, visual_html_path: str, event_logger=None, runtime_log_path: str = ""):
         super().__init__()
 
         self.screen_ref = screen
         self.visual_html_path = os.path.abspath(visual_html_path)
         self.event_logger = event_logger
+        self.runtime_log_path = os.path.abspath(runtime_log_path) if runtime_log_path else ""
         self._overlay_trace_enabled = (os.environ.get("NEXUS_OVERLAY_TRACE") or "").strip().casefold() in {
             "1",
             "true",
@@ -618,6 +622,9 @@ class DesktopRuntimeWindow(QWidget):
         self._overlay_input_capture_until = 0.0
         self._overlay_local_input_engaged = False
         self._overlay_global_capture_suspended = False
+        self._last_launch_failure_action_id = ""
+        self._last_launch_failure_count = 0
+        self._reported_recoverable_launch_failures = set()
 
         # Align the standalone desktop route with the proven Boot handoff window model.
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
@@ -1087,13 +1094,89 @@ class DesktopRuntimeWindow(QWidget):
             self._command_panel.hide()
             self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_CLOSED")
 
-    def _show_command_result(self, status_kind: str, status_text: str):
+    def _show_command_result(self, status_kind: str, status_text: str, close_delay_ms: int = 1200):
         self._command_model.show_result(status_kind, status_text)
         self._apply_command_overlay_state()
-        self._result_close_timer.start(1200)
+        self._result_close_timer.start(max(0, int(close_delay_ms)))
 
     def _close_command_overlay_after_result(self):
         self.close_command_overlay()
+
+    def _record_launch_failure(self, action_id: str) -> int:
+        if self._last_launch_failure_action_id == action_id:
+            self._last_launch_failure_count += 1
+        else:
+            self._last_launch_failure_action_id = action_id
+            self._last_launch_failure_count = 1
+        return self._last_launch_failure_count
+
+    def _clear_launch_failure_tracking(self, action_id: str):
+        if self._last_launch_failure_action_id == action_id:
+            self._last_launch_failure_action_id = ""
+            self._last_launch_failure_count = 0
+        self._reported_recoverable_launch_failures.discard(action_id)
+
+    def _prepare_recoverable_launch_failure_report(self, action) -> str | None:
+        failure_count = self._record_launch_failure(action.id)
+        if failure_count < 2:
+            return None
+        if action.id in self._reported_recoverable_launch_failures:
+            return None
+        if not self.runtime_log_path or not os.path.isfile(self.runtime_log_path):
+            self._log_event(
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_SKIPPED|action_id={action.id}|reason=runtime_log_unavailable"
+            )
+            return None
+
+        crash_dir = os.path.join(os.path.dirname(self.runtime_log_path), "crash")
+        self._log_event(
+            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_BEGIN|action_id={action.id}|count={failure_count}"
+        )
+        try:
+            report_prep = prepare_manual_issue_report(ROOT_DIR, self.runtime_log_path, crash_dir)
+        except SupportBundleError as exc:
+            self._log_event(
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FAILED|action_id={action.id}|reason={exc}"
+            )
+            return None
+        except Exception as exc:
+            self._log_event(
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FAILED|action_id={action.id}|reason={exc}"
+            )
+            return None
+
+        bundle_info = report_prep["bundle_info"]
+        issue_url = report_prep["issue_url"]
+        browser_opened = False
+
+        try:
+            os.startfile(os.path.dirname(bundle_info["bundle_path"]))
+            self._log_event(
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FOLDER_OPENED|action_id={action.id}|bundle={bundle_info['bundle_name']}"
+            )
+        except Exception as exc:
+            self._log_event(
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FOLDER_FAILED|action_id={action.id}|reason={exc}"
+            )
+
+        if issue_url:
+            try:
+                browser_opened = webbrowser.open(issue_url, new=2)
+            except Exception as exc:
+                self._log_event(
+                    f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_ISSUE_FAILED|action_id={action.id}|reason={exc}"
+                )
+
+        self._reported_recoverable_launch_failures.add(action.id)
+        self._log_event(
+            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_READY|action_id={action.id}|bundle={bundle_info['bundle_name']}"
+        )
+
+        if browser_opened:
+            return "Launch failed again. Support bundle prepared and issue draft opened; attach the bundle manually."
+        if issue_url:
+            return "Launch failed again. Support bundle prepared; open the issue page manually and attach the bundle."
+        return "Launch failed again. Support bundle prepared; review it locally before filing the report."
 
     def handle_ambiguous_match_selected(self, index: int):
         result, payload = self._command_model.choose_match(index)
@@ -1159,9 +1242,14 @@ class DesktopRuntimeWindow(QWidget):
             launch_command_action(action)
         except Exception as exc:
             self._log_event(f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED|action_id={action.id}")
-            self._show_command_result("launch_failed", f"Launch failed: {exc}")
+            recoverable_status = self._prepare_recoverable_launch_failure_report(action)
+            if recoverable_status:
+                self._show_command_result("launch_failed", recoverable_status, close_delay_ms=2600)
+            else:
+                self._show_command_result("launch_failed", f"Launch failed: {exc}")
             return
 
+        self._clear_launch_failure_tracking(action.id)
         self._log_event(f"RENDERER_MAIN|COMMAND_LAUNCH_REQUEST_SENT|action_id={action.id}")
         self._show_command_result("launch_requested", "Launch request sent.")
 
