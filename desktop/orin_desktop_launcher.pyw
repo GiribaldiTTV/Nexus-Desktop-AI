@@ -361,12 +361,17 @@ def normalize_history_run_id(run_id):
 
 
 def prepare_history_storage_path(path=None, legacy_path=None):
-    path = os.path.abspath(path or history_file(harness_log_root=os.environ.get("JARVIS_HARNESS_LOG_ROOT", "")))
+    harness_log_root = os.environ.get("JARVIS_HARNESS_LOG_ROOT", "")
+    path = os.path.abspath(path or history_file(harness_log_root=harness_log_root))
     parent_dir = os.path.dirname(path)
     if not parent_dir:
         raise ValueError("History storage path has no parent directory.")
 
-    migrate_history_file_if_needed(path, legacy_path or legacy_history_file_path())
+    resolved_legacy_path = legacy_path
+    if resolved_legacy_path is None:
+        resolved_legacy_path = legacy_history_file_path(log_dir=harness_log_root or DEFAULT_LOG_DIR)
+
+    migrate_history_file_if_needed(path, resolved_legacy_path)
     os.makedirs(parent_dir, exist_ok=True)
     if os.path.isdir(path):
         raise IsADirectoryError(f"History storage path is a directory: {path}")

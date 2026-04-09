@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-LAUNCHER_SCRIPT = Path(__file__).with_name("jarvis_desktop_launcher.pyw")
+LAUNCHER_SCRIPT = Path(__file__).with_name("orin_desktop_launcher.pyw")
 LIVE_LOG_DIR = ROOT_DIR / "logs"
 HISTORY_FILENAME = "jarvis_history_v1.jsonl"
 HISTORY_STABILITY_WINDOW_SIZE = 5
@@ -214,7 +214,7 @@ def resolve_workspace_root(raw_value):
     return workspace_root
 
 
-def load_launcher_probe_namespace(workspace_root):
+def load_launcher_probe_namespace(workspace_root, harness_log_root=None, local_app_data=None):
     probe_root = workspace_root / "_launcher_confidence_probe"
     probe_log_root = probe_root / "logs"
     probe_root.mkdir(parents=True, exist_ok=True)
@@ -224,12 +224,20 @@ def load_launcher_probe_namespace(workspace_root):
         "JARVIS_HARNESS_TARGET_SCRIPT",
         "JARVIS_HARNESS_DISABLE_DIAGNOSTICS",
         "JARVIS_HARNESS_DISABLE_VOICE",
+        "LOCALAPPDATA",
     )
     original_env = {name: os.environ.get(name) for name in env_names}
-    os.environ["JARVIS_HARNESS_LOG_ROOT"] = str(probe_log_root)
+    if harness_log_root is None:
+        os.environ.pop("JARVIS_HARNESS_LOG_ROOT", None)
+    else:
+        os.environ["JARVIS_HARNESS_LOG_ROOT"] = str(harness_log_root)
     os.environ["JARVIS_HARNESS_TARGET_SCRIPT"] = str(probe_root / "probe_renderer.py")
     os.environ["JARVIS_HARNESS_DISABLE_DIAGNOSTICS"] = "1"
     os.environ["JARVIS_HARNESS_DISABLE_VOICE"] = "1"
+    if local_app_data is None:
+        os.environ.pop("LOCALAPPDATA", None)
+    else:
+        os.environ["LOCALAPPDATA"] = str(local_app_data)
 
     try:
         return runpy.run_path(str(LAUNCHER_SCRIPT), run_name="jarvis_launcher_probe")
@@ -239,6 +247,85 @@ def load_launcher_probe_namespace(workspace_root):
                 os.environ.pop(name, None)
             else:
                 os.environ[name] = value
+
+
+def resolve_harness_history_path(workspace_root, log_root):
+    namespace = load_launcher_probe_namespace(
+        workspace_root,
+        harness_log_root=log_root,
+        local_app_data=workspace_root / "_launcher_harness_state_probe" / "LocalAppData",
+    )
+    history_file = namespace["history_file"]
+    return Path(
+        history_file(
+            log_dir=str(log_root),
+            harness_log_root=str(log_root),
+            local_app_data=str(workspace_root / "_launcher_harness_state_probe" / "LocalAppData"),
+            home_dir="",
+        )
+    ).resolve()
+
+
+def validate_history_path_contract(workspace_root):
+    harness_root = workspace_root / "_launcher_history_contract_harness"
+    harness_log_root = harness_root / "logs"
+    harness_history_path = resolve_harness_history_path(workspace_root, harness_log_root)
+    expected_harness_history_path = (harness_log_root / HISTORY_FILENAME).resolve()
+    assert_true(
+        harness_history_path == expected_harness_history_path,
+        f"Harness override history path drifted: expected {expected_harness_history_path}, got {harness_history_path}",
+    )
+
+    runtime_probe_root = workspace_root / "_launcher_history_contract_runtime"
+    runtime_local_app_data = runtime_probe_root / "LocalAppData"
+    runtime_namespace = load_launcher_probe_namespace(
+        workspace_root,
+        harness_log_root=None,
+        local_app_data=runtime_local_app_data,
+    )
+    history_file = runtime_namespace["history_file"]
+    prepare_history_storage_path = runtime_namespace["prepare_history_storage_path"]
+    runtime_history_path = Path(
+        history_file(
+            log_dir=str(LIVE_LOG_DIR),
+            harness_log_root="",
+            local_app_data=str(runtime_local_app_data),
+            home_dir="",
+        )
+    ).resolve()
+
+    assert_true(
+        not is_relative_to(runtime_history_path, LIVE_LOG_DIR),
+        f"Normal runtime history path should not resolve under the live logs tree: {runtime_history_path}",
+    )
+
+    fake_legacy_log_root = runtime_probe_root / "legacy_logs"
+    fake_legacy_history_path = fake_legacy_log_root / HISTORY_FILENAME
+    expected_history_text = '{"schema_version": 1, "synthetic": "history-copy-forward"}\n'
+    write_text(fake_legacy_history_path, expected_history_text)
+
+    live_log_snapshot_before = snapshot_live_log_tree()
+    prepared_history_path = Path(
+        prepare_history_storage_path(
+            path=str(runtime_history_path),
+            legacy_path=str(fake_legacy_history_path),
+        )
+    ).resolve()
+    live_log_snapshot_after = snapshot_live_log_tree()
+
+    assert_true(
+        prepared_history_path == runtime_history_path,
+        f"Prepared runtime history path drifted: expected {runtime_history_path}, got {prepared_history_path}",
+    )
+    assert_true(prepared_history_path.exists(), f"Prepared runtime history path was not created: {prepared_history_path}")
+    assert_true(
+        prepared_history_path.read_text(encoding="utf-8") == expected_history_text,
+        "Runtime history copy-forward did not preserve the legacy history contents.",
+    )
+    assert_true(
+        live_log_snapshot_before == live_log_snapshot_after,
+        "Normal runtime history preparation wrote to or modified the live production logs tree.",
+    )
 
 
 def snapshot_live_log_tree():
@@ -302,7 +389,7 @@ def collect_single_file(directory, pattern, required):
 def run_launcher_scenario(scenario_root, renderer_script, seed_history_lines=None, precreate_history_directory=False):
     log_root = scenario_root / "logs"
     log_root.mkdir(parents=True, exist_ok=True)
-    history_path = log_root / HISTORY_FILENAME
+    history_path = resolve_harness_history_path(scenario_root, log_root)
     if precreate_history_directory:
         history_path.mkdir(parents=True, exist_ok=True)
     elif seed_history_lines:
@@ -608,6 +695,7 @@ def main():
     args = parse_args()
     workspace_root = resolve_workspace_root(args.workspace_root)
     validate_internal_confidence_contract(workspace_root)
+    validate_history_path_contract(workspace_root)
 
     healthy_root = prepare_workspace(workspace_root, "healthy_run")
     healthy_renderer = healthy_root / "renderer_ready.py"
