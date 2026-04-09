@@ -143,9 +143,24 @@ While release debt exists:
 
 This is the current best provisional sequencing horizon from live repo truth after the live `v1.2.2-prebeta` release.
 
-No active non-doc implementation lane is selected yet from this released baseline.
+The current active non-doc implementation lane is now:
 
-The next implementation branch should be chosen by a fresh next-lane analysis from updated shared canon rather than by automatic continuation of the just-closed `feature/fb-034-recoverable-diagnostics` lane.
+- `feature/fb-028-history-state-relocation`
+
+That lane was selected by fresh next-lane analysis from the released `v1.2.2-prebeta` baseline rather than by automatic continuation of the closed `feature/fb-034-recoverable-diagnostics` lane.
+
+## Current Active Lane
+
+### `feature/fb-028-history-state-relocation`
+
+- status: `active`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `v1.2.3-prebeta`
+- release state: `active delta`
+- purpose: relocate launcher-owned historical state out of the live root `logs` tree without changing historical-memory semantics or widening logs/reporting policy
+- milestone target: move launcher-owned historical state out of the live root `logs` tree into a dedicated non-user-facing launcher-owned state root, with migration and clean fallback, without changing historical-memory semantics or widening logs/reporting policy
+- minimum merge-ready threshold: launcher history resolves to a dedicated state root outside live root `logs`; successful migration no longer leaves the legacy root-log history file exposed; failure to migrate or write still degrades cleanly to the last non-historical behavior; contained history harness and direct consumers follow the relocated path contract; validation proves history writes no longer spill into live root `logs`; runtime logs, crash logs, and support-bundle locations remain unchanged
 
 ## Recently Closed Or Superseded Lanes
 
