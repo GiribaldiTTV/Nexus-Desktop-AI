@@ -1480,11 +1480,12 @@ Current active lane target:
 
 - keep the startup snapshot path strictly harness-gated and dev-only
 - stabilize the owned trigger/env contract and output location for contained launch investigations
-- add a bounded contained validation path that proves healthy startup capture without spilling artifacts into live root logs or normal runtime state by default
-- defer permanent timing-set decisions, failure-oriented follow-through, and any dedicated dev-launcher surfacing until later evidence justifies them
+- add a bounded contained validation path that proves healthy and failure-oriented startup behavior without spilling artifacts into live root logs or normal runtime state by default
+- defer permanent timing-set decisions and any dedicated dev-launcher surfacing until later evidence justifies them
 
 Likely Files Affected:
 - C:/Nexus Desktop AI/desktop/desktop_renderer.py
+- C:/Nexus Desktop AI/dev/orin_startup_snapshot_harness_validation.py
 - optional directly supportive dev-only launch/test surfaces
 - optional directly supportive canonical docs for dev-only usage guidance
 
@@ -1501,7 +1502,7 @@ Out of Scope:
 - unrelated Dev Toolkit expansion unless explicitly approved later
 
 Notes:
-Current branch-local evidence indicates the helper is useful for internal startup debugging, but it should remain clearly separate from normal runtime behavior and should only be kept long-term if it stays harness-gated, low-noise, and bounded to developer investigation needs.
+Current active-lane evidence indicates the helper is useful for internal startup debugging, but it should remain clearly separate from normal runtime behavior and should only be kept long-term if it stays harness-gated, low-noise, and bounded to developer investigation needs.
 
 ---
 

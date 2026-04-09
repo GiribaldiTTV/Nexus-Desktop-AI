@@ -235,9 +235,9 @@ These entries remain here only long enough to keep the post-`v1.2.3-prebeta` tra
 Current repo truth indicates:
 
 - the latest public prerelease is now `v1.2.3-prebeta`
-- `main` is aligned with that released commit
 - the `feature/fb-028-history-state-relocation` lane is now released and closed
-- the prior release debt between `v1.2.2-prebeta` and `main` is cleared
+- the `feature/fb-033-startup-snapshot-harness-follow-through` lane is the current bounded implementation lane targeting `v1.2.4-prebeta`
+- any merged non-doc work beyond `v1.2.3-prebeta` should be treated as release debt until `v1.2.4-prebeta` is published
 - no new implementation lane became active automatically just because the prior patch milestone released
 - fresh next-lane analysis on that released baseline selected `feature/fb-033-startup-snapshot-harness-follow-through` as the next bounded implementation lane
 
