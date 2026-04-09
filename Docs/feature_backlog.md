@@ -1190,9 +1190,9 @@ This item must be staged by slice rather than treated as one single blanket stag
 
 ### [ID: FB-028] Relocate launcher history state out of root logs
 
-Status: Deferred  
+Status: Active  
 Priority: Medium  
-Suggested Version: TBD  
+Suggested Version: v1.2.3-prebeta  
 Suggested Revision: rev1  
 Release Stage: pre-Beta  
 
@@ -1203,14 +1203,13 @@ Why it matters:
 `jarvis_history_v1.jsonl` is not a runtime log, crash artifact, or dev evidence root. Keeping it in `C:/Jarvis/logs` makes internal cross-run state look like user-facing log clutter and conflicts with the current root-logs governance rule that the live root logs tree should stay reserved for already-approved launcher/runtime truth surfaces only.
 
 Proposed Change:
-Later bounded relocation slice:
+Current active lane truth:
 
-- choose a non-user-facing launcher-owned state root outside `C:/Jarvis/logs` and outside `C:/Jarvis/dev/logs`, preferably `%LOCALAPPDATA%/Jarvis/state`
-- patch the launcher history-path helper to read and write there
-- add a one-time migration from the existing root `C:/Jarvis/logs/jarvis_history_v1.jsonl` if present
-- preserve fail-safe degradation if migration or new-state writes fail
-- update the contained history harness and any other history-path consumers
-- sync the governing docs after the relocation lands
+- normal runtime history now resolves under `%LOCALAPPDATA%/Nexus Desktop AI/state/jarvis_history_v1.jsonl`
+- successful migration no longer leaves the legacy root-log history file exposed after the new state-root copy succeeds
+- fail-safe degradation remains in place if migration or new-state writes fail
+- contained history harness and direct consumers now follow the relocated path contract while contained runs remain isolated under the contained harness log root
+- runtime logs, crash logs, and support-bundle locations remain unchanged
 
 Likely Files Affected:
 - C:/Jarvis/desktop/jarvis_desktop_launcher.pyw
