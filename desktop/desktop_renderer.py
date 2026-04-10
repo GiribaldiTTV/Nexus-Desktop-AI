@@ -1117,11 +1117,30 @@ class DesktopRuntimeWindow(QWidget):
             self._last_launch_failure_count = 0
         self._reported_recoverable_launch_failures.discard(action_id)
 
+    def _classify_recoverable_launch_failed_incident(self, action_id: str, failure_count: int) -> str:
+        if failure_count < 2:
+            self._log_event(
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS2_INLINE|action_id={action_id}|count={failure_count}"
+            )
+            return "class2_inline"
+
+        if action_id in self._reported_recoverable_launch_failures:
+            self._log_event(
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS3_ALREADY_REPORTED|action_id={action_id}|count={failure_count}"
+            )
+            return "class3_already_reported"
+
+        self._log_event(
+            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS3_REPORT_SELECTED|action_id={action_id}|count={failure_count}"
+        )
+        return "class3_report_selected"
+
     def _prepare_recoverable_launch_failure_report(self, action) -> str | None:
         failure_count = self._record_launch_failure(action.id)
-        if failure_count < 2:
+        incident_class = self._classify_recoverable_launch_failed_incident(action.id, failure_count)
+        if incident_class == "class2_inline":
             return None
-        if action.id in self._reported_recoverable_launch_failures:
+        if incident_class == "class3_already_reported":
             return None
         if not self.runtime_log_path or not os.path.isfile(self.runtime_log_path):
             self._log_event(

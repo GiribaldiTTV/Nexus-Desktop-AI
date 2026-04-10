@@ -1000,13 +1000,13 @@ Notes:
 - helper follow-through such as monitor preflight, handoff verification, transition capture, and boot-helper Toolkit validation
 - landed edge-path markers for rejected input, shutdown source, and handoff signal outcome
 
-Later naming cleanup now continues under active lane `FB-025`.
+Later naming cleanup should continue only if a later explicitly selected slice justifies it.
 
 ---
 
 ### [ID: FB-025] Boot and desktop milestone taxonomy clarification
 
-Status: Active
+Status: Implemented (v1.2.5-prebeta)
 Priority: Low
 Suggested Version: v1.2.5-prebeta
 Suggested Revision: rev5
@@ -1019,7 +1019,7 @@ Why it matters:
 Boot and desktop ownership should stay separate, but a small later taxonomy pass could make mixed evidence easier to read without collapsing the two lanes into a single logging system.
 
 Proposed Change:
-Current active lane target:
+Implemented lane truth:
 
 - keep boot and desktop milestone ownership separate
 - do one tiny naming and taxonomy clarification pass only where shared marker shape improves cross-lane diagnostics
@@ -1047,7 +1047,7 @@ Out of Scope:
 - behavior changes
 
 Notes:
-Current active-lane evidence now already includes first-class `BOOT_MAIN|...` and `RENDERER_MAIN|...` milestone families, so this item is only about naming-shape cleanup and cross-lane readability rather than filling missing core marker coverage.
+Released in `v1.2.5-prebeta`.
 
 ---
 
@@ -1517,9 +1517,9 @@ Released in `v1.2.4-prebeta`.
 
 ### [ID: FB-034] Recoverable incident diagnostics surface and failure-class follow-through
 
-Status: Deferred (first bounded recoverable-diagnostics milestone implemented in v1.2.2-prebeta)
+Status: Active
 Priority: Medium
-Suggested Version: TBD
+Suggested Version: v1.2.6-prebeta
 Suggested Revision: rev2
 Release Stage: pre-Beta
 
@@ -1530,29 +1530,26 @@ Why it matters:
 Current repo truth now includes one bounded recoverable-operational-incident path in `v1.2.2-prebeta`, but that does not authorize automatic continuation into broader diagnostics triggers, reporting-policy expansion, or voice-path widening. A deferred follow-through item keeps future work explicit and revalidatable.
 
 Proposed Change:
-Use the failure-class / diagnostics-surface contract in `docs/architecture.md` as the planning baseline for a later bounded slice that:
+Current active lane target:
 
-- selects one recoverable high-signal incident class only
-- decides whether that class should stay inline or surface a recoverable diagnostics/reporting view
-- preserves the existing manual-reporting boundary
-- keeps fatal launcher/runtime diagnostics completion behavior separate
-- uses normal ORIN voice/trace semantics for recoverable incidents when voice is present
+- select one recoverable high-signal incident class only: repeated identical `launch_failed` for the same action in a still-running session
+- make the current Class 2-to-Class 3 boundary explicit in renderer evidence before any broader diagnostics-surface work is considered
+- preserve the existing local/manual support-bundle and issue-draft boundary
+- keep fatal launcher/runtime diagnostics completion behavior separate and unchanged
+- defer any broader recoverable diagnostics surface, voice, or launcher-policy follow-through until later evidence justifies it
 
 Likely Files Affected:
 - C:/Nexus Desktop AI/Docs/architecture.md
-- C:/Nexus Desktop AI/Docs/orchestration.md
+- C:/Nexus Desktop AI/Docs/feature_backlog.md
+- C:/Nexus Desktop AI/Docs/prebeta_roadmap.md
 - C:/Nexus Desktop AI/desktop/desktop_renderer.py
-- C:/Nexus Desktop AI/desktop/orin_desktop_launcher.pyw
-- C:/Nexus Desktop AI/desktop/orin_diagnostics.pyw
 - C:/Nexus Desktop AI/desktop/orin_support_reporting.py
-- C:/Nexus Desktop AI/Audio/orin_voice.py
-- C:/Nexus Desktop AI/Audio/orin_error_voice.py
+- C:/Nexus Desktop AI/dev/orin_recoverable_launch_failed_validation.py
 
 Scope:
-- failure-class follow-through for recoverable incidents
-- bounded recoverable diagnostics/reporting surface planning and later implementation
-- normal-versus-error voice role split by failure class
-- preserving manual-reporting boundaries while broadening incident-class clarity
+- one recoverable incident class only
+- explicit Class 2/Class 3 boundary evidence for the selected class
+- preserving manual-reporting boundaries while clarifying incident-class behavior
 
 Out of Scope:
 - treating every recoverable issue as a diagnostics popup
@@ -1564,16 +1561,7 @@ Out of Scope:
 - automatic continuation of the current NCP hardening lane
 
 Notes:
-Current source-of-truth ownership now lives in `docs/architecture.md`.
-That contract is intentionally conservative:
-
-- contained recoverable action failures such as current NCP `launch_failed` remain inline by default
-- the first bounded shipped Class 3 example now exists in `v1.2.2-prebeta`: repeated identical `launch_failed` for the same action in a still-running session prepares a local support bundle and issue draft once while preserving manual review and submission boundaries
-- fatal launcher/runtime/persona failures keep the existing launcher-owned diagnostics completion path
-- any later implementation should remain a fresh bounded incident-class follow-through rather than a blanket new diagnostics trigger or automatic continuation of the released milestone
-
-This item should remain separate from `FB-027` and `FB-017`.
-It is cross-system planning work, not a pure NCP hardening slice and not only a `Report Issue` UX refinement.
+Current active-lane evidence already includes one bounded shipped Class 3 example in `v1.2.2-prebeta`, so this lane should stay scoped to that same repeated identical `launch_failed` incident class first and avoid broader diagnostics widening.
 
 ---
 
