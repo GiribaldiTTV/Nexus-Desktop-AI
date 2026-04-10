@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import sys
+import urllib.parse
 import zipfile
 from types import SimpleNamespace
 
@@ -14,6 +15,7 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 import desktop.desktop_renderer as renderer_mod
+import desktop.orin_support_reporting as support_reporting_mod
 
 
 BASE_LOG_ROOT = os.path.join(CURRENT_DIR, "logs", "recoverable_launch_failed_validation")
@@ -79,6 +81,16 @@ def inspect_bundle_manifest(bundle_path):
     return {}
 
 
+def extract_issue_draft_body(browser_open_calls):
+    if not browser_open_calls:
+        return ""
+
+    issue_url = browser_open_calls[0]["url"]
+    parsed = urllib.parse.urlparse(issue_url)
+    query = urllib.parse.parse_qs(parsed.query)
+    return query.get("body", [""])[0]
+
+
 def make_window(runtime_log_path):
     window = renderer_mod.DesktopRuntimeWindow.__new__(renderer_mod.DesktopRuntimeWindow)
     events = []
@@ -110,6 +122,8 @@ def run_validation():
     action = SimpleNamespace(id="open_file_explorer")
     window, events = make_window(runtime_log_path)
     support_dir = os.path.join(BASE_LOG_ROOT, "support_bundles")
+    expected_public_release_tag = support_reporting_mod.get_product_release_label(ROOT_DIR)
+    expected_release_context = support_reporting_mod.get_product_release_context(ROOT_DIR)
 
     folder_open_calls = []
     browser_open_calls = []
@@ -134,6 +148,7 @@ def run_validation():
         second_status = renderer_mod.DesktopRuntimeWindow._prepare_recoverable_launch_failure_report(window, action)
         second_bundle = latest_file_matching(support_dir, "NexusDesktopAI_Support_", ".zip")
         second_manifest = inspect_bundle_manifest(second_bundle)
+        second_issue_body = extract_issue_draft_body(browser_open_calls)
 
         folder_calls_after_second = len(folder_open_calls)
         browser_calls_after_second = len(browser_open_calls)
@@ -187,6 +202,19 @@ def run_validation():
         "bundle_manifest_requires_manual_submission": line_status(
             second_manifest.get("manual_issue_submission_required") is True,
             str(second_manifest.get("manual_issue_submission_required")),
+        ),
+        "bundle_manifest_carries_current_public_release_tag": line_status(
+            second_manifest.get("jarvis_version") == expected_public_release_tag,
+            repr(second_manifest.get("jarvis_version")),
+        ),
+        "bundle_manifest_carries_truthful_release_context": line_status(
+            second_manifest.get("release_context") == expected_release_context
+            and "v1.0.0-prebeta" not in second_manifest.get("release_context", ""),
+            repr(second_manifest.get("release_context")),
+        ),
+        "issue_draft_carries_truthful_release_context": line_status(
+            expected_release_context in second_issue_body and "v1.0.0-prebeta" not in second_issue_body,
+            second_issue_body or "missing issue draft body",
         ),
         "third_failure_does_not_reopen_report": line_status(
             third_status is None and len(folder_open_calls) == folder_calls_after_second and len(browser_open_calls) == browser_calls_after_second,

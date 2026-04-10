@@ -5,6 +5,7 @@ import os
 import platform
 import re
 import shutil
+import subprocess
 import urllib.parse
 import zipfile
 
@@ -46,8 +47,83 @@ def make_safe_name(value):
     return safe or "bundle"
 
 
-def get_product_release_label():
-    return PLANNED_PUBLIC_RELEASE_LABEL
+def parse_public_prerelease_tag(tag_name):
+    match = re.match(r"^v(\d+)\.(\d+)\.(\d+)-prebeta$", (tag_name or "").strip())
+    if not match:
+        return None
+    return tuple(int(part) for part in match.groups())
+
+
+def detect_latest_public_prerelease_tag_from_git(root_dir):
+    if not os.path.exists(os.path.join(root_dir, ".git")):
+        return None
+
+    try:
+        completed = subprocess.run(
+            ["git", "tag", "--list", "v*-prebeta"],
+            cwd=root_dir,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="ignore",
+            timeout=5,
+            check=True,
+        )
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+
+    best_tag = None
+    best_version = None
+    for line in completed.stdout.splitlines():
+        tag_name = line.strip()
+        version = parse_public_prerelease_tag(tag_name)
+        if version is None:
+            continue
+        if best_version is None or version > best_version:
+            best_tag = tag_name
+            best_version = version
+    return best_tag
+
+
+def detect_latest_public_prerelease_tag_from_roadmap(root_dir):
+    roadmap_path = os.path.join(root_dir, "Docs", "prebeta_roadmap.md")
+    if not os.path.isfile(roadmap_path):
+        return None
+
+    best_tag = None
+    best_version = None
+    try:
+        with open(roadmap_path, "r", encoding="utf-8", errors="ignore") as handle:
+            for line in handle:
+                for tag_name in re.findall(r"`(v\d+\.\d+\.\d+-prebeta)`", line):
+                    version = parse_public_prerelease_tag(tag_name)
+                    if version is None:
+                        continue
+                    if best_version is None or version > best_version:
+                        best_tag = tag_name
+                        best_version = version
+    except OSError:
+        return None
+
+    return best_tag
+
+
+def detect_latest_public_prerelease_tag(root_dir):
+    return (
+        detect_latest_public_prerelease_tag_from_git(root_dir)
+        or detect_latest_public_prerelease_tag_from_roadmap(root_dir)
+    )
+
+
+def get_product_release_label(root_dir):
+    return detect_latest_public_prerelease_tag(root_dir) or "public_release_tag_unavailable"
+
+
+def get_product_release_context(root_dir):
+    public_release_tag = detect_latest_public_prerelease_tag(root_dir)
+    if public_release_tag:
+        return f"Latest public prerelease: {public_release_tag}"
+    return "Latest public prerelease tag unavailable in this workspace"
 
 
 def read_runtime_log_reference(crash_log_path):
@@ -224,8 +300,11 @@ def create_support_bundle(root_dir, runtime_log_path, crash_dir):
         bundled_files.append({"name": crash_log_name, "kind": "crash_log"})
     bundled_files.append({"name": MANIFEST_FILENAME, "kind": "manifest"})
 
+    public_release_tag = get_product_release_label(root_dir)
+    release_context = get_product_release_context(root_dir)
     manifest = {
-        "jarvis_version": get_product_release_label(),
+        "jarvis_version": public_release_tag,
+        "release_context": release_context,
         "run_identity": run_identity,
         "bundle_created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "environment_summary": build_environment_summary(),
@@ -259,6 +338,7 @@ def create_support_bundle(root_dir, runtime_log_path, crash_dir):
         "crash_log_name": crash_log_name,
         "run_identity": run_identity,
         "jarvis_version": manifest["jarvis_version"],
+        "release_context": manifest["release_context"],
         "manifest": manifest,
     }
 
@@ -287,7 +367,7 @@ def build_issue_prefill_url(root_dir, bundle_info):
         "",
         "## Run Context",
         "",
-        f"- Nexus Desktop AI release baseline: `{bundle_info['jarvis_version']}`",
+        f"- Release context: `{bundle_info['release_context']}`",
         f"- Run identity: `{bundle_info['run_identity']}`",
     ]
 
