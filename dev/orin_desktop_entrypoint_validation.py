@@ -12,10 +12,10 @@ DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
 BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "desktop_entrypoint_validation")
 REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 
-LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_launcher.pyw")
-DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_main.py")
+LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_launcher.pyw")
+DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_main.py")
 EXPECTED_DEFAULT_TARGET_LINE = re.compile(
-    r'DEFAULT_TARGET_SCRIPT\s*=\s*os\.path\.join\(ROOT_DIR,\s*"desktop",\s*"jarvis_desktop_main\.py"\)'
+    r'DEFAULT_TARGET_SCRIPT\s*=\s*os\.path\.join\(ROOT_DIR,\s*"desktop",\s*"orin_desktop_main\.py"\)'
 )
 
 EXPECTED_MILESTONES = [
@@ -25,7 +25,7 @@ EXPECTED_MILESTONES = [
     "RENDERER_MAIN|WINDOW_CONSTRUCTED",
     "RENDERER_MAIN|SHUTDOWN_BUS_READY",
     "RENDERER_MAIN|HOTKEYS_STARTED",
-    "RENDERER_MAIN|WINDOW_SHOW_CALLED",
+    "RENDERER_MAIN|WINDOW_SHOW_REQUESTED",
     "RENDERER_MAIN|STARTUP_READY",
 ]
 

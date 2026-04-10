@@ -27,7 +27,7 @@ REPORT_PREFIX = "BootTransitionCaptureReport_"
 CAPTURE_MARKERS = (
     ("01_command_accepted", "BOOT_MAIN|FIRST_COMMAND_ACCEPTED|command=engage_hud"),
     ("02_transition_begin", "BOOT_MAIN|TRANSITION_BEGIN|import_home=false"),
-    ("03_desktop_shown", "BOOT_MAIN|DESKTOP_SHOWN"),
+    ("03_desktop_show_requested", "BOOT_MAIN|DESKTOP_SHOW_REQUESTED"),
     ("04_boot_hidden", "BOOT_MAIN|BOOT_WINDOWS_HIDDEN"),
     ("05_desktop_visible", "BOOT_MAIN|DESKTOP_VISIBLE"),
     ("06_desktop_committed", "BOOT_MAIN|DESKTOP_STATE_COMMITTED|state=dormant"),

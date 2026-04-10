@@ -1000,17 +1000,17 @@ Notes:
 - helper follow-through such as monitor preflight, handoff verification, transition capture, and boot-helper Toolkit validation
 - landed edge-path markers for rejected input, shutdown source, and handoff signal outcome
 
-Later naming cleanup remains deferred under `FB-025`.
+Later naming cleanup now continues under active lane `FB-025`.
 
 ---
 
 ### [ID: FB-025] Boot and desktop milestone taxonomy clarification
 
-Status: Deferred  
-Priority: Low  
-Suggested Version: v2.1.0  
-Suggested Revision: rev5  
-Release Stage: pre-Beta  
+Status: Active
+Priority: Low
+Suggested Version: v1.2.5-prebeta
+Suggested Revision: rev5
+Release Stage: pre-Beta
 
 Description:
 Clarify the shared naming shape between `BOOT_MAIN|...` and `RENDERER_MAIN|...` milestone families once both lanes have enough core markers to make cross-lane evidence easier to compare.
@@ -1019,12 +1019,22 @@ Why it matters:
 Boot and desktop ownership should stay separate, but a small later taxonomy pass could make mixed evidence easier to read without collapsing the two lanes into a single logging system.
 
 Proposed Change:
-Do a tiny naming and taxonomy clarification pass only after the core boot and desktop observability gaps are closed, preserving separate lane ownership while aligning milestone shape where that improves diagnostics.
+Current active lane target:
+
+- keep boot and desktop milestone ownership separate
+- do one tiny naming and taxonomy clarification pass only where shared marker shape improves cross-lane diagnostics
+- clarify the specific boot-to-desktop handoff wording so request-versus-visible transitions are easier to compare across `BOOT_MAIN|...` and `RENDERER_MAIN|...`
+- defer any broader logging-contract, launcher-policy, or verbosity follow-through until later evidence justifies it
 
 Likely Files Affected:
-- C:/Jarvis/main.py
-- C:/Jarvis/desktop/jarvis_desktop_main.py
-- C:/Jarvis/desktop/desktop_renderer.py
+- C:/Nexus Desktop AI/main.py
+- C:/Nexus Desktop AI/desktop/orin_desktop_main.py
+- C:/Nexus Desktop AI/dev/orin_boot_transition_capture.py
+- C:/Nexus Desktop AI/dev/orin_boot_transition_verification.py
+- C:/Nexus Desktop AI/dev/orin_desktop_entrypoint_validation.py
+- C:/Nexus Desktop AI/dev/orin_desktop_launcher_healthy_validation.py
+- directly coupled boot/desktop validation helpers
+- optional directly supportive canonical planning docs
 
 Scope:
 - naming and taxonomy clarification only
@@ -1037,8 +1047,7 @@ Out of Scope:
 - behavior changes
 
 Notes:
-This remains deferred.
-Current repo truth now already includes first-class `BOOT_MAIN|...` and `RENDERER_MAIN|...` milestone families, so this item is now only about later naming-shape cleanup and cross-lane readability rather than filling missing core marker coverage.
+Current active-lane evidence now already includes first-class `BOOT_MAIN|...` and `RENDERER_MAIN|...` milestone families, so this item is only about naming-shape cleanup and cross-lane readability rather than filling missing core marker coverage.
 
 ---
 
@@ -1463,11 +1472,11 @@ This should be treated as a future source-of-truth migration item, not a broad i
 
 ### [ID: FB-033] Dev-only startup snapshot harness follow-through
 
-Status: Active  
-Priority: Medium  
-Suggested Version: v1.2.4-prebeta  
-Suggested Revision: rev1  
-Release Stage: pre-Beta  
+Status: Implemented (v1.2.4-prebeta)
+Priority: Medium
+Suggested Version: v1.2.4-prebeta
+Suggested Revision: rev1
+Release Stage: pre-Beta
 
 Description:
 Track the current env-gated startup snapshot harness as intentional dev-only debugging infrastructure so future desktop-launch investigations can reuse it cleanly without turning it into normal product behavior.
@@ -1476,7 +1485,7 @@ Why it matters:
 Issue `#17` showed that normal desktop capture APIs can be unreliable or blind once the ORIN desktop child is reparented under the desktop shell. A small startup snapshot harness gives developers a direct evidence path for first-visible startup behavior, zero-state versus warm-start comparison, and bounded attach/reveal debugging.
 
 Proposed Change:
-Current active lane target:
+Implemented lane truth:
 
 - keep the startup snapshot path strictly harness-gated and dev-only
 - stabilize the owned trigger/env contract and output location for contained launch investigations
@@ -1502,7 +1511,7 @@ Out of Scope:
 - unrelated Dev Toolkit expansion unless explicitly approved later
 
 Notes:
-Current active-lane evidence indicates the helper is useful for internal startup debugging, but it should remain clearly separate from normal runtime behavior and should only be kept long-term if it stays harness-gated, low-noise, and bounded to developer investigation needs.
+Released in `v1.2.4-prebeta`.
 
 ---
 

@@ -227,7 +227,7 @@ LANE_CONFIG = {
         "label": "Healthy Desktop Launch Validation",
         "detail": (
             "Runs a contained offscreen validation of the current default desktop renderer target "
-            "and verifies healthy startup milestones such as WINDOW_SHOW_CALLED and STARTUP_READY."
+            "and verifies healthy startup milestones such as WINDOW_SHOW_REQUESTED and STARTUP_READY."
         ),
         "quiet_launcher": "launch_orin_desktop_entrypoint_validation.vbs",
         "voice_launcher": "",

@@ -144,7 +144,7 @@ def main():
     print("Hotkey: Ctrl + Alt + End or Ctrl + Alt + 2")
 
     window.show()
-    runtime_milestone("RENDERER_MAIN|WINDOW_SHOW_CALLED")
+    runtime_milestone("RENDERER_MAIN|WINDOW_SHOW_REQUESTED")
     if exit_if_startup_abort_requested(hotkeys):
         return 0
 

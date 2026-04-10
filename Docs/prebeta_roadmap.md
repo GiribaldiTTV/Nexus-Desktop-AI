@@ -155,32 +155,42 @@ While release debt exists:
 
 ## Current Near-Term Roadmap Horizon
 
-This is the current best provisional sequencing horizon from live repo truth after the live `v1.2.3-prebeta` release.
+This is the current best provisional sequencing horizon from live repo truth after the live `v1.2.4-prebeta` release.
 
 The just-finished non-doc implementation lane is now:
 
-- `feature/fb-028-history-state-relocation`
+- `feature/fb-033-startup-snapshot-harness-follow-through`
 
-That lane is now released and closed at `v1.2.3-prebeta`.
+That lane is now released and closed at `v1.2.4-prebeta`.
 
 ## Current Active Lane
 
-### `feature/fb-033-startup-snapshot-harness-follow-through`
+### `feature/fb-025-boot-desktop-milestone-taxonomy-clarification`
 
 - status: `active`
 - lane type: `implementation`
 - release floor: `patch prerelease`
-- target version: `v1.2.4-prebeta`
-- release state: `active delta`
-- purpose: finish the dev-only startup snapshot harness as intentional, opt-in debugging infrastructure around startup-state capture without changing normal user-facing startup behavior
-- milestone target: stabilize the current env-gated startup snapshot path as bounded dev-only debugging infrastructure with a repeatable contained validation path, while keeping the helper harness-gated and out of normal product behavior
-- minimum merge-ready threshold: the startup snapshot harness remains explicitly dev-only and opt-in; its owned trigger/env contract and output location are stable on-branch; it does not spill artifacts into live root logs or normal runtime state by default; it works against the current launcher/runtime contract on `main`; and narrow validation proves the intended startup capture path in both healthy and failure-oriented cases
+- target version: `v1.2.5-prebeta`
+- purpose: do one tiny boot and desktop milestone taxonomy clarification pass that improves cross-lane diagnostic readability while preserving separate ownership between `BOOT_MAIN|...` and `RENDERER_MAIN|...`
+- milestone target: clarify the specific boot-to-desktop milestone naming shape so request-versus-visible transitions are easier to compare across boot and renderer evidence without broadening the logging contract
+- minimum merge-ready threshold: keep boot and desktop milestone ownership separate; limit the change to naming and taxonomy clarity only; do not change launcher policy, raw verbosity, or shared logging-contract scope; do not change normal user-facing behavior; and prove the affected boot and desktop markers still emit correctly under current flows
 
 This branch begins with the required canon-alignment step on the same implementation branch rather than through a separate standalone docs-only refresh branch.
 
 ## Recently Closed Or Superseded Lanes
 
-These entries remain here only long enough to keep the post-`v1.2.3-prebeta` transition explicit.
+These entries remain here only long enough to keep the post-`v1.2.4-prebeta` transition explicit.
+
+### `feature/fb-033-startup-snapshot-harness-follow-through`
+
+- status: `closed`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `v1.2.4-prebeta`
+- release state: `released`
+- purpose: finish the dev-only startup snapshot harness as intentional, opt-in debugging infrastructure around startup-state capture without changing normal user-facing startup behavior
+- milestone target: stabilize the current env-gated startup snapshot path as bounded dev-only debugging infrastructure with a repeatable contained validation path, while keeping the helper harness-gated and out of normal product behavior
+- minimum merge-ready threshold: the startup snapshot harness remains explicitly dev-only and opt-in; its owned trigger/env contract and output location are stable on-branch; it does not spill artifacts into live root logs or normal runtime state by default; it works against the current launcher/runtime contract on `main`; and narrow validation proves the intended startup capture path in both healthy and failure-oriented cases
 
 ### `feature/fb-028-history-state-relocation`
 
@@ -234,12 +244,12 @@ These entries remain here only long enough to keep the post-`v1.2.3-prebeta` tra
 
 Current repo truth indicates:
 
-- the latest public prerelease is now `v1.2.3-prebeta`
+- the latest public prerelease is now `v1.2.4-prebeta`
 - the `feature/fb-028-history-state-relocation` lane is now released and closed
-- the `feature/fb-033-startup-snapshot-harness-follow-through` lane is the current bounded implementation lane targeting `v1.2.4-prebeta`
-- any merged non-doc work beyond `v1.2.3-prebeta` should be treated as release debt until `v1.2.4-prebeta` is published
+- the `feature/fb-033-startup-snapshot-harness-follow-through` lane is now released and closed
+- the prior release debt between `v1.2.3-prebeta` and `main` is cleared
 - no new implementation lane became active automatically just because the prior patch milestone released
-- fresh next-lane analysis on that released baseline selected `feature/fb-033-startup-snapshot-harness-follow-through` as the next bounded implementation lane
+- fresh next-lane analysis on that released baseline selected `feature/fb-025-boot-desktop-milestone-taxonomy-clarification` as the next bounded implementation lane
 
 That does **not** mean every listed lane should automatically happen.
 It does mean non-doc implementation lanes should be treated as version-bearing milestones rather than as merge-only background follow-through.

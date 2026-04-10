@@ -1076,7 +1076,7 @@ class BootRuntimeSystem:
         self.desktop_center_window.setWindowOpacity(1.0)
         self.desktop_center_window.show()
         self.desktop_center_window.set_voice_level(0.0)
-        self.runtime_milestone("BOOT_MAIN|DESKTOP_SHOWN")
+        self.runtime_milestone("BOOT_MAIN|DESKTOP_SHOW_REQUESTED")
 
         self.desktop_center_window.enable_desktop_mode()
         QTimer.singleShot(desktop_settle_delay_ms, self.mark_desktop_settled)

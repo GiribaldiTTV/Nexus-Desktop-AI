@@ -13,10 +13,10 @@ DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
 DEFAULT_BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "desktop_launcher_healthy_validation")
 REPORT_PREFIX = "DesktopLauncherHealthyValidationReport_"
 
-LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_launcher.pyw")
-DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_main.py")
+LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_launcher.pyw")
+DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_main.py")
 EXPECTED_DEFAULT_TARGET_LINE = re.compile(
-    r'DEFAULT_TARGET_SCRIPT\s*=\s*os\.path\.join\(ROOT_DIR,\s*"desktop",\s*"jarvis_desktop_main\.py"\)'
+    r'DEFAULT_TARGET_SCRIPT\s*=\s*os\.path\.join\(ROOT_DIR,\s*"desktop",\s*"orin_desktop_main\.py"\)'
 )
 
 EXPECTED_RUNTIME_MARKERS = [
@@ -31,7 +31,7 @@ EXPECTED_RUNTIME_MARKERS = [
     "RENDERER_MAIN|WINDOW_CONSTRUCTED",
     "RENDERER_MAIN|SHUTDOWN_BUS_READY",
     "RENDERER_MAIN|HOTKEYS_STARTED",
-    "RENDERER_MAIN|WINDOW_SHOW_CALLED",
+    "RENDERER_MAIN|WINDOW_SHOW_REQUESTED",
     "RENDERER_MAIN|STARTUP_READY",
     "STATUS|SUCCESS|LAUNCHER_RUNTIME|STARTUP_READY_OBSERVED",
     "RENDERER_MAIN|SHUTDOWN_REQUESTED",
@@ -203,7 +203,7 @@ def list_renderer_processes_for_log_root(base_log_root):
 $BaseLogRoot = $args[0]
 Get-CimInstance Win32_Process | Where-Object {
     ($_.Name -eq 'pythonw.exe' -or $_.Name -eq 'python.exe') -and
-    $_.CommandLine -like '*jarvis_desktop_main.py*' -and
+    $_.CommandLine -like '*orin_desktop_main.py*' -and
     $_.CommandLine -like ('*' + $BaseLogRoot + '*')
 } | ForEach-Object {
     '{0}|{1}' -f $_.ProcessId, $_.CommandLine
