@@ -86,6 +86,13 @@ def extract_issue_draft_body(browser_open_calls):
         return ""
 
     issue_url = browser_open_calls[0]["url"]
+    return extract_issue_body_from_issue_url(issue_url)
+
+
+def extract_issue_body_from_issue_url(issue_url):
+    if not issue_url:
+        return ""
+
     parsed = urllib.parse.urlparse(issue_url)
     query = urllib.parse.parse_qs(parsed.query)
     return query.get("body", [""])[0]
@@ -129,6 +136,9 @@ def run_validation():
     browser_open_calls = []
     original_startfile = renderer_mod.os.startfile
     original_webbrowser_open = renderer_mod.webbrowser.open
+    original_detect_latest_public_prerelease_tag_from_git = (
+        support_reporting_mod.detect_latest_public_prerelease_tag_from_git
+    )
 
     def fake_startfile(path):
         folder_open_calls.append(os.path.abspath(path))
@@ -158,9 +168,24 @@ def run_validation():
 
         renderer_mod.DesktopRuntimeWindow._clear_launch_failure_tracking(window, action.id)
         fourth_status = renderer_mod.DesktopRuntimeWindow._prepare_recoverable_launch_failure_report(window, action)
+
+        support_reporting_mod.detect_latest_public_prerelease_tag_from_git = lambda _root_dir: None
+        roadmap_fallback_report_prep = support_reporting_mod.prepare_manual_issue_report(
+            ROOT_DIR,
+            runtime_log_path,
+            crash_dir,
+        )
+        roadmap_fallback_bundle = roadmap_fallback_report_prep["bundle_info"]["bundle_path"]
+        roadmap_fallback_manifest = inspect_bundle_manifest(roadmap_fallback_bundle)
+        roadmap_fallback_issue_body = extract_issue_body_from_issue_url(
+            roadmap_fallback_report_prep["issue_url"]
+        )
     finally:
         renderer_mod.os.startfile = original_startfile
         renderer_mod.webbrowser.open = original_webbrowser_open
+        support_reporting_mod.detect_latest_public_prerelease_tag_from_git = (
+            original_detect_latest_public_prerelease_tag_from_git
+        )
 
     checks = {
         "first_failure_stays_inline": line_status(
@@ -215,6 +240,24 @@ def run_validation():
         "issue_draft_carries_truthful_release_context": line_status(
             expected_release_context in second_issue_body and "v1.0.0-prebeta" not in second_issue_body,
             second_issue_body or "missing issue draft body",
+        ),
+        "roadmap_fallback_prepares_bundle": line_status(
+            bool(roadmap_fallback_bundle) and os.path.isfile(roadmap_fallback_bundle),
+            roadmap_fallback_bundle or "missing roadmap fallback bundle zip",
+        ),
+        "roadmap_fallback_bundle_manifest_carries_current_public_release_tag": line_status(
+            roadmap_fallback_manifest.get("jarvis_version") == expected_public_release_tag,
+            repr(roadmap_fallback_manifest.get("jarvis_version")),
+        ),
+        "roadmap_fallback_bundle_manifest_carries_truthful_release_context": line_status(
+            roadmap_fallback_manifest.get("release_context") == expected_release_context
+            and "v1.0.0-prebeta" not in roadmap_fallback_manifest.get("release_context", ""),
+            repr(roadmap_fallback_manifest.get("release_context")),
+        ),
+        "roadmap_fallback_issue_draft_carries_truthful_release_context": line_status(
+            expected_release_context in roadmap_fallback_issue_body
+            and "v1.0.0-prebeta" not in roadmap_fallback_issue_body,
+            roadmap_fallback_issue_body or "missing roadmap fallback issue draft body",
         ),
         "third_failure_does_not_reopen_report": line_status(
             third_status is None and len(folder_open_calls) == folder_calls_after_second and len(browser_open_calls) == browser_calls_after_second,

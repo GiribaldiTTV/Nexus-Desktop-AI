@@ -14,6 +14,14 @@ DEFAULT_GITHUB_ISSUES_NEW_URL = ""
 SUPPORT_BUNDLE_FOLDER = "support_bundles"
 MANIFEST_FILENAME = "manifest.json"
 VERSION_CLOSEOUT_PATTERN = re.compile(r"^v(\d+)\.(\d+)\.(\d+)_closeout\.md$")
+LATEST_PUBLIC_PRERELEASE_LINE_PATTERN = re.compile(
+    r"latest public prerelease(?: is now)?\s*`(v\d+\.\d+\.\d+-prebeta)`",
+    re.IGNORECASE,
+)
+RELEASED_CLOSED_PRERELEASE_LINE_PATTERN = re.compile(
+    r"released and closed at\s*`(v\d+\.\d+\.\d+-prebeta)`",
+    re.IGNORECASE,
+)
 PLANNED_PUBLIC_RELEASE_LABEL = (
     "Pre-Beta baseline defined; planned first public release: "
     "Nexus Desktop AI — Pre-Beta v1.0.0 (tag: v1.0.0-prebeta)"
@@ -95,13 +103,17 @@ def detect_latest_public_prerelease_tag_from_roadmap(root_dir):
     try:
         with open(roadmap_path, "r", encoding="utf-8", errors="ignore") as handle:
             for line in handle:
-                for tag_name in re.findall(r"`(v\d+\.\d+\.\d+-prebeta)`", line):
-                    version = parse_public_prerelease_tag(tag_name)
-                    if version is None:
-                        continue
-                    if best_version is None or version > best_version:
-                        best_tag = tag_name
-                        best_version = version
+                for pattern in (
+                    LATEST_PUBLIC_PRERELEASE_LINE_PATTERN,
+                    RELEASED_CLOSED_PRERELEASE_LINE_PATTERN,
+                ):
+                    for tag_name in pattern.findall(line):
+                        version = parse_public_prerelease_tag(tag_name)
+                        if version is None:
+                            continue
+                        if best_version is None or version > best_version:
+                            best_tag = tag_name
+                            best_version = version
     except OSError:
         return None
 

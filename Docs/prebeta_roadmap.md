@@ -161,33 +161,44 @@ While release debt exists:
 
 ## Current Near-Term Roadmap Horizon
 
-This is the current best provisional sequencing horizon from live repo truth after the live `v1.2.5-prebeta` release.
+This is the current best provisional sequencing horizon from live repo truth after the live `v1.2.6-prebeta` release.
 
 The just-finished non-doc implementation lane is now:
 
-- `feature/fb-025-boot-desktop-milestone-taxonomy-clarification`
+- `feature/fb-034-recoverable-diagnostics`
 
-That lane is now released and closed at `v1.2.5-prebeta`.
+That lane is now released and closed at `v1.2.6-prebeta`.
 
 ## Current Active Lane
 
-### `feature/fb-034-recoverable-diagnostics`
+### `feature/release-context-fallback-hardening`
 
 - status: `active`
 - lane type: `implementation`
 - release floor: `patch prerelease`
-- target version: `v1.2.6-prebeta`
-- purpose: deliver the smallest worthwhile recoverable-incident milestone that makes the current Class 2/Class 3 boundary explicit for one high-signal incident class without widening diagnostics policy
-- milestone target: keep repeated identical `launch_failed` for the same action as the only selected incident class, make the recoverable Class 2-to-Class 3 boundary explicit enough in renderer evidence that the branch would still read as a meaningful recoverable-diagnostics milestone if squashed and merged by itself, and preserve the existing local/manual reporting boundary without broad diagnostics UI work
-- minimum merge-ready threshold: one incident class only; no launcher retry or escalation redesign; no blanket recoverable diagnostics popup behavior; no broad diagnostics UI redesign; no voice-path work required for this milestone; fatal launcher/runtime diagnostics path unchanged; manual reporting boundary unchanged; narrow validation proves the selected class behaves as intended; and the branch is strong enough to justify `patch prerelease` rather than reading as setup or bookkeeping only
-- milestone value statement: if squashed today, this branch should still clearly read as the first worthwhile recoverable-diagnostics milestone above the current Class 2/Class 4 boundary rather than as only a marker rename, validation stub, or preparatory fragment
-- expected same-branch follow-through: keep directly coupled follow-through on this branch only when it is still required to make the selected repeated `launch_failed` milestone feel complete, but stop before broader diagnostics classes, UI redesign, retry-policy work, or voice-path expansion
+- target version: `v1.2.7-prebeta`
+- purpose: harden support-report release-context derivation so support bundles and issue drafts keep reporting the latest public prerelease truth even when `.git` metadata is unavailable
+- milestone target: derive release-context fallback truth from released-prerelease canon rather than from the highest planned prerelease tag, and prove both the `git`-present and `git`-unavailable report-artifact paths carry the same truthful latest-public-prerelease context
+- minimum merge-ready threshold: no new incident classes; no reporting-policy or upload-behavior changes; no diagnostics UI widening; no launcher retry or escalation redesign; no voice-path work; fallback logic derives latest released prerelease truth from canon instead of any highest planned prerelease tag; narrow validation proves both `git`-present and `git`-unavailable paths carry truthful release context; and the branch is strong enough to justify `patch prerelease` rather than reading as a parser tweak without proof
+- milestone value statement: if squashed today, this branch should still read as a worthwhile support-report hardening milestone that prevents unreleased-baseline drift in generated support artifacts rather than as only a tiny parser edit or review-note follow-up
+- expected same-branch follow-through: keep only directly coupled fallback parsing and release-context validation on this branch while needed to make the hardening milestone feel complete, but stop before broader reporting UX, diagnostics policy, or additional incident-class work
 
 This branch begins with the required canon-alignment step on the same implementation branch rather than through a separate standalone docs-only refresh branch.
 
 ## Recently Closed Or Superseded Lanes
 
-These entries remain here only long enough to keep the post-`v1.2.5-prebeta` transition explicit.
+These entries remain here only long enough to keep the post-`v1.2.6-prebeta` transition explicit.
+
+### `feature/fb-034-recoverable-diagnostics`
+
+- status: `closed`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `v1.2.6-prebeta`
+- release state: `released`
+- purpose: deliver the first worthwhile recoverable-incident milestone that makes the current Class 2/Class 3 boundary explicit for one high-signal incident class without widening diagnostics policy
+- milestone target: keep repeated identical `launch_failed` for the same action as the only selected incident class, make the recoverable Class 2-to-Class 3 boundary explicit enough in renderer evidence that the merged lane reads as a meaningful recoverable-diagnostics milestone on its own, and preserve the existing local/manual reporting boundary without broad diagnostics UI work
+- minimum merge-ready threshold: one incident class only; no launcher retry or escalation redesign; no blanket recoverable diagnostics popup behavior; no broad diagnostics UI redesign; no voice-path work for the lane; fatal launcher/runtime diagnostics path unchanged; manual reporting boundary unchanged; narrow validation proves the selected class behaves as intended; and report artifacts carry truthful latest-public-prerelease context
 
 ### `feature/fb-025-boot-desktop-milestone-taxonomy-clarification`
 
@@ -222,17 +233,6 @@ These entries remain here only long enough to keep the post-`v1.2.5-prebeta` tra
 - milestone target: move launcher-owned historical state out of the live root `logs` tree into a dedicated non-user-facing launcher-owned state root, with migration and clean fallback, without changing historical-memory semantics or widening logs/reporting policy
 - minimum merge-ready threshold: launcher history resolves to a dedicated state root outside live root `logs`; successful migration no longer leaves the legacy root-log history file exposed; failure to migrate or write still degrades cleanly to the last non-historical behavior; contained history harness and direct consumers follow the relocated path contract; validation proves history writes no longer spill into live root `logs`; runtime logs, crash logs, and support-bundle locations remain unchanged
 
-### `feature/fb-034-recoverable-diagnostics`
-
-- status: `closed`
-- lane type: `implementation`
-- release floor: `patch prerelease`
-- target version: `v1.2.2-prebeta`
-- release state: `released`
-- purpose: first bounded recoverable diagnostics and reporting lane above the current Class 2/Class 4 boundary
-- milestone target: the first bounded recoverable-operational-incident milestone while Nexus remains alive, using one explicit incident class and the existing local/manual reporting boundary
-- minimum merge-ready threshold: keep first single `launch_failed` inline, preserve fatal launcher/runtime diagnostics ownership, and add one bounded recoverable path where repeated identical `launch_failed` for the same action prepares a local support bundle and issue draft once without widening into blanket diagnostics or reporting redesign
-
 ### `feature/prebeta-roadmap-rebaseline`
 
 - status: `merged`
@@ -263,13 +263,14 @@ These entries remain here only long enough to keep the post-`v1.2.5-prebeta` tra
 
 Current repo truth indicates:
 
-- the latest public prerelease is now `v1.2.5-prebeta`
+- the latest public prerelease is now `v1.2.6-prebeta`
 - the `feature/fb-028-history-state-relocation` lane is now released and closed
 - the `feature/fb-033-startup-snapshot-harness-follow-through` lane is now released and closed
 - the `feature/fb-025-boot-desktop-milestone-taxonomy-clarification` lane is now released and closed
-- the prior release debt between `v1.2.4-prebeta` and `main` is cleared
+- the `feature/fb-034-recoverable-diagnostics` lane is now released and closed
+- the prior release debt between `v1.2.5-prebeta` and `main` is cleared
 - no new implementation lane became active automatically just because the prior patch milestone released
-- fresh next-lane analysis on that released baseline selected `feature/fb-034-recoverable-diagnostics` as the next bounded implementation lane
+- fresh next-lane analysis on that released baseline selected `feature/release-context-fallback-hardening` as the next bounded implementation lane
 
 That does **not** mean every listed lane should automatically happen.
 It does mean non-doc implementation lanes should be treated as version-bearing milestones rather than as merge-only background follow-through.

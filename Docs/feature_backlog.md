@@ -1517,7 +1517,7 @@ Released in `v1.2.4-prebeta`.
 
 ### [ID: FB-034] Recoverable incident diagnostics surface and failure-class follow-through
 
-Status: Active
+Status: Implemented (v1.2.6-prebeta)
 Priority: Medium
 Suggested Version: v1.2.6-prebeta
 Suggested Revision: rev2
@@ -1530,12 +1530,12 @@ Why it matters:
 Current repo truth now includes one bounded recoverable-operational-incident path in `v1.2.2-prebeta`, but that does not authorize automatic continuation into broader diagnostics triggers, reporting-policy expansion, or voice-path widening. A deferred follow-through item keeps future work explicit and revalidatable.
 
 Proposed Change:
-Current active lane target:
+Implemented lane truth:
 
 - select one recoverable high-signal incident class only: repeated identical `launch_failed` for the same action in a still-running session
 - make the current Class 2-to-Class 3 boundary explicit enough in renderer evidence that the branch would still read as a meaningful recoverable-diagnostics milestone if squashed and merged on its own
 - preserve the existing local/manual support-bundle and issue-draft boundary
-- keep directly coupled same-incident follow-through on this branch only when it is still required to make that repeated identical `launch_failed` milestone feel complete
+- keep directly coupled same-incident follow-through on the same lane only when it is still required to make that repeated identical `launch_failed` milestone feel complete
 - keep fatal launcher/runtime diagnostics completion behavior separate and unchanged
 - defer any broader recoverable diagnostics surface, voice, or launcher-policy follow-through until later evidence justifies it
 
@@ -1562,7 +1562,55 @@ Out of Scope:
 - automatic continuation of the current NCP hardening lane
 
 Notes:
-Current active-lane evidence already includes one bounded shipped Class 3 example in `v1.2.2-prebeta`, so this lane should stay scoped to that same repeated identical `launch_failed` incident class first, allow only directly coupled same-incident follow-through needed to make the milestone feel complete, and avoid broader diagnostics widening.
+Released in `v1.2.6-prebeta`.
+
+The current released lane now keeps repeated identical `launch_failed` as the one selected recoverable incident class, makes the Class 2/Class 3 boundary explicit in renderer evidence, preserves the local/manual support-bundle and issue-draft boundary, and keeps report artifacts on truthful latest-public-prerelease context.
+
+---
+
+### [ID: FB-035] Support-report release-context fallback hardening
+
+Status: Active
+Priority: Medium
+Suggested Version: v1.2.7-prebeta
+Suggested Revision: rev1
+Release Stage: pre-Beta
+
+Description:
+Harden support-report release-context derivation so generated support bundles and issue drafts keep reporting the latest released public prerelease even when `.git` metadata is unavailable.
+
+Why it matters:
+Current support-reporting truth already uses live tags when `.git` is available, but the roadmap fallback can still select a higher planned prerelease target instead of the latest released public prerelease. That would stamp support artifacts with an unreleased baseline in packaged or metadata-poor workspaces, which weakens diagnostics triage accuracy.
+
+Proposed Change:
+Current active lane target:
+
+- keep the lane scoped to release-context fallback hardening only
+- derive fallback release truth from released-prerelease canon instead of from any highest planned prerelease tag
+- preserve existing support-bundle contents, privacy posture, and manual-reporting boundary
+- prove both `git`-present and `git`-unavailable paths carry the same truthful latest-public-prerelease context in generated report artifacts
+
+Likely Files Affected:
+- C:/Nexus Desktop AI/Docs/feature_backlog.md
+- C:/Nexus Desktop AI/Docs/prebeta_roadmap.md
+- C:/Nexus Desktop AI/desktop/orin_support_reporting.py
+- C:/Nexus Desktop AI/dev/orin_recoverable_launch_failed_validation.py
+
+Scope:
+- support-report release-context fallback hardening
+- released-prerelease canon parsing for fallback truth
+- narrow validation for `git`-present and `git`-unavailable report-artifact context
+
+Out of Scope:
+- new incident classes
+- reporting-policy changes
+- upload-behavior changes
+- diagnostics UI redesign
+- launcher retry or escalation redesign
+- voice-path work
+
+Notes:
+This lane carries the actionable Codex review finding from PR `#46`: the roadmap fallback should not choose a higher planned prerelease target when `.git` metadata is unavailable. Keep it hardening-only and stop before broader diagnostics or reporting follow-through.
 
 ---
 
