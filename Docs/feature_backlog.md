@@ -94,6 +94,56 @@ Target Version: TBD
 Summary: Track the broader Nexus-era vision and source-of-truth migration above the current phase-one canon foundation rebuild.
 Why it matters: The repo still needs deeper identity and wording normalization after the foundation layer is rebuilt.
 
+### [ID: FB-036] Limited saved-action authoring and type-first custom task UX
+
+Status: Deferred
+Record State: Registry-only
+Priority: High
+Release Stage: pre-Beta
+Target Version: TBD
+Summary: Track the first post-v1.2.8 FB-027 follow-through lane for bounded saved-action create/edit UX with explicit user-facing action-type selection and safe persistence.
+Why it matters: Saved-action inventory and guided access improve inspection, but users still need a deliberate non-Action-Studio path to create and edit custom tasks without hand-editing JSON. This lane should keep custom tasks focused on user-defined or non-standard actions such as personal URLs, paths, or host-specific app launches while preserving the locked interaction baseline.
+
+### [ID: FB-037] Curated built-in system actions and Nexus settings expansion
+
+Status: Deferred
+Record State: Registry-only
+Priority: High
+Release Stage: pre-Beta
+Target Version: TBD
+Summary: Track future curated built-in actions for standard Windows, system, vendor-utility, and Nexus-owned surfaces such as Sound settings, graphics settings, NVIDIA / AMD utilities, and Nexus settings.
+Why it matters: Standard product actions should feel native and inspectable under the shared action model instead of being pushed into user-defined saved actions as ad hoc customization. Common Windows and Nexus-owned actions should ship as first-class built-ins, while saved actions remain the seam for personal or non-standard tasks.
+
+### [ID: FB-038] Taskbar / tray quick-task UX and Create Custom Task surface
+
+Status: Deferred
+Record State: Registry-only
+Priority: Medium
+Release Stage: pre-Beta
+Target Version: TBD
+Summary: Track future taskbar or tray quick-access UX, including a Create Custom Task affordance, as a deliberate shell-facing entry surface into the shared action model.
+Why it matters: Taskbar and tray interaction affect entry, discoverability, and user trust, so they should be planned as an explicit UX lane instead of piggybacking on overlay or authoring work.
+
+### [ID: FB-039] External trigger and plugin integration architecture
+
+Status: Deferred
+Record State: Registry-only
+Priority: Medium
+Release Stage: pre-Beta
+Target Version: TBD
+Summary: Track future plugin and integration lifecycle design for external trigger surfaces such as Stream Deck and other installed integration points.
+Why it matters: Plugin-backed action triggering needs explicit lifecycle, safety, and ownership boundaries before it becomes part of the product.
+
+### [ID: FB-040] Monitoring, thermals, and performance HUD surface
+
+Status: Deferred
+Record State: Registry-only
+Priority: Medium
+Release Stage: pre-Beta
+Target Version: TBD
+Summary: Track future runtime monitoring and HUD surfaces for GPU / CPU thermals and performance, including possible plugin-fed telemetry inputs.
+Why it matters: Monitoring overlays are a separate runtime and status surface and should not be bolted onto the saved-action system without an explicit product boundary.
+
 ## Closed Canonical Workstreams
 
 ### [ID: FB-027] Interaction system baseline and shared action model

@@ -333,13 +333,18 @@ Those details may change later without violating the baseline if the protected c
 Future capabilities explicitly deferred beyond this pass include:
 
 - saved-action authoring UX
+- explicit user-facing action-type selection for future saved-action authoring flows
 - routines
 - profiles
 - richer saved-action target kinds beyond `url`
+- curated built-in system-action expansion beyond the current starter built-in catalog
 - broader natural-language resolution
 - voice invocation
 - Action Studio
 - broader shortcut customization
+- taskbar or tray quick-task surfaces such as Create Custom Task
+- external trigger and plugin integration architecture
+- monitoring, thermals, and performance HUD surfaces
 
 ### Deferred Follow-Through Recorded Now
 
@@ -348,6 +353,9 @@ The following directly related FB-027 follow-through is recorded now but not imp
 - remove `Ctrl+Alt+1` and `Ctrl+Alt+2` before Beta
 - add an `Are you sure you want to exit?` prompt for shutdown hotkeys before Beta
 - select the next capability-expansion milestone only through fresh post-release analysis on updated `main`
+- future saved-action authoring should present an explicit user-facing type choice without silently redefining the current saved-action contract
+- future curated built-in system actions should be tracked separately from user-defined saved-action customization
+- future taskbar or tray Create Custom Task affordances, plugin-trigger surfaces, and monitoring HUD work should remain explicit adjacent lanes rather than implicit same-branch continuation
 
 These are deferred forward items, not current-runtime guarantees.
 
@@ -390,6 +398,9 @@ The typed-first interaction baseline remains explicit and validator-defended, an
 - remove `Ctrl+Alt+1` and `Ctrl+Alt+2` before Beta
 - add an `Are you sure you want to exit?` prompt for shutdown hotkeys before Beta
 - choose the next capability-expansion milestone only through fresh post-release analysis on updated `main`
+- if saved-action authoring is selected later, keep explicit user-facing type selection downstream of the bounded shared action model rather than turning it into Action Studio by inertia
+- keep standard Windows and Nexus-owned actions as future curated built-ins rather than forcing them into user-defined saved actions
+- keep taskbar or tray Create Custom Task work, plugin integration, and monitoring HUD surfaces as separate explicit lanes unless a future approved workstream intentionally merges them
 
 ## Related References
 

@@ -138,6 +138,13 @@ Current merged truth indicates:
 - no merged unreleased non-doc implementation debt currently exists on `main`
 - the next implementation workstream should be chosen only after fresh post-release analysis on updated `main`
 - the released FB-027 milestone does not authorize further saved-action, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
+- future candidate spaces now explicitly recorded in the backlog include:
+  - FB-036 for limited saved-action authoring and type-first custom task UX
+  - FB-037 for curated built-in system actions and Nexus settings expansion
+  - FB-038 for taskbar or tray quick-task UX including Create Custom Task
+  - FB-039 for external trigger and plugin integration architecture
+  - FB-040 for monitoring, thermals, and performance HUD surfaces
+- those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
 
 Use canonical workstream docs for execution detail.
 Use the backlog for item identity.

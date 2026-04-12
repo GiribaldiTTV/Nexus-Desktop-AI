@@ -100,6 +100,29 @@ A future authoring surface should let users define and inspect:
 
 This authoring surface should stay downstream of the same shared action model already used by typed interaction.
 
+The first bounded authoring follow-through should prefer:
+
+- explicit user-facing action-type selection
+- bounded target choices such as Windows app, Application (`.exe`), folder, file, and website URL
+- safe persistence and validation before write
+
+It should not assume full Action Studio scope just to make custom tasks usable.
+
+### Built-In Versus User-Defined Actions
+
+The architecture should distinguish between:
+
+- curated built-in actions for standard Windows, system, vendor-utility, and Nexus-owned surfaces
+- user-defined saved actions for personal, host-specific, or non-standard tasks such as custom URLs, folders, files, or app targets
+
+That distinction keeps common product capability feeling native while preserving saved actions as the bounded customization seam.
+
+### Taskbar Or Tray Quick-Access Surface
+
+A future shell-facing surface may later expose quick-task entry from the taskbar or tray, including a Create Custom Task affordance.
+
+That future surface should feed into the same shared action model and authoring boundaries rather than becoming a disconnected launcher path.
+
 ### Runtime And Status Surface
 
 The interaction system should expose what ORIN is doing, what it just resolved, and what the current command state is.
@@ -110,6 +133,8 @@ This supports:
 - confirmation clarity
 - recoverability after non-success outcomes
 - better debugging and validation evidence
+
+A later runtime-and-status follow-through may also expose monitoring or HUD surfaces for GPU / CPU thermals and performance, but that should remain a separate bounded lane rather than being treated as automatic saved-action follow-through.
 
 ## Shared Action Model
 
@@ -126,6 +151,7 @@ The architecture should not split into:
 - one system for typed commands
 - one system for voice commands
 - one separate system for saved presets
+- one hidden side system for shell quick tasks, plugins, or monitoring overlays
 
 The shared action model is the architectural seam that keeps those surfaces coherent.
 
@@ -197,6 +223,12 @@ It may later support bounded user preferences for supported web-facing or extern
 
 This document does not define the exact storage schema, editor UI, or execution engine for those features.
 
+Future customization should also preserve:
+
+- explicit user-facing type choice for custom tasks
+- safe distinction between standard built-in actions and user-defined saved actions
+- bounded plugin and external-trigger ownership instead of silent connector sprawl
+
 ## Release-Stage View
 
 At architecture level:
@@ -217,6 +249,8 @@ This architecture document does not define:
 - tray, shell, renderer, or notification implementation details
 - auth or trust backend mechanics
 - plugin lifecycle design
+- Stream Deck or similar external-trigger lifecycle specifics
+- monitoring or HUD implementation specifics
 - exact Action Studio screen layout
 - detailed routine-graph editing UX
 
