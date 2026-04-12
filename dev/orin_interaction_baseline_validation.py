@@ -11,7 +11,11 @@ if ROOT_DIR not in sys.path:
 
 import desktop.desktop_renderer as renderer_mod
 from desktop.interaction_overlay_model import CommandOverlayModel
-from desktop.shared_action_model import CommandAction, CommandActionCatalog
+from desktop.shared_action_model import (
+    CommandAction,
+    CommandActionCatalog,
+    SavedActionInventoryState,
+)
 
 
 class _FakeRect:
@@ -200,12 +204,20 @@ def _test_typed_first_choose_confirm_result_flow():
         _assert(window._command_model.phase == "choose", "an ambiguous request should enter choose phase")
         ambiguous_matches = window._command_panel.last_payload.get("ambiguous_matches") or []
         _assert(len(ambiguous_matches) >= 2, "an ambiguous request should surface multiple visible choices")
+        _assert(
+            all(match.get("origin") == "built_in" for match in ambiguous_matches),
+            "an ambiguous request should surface explicit built-in vs saved origin detail",
+        )
 
         window.handle_overlay_text_requested("2")
         _assert(window._command_model.phase == "confirm", "choosing an ambiguous match should enter confirm phase")
 
         pending_action = window._command_panel.last_payload.get("pending_action") or {}
         _assert(pending_action.get("id"), "confirm phase should surface one pending action")
+        _assert(
+            pending_action.get("origin") == "built_in" and pending_action.get("origin_label") == "Built-in",
+            "confirm phase should surface built-in origin detail without changing the state machine",
+        )
         _assert(pending_action.get("target_kind"), "confirm phase should surface target kind detail")
         _assert(
             pending_action.get("target_display") or pending_action.get("target"),
@@ -252,6 +264,7 @@ def _test_url_saved_action_confirm_result_flow():
                 target_kind="url",
                 target="https://example.com/docs/start",
                 aliases=("open docs site",),
+                origin="saved",
             ),
         )
     )
@@ -271,6 +284,10 @@ def _test_url_saved_action_confirm_result_flow():
         _assert(
             pending_action.get("target_kind") == "url",
             "confirm phase should surface url target kinds without changing the state machine",
+        )
+        _assert(
+            pending_action.get("origin") == "saved" and pending_action.get("origin_label") == "Saved",
+            "confirm phase should surface saved-action origin detail for user-defined actions",
         )
         _assert(
             pending_action.get("target_display") == "example.com/docs/start",
@@ -296,6 +313,45 @@ def _test_url_saved_action_confirm_result_flow():
         renderer_mod.launch_command_action = original_launch
 
 
+def _test_entry_payload_surfaces_saved_action_inventory_guidance():
+    saved_action = CommandAction(
+        id="open_reports",
+        title="Open Reports",
+        target_kind="folder",
+        target=r"C:\Reports",
+        aliases=("open reports",),
+        origin="saved",
+    )
+    action_catalog = CommandActionCatalog(
+        (saved_action,),
+        saved_action_inventory=SavedActionInventoryState(
+            visible=True,
+            status_kind="loaded",
+            status_text="1 saved action loaded from the current source.",
+            guidance_text='Use "Open Saved Actions File" or "Open Saved Actions Folder" to inspect the source.',
+            path=r"C:\Users\Test\AppData\Local\Nexus Desktop AI\saved_actions.json",
+            actions=(saved_action,),
+        ),
+    )
+    window = _make_window(action_catalog=action_catalog)
+    window.open_command_overlay()
+
+    inventory = window._command_panel.last_payload.get("saved_action_inventory") or {}
+    _assert(inventory.get("visible"), "entry payload should surface saved-action inventory visibility")
+    _assert(inventory.get("status_kind") == "loaded", "entry payload should surface saved-action inventory status")
+    _assert(inventory.get("count") == 1, "entry payload should surface the saved-action inventory count")
+    inventory_items = inventory.get("items") or []
+    _assert(len(inventory_items) == 1, "entry payload should surface the effective saved-action inventory items")
+    _assert(
+        inventory_items[0].get("origin") == "saved" and inventory_items[0].get("origin_label") == "Saved",
+        "entry payload should surface saved-action origin detail inside the inventory view",
+    )
+    _assert(
+        inventory_items[0].get("target_display") == r"C:\Reports",
+        "entry payload should surface saved-action target detail for inspection",
+    )
+
+
 def main():
     tests = [
         ("typed-first open enters entry mode", _test_open_starts_in_typed_first_entry_mode),
@@ -303,6 +359,7 @@ def main():
         ("choose-confirm-result baseline flow", _test_typed_first_choose_confirm_result_flow),
         ("result close and reopen is clean", _test_result_close_and_reopen_is_clean),
         ("url saved action confirm-result flow", _test_url_saved_action_confirm_result_flow),
+        ("entry payload surfaces saved-action inventory guidance", _test_entry_payload_surfaces_saved_action_inventory_guidance),
     ]
 
     for name, fn in tests:

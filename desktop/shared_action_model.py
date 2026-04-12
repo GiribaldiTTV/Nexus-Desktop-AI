@@ -7,6 +7,7 @@ from typing import Iterable
 from urllib.parse import urlparse, unquote
 
 from .saved_action_source import (
+    inspect_saved_action_source,
     load_saved_action_source,
     resolve_default_saved_action_source_path,
 )
@@ -24,6 +25,7 @@ class CommandAction:
     target_kind: str
     target: str
     aliases: tuple[str, ...]
+    origin: str = "built_in"
 
 
 DEFAULT_COMMAND_ACTIONS = (
@@ -92,13 +94,39 @@ LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS = frozenset(
 )
 
 
+@dataclass(frozen=True)
+class SavedActionInventoryState:
+    visible: bool = False
+    status_kind: str = "hidden"
+    status_text: str = ""
+    guidance_text: str = ""
+    path: str = ""
+    actions: tuple[CommandAction, ...] = ()
+
+
+def format_action_origin_label(origin: str) -> str:
+    if (origin or "").strip().casefold() == "saved":
+        return "Saved"
+    return "Built-in"
+
+
 class CommandActionCatalog:
-    def __init__(self, actions: Iterable[CommandAction] = DEFAULT_COMMAND_ACTIONS):
+    def __init__(
+        self,
+        actions: Iterable[CommandAction] = DEFAULT_COMMAND_ACTIONS,
+        *,
+        saved_action_inventory: SavedActionInventoryState | None = None,
+    ):
         self._actions = tuple(actions)
+        self._saved_action_inventory = saved_action_inventory or SavedActionInventoryState()
 
     @property
     def actions(self) -> tuple[CommandAction, ...]:
         return self._actions
+
+    @property
+    def saved_action_inventory(self) -> SavedActionInventoryState:
+        return self._saved_action_inventory
 
     def normalize_text(self, text: str) -> str:
         return normalize_command_text(text)
@@ -199,67 +227,149 @@ def _command_action_from_saved_record(record: object) -> CommandAction:
         target_kind=target_kind,
         target=target,
         aliases=_coerce_saved_action_aliases(record),
+        origin="saved",
+    )
+
+
+def _build_saved_action_access_guidance() -> str:
+    file_action = next(
+        (action.title for action in DEFAULT_COMMAND_ACTIONS if action.id == "open_saved_actions_file"),
+        "Open Saved Actions File",
+    )
+    folder_action = next(
+        (action.title for action in DEFAULT_COMMAND_ACTIONS if action.id == "open_saved_actions_folder"),
+        "Open Saved Actions Folder",
+    )
+    return f'Use "{file_action}" or "{folder_action}" to inspect the source.'
+
+
+def _load_saved_command_actions_from_records(records: Iterable[object]) -> tuple[CommandAction, ...]:
+    built_in_ids = {action.id.casefold() for action in DEFAULT_COMMAND_ACTIONS}
+    built_in_phrases: set[str] = set()
+    for action in DEFAULT_COMMAND_ACTIONS:
+        built_in_phrases.update(_normalized_action_phrases(action))
+
+    seen_saved_ids: set[str] = set()
+    seen_saved_phrases: set[str] = set()
+    saved_actions: list[CommandAction] = []
+    for record in records:
+        action = _command_action_from_saved_record(record)
+        normalized_id = action.id.casefold()
+        normalized_phrases = _normalized_action_phrases(action)
+        if normalized_id in seen_saved_ids:
+            raise ValueError("Saved action id collides with another saved action.")
+        if normalized_phrases & seen_saved_phrases:
+            raise ValueError("Saved action title or alias collides with another saved action.")
+
+        built_in_phrase_collisions = normalized_phrases & built_in_phrases
+        if normalized_id in built_in_ids or built_in_phrase_collisions:
+            # Preserve backward compatibility for users who already added these
+            # same file/folder helpers manually before they became built-ins.
+            incompatible_id_collision = (
+                normalized_id in built_in_ids
+                and normalized_id not in LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS
+            )
+            incompatible_phrase_collision = bool(
+                built_in_phrase_collisions
+                - LEGACY_SAVED_ACTIONS_ACCESS_ACTION_PHRASES
+            )
+            if incompatible_id_collision or incompatible_phrase_collision:
+                raise ValueError("Saved action title or alias collides with an existing action.")
+            continue
+
+        seen_saved_ids.add(normalized_id)
+        seen_saved_phrases.update(normalized_phrases)
+        saved_actions.append(action)
+
+    return tuple(saved_actions)
+
+
+def inspect_saved_action_inventory(
+    source_path: str | os.PathLike[str] | None = None,
+) -> SavedActionInventoryState:
+    guidance_text = _build_saved_action_access_guidance()
+    inspection = inspect_saved_action_source(source_path)
+    source_path_text = str(inspection.path)
+
+    if inspection.status == "missing":
+        return SavedActionInventoryState(
+            visible=True,
+            status_kind="missing",
+            status_text="Saved actions source is missing. Built-in actions remain available.",
+            guidance_text=guidance_text,
+            path=source_path_text,
+        )
+
+    if inspection.status == "template_only":
+        return SavedActionInventoryState(
+            visible=True,
+            status_kind="template_only",
+            status_text="No saved actions are active yet. The starter source is ready when you want it.",
+            guidance_text=guidance_text,
+            path=source_path_text,
+        )
+
+    if inspection.status == "invalid_source":
+        return SavedActionInventoryState(
+            visible=True,
+            status_kind="invalid_source",
+            status_text="Saved actions are unavailable because the source file could not be read cleanly.",
+            guidance_text=guidance_text,
+            path=source_path_text,
+        )
+
+    try:
+        saved_actions = _load_saved_command_actions_from_records(inspection.actions)
+    except ValueError:
+        return SavedActionInventoryState(
+            visible=True,
+            status_kind="invalid_saved_actions",
+            status_text="Saved actions are unavailable because one or more source entries are invalid or colliding.",
+            guidance_text=guidance_text,
+            path=source_path_text,
+        )
+
+    if not saved_actions:
+        return SavedActionInventoryState(
+            visible=True,
+            status_kind="template_only",
+            status_text="No saved actions are active yet. The starter source is ready when you want it.",
+            guidance_text=guidance_text,
+            path=source_path_text,
+        )
+
+    count = len(saved_actions)
+    noun = "action" if count == 1 else "actions"
+    return SavedActionInventoryState(
+        visible=True,
+        status_kind="loaded",
+        status_text=f"{count} saved {noun} loaded from the current source.",
+        guidance_text=guidance_text,
+        path=source_path_text,
+        actions=saved_actions,
     )
 
 
 def load_saved_command_actions(
     source_path: str | os.PathLike[str] | None = None,
 ) -> tuple[CommandAction, ...]:
-    payload = load_saved_action_source(source_path)
-    if payload is None:
-        return ()
-
-    try:
-        built_in_ids = {action.id.casefold() for action in DEFAULT_COMMAND_ACTIONS}
-        built_in_phrases: set[str] = set()
-        for action in DEFAULT_COMMAND_ACTIONS:
-            built_in_phrases.update(_normalized_action_phrases(action))
-
-        seen_saved_ids: set[str] = set()
-        seen_saved_phrases: set[str] = set()
-        saved_actions: list[CommandAction] = []
-        for record in payload.actions:
-            action = _command_action_from_saved_record(record)
-            normalized_id = action.id.casefold()
-            normalized_phrases = _normalized_action_phrases(action)
-            if normalized_id in seen_saved_ids:
-                raise ValueError("Saved action id collides with another saved action.")
-            if normalized_phrases & seen_saved_phrases:
-                raise ValueError("Saved action title or alias collides with another saved action.")
-
-            built_in_phrase_collisions = normalized_phrases & built_in_phrases
-            if normalized_id in built_in_ids or built_in_phrase_collisions:
-                # Preserve backward compatibility for users who already added these
-                # same file/folder helpers manually before they became built-ins.
-                incompatible_id_collision = (
-                    normalized_id in built_in_ids
-                    and normalized_id not in LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS
-                )
-                incompatible_phrase_collision = bool(
-                    built_in_phrase_collisions
-                    - LEGACY_SAVED_ACTIONS_ACCESS_ACTION_PHRASES
-                )
-                if incompatible_id_collision or incompatible_phrase_collision:
-                    raise ValueError("Saved action title or alias collides with an existing action.")
-                continue
-
-            seen_saved_ids.add(normalized_id)
-            seen_saved_phrases.update(normalized_phrases)
-            saved_actions.append(action)
-
-        return tuple(saved_actions)
-    except ValueError:
-        return ()
+    return inspect_saved_action_inventory(source_path).actions
 
 
 def build_default_command_action_catalog(
     source_path: str | os.PathLike[str] | None = None,
 ) -> CommandActionCatalog:
-    saved_actions = load_saved_command_actions(source_path)
-    if not saved_actions:
-        return CommandActionCatalog(DEFAULT_COMMAND_ACTIONS)
+    saved_action_inventory = inspect_saved_action_inventory(source_path)
+    if not saved_action_inventory.actions:
+        return CommandActionCatalog(
+            DEFAULT_COMMAND_ACTIONS,
+            saved_action_inventory=saved_action_inventory,
+        )
 
-    return CommandActionCatalog((*DEFAULT_COMMAND_ACTIONS, *saved_actions))
+    return CommandActionCatalog(
+        (*DEFAULT_COMMAND_ACTIONS, *saved_action_inventory.actions),
+        saved_action_inventory=saved_action_inventory,
+    )
 
 
 DEFAULT_COMMAND_ACTION_CATALOG = build_default_command_action_catalog()

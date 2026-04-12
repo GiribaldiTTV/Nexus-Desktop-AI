@@ -1,6 +1,7 @@
 from .shared_action_model import (
     CommandActionCatalog,
     DEFAULT_COMMAND_ACTION_CATALOG,
+    format_action_origin_label,
 )
 
 
@@ -116,7 +117,7 @@ class CommandOverlayModel:
         if self.phase == "entry":
             if not self.input_armed:
                 self.status_kind = "idle"
-                self.status_text = "Type a saved action or alias to begin."
+                self.status_text = "Type an action or alias to begin."
                 return ("awaiting_click_arm", None)
 
             if not self.action_catalog.normalize_text(self.input_text):
@@ -139,7 +140,7 @@ class CommandOverlayModel:
             self.pending_action = None
             if not matches:
                 self.status_kind = "not_found"
-                self.status_text = "No saved action or alias matched that request."
+                self.status_text = "No action or alias matched that request."
                 return ("not_found", None)
 
             self.phase = "choose"
@@ -178,8 +179,29 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
 
+    def _serialize_action(self, action, *, index: int | None = None):
+        if action is None:
+            return None
+
+        payload = {
+            "id": action.id,
+            "title": action.title,
+            "origin": action.origin,
+            "origin_label": format_action_origin_label(action.origin),
+            "target_kind": action.target_kind,
+            "target": action.target,
+            "target_display": self.action_catalog.format_target_display(
+                action.target_kind,
+                action.target,
+            ),
+        }
+        if index is not None:
+            payload["index"] = index
+        return payload
+
     def view_payload(self):
         action = self.pending_action
+        saved_action_inventory = self.action_catalog.saved_action_inventory
         return {
             "visible": self.visible,
             "phase": self.phase,
@@ -188,33 +210,30 @@ class CommandOverlayModel:
             "status_kind": self.status_kind,
             "status_text": self.status_text,
             "typed_request": self.last_request,
-            "pending_action": None
-            if action is None
-            else {
-                "id": action.id,
-                "title": action.title,
-                "target_kind": action.target_kind,
-                "target": action.target,
-                "target_display": self.action_catalog.format_target_display(
-                    action.target_kind,
-                    action.target,
-                ),
-            },
+            "pending_action": self._serialize_action(action),
             "ambiguous_titles": [match.title for match in self.pending_matches] if self.status_kind == "ambiguous" else [],
             "ambiguous_matches": [
-                {
-                    "index": index,
-                    "id": match.id,
-                    "title": match.title,
-                    "target_kind": match.target_kind,
-                    "target": match.target,
-                    "target_display": self.action_catalog.format_target_display(
-                        match.target_kind,
-                        match.target,
-                    ),
-                }
+                self._serialize_action(match, index=index)
                 for index, match in enumerate(self.pending_matches)
             ]
             if self.status_kind == "ambiguous"
             else [],
+            "saved_action_inventory": {
+                "visible": saved_action_inventory.visible,
+                "status_kind": saved_action_inventory.status_kind,
+                "status_text": saved_action_inventory.status_text,
+                "guidance_text": saved_action_inventory.guidance_text,
+                "path": saved_action_inventory.path,
+                "path_display": self.action_catalog.format_target_display(
+                    "file",
+                    saved_action_inventory.path,
+                )
+                if saved_action_inventory.path
+                else "",
+                "count": len(saved_action_inventory.actions),
+                "items": [
+                    self._serialize_action(saved_action)
+                    for saved_action in saved_action_inventory.actions
+                ],
+            },
         }

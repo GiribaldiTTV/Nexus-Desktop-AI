@@ -11,7 +11,11 @@ ROOT_DIR = os.path.dirname(CURRENT_DIR)
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-from desktop.saved_action_source import load_saved_action_source, resolve_default_saved_action_source_path
+from desktop.saved_action_source import (
+    inspect_saved_action_source,
+    load_saved_action_source,
+    resolve_default_saved_action_source_path,
+)
 from desktop.shared_action_model import (
     DEFAULT_COMMAND_ACTIONS,
     build_default_command_action_catalog,
@@ -58,9 +62,17 @@ def _test_default_source_bootstraps_template_without_actions():
         with _with_local_app_data(temp_dir):
             path = resolve_default_saved_action_source_path()
             payload = load_saved_action_source()
+            inspection = inspect_saved_action_source()
+            catalog = build_default_command_action_catalog()
 
             _assert(payload is None, "the default starter template should not count as active saved actions")
             _assert(path.is_file(), "loading the default source should bootstrap the starter JSON file")
+            _assert(inspection.status == "template_only", "the bootstrapped starter source should stay visible even without active saved actions")
+            _assert(catalog.saved_action_inventory.visible, "the default catalog should surface saved-action guidance visibility")
+            _assert(
+                catalog.saved_action_inventory.status_kind == "template_only",
+                "the default catalog should describe the starter source as no active saved actions yet",
+            )
 
             raw = json.loads(path.read_text(encoding="utf-8"))
             _assert(raw.get("schema_version") == 1, "the bootstrapped template should preserve schema version 1")
@@ -70,14 +82,24 @@ def _test_default_source_bootstraps_template_without_actions():
 def _test_missing_custom_source_falls_back_to_built_ins_only():
     with tempfile.TemporaryDirectory() as temp_dir:
         custom_path = Path(temp_dir) / "missing" / "saved_actions.json"
+        inspection = inspect_saved_action_source(custom_path)
 
         _assert(load_saved_action_source(custom_path) is None, "a missing custom source should not produce a payload")
         _assert(load_saved_command_actions(custom_path) == (), "a missing custom source should resolve to no saved actions")
+        _assert(inspection.status == "missing", "a missing custom source should report explicit missing-source visibility")
 
         catalog = build_default_command_action_catalog(custom_path)
         _assert(
             tuple(action.id for action in catalog.actions) == _builtin_ids(),
             "a missing custom source should leave the effective catalog at built-ins only",
+        )
+        _assert(
+            catalog.saved_action_inventory.status_kind == "missing",
+            "the effective catalog should expose missing-source visibility while preserving built-ins",
+        )
+        _assert(
+            catalog.saved_action_inventory.path == str(custom_path),
+            "missing-source visibility should preserve the intended saved-action path",
         )
 
 
@@ -85,14 +107,32 @@ def _test_empty_or_invalid_custom_sources_fail_closed():
     with tempfile.TemporaryDirectory() as temp_dir:
         empty_path = Path(temp_dir) / "empty.json"
         invalid_path = Path(temp_dir) / "invalid.json"
+        template_only_path = Path(temp_dir) / "template_only.json"
 
         _write_text(empty_path, "   \n")
         _write_text(invalid_path, "{ not valid json")
+        _write_json(template_only_path, {"schema_version": 1, "actions": []})
 
         _assert(load_saved_action_source(empty_path) is None, "an empty custom source should not produce a payload")
         _assert(load_saved_command_actions(empty_path) == (), "an empty custom source should fail closed to no saved actions")
         _assert(load_saved_action_source(invalid_path) is None, "invalid JSON should not produce a payload")
         _assert(load_saved_command_actions(invalid_path) == (), "invalid JSON should fail closed to no saved actions")
+        _assert(
+            inspect_saved_action_source(empty_path).status == "invalid_source",
+            "an empty custom source should surface invalid-source visibility",
+        )
+        _assert(
+            inspect_saved_action_source(invalid_path).status == "invalid_source",
+            "invalid JSON should surface invalid-source visibility",
+        )
+        _assert(
+            inspect_saved_action_source(template_only_path).status == "template_only",
+            "an explicit empty actions list should remain visible as no active saved actions",
+        )
+        _assert(
+            build_default_command_action_catalog(template_only_path).saved_action_inventory.status_kind == "template_only",
+            "an explicit empty actions list should guide the user without activating saved actions",
+        )
 
 
 def _test_valid_saved_actions_extend_the_effective_catalog():
@@ -120,6 +160,7 @@ def _test_valid_saved_actions_extend_the_effective_catalog():
 
         _assert(payload is not None and len(payload.actions) == 1, "a valid custom source should load one payload action")
         _assert(len(saved_actions) == 1 and saved_actions[0].id == "open_reports", "a valid saved action should become one effective saved action")
+        _assert(saved_actions[0].origin == "saved", "effective saved actions should preserve saved origin metadata")
         _assert(
             len(catalog.actions) == len(DEFAULT_COMMAND_ACTIONS) + 1,
             "a valid saved action should extend the effective catalog above the built-ins",
@@ -127,6 +168,14 @@ def _test_valid_saved_actions_extend_the_effective_catalog():
         _assert(
             tuple(action.id for action in catalog.actions[:-1]) == _builtin_ids(),
             "extending the catalog should preserve built-in actions ahead of saved actions",
+        )
+        _assert(
+            catalog.saved_action_inventory.status_kind == "loaded",
+            "a valid custom source should surface a loaded saved-action inventory state",
+        )
+        _assert(
+            tuple(action.id for action in catalog.saved_action_inventory.actions) == ("open_reports",),
+            "the saved-action inventory should list the effective saved action set",
         )
 
 
@@ -189,6 +238,10 @@ def _test_unsupported_target_kind_fails_closed():
             load_saved_command_actions(source_path) == (),
             "unsupported saved-action target kinds should fail closed to no saved actions",
         )
+        _assert(
+            build_default_command_action_catalog(source_path).saved_action_inventory.status_kind == "invalid_saved_actions",
+            "unsupported saved-action kinds should remain visible to the user as invalid saved-action entries",
+        )
 
 
 def _test_invalid_url_targets_fail_closed():
@@ -213,6 +266,10 @@ def _test_invalid_url_targets_fail_closed():
         _assert(
             load_saved_command_actions(source_path) == (),
             "invalid url saved-action targets should fail closed to no saved actions",
+        )
+        _assert(
+            build_default_command_action_catalog(source_path).saved_action_inventory.status_kind == "invalid_saved_actions",
+            "invalid url saved-action targets should remain visible as invalid saved-action entries",
         )
 
 
@@ -302,6 +359,10 @@ def _test_builtin_collisions_fail_closed():
         _assert(
             load_saved_command_actions(source_path) == (),
             "collisions against built-in ids or phrases should fail closed to no saved actions",
+        )
+        _assert(
+            build_default_command_action_catalog(source_path).saved_action_inventory.status_kind == "invalid_saved_actions",
+            "built-in collisions should remain visible as invalid saved-action entries",
         )
 
 

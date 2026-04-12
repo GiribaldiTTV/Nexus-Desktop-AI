@@ -113,6 +113,7 @@ def _test_builtin_catalog_integrity():
             action.target_kind in SUPPORTED_ACTION_TARGET_KINDS,
             f"{action.id} should keep a supported target kind",
         )
+        _assert(action.origin == "built_in", f"{action.id} should preserve built-in origin metadata")
         _assert(action.target and str(action.target).strip(), f"{action.id} should keep a non-empty target")
 
         normalized_title = normalize_command_text(action.title)
@@ -132,6 +133,7 @@ def _test_url_target_support_is_first_class():
                 target_kind="url",
                 target="https://example.com/docs/start",
                 aliases=("open docs site",),
+                origin="saved",
             ),
         )
     )
@@ -139,6 +141,10 @@ def _test_url_target_support_is_first_class():
     _assert(
         _ids(catalog.resolve_actions("open docs site")) == ("open_nexus_docs_site",),
         "url actions should resolve through the same exact-match shared action catalog",
+    )
+    _assert(
+        catalog.resolve_actions("open docs site")[0].origin == "saved",
+        "url saved actions should preserve saved origin metadata inside the shared catalog",
     )
     _assert(
         catalog.format_target_display("url", "https://example.com/docs/start") == "example.com/docs/start",

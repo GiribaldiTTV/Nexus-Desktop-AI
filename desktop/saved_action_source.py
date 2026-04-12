@@ -41,6 +41,13 @@ class SavedActionSourcePayload:
     actions: tuple[dict[str, Any], ...]
 
 
+@dataclass(frozen=True)
+class SavedActionSourceInspection:
+    path: Path
+    status: str
+    actions: tuple[dict[str, Any], ...] = ()
+
+
 def resolve_default_saved_action_source_path() -> Path:
     local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
     if local_app_data:
@@ -80,6 +87,16 @@ def ensure_saved_action_source_bootstrap(
 def load_saved_action_source(
     source_path: str | os.PathLike[str] | None = None,
 ) -> SavedActionSourcePayload | None:
+    inspection = inspect_saved_action_source(source_path)
+    if inspection.status != "loaded":
+        return None
+
+    return SavedActionSourcePayload(path=inspection.path, actions=inspection.actions)
+
+
+def inspect_saved_action_source(
+    source_path: str | os.PathLike[str] | None = None,
+) -> SavedActionSourceInspection:
     path = (
         Path(source_path)
         if source_path is not None
@@ -95,28 +112,34 @@ def load_saved_action_source(
 
     try:
         if not path.exists() or not path.is_file():
-            return None
+            return SavedActionSourceInspection(path=path, status="missing")
     except OSError:
-        return None
+        return SavedActionSourceInspection(path=path, status="missing")
 
     try:
         raw_text = path.read_text(encoding="utf-8")
     except (OSError, UnicodeError):
-        return None
+        return SavedActionSourceInspection(path=path, status="invalid_source")
 
     if not raw_text.strip():
-        return None
+        return SavedActionSourceInspection(path=path, status="invalid_source")
 
     try:
         payload = json.loads(raw_text)
     except json.JSONDecodeError:
-        return None
+        return SavedActionSourceInspection(path=path, status="invalid_source")
 
     if not isinstance(payload, dict):
-        return None
+        return SavedActionSourceInspection(path=path, status="invalid_source")
 
     actions = payload.get("actions")
-    if not isinstance(actions, list) or not actions:
-        return None
+    if not isinstance(actions, list):
+        return SavedActionSourceInspection(path=path, status="invalid_source")
+    if not actions:
+        return SavedActionSourceInspection(path=path, status="template_only")
 
-    return SavedActionSourcePayload(path=path, actions=tuple(actions))
+    return SavedActionSourceInspection(
+        path=path,
+        status="loaded",
+        actions=tuple(actions),
+    )

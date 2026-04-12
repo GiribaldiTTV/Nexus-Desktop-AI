@@ -73,7 +73,7 @@ class CommandInputLineEdit(QLineEdit):
         self._last_focus_was_manual = False
         self._local_typing_enabled = False
         self.setContextMenuPolicy(Qt.NoContextMenu)
-        self.setPlaceholderText("Type a saved action or alias")
+        self.setPlaceholderText("Type a built-in or saved action")
         self.setReadOnly(True)
 
     def is_input_armed(self) -> bool:
@@ -231,6 +231,41 @@ class CommandOverlayPanel(QWidget):
         self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
 
+        self.saved_inventory_frame = QFrame(self.panel)
+        self.saved_inventory_frame.setObjectName("savedActionInventory")
+        saved_inventory_layout = QVBoxLayout(self.saved_inventory_frame)
+        saved_inventory_layout.setContentsMargins(18, 16, 18, 14)
+        saved_inventory_layout.setSpacing(8)
+
+        self.saved_inventory_title = QLabel("Saved action inventory", self.saved_inventory_frame)
+        self.saved_inventory_title.setObjectName("savedActionInventoryTitle")
+        saved_inventory_layout.addWidget(self.saved_inventory_title)
+
+        self.saved_inventory_status = QLabel("", self.saved_inventory_frame)
+        self.saved_inventory_status.setObjectName("savedActionInventoryStatus")
+        self.saved_inventory_status.setWordWrap(True)
+        saved_inventory_layout.addWidget(self.saved_inventory_status)
+
+        self.saved_inventory_source = QLabel("", self.saved_inventory_frame)
+        self.saved_inventory_source.setObjectName("savedActionInventorySource")
+        self.saved_inventory_source.setWordWrap(True)
+        saved_inventory_layout.addWidget(self.saved_inventory_source)
+
+        self.saved_inventory_guidance = QLabel("", self.saved_inventory_frame)
+        self.saved_inventory_guidance.setObjectName("savedActionInventoryGuidance")
+        self.saved_inventory_guidance.setWordWrap(True)
+        saved_inventory_layout.addWidget(self.saved_inventory_guidance)
+
+        self.saved_inventory_items_frame = QFrame(self.saved_inventory_frame)
+        self.saved_inventory_items_frame.setObjectName("savedActionInventoryItems")
+        self.saved_inventory_items_layout = QVBoxLayout(self.saved_inventory_items_frame)
+        self.saved_inventory_items_layout.setContentsMargins(0, 2, 0, 0)
+        self.saved_inventory_items_layout.setSpacing(8)
+        saved_inventory_layout.addWidget(self.saved_inventory_items_frame)
+
+        layout.addWidget(self.saved_inventory_frame)
+        self.saved_inventory_frame.hide()
+
         self.ambiguous_label = QLabel("", self.panel)
         self.ambiguous_label.setObjectName("commandAmbiguous")
         self.ambiguous_label.setWordWrap(True)
@@ -259,13 +294,17 @@ class CommandOverlayPanel(QWidget):
         self.confirm_title_value = self._make_confirm_value()
         confirm_layout.addWidget(self.confirm_title_value, 1, 1)
 
-        confirm_layout.addWidget(self._make_confirm_label("Target kind"), 2, 0)
-        self.confirm_kind_value = self._make_confirm_value()
-        confirm_layout.addWidget(self.confirm_kind_value, 2, 1)
+        confirm_layout.addWidget(self._make_confirm_label("Action origin"), 2, 0)
+        self.confirm_origin_value = self._make_confirm_value()
+        confirm_layout.addWidget(self.confirm_origin_value, 2, 1)
 
-        confirm_layout.addWidget(self._make_confirm_label("Target"), 3, 0)
+        confirm_layout.addWidget(self._make_confirm_label("Target kind"), 3, 0)
+        self.confirm_kind_value = self._make_confirm_value()
+        confirm_layout.addWidget(self.confirm_kind_value, 3, 1)
+
+        confirm_layout.addWidget(self._make_confirm_label("Target"), 4, 0)
         self.confirm_target_value = self._make_confirm_value()
-        confirm_layout.addWidget(self.confirm_target_value, 3, 1)
+        confirm_layout.addWidget(self.confirm_target_value, 4, 1)
 
         self.confirm_help_label = QLabel(
             "Press Enter to confirm or Esc to return.",
@@ -273,7 +312,7 @@ class CommandOverlayPanel(QWidget):
         )
         self.confirm_help_label.setObjectName("commandConfirmHelp")
         self.confirm_help_label.setWordWrap(True)
-        confirm_layout.addWidget(self.confirm_help_label, 4, 0, 1, 2)
+        confirm_layout.addWidget(self.confirm_help_label, 5, 0, 1, 2)
 
         layout.addWidget(self.confirmation_frame)
         self.confirmation_frame.hide()
@@ -356,6 +395,41 @@ class CommandOverlayPanel(QWidget):
             }
             #commandStatus[statusKind="launch_requested"], #commandStatus[statusKind="ready"] {
                 color: rgba(166, 247, 195, 0.94);
+            }
+            #savedActionInventory {
+                margin-top: 16px;
+                border-radius: 18px;
+                background: rgba(8, 20, 34, 214);
+                border: 1px solid rgba(118, 226, 255, 0.12);
+            }
+            #savedActionInventoryTitle {
+                color: rgba(118, 226, 255, 0.84);
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 0.10em;
+            }
+            #savedActionInventoryStatus {
+                color: rgba(236, 247, 255, 0.92);
+                font-size: 13px;
+            }
+            #savedActionInventoryStatus[statusKind="invalid_source"], #savedActionInventoryStatus[statusKind="invalid_saved_actions"], #savedActionInventoryStatus[statusKind="missing"] {
+                color: rgba(255, 189, 176, 0.96);
+            }
+            #savedActionInventorySource {
+                color: rgba(172, 215, 235, 0.80);
+                font-size: 12px;
+            }
+            #savedActionInventoryGuidance {
+                color: rgba(166, 247, 195, 0.88);
+                font-size: 12px;
+            }
+            QLabel[inventoryRole="item"] {
+                padding: 10px 12px;
+                border-radius: 14px;
+                border: 1px solid rgba(118, 226, 255, 0.16);
+                background: rgba(6, 18, 30, 196);
+                color: rgba(234, 246, 255, 0.94);
+                font-size: 12px;
             }
             #commandAmbiguous {
                 min-height: 20px;
@@ -502,19 +576,52 @@ class CommandOverlayPanel(QWidget):
         for match in matches:
             index = int(match.get("index", -1))
             title = match.get("title", "")
+            origin_label = match.get("origin_label", "Action")
             target_kind = match.get("target_kind", "")
             target_display = match.get("target_display") or match.get("target", "")
             button_text = f"{index + 1}. {title}"
+            metadata_bits = [origin_label]
+            if target_kind:
+                metadata_bits.append(target_kind)
+            if metadata_bits:
+                button_text += f"\n{' • '.join(metadata_bits)}"
             if target_display:
-                button_text += f"\n{target_kind}: {target_display}"
-            elif target_kind:
-                button_text += f"\n{target_kind}"
+                button_text += f"\n{target_display}"
             button = QPushButton(button_text, self.ambiguous_choices_frame)
             button.setProperty("choiceRole", "ambiguous")
             button.setToolTip(match.get("target", ""))
             button.clicked.connect(lambda _checked=False, idx=index: self.ambiguous_match_selected.emit(idx))
             self.ambiguous_choices_layout.addWidget(button)
         self.ambiguous_choices_frame.setVisible(bool(matches))
+
+    def _clear_saved_inventory_items(self):
+        while self.saved_inventory_items_layout.count():
+            item = self.saved_inventory_items_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+    def _populate_saved_inventory_items(self, items: list[dict]):
+        self._clear_saved_inventory_items()
+        for item in items[:6]:
+            title = item.get("title", "")
+            origin_label = item.get("origin_label", "Saved")
+            target_kind = item.get("target_kind", "")
+            target_display = item.get("target_display") or item.get("target", "")
+            item_text = title
+            metadata_bits = [origin_label]
+            if target_kind:
+                metadata_bits.append(target_kind)
+            if metadata_bits:
+                item_text += f"\n{' • '.join(metadata_bits)}"
+            if target_display:
+                item_text += f"\n{target_display}"
+
+            label = QLabel(item_text, self.saved_inventory_items_frame)
+            label.setProperty("inventoryRole", "item")
+            label.setWordWrap(True)
+            label.setToolTip(item.get("target", ""))
+            self.saved_inventory_items_layout.addWidget(label)
 
     def render_payload(self, payload: dict):
         payload = payload or {}
@@ -541,17 +648,13 @@ class CommandOverlayPanel(QWidget):
             self.setFocus(Qt.ActiveWindowFocusReason)
 
         if phase == "confirm":
-            self.hint_label.setText("Review the resolved action before execution.")
+            self.hint_label.setText("Review the resolved action origin and destination before execution.")
         elif phase == "choose":
-            self.hint_label.setText("Press a number key or click the intended saved action, then confirm it before launch.")
+            self.hint_label.setText("Press a number key or click the intended action after reviewing its origin and destination.")
         elif phase == "result":
             self.hint_label.setText("Returning to passive desktop mode.")
         else:
-            self.hint_label.setText(
-                "Type a saved action or alias, then press Enter."
-                if not armed
-                else "Type a saved action or alias, then press Enter."
-            )
+            self.hint_label.setText("Type a built-in or saved action, then press Enter.")
 
         status_kind = payload.get("status_kind", "idle")
         self.status_label.setProperty("statusKind", status_kind)
@@ -561,14 +664,43 @@ class CommandOverlayPanel(QWidget):
         if payload.get("status_text"):
             self.status_label.setText(payload["status_text"])
         elif phase == "entry" and not armed:
-            self.status_label.setText("Type a saved action or alias to begin.")
+            self.status_label.setText("Type an action or alias to begin.")
         else:
             self.status_label.setText("")
+
+        saved_action_inventory = payload.get("saved_action_inventory") or {}
+        show_inventory = phase == "entry" and bool(saved_action_inventory.get("visible"))
+        self.saved_inventory_frame.setVisible(show_inventory)
+        if show_inventory:
+            item_count = int(saved_action_inventory.get("count", 0))
+            self.saved_inventory_title.setText(
+                f"Saved action inventory ({item_count})"
+                if item_count
+                else "Saved action inventory"
+            )
+            inventory_status_kind = saved_action_inventory.get("status_kind", "hidden")
+            self.saved_inventory_status.setProperty("statusKind", inventory_status_kind)
+            self.saved_inventory_status.style().unpolish(self.saved_inventory_status)
+            self.saved_inventory_status.style().polish(self.saved_inventory_status)
+            self.saved_inventory_status.setText(saved_action_inventory.get("status_text", ""))
+
+            source_path = saved_action_inventory.get("path", "")
+            source_display = saved_action_inventory.get("path_display") or source_path
+            self.saved_inventory_source.setText(f"Source: {source_display}" if source_display else "")
+            self.saved_inventory_source.setToolTip(source_path)
+            self.saved_inventory_guidance.setText(saved_action_inventory.get("guidance_text", ""))
+            self._populate_saved_inventory_items(saved_action_inventory.get("items") or [])
+        else:
+            self._clear_saved_inventory_items()
+            self.saved_inventory_status.setText("")
+            self.saved_inventory_source.setText("")
+            self.saved_inventory_source.setToolTip("")
+            self.saved_inventory_guidance.setText("")
 
         titles = payload.get("ambiguous_titles") or []
         if phase == "choose" and titles:
             self.ambiguous_label.setText(
-                "Multiple saved actions matched your request. Press a number key or click a choice after reviewing the destination detail below."
+                "Multiple actions matched your request. Press a number key or click a choice after reviewing the origin and destination detail below."
             )
         else:
             self.ambiguous_label.setText(f"Matches: {' | '.join(titles)}" if titles else "")
@@ -580,6 +712,7 @@ class CommandOverlayPanel(QWidget):
         if show_confirm:
             self.confirm_request_value.setText(payload.get("typed_request", ""))
             self.confirm_title_value.setText(action.get("title", ""))
+            self.confirm_origin_value.setText(action.get("origin_label", ""))
             self.confirm_kind_value.setText(action.get("target_kind", ""))
             self.confirm_target_value.setText(action.get("target_display") or action.get("target", ""))
             self.confirm_target_value.setToolTip(action.get("target", ""))
