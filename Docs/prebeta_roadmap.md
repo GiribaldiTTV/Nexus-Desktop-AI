@@ -57,14 +57,27 @@ Use these release-state values when relevant:
 
 ## Current Release Posture
 
-Current merged truth indicates:
+Current branch truth indicates:
 
 - latest public prerelease: `v1.2.7-prebeta`
 - latest public release commit: `3168823`
 - no merged unreleased non-doc implementation debt currently exists on `main`
-- no active non-doc implementation lane is currently selected on merged truth
+- this branch now carries an unreleased FB-027 implementation delta for first-class URL saved-action targets
+- FB-027 remains the active promoted interaction workstream on this branch
 
-That means the repo is between implementation lanes, not automatically continuing the old FB-035 branch.
+That means merged `main` remains between released non-doc implementation lanes while this branch now carries the first bounded FB-027 capability milestone above the locked interaction baseline.
+
+## Current Promoted Workstream Context
+
+### FB-027 Interaction System Baseline
+
+- status: `implemented on branch`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `TBD`
+- release state: `active delta`
+- canonical workstream doc: `Docs/workstreams/FB-027_interaction_system_baseline.md`
+- sequencing note: now preserves the locked typed-first baseline while adding first-class URL saved-action targets without changing exact-match resolution, state-machine boundedness, or input-capture behavior
 
 ## Recently Closed Workstreams
 
@@ -117,12 +130,13 @@ That means the repo is between implementation lanes, not automatically continuin
 
 ## Current Sequencing Reading
 
-Current merged truth indicates:
+Current branch truth indicates:
 
 - the released FB-035 lane is closed
 - the recent released workstreams above remain part of the locked current baseline
-- the next implementation lane must be chosen from refreshed backlog, workstream, and product-boundary truth
-- docs-only canon reconstruction does not itself choose the next implementation lane automatically
+- FB-027 now carries the first bounded implementation delta above the validated interaction baseline
+- the next FB-027 capability milestone should be chosen only after the URL target milestone is accepted
+- this milestone does not authorize resolution changes, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work
 
 Use canonical workstream docs for execution detail.
 Use the backlog for item identity.

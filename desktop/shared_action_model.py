@@ -85,7 +85,8 @@ DEFAULT_COMMAND_ACTIONS = (
     ),
 )
 
-SUPPORTED_ACTION_TARGET_KINDS = frozenset({"app", "folder", "file"})
+SUPPORTED_ACTION_TARGET_KINDS = frozenset({"app", "folder", "file", "url"})
+SUPPORTED_SAVED_ACTION_URL_SCHEMES = frozenset({"http", "https"})
 LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS = frozenset(
     {"open_saved_actions_file", "open_saved_actions_folder"}
 )
@@ -165,6 +166,20 @@ def _coerce_saved_action_aliases(record: dict) -> tuple[str, ...]:
     return tuple(normalized_aliases)
 
 
+def _validate_saved_action_target(target_kind: str, target: str) -> str:
+    if target_kind != "url":
+        return target
+
+    if any(char.isspace() for char in target):
+        raise ValueError("Saved action URL targets must not contain whitespace.")
+
+    parsed = urlparse(target)
+    if parsed.scheme.casefold() not in SUPPORTED_SAVED_ACTION_URL_SCHEMES or not parsed.netloc:
+        raise ValueError("Saved action URL target must be an absolute http or https URL.")
+
+    return target
+
+
 def _command_action_from_saved_record(record: object) -> CommandAction:
     if not isinstance(record, dict):
         raise ValueError("Saved action records must be objects.")
@@ -173,11 +188,16 @@ def _command_action_from_saved_record(record: object) -> CommandAction:
     if target_kind not in SUPPORTED_ACTION_TARGET_KINDS:
         raise ValueError("Saved action target_kind is unsupported.")
 
+    target = _validate_saved_action_target(
+        target_kind,
+        _require_saved_action_string(record, "target"),
+    )
+
     return CommandAction(
         id=_require_saved_action_string(record, "id"),
         title=_require_saved_action_string(record, "title"),
         target_kind=target_kind,
-        target=_require_saved_action_string(record, "target"),
+        target=target,
         aliases=_coerce_saved_action_aliases(record),
     )
 
@@ -259,6 +279,10 @@ def resolve_command_actions(text: str, actions=DEFAULT_COMMAND_ACTIONS):
 
 
 def launch_command_action(action: CommandAction):
+    if action.target_kind == "url":
+        os.startfile(action.target)
+        return
+
     target = os.path.normpath(action.target)
 
     if action.target_kind == "app":

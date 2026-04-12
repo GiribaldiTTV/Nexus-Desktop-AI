@@ -18,6 +18,19 @@ Historical note:
 - older implemented entries may preserve older Jarvis-era titles as historical identity
 - those preserved titles are not current runtime-path claims
 
+## Promoted Canonical Workstreams
+
+### [ID: FB-027] Interaction system baseline and shared action model
+
+Status: Implemented on branch (baseline preserved; URL target support; unreleased)
+Record State: Promoted
+Priority: High
+Release Stage: pre-Beta
+Target Version: TBD
+Canonical Workstream Doc: Docs/workstreams/FB-027_interaction_system_baseline.md
+Summary: Lock the typed-first interaction baseline and deliver the first bounded capability milestone by adding first-class URL targets to saved actions.
+Why it matters: Future interaction work needs one authoritative baseline and one bounded first expansion so saved-action, resolution, and command-surface growth do not silently rewrite current guarantees.
+
 ## Registry Items
 
 ### [ID: FB-004] Future boot orchestrator layer
@@ -49,16 +62,6 @@ Release Stage: Slice-staged
 Target Version: v2.0
 Summary: Preserve the future boot and desktop phase-boundary model above the already-closed milestone taxonomy work.
 Why it matters: Keeps boot-versus-desktop ownership planning explicit without reopening the closed taxonomy milestone by inertia.
-
-### [ID: FB-027] Jarvis interaction surfaces and shared action model
-
-Status: Deferred (first pre-Beta slice released in v2.2.1 rev1)
-Record State: Registry-only
-Priority: High
-Release Stage: Slice-staged
-Target Version: TBD
-Summary: Continue the long-term interaction-system lane above the existing typed overlay, shared action model, and saved-action foundation.
-Why it matters: This remains the clearest future product-facing interaction lane, but it should resume only through an explicitly chosen next slice.
 
 ### [ID: FB-029] ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening
 

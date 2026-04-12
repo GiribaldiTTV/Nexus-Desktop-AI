@@ -24,6 +24,13 @@ DEFAULT_SAVED_ACTION_TEMPLATE = {
             "target": r"C:\Users\YourName\Downloads",
             "aliases": ["open downloads", "show downloads"],
         },
+        {
+            "id": "open_nexus_docs_site",
+            "title": "Open Nexus Docs Site",
+            "target_kind": "url",
+            "target": "https://example.com/docs",
+            "aliases": ["open nexus docs site", "open docs site"],
+        },
     ],
 }
 

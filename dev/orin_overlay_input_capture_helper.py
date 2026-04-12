@@ -124,6 +124,10 @@ def _make_window():
     window._overlay_input_capture_until = 0.0
     window._overlay_local_input_engaged = False
     window._overlay_global_capture_suspended = False
+    window._last_launch_failure_action_id = ""
+    window._last_launch_failure_count = 0
+    window._reported_recoverable_launch_failures = set()
+    window.runtime_log_path = ""
     window._log_event = lambda *_args, **_kwargs: None
     window._apply_command_overlay_state = lambda: renderer_mod.DesktopRuntimeWindow._apply_command_overlay_state(window)
     window._show_command_result = lambda kind, text: (
