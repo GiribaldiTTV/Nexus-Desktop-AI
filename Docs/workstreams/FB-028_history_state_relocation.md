@@ -85,4 +85,4 @@ Released in `v1.2.3-prebeta` as a bounded runtime-state relocation milestone.
 - `Docs/feature_backlog.md`
 - `Docs/prebeta_roadmap.md`
 - `Docs/development_rules.md`
-- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.7-prebeta.md`
+- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`

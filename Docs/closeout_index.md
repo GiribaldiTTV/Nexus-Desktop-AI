@@ -11,12 +11,12 @@ Use `Docs/closeout_guidance.md` for policy and cadence questions.
 
 ## Current Nexus-Era Baseline
 
-### Nexus Pre-Beta Rebaseline Through v1.2.7-prebeta
+### Nexus Pre-Beta Rebaseline Through v1.2.8-prebeta
 
 - scope:
-  - current shared Nexus pre-Beta baseline through the released FB-035 milestone
+  - current shared Nexus pre-Beta baseline through the released FB-027 URL-target milestone
 - file:
-  - `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.7-prebeta.md`
+  - `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`
 
 ## Historical Jarvis Closeouts
 

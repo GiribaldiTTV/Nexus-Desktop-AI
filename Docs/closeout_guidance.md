@@ -34,7 +34,7 @@ The historical Jarvis line already has preserved closeouts through `v2.2.1`.
 
 The modern Nexus pre-Beta line now resumes epoch-summary coverage through:
 
-- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.7-prebeta.md`
+- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`
 
 That rebaseline is the current modern carry-forward baseline.
 
@@ -78,5 +78,5 @@ When those facts change, the repo may legitimately need a docs-only canon repair
 - preserve historical closeouts
 - route historical lookup through `Docs/closeout_index.md`
 - use canonical workstream records for workstream-level detail
-- use the modern Nexus rebaseline for epoch truth through `v1.2.7-prebeta`
+- use the modern Nexus rebaseline for epoch truth through `v1.2.8-prebeta`
 - create new closeouts or rebaselines only when they materially improve future planning clarity

@@ -1,13 +1,8 @@
-# Nexus Pre-Beta Rebaseline Through v1.2.7-prebeta
-
-Historical note:
-
-- the current carry-forward Nexus pre-Beta baseline has advanced to `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`
-- this document remains the historical epoch summary through `v1.2.7-prebeta`
+# Nexus Pre-Beta Rebaseline Through v1.2.8-prebeta
 
 ## Purpose
 
-This document is the modern Nexus-era rebaseline through `v1.2.7-prebeta`.
+This document is the modern Nexus-era rebaseline through `v1.2.8-prebeta`.
 
 Its job is to:
 
@@ -20,7 +15,7 @@ Its job is to:
 
 This rebaseline covers merged shared truth through the released public prerelease:
 
-- `v1.2.7-prebeta`
+- `v1.2.8-prebeta`
 
 It stands on top of the preserved historical closeout line indexed in:
 
@@ -35,10 +30,11 @@ The closed workstreams that materially define the current baseline are:
 - `Docs/workstreams/FB-025_boot_desktop_milestone_taxonomy_clarification.md`
 - `Docs/workstreams/FB-034_recoverable_diagnostics.md`
 - `Docs/workstreams/FB-035_release_context_fallback_hardening.md`
+- `Docs/workstreams/FB-027_interaction_system_baseline.md`
 
 ## What Is Locked Now
 
-Through `v1.2.7-prebeta`, current shared truth includes:
+Through `v1.2.8-prebeta`, current shared truth includes:
 
 - launcher-owned historical state is not a live root-logs surface
 - the startup snapshot harness is a bounded dev-only and opt-in debugging surface
@@ -47,21 +43,29 @@ Through `v1.2.7-prebeta`, current shared truth includes:
   - repeated identical `launch_failed` for the same action in a still-running session
 - support-report fallback now derives release context from released-canon truth instead of the highest planned prerelease target
 - the manual-reporting boundary remains local and manual only
+- the typed-first desktop interaction baseline is explicit and validator-defended
+- built-in actions and saved actions resolve through one shared action catalog
+- the first bounded interaction capability milestone is now released:
+  - first-class URL target support for saved actions without changing exact-match resolution, state-machine boundedness, or input-capture behavior
 
 ## What Remains Deferred
 
 This rebaseline does not authorize automatic continuation into:
 
-- broader recoverable diagnostics surface work
+- saved-action authoring UX
+- broader resolution-quality follow-through
+- interaction-clarity follow-through
+- shutdown exit-confirmation work
+- hotkey cleanup before Beta
 - broader reporting-policy or upload-behavior work
 - broader boot-layer implementation work
-- broader interaction, rebrand, or UI follow-through by inertia
+- broader interaction, rebrand, voice, or UI follow-through by inertia
 
 ## Forward-Planning Posture After This Baseline
 
-Current merged truth does not automatically activate a new non-doc implementation lane.
+Current merged truth is again between released non-doc implementation lanes.
 
-The next implementation workstream must be chosen from refreshed backlog, workstream, and product-boundary truth rather than by continuing the released FB-035 lane.
+The next implementation workstream must be chosen from refreshed backlog, workstream, interaction, and product-boundary truth rather than by continuing the released FB-027 lane by inertia.
 
 ## Historical Relationship
 
@@ -76,4 +80,4 @@ This document does not rewrite those historical closeouts.
 
 ## Carry-Forward Rule
 
-Future prompts should usually treat this rebaseline plus the retained workstream records as the modern carry-forward baseline through `v1.2.7-prebeta` instead of replaying each closed lane narrative in full.
+Future prompts should usually treat this rebaseline plus the retained workstream records as the modern carry-forward baseline through `v1.2.8-prebeta` instead of replaying each closed lane narrative in full.

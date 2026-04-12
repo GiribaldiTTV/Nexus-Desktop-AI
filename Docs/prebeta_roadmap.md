@@ -59,25 +59,25 @@ Use these release-state values when relevant:
 
 Current merged truth indicates:
 
-- latest public prerelease: `v1.2.7-prebeta`
-- latest public release commit: `3168823`
-- merged unreleased non-doc implementation debt now exists on `main`
-- that merged unreleased implementation debt is the first FB-027 capability milestone for first-class URL saved-action targets
-- FB-027 remains the active promoted interaction workstream on `main`
+- latest public prerelease: `v1.2.8-prebeta`
+- latest public release commit: `4816aac`
+- no merged unreleased non-doc implementation debt currently exists on `main`
+- the most recent released implementation milestone is FB-027 for first-class URL saved-action targets
+- no active non-doc implementation workstream is currently selected on `main`
 
-That means `main` is no longer between released non-doc implementation lanes. It now carries one merged unreleased FB-027 capability milestone above the locked interaction baseline, so the next posture should be release review/prep or directly coupled truth-repair and consistency work rather than another unrelated implementation lane.
+That means `main` is again between released non-doc implementation lanes. The released FB-027 baseline-and-URL milestone now forms part of the current shared pre-Beta baseline, and the next workstream should be chosen from refreshed post-release truth rather than by continuing released work by inertia.
 
-## Current Promoted Workstream Context
+## Most Recent Released Workstream Context
 
 ### FB-027 Interaction System Baseline
 
-- status: `merged unreleased on main`
+- status: `released`
 - lane type: `implementation`
 - release floor: `patch prerelease`
-- target version: `TBD`
-- release state: `merged unreleased`
+- target version: `v1.2.8-prebeta`
+- release state: `released`
 - canonical workstream doc: `Docs/workstreams/FB-027_interaction_system_baseline.md`
-- sequencing note: now preserves the locked typed-first baseline while adding first-class URL saved-action targets without changing exact-match resolution, state-machine boundedness, or input-capture behavior
+- sequencing note: released the locked typed-first baseline plus first-class URL saved-action targets without changing exact-match resolution, state-machine boundedness, or input-capture behavior
 
 ## Recently Closed Workstreams
 
@@ -132,12 +132,12 @@ That means `main` is no longer between released non-doc implementation lanes. It
 
 Current merged truth indicates:
 
+- the released FB-027 lane is now part of the current locked interaction baseline
 - the released FB-035 lane is closed
 - the recent released workstreams above remain part of the locked current baseline
-- FB-027 now contributes the first bounded merged unreleased implementation milestone above the validated interaction baseline
-- the immediate next posture is merged-truth sync and release-context consistency work, then release review/prep before another unrelated implementation lane
-- the next FB-027 capability milestone should be chosen only after merged truth and release posture are coherent on `main`
-- this milestone does not authorize resolution changes, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work
+- no merged unreleased non-doc implementation debt currently exists on `main`
+- the next implementation workstream should be chosen only after fresh post-release analysis on updated `main`
+- the released FB-027 milestone does not authorize further saved-action, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
 
 Use canonical workstream docs for execution detail.
 Use the backlog for item identity.

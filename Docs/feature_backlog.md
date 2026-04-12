@@ -20,16 +20,7 @@ Historical note:
 
 ## Promoted Canonical Workstreams
 
-### [ID: FB-027] Interaction system baseline and shared action model
-
-Status: Merged unreleased on `main` (baseline preserved; URL target support implemented)
-Record State: Promoted
-Priority: High
-Release Stage: pre-Beta
-Target Version: TBD
-Canonical Workstream Doc: Docs/workstreams/FB-027_interaction_system_baseline.md
-Summary: Lock the typed-first interaction baseline and deliver the first bounded capability milestone by adding first-class URL targets to saved actions.
-Why it matters: Future interaction work needs one authoritative baseline and one bounded first expansion so saved-action, resolution, and command-surface growth do not silently rewrite current guarantees.
+No currently promoted non-doc implementation workstream is active on `main`.
 
 ## Registry Items
 
@@ -104,6 +95,17 @@ Summary: Track the broader Nexus-era vision and source-of-truth migration above 
 Why it matters: The repo still needs deeper identity and wording normalization after the foundation layer is rebuilt.
 
 ## Closed Canonical Workstreams
+
+### [ID: FB-027] Interaction system baseline and shared action model
+
+Status: Released (v1.2.8-prebeta)
+Record State: Closed
+Priority: High
+Release Stage: pre-Beta
+Target Version: v1.2.8-prebeta
+Canonical Workstream Doc: Docs/workstreams/FB-027_interaction_system_baseline.md
+Summary: Lock the typed-first interaction baseline and deliver the first bounded capability milestone by adding first-class URL targets to saved actions.
+Why it matters: Future interaction work needs one authoritative baseline and one bounded first expansion so saved-action, resolution, and command-surface growth do not silently rewrite current guarantees.
 
 ### [ID: FB-025] Boot and desktop milestone taxonomy clarification
 

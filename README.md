@@ -20,7 +20,7 @@ Current repo truth includes:
 
 Latest public prerelease:
 
-- `v1.2.7-prebeta`
+- `v1.2.8-prebeta`
 
 ## Current Entry Paths
 
@@ -71,7 +71,7 @@ From there, route into the layer that owns the truth you need:
 - `Docs/feature_backlog.md` for tracked identity and registry state
 - `Docs/prebeta_roadmap.md` for sequencing and release posture
 - `Docs/workstreams/index.md` for canonical workstream records
-- `Docs/closeout_index.md` and `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.7-prebeta.md` for historical and epoch summaries
+- `Docs/closeout_index.md` and `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md` for historical and epoch summaries
 
 ## Naming Boundary
 

@@ -82,4 +82,4 @@ Released in `v1.2.5-prebeta` as a bounded taxonomy clarification milestone.
 
 - `Docs/feature_backlog.md`
 - `Docs/prebeta_roadmap.md`
-- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.7-prebeta.md`
+- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`

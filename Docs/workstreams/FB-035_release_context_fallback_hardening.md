@@ -96,4 +96,4 @@ Released in `v1.2.7-prebeta`. The lane now prevents support-report fallback logi
 - `Docs/feature_backlog.md`
 - `Docs/prebeta_roadmap.md`
 - `Docs/incident_patterns.md`
-- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.7-prebeta.md`
+- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`

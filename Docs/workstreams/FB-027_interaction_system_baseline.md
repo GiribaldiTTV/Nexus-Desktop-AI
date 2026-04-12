@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `Merged unreleased on main (baseline preserved; URL target support implemented)`
+- `Released (v1.2.8-prebeta)`
 
 ## Release Stage
 
@@ -19,7 +19,7 @@
 
 ## Target Version
 
-- `TBD`
+- `v1.2.8-prebeta`
 
 ## Purpose / Why It Matters
 
@@ -37,7 +37,7 @@ This workstream exists so future interaction work can extend a defended baseline
 - the current saved-action seam lives at `%LOCALAPPDATA%/Nexus Desktop AI/saved_actions.json`
 - current saved-action target kinds are `app`, `folder`, `file`, and `url`
 - current repo truth does not yet include shipped voice invocation, Action Studio authoring UI, routines, profiles, or broader natural-language resolution
-- this workstream now protects the locked baseline while preserving the merged first-class URL saved-action target milestone through the existing shared action model
+- this workstream locked the typed-first baseline and released the first-class URL saved-action target milestone through the existing shared action model
 
 ## Milestone Value Statement
 
@@ -347,7 +347,7 @@ The following directly related FB-027 follow-through is recorded now but not imp
 
 - remove `Ctrl+Alt+1` and `Ctrl+Alt+2` before Beta
 - add an `Are you sure you want to exit?` prompt for shutdown hotkeys before Beta
-- select the next capability-expansion milestone only after merged truth and release posture for the URL target milestone are coherent on `main`
+- select the next capability-expansion milestone only through fresh post-release analysis on updated `main`
 
 These are deferred forward items, not current-runtime guarantees.
 
@@ -389,7 +389,7 @@ The typed-first interaction baseline remains explicit and validator-defended, an
 
 - remove `Ctrl+Alt+1` and `Ctrl+Alt+2` before Beta
 - add an `Are you sure you want to exit?` prompt for shutdown hotkeys before Beta
-- choose the next capability-expansion milestone only after merged truth and release posture for the URL target milestone are coherent on `main`
+- choose the next capability-expansion milestone only through fresh post-release analysis on updated `main`
 
 ## Related References
 

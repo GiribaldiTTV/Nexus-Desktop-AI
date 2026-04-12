@@ -86,4 +86,4 @@ Released in `v1.2.4-prebeta` as intentional dev-only startup debugging infrastru
 - `Docs/feature_backlog.md`
 - `Docs/prebeta_roadmap.md`
 - `Docs/development_rules.md`
-- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.7-prebeta.md`
+- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`

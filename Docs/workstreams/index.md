@@ -24,10 +24,11 @@ Use this layer when a backlog item has been promoted and now needs:
 
 ### Active
 
-- `Docs/workstreams/FB-027_interaction_system_baseline.md`
+- no currently active non-doc implementation workstream record is selected on `main`
 
 ### Closed
 
+- `Docs/workstreams/FB-027_interaction_system_baseline.md`
 - `Docs/workstreams/FB-035_release_context_fallback_hardening.md`
 - `Docs/workstreams/FB-034_recoverable_diagnostics.md`
 - `Docs/workstreams/FB-025_boot_desktop_milestone_taxonomy_clarification.md`
