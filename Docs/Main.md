@@ -112,7 +112,7 @@ Use this layer for generalized debugging and validation lessons:
 
 ### Validation Guidance
 
-Use this when a task depends on manual validation handoff, User Test Summary structure, or returned test-evidence digestion:
+Use this when a task depends on manual validation handoff, User Test Summary structure, returned test-evidence digestion, or implementation-output requirements for a `## User Test Summary` section:
 
 - `Docs/user_test_summary_guidance.md`
 
@@ -144,6 +144,7 @@ These are reference layers, not active workstream or roadmap owners.
   4. perform required post-release canon sync at the start of that branch
   5. then continue lane work
 - a standalone docs-only post-release repair is an explicit exception path only when no plausible next workstream can yet be selected safely
+- when a slice changes user-visible behavior or another operator-facing path, do not treat `## User Test Summary` as a recap slot; route through `Docs/user_test_summary_guidance.md` and require a real manual checklist unless no meaningful manual test exists
 
 ## Practical Prompt Rule
 

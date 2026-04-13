@@ -151,6 +151,20 @@ Before handing a user-visible runtime, UI, or manual validation path back to the
 
 If Codex cannot self-run the same path reliably, it must say so explicitly and identify the remaining validation gap.
 
+When a slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or any manual operator-facing path, Codex must include a true manual validation checklist under `## User Test Summary` by default.
+
+That checklist must include:
+
+- setup or prerequisites
+- exact user actions
+- expected visible behavior
+- failure signs to watch for
+- branch-specific or slice-specific validation focus
+
+A recap-style summary is not sufficient when manual validation is relevant.
+
+If no meaningful manual test exists for the change, Codex must say so explicitly under `## User Test Summary` and explain why manual validation is not materially relevant for that slice.
+
 ## Runtime Evidence And Logging
 
 - logs are the source of truth for runtime behavior

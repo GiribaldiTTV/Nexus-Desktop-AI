@@ -123,6 +123,8 @@ Workflow mode should usually return:
 
 - changes applied
 - validation performed
+- a detailed `## User Test Summary` manual checklist when the slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or another operator-facing path
+- an explicit statement under `## User Test Summary` when no meaningful manual test exists and why
 - remaining drift or known gaps
 - whether the approved phase is complete
 
@@ -195,6 +197,16 @@ When that happens:
 - workstream docs own promoted-work execution and closure truth
 - User Test Summary belongs to workstream-owned validation
 - incident patterns are generalized knowledge, not case history
+
+When manual validation is relevant, `## User Test Summary` must be a real checklist rather than a recap.
+
+It should include:
+
+- setup or prerequisites
+- exact user actions
+- expected visible behavior
+- failure signs to watch for
+- branch-specific or slice-specific validation focus
 
 ## Live-State Readiness Sanity Check
 

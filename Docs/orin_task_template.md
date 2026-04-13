@@ -240,6 +240,20 @@ If applicable, also verify:
 - no regressions in locked behavior
 - no drift outside the allowed surfaces
 
+If the slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or another manual operator-facing path, the final output must include a `## User Test Summary` section as a concrete manual checklist.
+
+That checklist must include:
+
+- setup or prerequisites
+- exact user actions
+- expected visible behavior
+- failure signs to watch for
+- branch-specific or slice-specific validation focus
+
+A recap-style summary is not sufficient when manual validation is relevant.
+
+If no meaningful manual test exists, the output must still include `## User Test Summary` and explain why manual validation is not materially relevant for that slice.
+
 ## Done When
 
 This task is complete only when:
@@ -276,6 +290,8 @@ G. Commit summary
 H. Commit description
 I. PR title
 J. PR description
+
+K. `## User Test Summary` manual checklist when manual validation is relevant
 
 ## Important
 

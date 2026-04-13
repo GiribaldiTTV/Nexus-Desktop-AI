@@ -23,15 +23,42 @@ Use this ownership split:
 
 Docs-only passes that do not require user-run validation normally do not need a `UTS`.
 
+When a task changes user-visible behavior or another operator-facing path, the default handoff expectation is that Codex will include a `## User Test Summary` section in its implementation or validation output unless manual testing is not materially relevant.
+
 ## When A User Test Summary Is Needed
 
 Create a `UTS` when the active workstream needs user-run validation, especially for:
 
 - launch or relaunch flows
 - UI or visual confirmation
+- user-visible interaction or UX changes
+- startup, first-run, or reopen behavior
+- prompts, inline messaging, or operator-facing guidance changes
+- voice behavior
+- create, edit, recovery, or other manual operator-facing workflows
 - Dev Toolkit helpers
 - repaired runtime paths
 - bounded regression checks after an approved slice
+
+## Output Requirement For Codex Responses
+
+When manual validation is relevant, `## User Test Summary` in a Codex response must be a true manual test checklist, not a recap.
+
+The default checklist must include:
+
+- setup or prerequisites
+- exact user actions
+- expected visible behavior
+- failure signs to watch for
+- branch-specific or slice-specific validation focus
+
+If the work changes multiple user-visible paths, the checklist should separate those paths explicitly enough that the user can run them one by one.
+
+If no meaningful manual test exists, Codex must still include `## User Test Summary` and say explicitly:
+
+- that no meaningful manual test is required for this slice
+- why manual validation is not materially relevant
+- what was validated instead
 
 ## Required Structure
 
@@ -46,6 +73,8 @@ When a `UTS` is needed, structure it around:
 
 Keep the steps concrete and action-oriented.
 Make the expected outcome specific enough that the user can tell what passed or failed.
+
+A recap-style behavior summary is not sufficient when the user needs to run or verify anything manually.
 
 ## Desktop File Rule
 
