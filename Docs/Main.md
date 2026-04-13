@@ -100,7 +100,7 @@ Use these for closeout policy, historical closeout lookup, and the modern Nexus-
 
 - `Docs/closeout_guidance.md`
 - `Docs/closeout_index.md`
-- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`
+- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.9-prebeta.md`
 
 Historical closeout leaf docs are intentionally routed through `Docs/closeout_index.md`.
 
@@ -136,6 +136,14 @@ These are reference layers, not active workstream or roadmap owners.
 - do not treat a local-only document as canonical just because it exists in the workspace
 - do not create duplicate authority by making backlog, roadmap, and workstream docs all carry the same execution story
 - keep historical Jarvis material preserved, but mark it as historical rather than current reality
+- after a release, do not default to a standalone docs-only canon lane when a plausible next workstream can be selected from updated `main`
+- the normal post-release sequence is:
+  1. validate live repo truth on updated `main`
+  2. select the next workstream
+  3. create a fresh compliant branch for that workstream
+  4. perform required post-release canon sync at the start of that branch
+  5. then continue lane work
+- a standalone docs-only post-release repair is an explicit exception path only when no plausible next workstream can yet be selected safely
 
 ## Practical Prompt Rule
 

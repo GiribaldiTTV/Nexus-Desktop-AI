@@ -148,14 +148,14 @@ Why it matters: Monitoring overlays are a separate runtime and status surface an
 
 ### [ID: FB-027] Interaction system baseline and shared action model
 
-Status: Released (v1.2.8-prebeta); merged unreleased follow-through on main
+Status: Released (v1.2.9-prebeta)
 Record State: Closed
 Priority: High
 Release Stage: pre-Beta
-Target Version: v1.2.8-prebeta
+Target Version: v1.2.9-prebeta
 Canonical Workstream Doc: Docs/workstreams/FB-027_interaction_system_baseline.md
-Summary: Lock the typed-first interaction baseline and deliver bounded shared-action follow-through through the released URL-target milestone plus the later merged unreleased saved-action inventory and guided-access milestone on `main`.
-Why it matters: Future interaction work needs one authoritative baseline and truthful release posture so the released URL-target milestone and the newer merged unreleased inventory-and-guided-access milestone do not get collapsed into one misleading state.
+Summary: Lock the typed-first interaction baseline and deliver bounded shared-action follow-through through the released URL-target milestone plus the later released saved-action inventory and guided-access milestone.
+Why it matters: Future interaction work needs one authoritative baseline and truthful released-state posture so the URL-target milestone and the later inventory-and-guided-access milestone remain visible as bounded released steps rather than drifting back into ambiguous follow-through language.
 
 ### [ID: FB-025] Boot and desktop milestone taxonomy clarification
 

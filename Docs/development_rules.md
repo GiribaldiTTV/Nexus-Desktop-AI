@@ -109,8 +109,10 @@ Supporting canon must stay aligned with live truth.
 That means:
 
 - directly supporting canon may be updated on the active implementation branch when that branch changes the truth
-- docs-only canon reconstruction is also valid when no safe implementation lane should be selected until canon is trustworthy
-- do not force post-release canon repair onto a hypothetical next implementation branch when the truthful next move is a docs-only canon pass
+- after a release, Codex should normally validate updated `main`, select the next plausible workstream, create a fresh compliant branch for that workstream, and perform any required post-release canon sync at the start of that branch before implementation begins
+- do not default to a standalone docs-only post-release branch when a plausible next workstream can already be selected safely from current truth
+- standalone docs-only canon reconstruction is exception-only when no plausible safe next implementation lane can be selected yet, or when current canon drift is misleading enough that branch selection itself would be untrustworthy
+- if a plausible next workstream exists, Codex must block standalone post-release docs execution and require fresh-branch selection first
 - do not use canon sync as an excuse for broad unrelated documentation churn
 
 Local docs overlays are reference material only until revalidated against updated `origin/main`.

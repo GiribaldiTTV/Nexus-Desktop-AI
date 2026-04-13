@@ -180,8 +180,9 @@ Release-dependent truth sometimes changes after the code lane is already closed.
 When that happens:
 
 - carry the canon sync on the active lane when that lane is still open
-- use a docs-only canon pass when current truth requires it and no safe next implementation lane should be selected yet
-- do not force post-release canon repair onto a hypothetical next implementation branch when that would leave the repo planning baseline misleading
+- if the lane is already closed, normally validate updated `main`, select the next plausible workstream, create its fresh branch, and perform the post-release canon sync at the start of that branch before implementation begins
+- do not default to a standalone docs-only post-release canon pass when a plausible next implementation lane can already be selected safely
+- use a standalone docs-only canon pass only as an explicit exception when no plausible safe next implementation lane can yet be selected, or when current canon drift makes branch selection itself untrustworthy
 
 ## Shared Rules Across Both Modes
 
