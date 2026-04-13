@@ -276,12 +276,15 @@ The execution pass must also:
 
 - run a deeper branch-local validation or hardening pass against the implemented path
 - add or create the smallest reliable validation infrastructure on-branch when meaningful blind spots remain
-- preserve evidence of the validators, harnesses, helper scripts, fixtures, logs, traces, screenshots, or other validation artifacts actually used
-- simulate or execute the workflow in the same practical way the user would test it when feasible, preferring the most live-style path available over reasoning alone
-- explicitly distinguish validator results, simulated reasoning, live-style execution results, and remaining manual user-test handoff
+- preserve evidence of the validators, synthetic/headless harnesses, helper scripts, fixtures, logs, traces, screenshots, or other validation artifacts actually used
+- use synthetic or headless validation as supporting proof rather than the final continuation gate when a real desktop session is feasible
+- launch and exercise the real desktop or runtime path through an interactive OS-level session when feasible
+- explicitly distinguish validator results, synthetic or headless validation results, simulated reasoning, interactive OS-level execution results, and remaining manual user-test handoff
 - explicitly decide whether the next move is to continue implementation, pause for hardening, or fix a specific defect first
 
 If the current validation surface is too thin to support a continuation recommendation, the execution pass must strengthen that surface before recommending continuation.
+
+If a real interactive OS-level session is not feasible, the execution pass must explain why, use the strongest available non-interactive evidence, and state that any continuation recommendation is limited by that missing interactive gate.
 
 ## Done When
 

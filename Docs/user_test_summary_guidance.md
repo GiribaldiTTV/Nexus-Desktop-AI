@@ -179,6 +179,8 @@ and the user explicitly approves the carry-forward.
 
 Before giving the user a manual `UTS` handoff for a runtime or UI path, Codex should run that same path or the closest faithful equivalent when feasible.
 
+For relevant desktop or operator-facing slices, if the implemented path can be launched and exercised through a real desktop session in the current environment, Codex must treat that interactive OS-level session as the default self-validation gate before recommending normal continuation.
+
 If that is not possible, Codex must say:
 
 - what was self-validated
@@ -199,8 +201,9 @@ Examples include:
 Codex must preserve an evidence trail for that self-validation and distinguish clearly between:
 
 - validator results
+- synthetic or headless validation results
 - simulated reasoning or code-inspection findings
-- live-style executed-path results
+- interactive OS-level executed-path results
 - user-only manual handoff that still remains
 
 ## Implementation-Time Hardening Rule
@@ -212,11 +215,14 @@ Codex must also perform a deeper branch-local validation and hardening pass befo
 - inspect the implemented path for likely failure modes and integration regressions
 - add or create the smallest reliable validation infrastructure when meaningful blind spots remain
 - use supporting validation artifacts when needed, such as harnesses, fixtures, scripted helpers, runtime logs, traces, screenshots, or reproducible sample inputs
-- simulate or execute the same practical workflow the user would test when feasible, and prefer the most live-style path available over reasoning alone
+- use synthetic or headless validators and harnesses as supporting proof rather than the final continuation gate when a real desktop session is feasible
+- launch and exercise the real desktop or runtime path through an interactive OS-level session when feasible, rather than stopping at simulated reasoning or headless proof
 - preserve evidence of what was run, what passed or failed, and where the supporting artifacts live
 - produce an explicit judgment about whether the next move is:
   - continue implementation
   - pause for hardening or internal validation
   - or make a corrective fix first
 
-Green validators plus simulated reasoning and response-level summary text are not enough when the implemented path can still be exercised more directly with supporting validation artifacts.
+Green validators plus simulated reasoning, response-level summary text, and synthetic/headless harness results are not enough when the implemented path can still be exercised through a real interactive desktop session.
+
+If that interactive path is not feasible, Codex must explain why, use the strongest available non-interactive evidence, and state that the continuation judgment is limited by the missing interactive validation.

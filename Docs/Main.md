@@ -116,7 +116,7 @@ Use this when a task depends on manual validation handoff, User Test Summary str
 
 - `Docs/user_test_summary_guidance.md`
 - the relevant canonical workstream doc under `Docs/workstreams/`
-- `Docs/development_rules.md` when the task also depends on implementation-time validation depth, supporting validation artifacts, required evidence trails, or hardening expectations
+- `Docs/development_rules.md` when the task also depends on implementation-time validation depth, supporting validation artifacts, required evidence trails, hardening expectations, or the interactive OS-level continuation gate
 
 ### Auxiliary Planning References
 
@@ -151,8 +151,9 @@ These are reference layers, not active workstream or roadmap owners.
 - for relevant desktop user-facing slices, also export or refresh `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` unless an explicit exception from `Docs/user_test_summary_guidance.md` applies
 - do not confuse the canonical workstream-owned repo artifact with the required desktop convenience export or with response-level handoff text
 - when a user-visible implementation slice is already validator-green, do not assume that alone is enough to continue; route through `Docs/development_rules.md` and require an explicit hardening or continuation judgment
-- when the implemented path can be exercised more directly than validators plus simulation allow, do not stop at those lighter layers; require the smallest reliable validation infrastructure and an evidence-backed live-style validation result before continuation
-- keep validator results, live-style execution results, simulated reasoning, and manual handoff as separate evidence layers rather than collapsing them into one summary
+- when a relevant desktop or runtime path can be launched and exercised through a real desktop session, do not treat validators, simulation, or synthetic/headless harnesses as sufficient for continuation on their own; require the smallest reliable validation infrastructure plus an evidence-backed interactive OS-level result before continuation
+- if the real interactive desktop path is not feasible, require an explicit explanation of why, require the strongest available synthetic/headless evidence instead, and treat the continuation judgment as limited by that missing interactive layer
+- keep validator results, synthetic/headless validation results, interactive OS-level execution results, simulated reasoning, and manual handoff as separate evidence layers rather than collapsing them into one summary
 
 ## Practical Prompt Rule
 

@@ -124,7 +124,8 @@ Workflow mode should usually return:
 - changes applied
 - validation performed
 - a distinct summary of validator results
-- a distinct summary of live-style execution results and the supporting validation artifacts created or used
+- a distinct summary of synthetic or headless validation results and the supporting validation artifacts created or used
+- a distinct summary of interactive OS-level execution results when that path is feasible
 - any remaining simulated-only findings or reasoning-only gaps that still matter
 - deeper branch-local validation or hardening findings when the slice changes runtime or user-visible behavior
 - a detailed `## User Test Summary` manual checklist when the slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or another operator-facing path
@@ -222,14 +223,19 @@ It should include:
 
 For runtime or user-visible implementation slices, green validators alone do not authorize automatic continuation.
 
+When a relevant desktop or runtime path can be launched and exercised through a real desktop session in the current environment, synthetic or headless validation does not authorize continuation on its own either.
+
 Codex must also:
 
 - run a deeper branch-local hardening pass against the implemented path
 - add or create the smallest reliable validation infrastructure when meaningful blind spots remain
 - preserve an evidence trail of the validators, harnesses, helper scripts, fixtures, runtime logs, traces, screenshots, or other validation artifacts actually used
-- simulate or execute the same practical workflow the user would test when feasible, and prefer the most live-style path available over reasoning alone
-- explicitly distinguish validator results, simulated reasoning, live-style execution results, and manual user-test handoff
+- use synthetic or headless validators and harnesses as supporting proof rather than the final gate when a real desktop session is feasible
+- launch and exercise the real desktop or runtime path through an interactive OS-level session when feasible
+- explicitly distinguish validator results, synthetic or headless validation results, simulated reasoning, interactive OS-level execution results, and manual user-test handoff
 - make an explicit next-step call between continue, harden, or corrective fix
+
+If that interactive path is not feasible, Codex must explain why, use the strongest available non-interactive evidence, and state that the continuation judgment is limited by the missing interactive validation.
 
 ## Live-State Readiness Sanity Check
 

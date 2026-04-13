@@ -149,6 +149,15 @@ Every revision must include:
 
 Before handing a user-visible runtime, UI, or manual validation path back to the user, Codex must run that same path or the closest faithful equivalent when feasible.
 
+For relevant desktop, runtime, user-facing, or operator-facing slices, if the implemented path can be launched and exercised through a real desktop session in the current environment, true interactive OS-level validation is the default continuation gate.
+
+In that case:
+
+- validator results remain baseline automated proof
+- synthetic or headless harnesses remain stronger supporting proof
+- a real interactive OS-level session is the required gate before Codex recommends normal continuation
+- manual user handoff remains an additional operator layer, not a substitute for Codex's own feasible interactive validation
+
 If Codex cannot self-run the same path reliably, it must say so explicitly and identify the remaining validation gap.
 
 For runtime, UI, startup, prompt, voice, or other operator-facing implementation slices, green validators are necessary but not sufficient on their own.
@@ -159,23 +168,27 @@ Before continuing to the next implementation slice on the same branch, Codex mus
 - checks integration seams and branch-local regressions beyond the happy path
 - adds or creates the smallest reliable validation infrastructure on-branch when the current suite leaves meaningful blind spots
 - uses supporting validation artifacts when needed, such as validators, harnesses, fixtures, scripted helpers, trace capture, screenshots, runtime logs, or reproducible sample inputs
-- exercises the workflow in the most practical live-style way available when feasible rather than stopping at simulated reasoning
+- uses synthetic or headless validators and harnesses as supporting evidence rather than the final continuation gate when a real desktop session is feasible
+- launches and exercises the real desktop or runtime path through an interactive OS-level session when feasible rather than stopping at simulated reasoning or headless proof
 - preserves evidence of what was run, what passed or failed, and where the supporting artifacts live
 - explicitly distinguishes:
   - validator results
+  - synthetic or headless validation results
   - simulated reasoning or inspection findings
-  - live-style execution results
+  - interactive OS-level execution results
   - manual user-test handoff that still remains
 - explicitly decides whether the correct next move is:
   - continue implementation
   - pause for internal hardening or validation
   - or fix a specific defect first
 
-Validator-green status plus simulated reasoning or recap-style summary is not enough when the implemented path can be exercised more directly with supporting validation artifacts.
+Validator-green status plus simulated reasoning, recap-style summary, or synthetic/headless harness results is not enough when the implemented desktop or runtime path can be exercised through a real interactive OS-level session.
 
 When Codex recommends continuing implementation after a user-visible slice, it must be able to explain why the current validation and hardening depth is already sufficient for that continuation.
 
 If the current validation surface is too thin to support that explanation, Codex must first add the smallest reliable validation infrastructure on-branch and re-run the validation pass before continuing.
+
+If a real interactive OS-level session is not feasible, Codex must say so explicitly, explain why, cite the strongest available non-interactive evidence, and state that the continuation recommendation is limited by the missing interactive gate.
 
 When a slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or any manual operator-facing path, Codex must include a true manual validation checklist under `## User Test Summary` by default.
 
@@ -224,6 +237,7 @@ If Codex does not export or refresh the desktop `User Test Summary.txt` copy for
 - do not assume behavior without log or code evidence
 - prefer structured markers over raw output
 - preserve or cite the exact validator outputs, helper scripts or harnesses used, runtime logs reviewed, and any created fixtures, traces, or screenshots that materially support a continuation recommendation
+- when interactive OS-level validation is required and feasible, preserve or cite the exact session evidence that shows the real path was exercised, such as runtime logs, screenshots, structured markers, traces, or durable validation reports
 - do not claim live-style validation without evidence or a specific explanation of what path was actually exercised
 
 ### Root Logs Governance
