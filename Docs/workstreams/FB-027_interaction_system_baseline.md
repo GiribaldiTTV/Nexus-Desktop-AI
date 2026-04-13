@@ -13,6 +13,17 @@
 
 - `Released (v1.2.8-prebeta)`
 
+## Current Release-Truth Note
+
+- the baseline-and-URL milestone in this workstream remains the latest released FB-027 milestone through `v1.2.8-prebeta`
+- current merged `main` also includes a later unreleased FB-027 follow-through that adds:
+  - entry-state saved-action inventory
+  - built-in-vs-saved distinction in choose and confirm
+  - source-health visibility and guided access for missing, invalid, or colliding saved-action sources
+  - directly coupled validator expansion for inventory, origin, and source-state visibility
+- the branch that carried that later runtime milestone also carried future-lane planning material, but those planning notes are not themselves released runtime behavior
+- until the next prerelease is cut, release truth must distinguish between the released `v1.2.8-prebeta` milestone and the newer merged unreleased inventory-and-guided-access follow-through on `main`
+
 ## Release Stage
 
 - `pre-Beta`
@@ -38,6 +49,7 @@ This workstream exists so future interaction work can extend a defended baseline
 - current saved-action target kinds are `app`, `folder`, `file`, and `url`
 - current repo truth does not yet include shipped voice invocation, Action Studio authoring UI, routines, profiles, or broader natural-language resolution
 - this workstream locked the typed-first baseline and released the first-class URL saved-action target milestone through the existing shared action model
+- current merged `main` also includes a later unreleased saved-action inventory and guided-access follow-through above that released baseline
 
 ## Milestone Value Statement
 
@@ -51,6 +63,8 @@ If squashed to one milestone, this lane is still worthwhile because it turns the
 - define the validator surfaces that must exist before capability expansion proceeds
 - implement first-class URL target support for saved actions through the existing shared action model
 - extend validator coverage so URL targets are defended as part of the locked baseline
+- implement a later merged unreleased follow-through that adds saved-action inventory, built-in-vs-saved origin visibility, and guided access without changing exact-match resolution or the typed-first state machine
+- extend validator coverage so inventory, origin, and saved-source-state visibility are defended as part of the same bounded interaction lane
 - record directly related deferred follow-through that should remain out of scope for this pass
 
 ## Non-Goals
@@ -278,11 +292,15 @@ Together, these surfaces now exercise:
 - built-in catalog integrity
 - valid saved-action catalog extension behavior
 - valid URL saved-action catalog extension behavior
+- saved-action inventory visibility and correctness
+- built-in-vs-saved origin visibility in choose and confirm
+- source-health visibility for missing, invalid, and colliding saved-action sources
 - missing, empty, invalid, unsupported, duplicate, and colliding saved-action fallback behavior
 - invalid URL saved-action fallback behavior
 - URL launch-path behavior without Windows path normalization
 - compact end-to-end typed-first `entry` -> `choose` -> `confirm` -> `result` behavior
 - compact end-to-end typed-first URL confirm/result behavior
+- compact end-to-end entry-state inventory guidance behavior
 
 ### Missing Explicit Validator Surfaces
 
@@ -370,12 +388,17 @@ These are deferred forward items, not current-runtime guarantees.
 7. recorded directly related deferred follow-through without widening into capability implementation
 8. added first-class URL target support to the saved-action seam and shared action model without changing exact-match resolution
 9. extended shared-action, saved-action-source, and integration validators to defend the new URL target capability
+10. added entry-state saved-action inventory and guided access through the existing typed-first overlay
+11. surfaced built-in-vs-saved origin detail plus saved-source health visibility without changing exact-match resolution, state-machine boundedness, or input-capture behavior
+12. extended validator coverage to defend inventory, origin, and source-state visibility as part of the merged unreleased follow-through
 
 ## Same-Branch Follow-Through
 
-None for the URL-target capability milestone.
+The originally released URL-target milestone is no longer the only merged execution truth in this record.
 
-Future runtime or capability work must return as an explicitly selected next FB-027 milestone rather than as silent same-branch continuation.
+Current merged `main` also includes a later unreleased inventory-and-guided-access follow-through above the released `v1.2.8-prebeta` milestone.
+
+Future runtime or capability work beyond that merged unreleased follow-through must still return as an explicitly selected next FB-027 milestone rather than as silent continuation.
 
 ## Blockers / Holds / Stop Conditions
 
@@ -385,13 +408,13 @@ Future runtime or capability work must return as an explicitly selected next FB-
 
 ## User Test Summary
 
-This milestone changes a user-facing saved-action capability, so a workstream-owned User Test Summary should be expected before closure or release promotion.
+This workstream now includes user-facing saved-action capability changes beyond the released URL-target milestone, so a workstream-owned User Test Summary should still be considered before the next release promotion that includes the merged unreleased inventory-and-guided-access follow-through.
 
 Future user-facing interaction changes should assume a workstream-owned User Test Summary will likely be needed before closure.
 
 ## Baseline Lock Summary
 
-The typed-first interaction baseline remains explicit and validator-defended, and the first bounded capability milestone now extends that baseline with first-class URL saved-action targets without redefining the state machine, exact-match resolution, or input-capture contract.
+The typed-first interaction baseline remains explicit and validator-defended. The released URL-target milestone and the later merged unreleased inventory-and-guided-access follow-through both extend that baseline without redefining the state machine, exact-match resolution, or input-capture contract.
 
 ## Deferred Forward
 

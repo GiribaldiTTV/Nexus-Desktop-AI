@@ -61,11 +61,25 @@ Current merged truth indicates:
 
 - latest public prerelease: `v1.2.8-prebeta`
 - latest public release commit: `4816aac`
-- no merged unreleased non-doc implementation debt currently exists on `main`
-- the most recent released implementation milestone is FB-027 for first-class URL saved-action targets
+- one merged unreleased non-doc implementation milestone currently exists on `main`
+- the latest public released FB-027 milestone remains the first-class URL saved-action target release in `v1.2.8-prebeta`
+- the current merged unreleased runtime delta on `main` is the later FB-027 saved-action inventory and guided-access follow-through
 - no active non-doc implementation workstream is currently selected on `main`
 
-That means `main` is again between released non-doc implementation lanes. The released FB-027 baseline-and-URL milestone now forms part of the current shared pre-Beta baseline, and the next workstream should be chosen from refreshed post-release truth rather than by continuing released work by inertia.
+That means `main` is not yet between released non-doc implementation lanes. The released FB-027 baseline-and-URL milestone still forms part of the current shared pre-Beta baseline, but `main` now also carries an additional unreleased FB-027 runtime milestone that should be handled through release prep or directly coupled truth repair before another unrelated implementation lane is selected.
+
+## Current Merged Unreleased Implementation Context
+
+### FB-027 Saved-Action Inventory And Guided Access
+
+- status: `merged unreleased`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `TBD`
+- release state: `merged unreleased`
+- canonical workstream doc: `Docs/workstreams/FB-027_interaction_system_baseline.md`
+- sequencing note: `main` now includes entry-state saved-action inventory, built-in-vs-saved distinction in choose and confirm, and source-health visibility plus guided access for missing, invalid, or colliding saved-action sources without changing exact-match resolution, state-machine boundedness, or baseline input-capture behavior
+- merged-path note: the branch that carried this runtime milestone also carried directly coupled future-lane planning material, but the release-driving runtime delta is the inventory and guided-access milestone itself
 
 ## Most Recent Released Workstream Context
 
@@ -132,12 +146,13 @@ That means `main` is again between released non-doc implementation lanes. The re
 
 Current merged truth indicates:
 
-- the released FB-027 lane is now part of the current locked interaction baseline
+- the released FB-027 baseline-and-URL milestone is now part of the current locked interaction baseline
+- `main` also contains a later merged unreleased FB-027 inventory-and-guided-access milestone above that released baseline
 - the released FB-035 lane is closed
 - the recent released workstreams above remain part of the locked current baseline
-- no merged unreleased non-doc implementation debt currently exists on `main`
-- the next implementation workstream should be chosen only after fresh post-release analysis on updated `main`
-- the released FB-027 milestone does not authorize further saved-action, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
+- merged unreleased non-doc implementation debt currently exists on `main`
+- the correct next move is release prep or directly coupled truth repair, not another unrelated implementation lane
+- neither the released FB-027 milestone nor the merged unreleased inventory-and-guided-access follow-through authorizes further saved-action authoring, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
 - future candidate spaces now explicitly recorded in the backlog include:
   - FB-036 for limited saved-action authoring and type-first custom task UX
   - FB-037 for curated built-in system actions and Nexus settings expansion
