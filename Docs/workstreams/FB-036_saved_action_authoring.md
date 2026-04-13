@@ -86,6 +86,7 @@ Open the desktop overlay on `feature/fb-036-saved-action-authoring` with a healt
 - keep a safe outside text target open, such as Notepad, so stray typing is easy to spot
 - know where `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json` lives
 - for the large-inventory checks, prepare at least eight valid saved actions in the source
+- for repeated-stability checks, plan to create or edit at least two saved actions in one session
 - for the unsafe-source checks, back up `saved_actions.json` before intentionally corrupting it
 
 ### Steps To Execute
@@ -144,7 +145,12 @@ Action: close the overlay, reopen it, and inspect the inventory again.
 Expected Behavior: the newly created or edited saved actions are still present with their latest values, showing that the change persisted and reload behavior was not only in-memory.
 Failure Conditions / Edge Cases: changes disappear after reopen, stale values return, or the overlay reopens with stale typed request / confirm / result state.
 
-10. Setup: back up `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json`, then intentionally corrupt it with invalid JSON.
+10. Setup: after a successful create and a successful edit, keep the same session open.
+Action: create or edit one more valid saved action, close the overlay, reopen it again, and confirm the full inventory state.
+Expected Behavior: repeated authoring operations remain stable, inventory count stays correct, updated values persist, and no stale entry/confirm/result state leaks across reopen cycles.
+Failure Conditions / Edge Cases: repeated operations create duplicates, later saves disappear on reopen, stale overlay state returns, or entry-state feedback becomes inconsistent after multiple cycles.
+
+11. Setup: back up `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json`, then intentionally corrupt it with invalid JSON.
 Action: reopen the overlay and try both `Create Custom Task` and `Edit`.
 Expected Behavior: create/edit are blocked cleanly with repair-oriented messaging, no dialog proceeds into a real save path, and the source is not silently rewritten.
 Failure Conditions / Edge Cases: the dialog opens anyway, the source is auto-repaired silently, inventory becomes inconsistent, or outside text/input-capture behavior regresses while blocked.
@@ -157,6 +163,7 @@ Failure Conditions / Edge Cases: the dialog opens anyway, the source is auto-rep
 - edit preserves saved-action identity instead of creating duplicates
 - malformed or colliding source states block authoring rather than attempting salvage
 - inventories larger than six saved actions keep every item reachable for editing
+- repeated create/edit/reopen cycles do not leave stale overlay state or orphaned saved-action records
 - the typed-first baseline and input-capture behavior remain unchanged while authoring is added
 
 ## Related References

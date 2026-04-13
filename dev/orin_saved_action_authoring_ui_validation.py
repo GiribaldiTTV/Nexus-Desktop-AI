@@ -413,6 +413,80 @@ def _test_invalid_folder_target_shows_dialog_error_and_does_not_write():
         )
 
 
+def _test_invalid_application_target_shows_dialog_error_and_does_not_write():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        window = _make_window(source_path)
+        dialog_instances = []
+        window._saved_action_create_dialog_factory = (
+            lambda parent, submit_handler: _AutoSubmitCreateDialog(
+                None,
+                submit_handler,
+                lambda dialog: (
+                    dialog.type_combo.setCurrentText("Application"),
+                    dialog.title_input.setText("Open Debug Notepad"),
+                    dialog.aliases_input.setText("debug notepad"),
+                    dialog.target_input.setText("notepad.exe --help"),
+                ),
+                dialog_instances,
+            )
+        )
+
+        renderer_mod.DesktopRuntimeWindow.handle_create_custom_task_requested(window)
+
+        _assert(dialog_instances, "invalid application targets should still open the create dialog")
+        _assert(
+            "bare command like notepad.exe" in dialog_instances[0].status_label.text().casefold(),
+            "invalid application targets should surface a clear application-target format error",
+        )
+        _assert(
+            not source_path.exists(),
+            "invalid application targets should not write the saved-action source",
+        )
+        _assert(window._command_model.phase == "entry", "invalid application targets should preserve entry phase")
+        _assert(
+            renderer_mod.DesktopRuntimeWindow.overlay_needs_global_input_capture(window),
+            "invalid application targets should still restore fallback input capture readiness",
+        )
+
+
+def _test_invalid_file_target_shows_dialog_error_and_does_not_write():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        window = _make_window(source_path)
+        dialog_instances = []
+        window._saved_action_create_dialog_factory = (
+            lambda parent, submit_handler: _AutoSubmitCreateDialog(
+                None,
+                submit_handler,
+                lambda dialog: (
+                    dialog.type_combo.setCurrentText("File"),
+                    dialog.title_input.setText("Open Weekly Report"),
+                    dialog.aliases_input.setText("weekly report"),
+                    dialog.target_input.setText(r"C:\Reports\bad?.txt"),
+                ),
+                dialog_instances,
+            )
+        )
+
+        renderer_mod.DesktopRuntimeWindow.handle_create_custom_task_requested(window)
+
+        _assert(dialog_instances, "invalid file targets should still open the create dialog")
+        _assert(
+            "illegal windows path characters" in dialog_instances[0].status_label.text().casefold(),
+            "invalid file targets should surface a clear path-structure error inside the dialog",
+        )
+        _assert(
+            not source_path.exists(),
+            "invalid file targets should not write the saved-action source",
+        )
+        _assert(window._command_model.phase == "entry", "invalid file targets should preserve entry phase")
+        _assert(
+            renderer_mod.DesktopRuntimeWindow.overlay_needs_global_input_capture(window),
+            "invalid file targets should still restore fallback input capture readiness",
+        )
+
+
 def _test_unsafe_source_blocks_before_dialog_open():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
@@ -587,6 +661,8 @@ def main():
         ("successful create flow reloads inventory", _test_successful_create_flow_reloads_inventory_immediately),
         ("invalid input shows dialog error without write", _test_invalid_input_shows_dialog_error_and_does_not_write),
         ("invalid folder target shows dialog error without write", _test_invalid_folder_target_shows_dialog_error_and_does_not_write),
+        ("invalid application target shows dialog error without write", _test_invalid_application_target_shows_dialog_error_and_does_not_write),
+        ("invalid file target shows dialog error without write", _test_invalid_file_target_shows_dialog_error_and_does_not_write),
         ("unsafe source blocks before dialog open", _test_unsafe_source_blocks_before_dialog_open),
         ("successful edit flow reloads inventory", _test_successful_edit_flow_loads_existing_values_and_reloads_inventory),
         ("invalid edit input shows dialog error without write", _test_invalid_edit_input_shows_dialog_error_and_does_not_write),
