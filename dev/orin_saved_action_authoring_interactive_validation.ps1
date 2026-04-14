@@ -2,7 +2,10 @@ param(
     [int]$InteractiveRunHardTimeoutSeconds = 420,
     [int]$NoProgressTimeoutSeconds = 45,
     [int]$ScenarioTimeoutSeconds = 90,
-    [int]$TransitionTimeoutSeconds = 25
+    [int]$TransitionTimeoutSeconds = 25,
+    [int]$WatchdogStartupTimeoutSeconds = 5,
+    [string]$ForcedStallPoint = "",
+    [int]$ForcedStallSeconds = 120
 )
 
 Set-StrictMode -Version Latest
@@ -50,6 +53,9 @@ $RuntimeLogPath = Join-Path $ArtifactsDir "${Stamp}_runtime.log"
 $StepLogPath = Join-Path $ArtifactsDir "${Stamp}_interactive_steps.log"
 $SourceBackupPath = Join-Path $ArtifactsDir "${Stamp}_source_backup.bin"
 $WatchdogScriptPath = Join-Path $ArtifactsDir "${Stamp}_watchdog.ps1"
+$WatchdogStartSignalPath = Join-Path $ArtifactsDir "${Stamp}_watchdog_started.json"
+$WatchdogStdoutPath = Join-Path $ArtifactsDir "${Stamp}_watchdog_stdout.log"
+$WatchdogStderrPath = Join-Path $ArtifactsDir "${Stamp}_watchdog_stderr.log"
 $SourcePath = Join-Path $env:LOCALAPPDATA "Nexus Desktop AI\saved_actions.json"
 $DesktopUtsPath = "C:\Users\anden\OneDrive\Desktop\User Test Summary.txt"
 
@@ -72,6 +78,7 @@ $script:InteractiveRunHardTimeoutSeconds = $InteractiveRunHardTimeoutSeconds
 $script:NoProgressTimeoutSeconds = $NoProgressTimeoutSeconds
 $script:ScenarioTimeoutSeconds = $ScenarioTimeoutSeconds
 $script:TransitionTimeoutSeconds = $TransitionTimeoutSeconds
+$script:WatchdogStartupTimeoutSeconds = $WatchdogStartupTimeoutSeconds
 $script:RunStartedAt = Get-Date
 $script:RunDeadline = $script:RunStartedAt.AddSeconds($script:InteractiveRunHardTimeoutSeconds)
 $script:LastProgressAt = $script:RunStartedAt
@@ -189,6 +196,16 @@ function Add-CleanupNote {
     Write-StepLog -Stage "CLEANUP" -Message $Message
 }
 
+function Convert-ToProcessArgumentLiteral {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$Value
+    )
+
+    return '"' + ($Value -replace '"', '\"') + '"'
+}
+
 function Start-ValidationWatchdog {
     param(
         [int]$ParentPid,
@@ -198,10 +215,14 @@ function Start-ValidationWatchdog {
         [string]$SourcePath,
         [string]$SourceBackupPath,
         [string]$WatchdogScriptPath,
+        [string]$WatchdogStartSignalPath,
+        [string]$WatchdogStdoutPath,
+        [string]$WatchdogStderrPath,
         [bool]$SourceOriginallyPresent,
         [string]$ProbePath,
         [int]$RunHardTimeoutSeconds,
-        [int]$NoProgressTimeoutSeconds
+        [int]$NoProgressTimeoutSeconds,
+        [int]$StartupTimeoutSeconds
     )
 
     $watchdogScript = @'
@@ -213,6 +234,7 @@ param(
     [string]$SourcePath,
     [string]$SourceBackupPath,
     [string]$WatchdogScriptPath,
+    [string]$WatchdogStartSignalPath,
     [bool]$SourceOriginallyPresent,
     [string]$ProbePath,
     [int]$RunHardTimeoutSeconds,
@@ -231,143 +253,246 @@ function Add-WatchdogLine {
     }
 }
 
-while ($true) {
-    $parent = Get-Process -Id $ParentPid -ErrorAction SilentlyContinue
-    if (-not $parent) {
-        exit 0
-    }
-
-    $lastProgressUtc = $startUtc
+try {
     try {
-        if (Test-Path -LiteralPath $StepLogPath) {
-            $lastProgressUtc = (Get-Item -LiteralPath $StepLogPath).LastWriteTimeUtc
-        }
+        $startPayload = [ordered]@{
+            watchdog_pid = $PID
+            parent_pid = $ParentPid
+            started_utc = (Get-Date).ToUniversalTime().ToString('o')
+            run_hard_timeout_seconds = $RunHardTimeoutSeconds
+            no_progress_timeout_seconds = $NoProgressTimeoutSeconds
+        } | ConvertTo-Json -Depth 3
+        [System.IO.File]::WriteAllText($WatchdogStartSignalPath, $startPayload, [System.Text.UTF8Encoding]::new($false))
+        Add-WatchdogLine -Stage 'WATCHDOG' -Message "watchdog started pid=$PID run_timeout=${RunHardTimeoutSeconds}s no_progress_timeout=${NoProgressTimeoutSeconds}s"
     } catch {
     }
 
-    $nowUtc = [DateTime]::UtcNow
-    $timeoutReason = $null
-    if ($nowUtc -ge $runDeadlineUtc) {
-        $timeoutReason = "Full-run hard timeout exceeded before the interactive harness completed."
-    } elseif (($nowUtc - $lastProgressUtc).TotalSeconds -ge $NoProgressTimeoutSeconds) {
-        $timeoutReason = "No-progress watchdog exceeded while waiting for the next interactive validation step."
-    }
+    while ($true) {
+        $parent = Get-Process -Id $ParentPid -ErrorAction SilentlyContinue
+        if (-not $parent) {
+            exit 0
+        }
 
-    if ($timeoutReason) {
-        $lastProgressPoint = ''
+        $lastProgressUtc = $startUtc
         try {
             if (Test-Path -LiteralPath $StepLogPath) {
-                $lastProgressPoint = @((Get-Content -LiteralPath $StepLogPath) | Select-Object -Last 1) -join ''
+                $lastProgressUtc = (Get-Item -LiteralPath $StepLogPath).LastWriteTimeUtc
             }
         } catch {
         }
 
-        Add-WatchdogLine -Stage 'WATCHDOG' -Message "$timeoutReason Last confirmed progress: $lastProgressPoint"
-
-        try {
-            if ($SourceOriginallyPresent -and (Test-Path -LiteralPath $SourceBackupPath)) {
-                [System.IO.File]::WriteAllBytes($SourcePath, [System.IO.File]::ReadAllBytes($SourceBackupPath))
-                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog restored saved_actions.json from backup'
-            } elseif ((-not $SourceOriginallyPresent) -and (Test-Path -LiteralPath $SourcePath)) {
-                Remove-Item -LiteralPath $SourcePath -Force -ErrorAction SilentlyContinue
-                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog removed test-created saved_actions.json'
-            }
-        } catch {
-            Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog could not restore saved_actions.json cleanly'
+        $nowUtc = [DateTime]::UtcNow
+        $timeoutReason = $null
+        if ($nowUtc -ge $runDeadlineUtc) {
+            $timeoutReason = "Full-run hard timeout exceeded before the interactive harness completed."
+        } elseif (($nowUtc - $lastProgressUtc).TotalSeconds -ge $NoProgressTimeoutSeconds) {
+            $timeoutReason = "No-progress watchdog exceeded while waiting for the next interactive validation step."
         }
 
-        try {
-            $runtimeTargets = Get-CimInstance Win32_Process | Where-Object {
-                ($_.Name -like 'python*.exe' -or $_.Name -eq 'python.exe') -and
-                $_.CommandLine -and
-                $_.CommandLine -like '*orin_saved_action_authoring_interactive_runtime.py*' -and
-                $_.CommandLine -like "*$RuntimeLogPath*"
-            }
-            foreach ($target in $runtimeTargets) {
-                Stop-Process -Id $target.ProcessId -Force -ErrorAction SilentlyContinue
-            }
-            if ($runtimeTargets) {
-                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog stopped interactive runtime helper processes'
-            }
-        } catch {
-        }
-
-        try {
-            if ($ProbePath) {
-                $probeLeaf = [System.IO.Path]::GetFileName($ProbePath)
-                Get-Process notepad -ErrorAction SilentlyContinue |
-                    Where-Object { $_.MainWindowTitle -like "*$probeLeaf*" } |
-                    ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
-                if (Test-Path -LiteralPath $ProbePath) {
-                    Remove-Item -LiteralPath $ProbePath -Force -ErrorAction SilentlyContinue
+        if ($timeoutReason) {
+            $lastProgressPoint = ''
+            try {
+                if (Test-Path -LiteralPath $StepLogPath) {
+                    $lastProgressPoint = @((Get-Content -LiteralPath $StepLogPath) | Select-Object -Last 1) -join ''
                 }
-                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog closed and removed the validation Notepad probe'
+            } catch {
             }
-        } catch {
-        }
 
-        try {
-            if (Test-Path -LiteralPath $SourceBackupPath) {
-                Remove-Item -LiteralPath $SourceBackupPath -Force -ErrorAction SilentlyContinue
+            Add-WatchdogLine -Stage 'WATCHDOG' -Message "$timeoutReason Last confirmed progress: $lastProgressPoint"
+
+            try {
+                if ($SourceOriginallyPresent -and (Test-Path -LiteralPath $SourceBackupPath)) {
+                    [System.IO.File]::WriteAllBytes($SourcePath, [System.IO.File]::ReadAllBytes($SourceBackupPath))
+                    Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog restored saved_actions.json from backup'
+                } elseif ((-not $SourceOriginallyPresent) -and (Test-Path -LiteralPath $SourcePath)) {
+                    Remove-Item -LiteralPath $SourcePath -Force -ErrorAction SilentlyContinue
+                    Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog removed test-created saved_actions.json'
+                }
+            } catch {
+                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog could not restore saved_actions.json cleanly'
             }
-        } catch {
-        }
 
-        try {
-            if (Test-Path -LiteralPath $WatchdogScriptPath) {
-                Remove-Item -LiteralPath $WatchdogScriptPath -Force -ErrorAction SilentlyContinue
+            try {
+                $runtimeTargets = Get-CimInstance Win32_Process | Where-Object {
+                    ($_.Name -like 'python*.exe' -or $_.Name -eq 'python.exe') -and
+                    $_.CommandLine -and
+                    $_.CommandLine -like '*orin_saved_action_authoring_interactive_runtime.py*' -and
+                    $_.CommandLine -like "*$RuntimeLogPath*"
+                }
+                foreach ($target in $runtimeTargets) {
+                    Stop-Process -Id $target.ProcessId -Force -ErrorAction SilentlyContinue
+                }
+                if ($runtimeTargets) {
+                    Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog stopped interactive runtime helper processes'
+                }
+            } catch {
             }
-        } catch {
+
+            try {
+                if ($ProbePath) {
+                    $probeLeaf = [System.IO.Path]::GetFileName($ProbePath)
+                    Get-Process notepad -ErrorAction SilentlyContinue |
+                        Where-Object { $_.MainWindowTitle -like "*$probeLeaf*" } |
+                        ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+                    if (Test-Path -LiteralPath $ProbePath) {
+                        Remove-Item -LiteralPath $ProbePath -Force -ErrorAction SilentlyContinue
+                    }
+                    Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog closed and removed the validation Notepad probe'
+                }
+            } catch {
+            }
+
+            try {
+                if (Test-Path -LiteralPath $SourceBackupPath) {
+                    Remove-Item -LiteralPath $SourceBackupPath -Force -ErrorAction SilentlyContinue
+                }
+            } catch {
+            }
+
+            try {
+                if (Test-Path -LiteralPath $WatchdogScriptPath) {
+                    Remove-Item -LiteralPath $WatchdogScriptPath -Force -ErrorAction SilentlyContinue
+                }
+            } catch {
+            }
+
+            try {
+                $reportLines = @(
+                    'FB-036 SAVED-ACTION AUTHORING INTERACTIVE VALIDATION',
+                    "Report: $ReportPath",
+                    "Timestamp: $((Get-Date).ToString('o'))",
+                    '',
+                    'Timeout Budgets:',
+                    "  full_run_hard_timeout_seconds: $RunHardTimeoutSeconds",
+                    "  no_progress_timeout_seconds: $NoProgressTimeoutSeconds",
+                    "  last_confirmed_progress_point: $lastProgressPoint",
+                    "  timeout_abort_reason: $timeoutReason",
+                    '',
+                    'Notes:',
+                    "  - Watchdog terminated the stalled interactive validation run.",
+                    "  - $timeoutReason",
+                    "  - Last confirmed progress: $lastProgressPoint"
+                )
+                [System.IO.File]::WriteAllText($ReportPath, ($reportLines -join "`r`n"), [System.Text.UTF8Encoding]::new($false))
+            } catch {
+            }
+
+            try {
+                & cmd.exe /c "taskkill /PID $ParentPid /T /F >nul 2>nul" | Out-Null
+            } catch {
+            }
+            Stop-Process -Id $ParentPid -Force -ErrorAction SilentlyContinue
+            exit 0
         }
 
-        try {
-            $reportLines = @(
-                'FB-036 SAVED-ACTION AUTHORING INTERACTIVE VALIDATION',
-                "Report: $ReportPath",
-                "Timestamp: $((Get-Date).ToString('o'))",
-                '',
-                'Timeout Budgets:',
-                "  full_run_hard_timeout_seconds: $RunHardTimeoutSeconds",
-                "  no_progress_timeout_seconds: $NoProgressTimeoutSeconds",
-                "  last_confirmed_progress_point: $lastProgressPoint",
-                "  timeout_abort_reason: $timeoutReason",
-                '',
-                'Notes:',
-                "  - Watchdog terminated the stalled interactive validation run.",
-                "  - $timeoutReason",
-                "  - Last confirmed progress: $lastProgressPoint"
-            )
-            [System.IO.File]::WriteAllText($ReportPath, ($reportLines -join "`r`n"), [System.Text.UTF8Encoding]::new($false))
-        } catch {
-        }
-
-        Stop-Process -Id $ParentPid -Force -ErrorAction SilentlyContinue
-        exit 0
+        Start-Sleep -Seconds 2
     }
-
-    Start-Sleep -Seconds 2
+} catch {
+    try {
+        Add-WatchdogLine -Stage 'WATCHDOG' -Message ("watchdog startup or monitoring failure: " + $_.Exception.Message)
+    } catch {
+    }
+    throw
 }
 '@
 
     [System.IO.File]::WriteAllText($WatchdogScriptPath, $watchdogScript, [System.Text.UTF8Encoding]::new($false))
-    $argumentList = @(
-        "-NoProfile",
-        "-ExecutionPolicy", "Bypass",
-        "-File", $WatchdogScriptPath,
-        "-ParentPid", "$ParentPid",
-        "-StepLogPath", $StepLogPath,
-        "-ReportPath", $ReportPath,
-        "-RuntimeLogPath", $RuntimeLogPath,
-        "-SourcePath", $SourcePath,
-        "-SourceBackupPath", $SourceBackupPath,
-        "-WatchdogScriptPath", $WatchdogScriptPath,
-        "-SourceOriginallyPresent", $SourceOriginallyPresent,
-        "-ProbePath", $ProbePath,
-        "-RunHardTimeoutSeconds", "$RunHardTimeoutSeconds",
-        "-NoProgressTimeoutSeconds", "$NoProgressTimeoutSeconds"
+    $process = Start-Job -Name "fb036_watchdog_$Stamp" -ScriptBlock {
+        param(
+            [string]$ScriptPath,
+            [int]$ParentPid,
+            [string]$StepLogPath,
+            [string]$ReportPath,
+            [string]$RuntimeLogPath,
+            [string]$SourcePath,
+            [string]$SourceBackupPath,
+            [string]$WatchdogScriptPath,
+            [string]$WatchdogStartSignalPath,
+            [bool]$SourceOriginallyPresent,
+            [string]$ProbePath,
+            [int]$RunHardTimeoutSeconds,
+            [int]$NoProgressTimeoutSeconds
+        )
+
+        & $ScriptPath `
+            -ParentPid $ParentPid `
+            -StepLogPath $StepLogPath `
+            -ReportPath $ReportPath `
+            -RuntimeLogPath $RuntimeLogPath `
+            -SourcePath $SourcePath `
+            -SourceBackupPath $SourceBackupPath `
+            -WatchdogScriptPath $WatchdogScriptPath `
+            -WatchdogStartSignalPath $WatchdogStartSignalPath `
+            -SourceOriginallyPresent:$SourceOriginallyPresent `
+            -ProbePath $ProbePath `
+            -RunHardTimeoutSeconds $RunHardTimeoutSeconds `
+            -NoProgressTimeoutSeconds $NoProgressTimeoutSeconds
+    } -ArgumentList @(
+        $WatchdogScriptPath,
+        $ParentPid,
+        $StepLogPath,
+        $ReportPath,
+        $RuntimeLogPath,
+        $SourcePath,
+        $SourceBackupPath,
+        $WatchdogScriptPath,
+        $WatchdogStartSignalPath,
+        $SourceOriginallyPresent,
+        $ProbePath,
+        $RunHardTimeoutSeconds,
+        $NoProgressTimeoutSeconds
     )
 
-    return Start-Process -FilePath "powershell.exe" -ArgumentList $argumentList -WindowStyle Hidden -PassThru
+    $startupDeadline = (Get-Date).AddSeconds($StartupTimeoutSeconds)
+    while ((Get-Date) -lt $startupDeadline) {
+        if (Test-Path -LiteralPath $WatchdogStartSignalPath) {
+            Write-StepLog -Stage "WATCHDOG" -Message "watchdog startup handshake received from job id=$($process.Id)"
+            return $process
+        }
+
+        if ($process.State -in @("Completed", "Failed", "Stopped")) {
+            break
+        }
+
+        Start-Sleep -Milliseconds 200
+    }
+
+    $jobState = $process.State
+    $jobReason = ""
+    try {
+        $jobReason = [string]$process.ChildJobs[0].JobStateInfo.Reason
+    } catch {
+    }
+    $stdoutSummary = ""
+    try {
+        $stdoutContent = (Receive-Job -Job $process -Keep -ErrorAction SilentlyContinue | Out-String)
+        if (-not [string]::IsNullOrWhiteSpace($stdoutContent)) {
+            [System.IO.File]::WriteAllText($WatchdogStdoutPath, $stdoutContent, [System.Text.UTF8Encoding]::new($false))
+            $stdoutSummary = $stdoutContent.Trim()
+        }
+    } catch {
+    }
+    $stderrSummary = ""
+    try {
+        $stderrEntries = @($process.ChildJobs | ForEach-Object { $_.Error } | Where-Object { $_ })
+        if ($stderrEntries.Count -gt 0) {
+            $stderrContent = (($stderrEntries | ForEach-Object { $_.ToString() }) -join [Environment]::NewLine).Trim()
+            if (-not [string]::IsNullOrWhiteSpace($stderrContent)) {
+                [System.IO.File]::WriteAllText($WatchdogStderrPath, $stderrContent, [System.Text.UTF8Encoding]::new($false))
+                $stderrSummary = $stderrContent
+            }
+        }
+    } catch {
+    }
+    if ($process -and $process.State -notin @("Completed", "Failed", "Stopped")) {
+        try {
+            Stop-Job -Job $process -ErrorAction SilentlyContinue | Out-Null
+            Remove-Job -Job $process -Force -ErrorAction SilentlyContinue | Out-Null
+        } catch {
+        }
+    }
+    throw ("Interactive validation watchdog failed to confirm startup within ${StartupTimeoutSeconds}s. " +
+        "job_state='$jobState' reason='$jobReason' stdout='$stdoutSummary' stderr='$stderrSummary'")
 }
 
 function Write-StepLog {
@@ -440,6 +565,23 @@ function Wait-Until {
 
     Assert-ValidationBudget -Description $Description
     throw "Timed out waiting for $Description."
+}
+
+function Invoke-ForcedValidationStallIfRequested {
+    param(
+        [string]$Point
+    )
+
+    if ([string]::IsNullOrWhiteSpace($ForcedStallPoint)) {
+        return
+    }
+
+    if ($ForcedStallPoint -ine $Point) {
+        return
+    }
+
+    Write-StepLog -Stage "SELFTEST" -Message "forcing watchdog stall at '$Point' for ${ForcedStallSeconds}s"
+    Start-Sleep -Seconds $ForcedStallSeconds
 }
 
 function Get-RuntimeLogLines {
@@ -2423,6 +2565,34 @@ function Stop-ProcessQuietly {
     }
 }
 
+function Stop-WatchdogMonitorQuietly {
+    param(
+        $Monitor
+    )
+
+    if (-not $Monitor) {
+        return
+    }
+
+    if ($Monitor -is [System.Diagnostics.Process]) {
+        Stop-ProcessQuietly -Process $Monitor
+        return
+    }
+
+    if ($Monitor -is [System.Management.Automation.Job]) {
+        try {
+            if ($Monitor.State -notin @("Completed", "Failed", "Stopped")) {
+                Stop-Job -Job $Monitor -ErrorAction SilentlyContinue | Out-Null
+            }
+        } catch {
+        }
+        try {
+            Remove-Job -Job $Monitor -Force -ErrorAction SilentlyContinue | Out-Null
+        } catch {
+        }
+    }
+}
+
 function Start-NotepadProbe {
     $probeFile = Join-Path $ArtifactsDir "${Stamp}_notepad_probe.txt"
     Write-Utf8NoBomFile -Path $probeFile -Content ""
@@ -3025,10 +3195,14 @@ try {
         -SourcePath $SourcePath `
         -SourceBackupPath $SourceBackupPath `
         -WatchdogScriptPath $WatchdogScriptPath `
+        -WatchdogStartSignalPath $WatchdogStartSignalPath `
+        -WatchdogStdoutPath $WatchdogStdoutPath `
+        -WatchdogStderrPath $WatchdogStderrPath `
         -SourceOriginallyPresent $originalSourceExists `
         -ProbePath $script:notepadProbe.path `
         -RunHardTimeoutSeconds $script:InteractiveRunHardTimeoutSeconds `
-        -NoProgressTimeoutSeconds $script:NoProgressTimeoutSeconds
+        -NoProgressTimeoutSeconds $script:NoProgressTimeoutSeconds `
+        -StartupTimeoutSeconds $script:WatchdogStartupTimeoutSeconds
     Add-Note "Started interactive validation watchdog with full-run and no-progress enforcement."
 
     New-HealthySource
@@ -3038,6 +3212,7 @@ try {
     $overlay = Open-OverlayWithRuntimeRestartFallback
     Add-ScenarioResult -Name "overlay_open" -Passed $true -Details "Overlay opened through the real hotkey and the runtime log recorded COMMAND_OVERLAY_OPENED."
     Clear-ScenarioBudget -Name "overlay_open"
+    Invoke-ForcedValidationStallIfRequested -Point "after_overlay_open"
 
     Enter-ScenarioBudget -Name "valid_create"
     $overlay = Run-Create-Flow -Overlay $overlay
@@ -3134,7 +3309,7 @@ finally {
 
     if ($script:watchdogProcess) {
         try {
-            Stop-ProcessQuietly -Process $script:watchdogProcess
+            Stop-WatchdogMonitorQuietly -Monitor $script:watchdogProcess
             Add-CleanupNote -Message "stopped the interactive validation watchdog"
         } catch {
         }
@@ -3180,6 +3355,33 @@ finally {
         }
     } catch {
         Add-Note "Cleanup could not delete the watchdog helper script cleanly."
+    }
+
+    try {
+        if (Test-Path -LiteralPath $WatchdogStartSignalPath) {
+            Remove-Item -LiteralPath $WatchdogStartSignalPath -Force
+            Add-CleanupNote -Message "deleted the watchdog startup signal artifact"
+        }
+    } catch {
+        Add-Note "Cleanup could not delete the watchdog startup signal artifact cleanly."
+    }
+
+    try {
+        if (Test-Path -LiteralPath $WatchdogStdoutPath) {
+            Remove-Item -LiteralPath $WatchdogStdoutPath -Force
+            Add-CleanupNote -Message "deleted the watchdog stdout artifact"
+        }
+    } catch {
+        Add-Note "Cleanup could not delete the watchdog stdout artifact cleanly."
+    }
+
+    try {
+        if (Test-Path -LiteralPath $WatchdogStderrPath) {
+            Remove-Item -LiteralPath $WatchdogStderrPath -Force
+            Add-CleanupNote -Message "deleted the watchdog stderr artifact"
+        }
+    } catch {
+        Add-Note "Cleanup could not delete the watchdog stderr artifact cleanly."
     }
 }
 
