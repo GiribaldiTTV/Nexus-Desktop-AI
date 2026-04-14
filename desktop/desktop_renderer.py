@@ -1,4 +1,5 @@
 import os
+import re
 import ctypes
 import datetime
 import time
@@ -239,11 +240,53 @@ class SavedActionCreateDialog(QDialog):
         ("Website URL", "url"),
     )
 
+    TITLE_GUIDANCE = (
+        "The main name people will type or click."
+    )
+
+    ALIASES_GUIDANCE = (
+        "Optional alternate phrases, separated by commas."
+    )
+
+    ALIASES_EMPTY_SUGGESTION = "Suggestions appear after you add a title."
+
     TARGET_GUIDANCE = {
-        "app": "Enter an executable path or launchable command, for example notepad.exe.",
-        "folder": "Enter the folder path to open.",
-        "file": "Enter the file path to open.",
-        "url": "Enter an absolute http or https URL.",
+        "app": (
+            "What Nexus launches. Use notepad.exe or a full app path."
+        ),
+        "folder": (
+            r"What Nexus opens. Use a full folder path like C:\Reports."
+        ),
+        "file": (
+            r"What Nexus opens. Use a full file path like C:\Reports\weekly.txt."
+        ),
+        "url": (
+            "What Nexus opens in the browser. Use the full address."
+        ),
+    }
+
+    TARGET_EXAMPLES_TEXT = (
+        "Application: notepad.exe\n"
+        r"Application path: C:\Program Files\Notepad++\notepad++.exe" "\n"
+        r"Folder: C:\Reports" "\n"
+        r"File: C:\Reports\weekly.txt" "\n"
+        "Website URL: https://example.com/docs"
+    )
+
+    TARGET_ERROR_GUIDANCE = {
+        "app": (
+            "Application tasks only accept a bare command like notepad.exe "
+            "or an absolute Windows executable path."
+        ),
+        "folder": (
+            "Folder tasks need an absolute Windows path to the folder you want to open."
+        ),
+        "file": (
+            "File tasks need an absolute Windows path that includes the final file name."
+        ),
+        "url": (
+            "Website tasks need the full address, including http:// or https://."
+        ),
     }
 
     def __init__(
@@ -253,7 +296,9 @@ class SavedActionCreateDialog(QDialog):
         *,
         dialog_title: str = "Create Custom Task",
         heading_text: str = "Create Custom Task",
-        hint_text: str = "Choose a task type, then provide the title, optional aliases, and destination.",
+        hint_text: str = (
+            "Choose a task type, then fill in the fields below."
+        ),
         submit_button_text: str = "Create",
         initial_draft: SavedActionDraft | None = None,
         lifecycle_callback=None,
@@ -298,30 +343,63 @@ class SavedActionCreateDialog(QDialog):
         self.title_input = QLineEdit(self)
         self.title_input.setObjectName("savedActionCreateTitleInput")
         self.title_input.setPlaceholderText("Open Reports")
+        self.title_input.textChanged.connect(self._update_alias_suggestions)
         form.addWidget(self.title_input, 1, 1)
+        self.title_guidance_label = self._make_field_guidance_label(
+            self.TITLE_GUIDANCE,
+            "savedActionCreateTitleGuidance",
+        )
+        form.addWidget(self.title_guidance_label, 2, 1)
 
-        form.addWidget(self._make_form_label("Aliases"), 2, 0)
+        form.addWidget(self._make_form_label("Aliases"), 3, 0)
         self.aliases_input = QLineEdit(self)
         self.aliases_input.setObjectName("savedActionCreateAliasesInput")
         self.aliases_input.setPlaceholderText("Optional, comma-separated")
-        form.addWidget(self.aliases_input, 2, 1)
+        form.addWidget(self.aliases_input, 3, 1)
+        self.aliases_guidance_label = self._make_field_guidance_label(
+            self.ALIASES_GUIDANCE,
+            "savedActionCreateAliasesGuidance",
+        )
+        form.addWidget(self.aliases_guidance_label, 4, 1)
+        self.aliases_suggestion_label = self._make_field_guidance_label(
+            "",
+            "savedActionCreateAliasesSuggestion",
+        )
+        form.addWidget(self.aliases_suggestion_label, 5, 1)
 
-        form.addWidget(self._make_form_label("Target"), 3, 0)
+        form.addWidget(self._make_form_label("Target"), 6, 0)
         self.target_input = QLineEdit(self)
         self.target_input.setObjectName("savedActionCreateTargetInput")
-        form.addWidget(self.target_input, 3, 1)
+        form.addWidget(self.target_input, 6, 1)
+        self.target_guidance_label = self._make_field_guidance_label(
+            "",
+            "savedActionCreateTargetGuidance",
+        )
+        form.addWidget(self.target_guidance_label, 7, 1)
 
         layout.addLayout(form)
-
-        self.target_guidance_label = QLabel("", self)
-        self.target_guidance_label.setObjectName("savedActionCreateTargetGuidance")
-        self.target_guidance_label.setWordWrap(True)
-        layout.addWidget(self.target_guidance_label)
 
         self.status_label = QLabel("", self)
         self.status_label.setObjectName("savedActionCreateStatus")
         self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
+
+        self.target_examples_box = QFrame(self)
+        self.target_examples_box.setObjectName("savedActionCreateTargetExamplesBox")
+        target_examples_layout = QVBoxLayout(self.target_examples_box)
+        target_examples_layout.setContentsMargins(12, 10, 12, 10)
+        target_examples_layout.setSpacing(4)
+
+        self.target_examples_title = QLabel("Launch / open string examples", self.target_examples_box)
+        self.target_examples_title.setObjectName("savedActionCreateTargetExamplesTitle")
+        target_examples_layout.addWidget(self.target_examples_title)
+
+        self.target_examples_label = QLabel(self.TARGET_EXAMPLES_TEXT, self.target_examples_box)
+        self.target_examples_label.setObjectName("savedActionCreateTargetExamples")
+        self.target_examples_label.setWordWrap(True)
+        target_examples_layout.addWidget(self.target_examples_label)
+
+        layout.addWidget(self.target_examples_box)
 
         button_row = QHBoxLayout()
         button_row.setContentsMargins(0, 6, 0, 0)
@@ -348,9 +426,24 @@ class SavedActionCreateDialog(QDialog):
                 font-size: 22px;
                 font-weight: 600;
             }
-            #savedActionCreateHint, #savedActionCreateTargetGuidance {
+            #savedActionCreateHint, QLabel[createRole="guidance"] {
                 color: rgba(172, 215, 235, 0.82);
                 font-size: 13px;
+            }
+            #savedActionCreateTargetExamplesBox {
+                border-radius: 12px;
+                border: 1px solid rgba(118, 226, 255, 0.16);
+                background: rgba(6, 18, 30, 168);
+            }
+            #savedActionCreateTargetExamplesTitle {
+                color: rgba(118, 226, 255, 0.86);
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 0.05em;
+            }
+            #savedActionCreateTargetExamples {
+                color: rgba(196, 230, 245, 0.90);
+                font-size: 12px;
             }
             #savedActionCreateStatus {
                 min-height: 22px;
@@ -385,6 +478,7 @@ class SavedActionCreateDialog(QDialog):
             """
         )
 
+        self._update_alias_suggestions()
         self._update_target_guidance()
         if initial_draft is not None:
             self.load_draft(initial_draft)
@@ -419,8 +513,57 @@ class SavedActionCreateDialog(QDialog):
         label.setProperty("createRole", "label")
         return label
 
+    def _make_field_guidance_label(self, text: str, object_name: str) -> QLabel:
+        label = QLabel(text, self)
+        label.setObjectName(object_name)
+        label.setProperty("createRole", "guidance")
+        label.setWordWrap(True)
+        return label
+
     def current_target_kind(self) -> str:
         return str(self.type_combo.currentData() or "app")
+
+    def _build_alias_suggestions(self, title: str) -> tuple[str, ...]:
+        normalized_title = re.sub(r"\s+", " ", (title or "").strip())
+        if not normalized_title:
+            return ()
+
+        lower_title = normalized_title.casefold()
+        core_title = normalized_title
+        for prefix in ("open ", "show ", "launch ", "start ", "run ", "view "):
+            if lower_title.startswith(prefix):
+                core_title = normalized_title[len(prefix):].strip()
+                break
+
+        suggestions: list[str] = []
+
+        def add_suggestion(value: str):
+            normalized_value = re.sub(r"\s+", " ", value.strip())
+            if not normalized_value:
+                return
+            if normalized_value.casefold() == lower_title:
+                return
+            if any(existing.casefold() == normalized_value.casefold() for existing in suggestions):
+                return
+            suggestions.append(normalized_value)
+
+        if core_title and core_title.casefold() != lower_title:
+            add_suggestion(core_title)
+            add_suggestion(f"show {core_title}")
+            add_suggestion(f"view {core_title}")
+        else:
+            add_suggestion(f"open {normalized_title}")
+            add_suggestion(f"show {normalized_title}")
+            add_suggestion(f"view {normalized_title}")
+
+        return tuple(suggestions[:3])
+
+    def _update_alias_suggestions(self):
+        suggestions = self._build_alias_suggestions(self.title_input.text())
+        if not suggestions:
+            self.aliases_suggestion_label.setText(self.ALIASES_EMPTY_SUGGESTION)
+            return
+        self.aliases_suggestion_label.setText(f"Suggested aliases: {' | '.join(suggestions)}")
 
     def _update_target_guidance(self):
         target_kind = self.current_target_kind()
@@ -455,10 +598,71 @@ class SavedActionCreateDialog(QDialog):
         self.title_input.setText(draft.title)
         self.aliases_input.setText(", ".join(draft.aliases))
         self.target_input.setText(draft.target)
+        self._update_alias_suggestions()
         self._update_target_guidance()
 
+    def _format_error_text(self, text: str) -> str:
+        message = (text or "").strip()
+        if not message:
+            return ""
+
+        lower_message = message.casefold()
+        if "saved actions are unavailable" in lower_message:
+            return (
+                "Custom tasks are blocked until the saved-actions source is repaired. "
+                f"{message}"
+            )
+        if "collides with" in lower_message:
+            return (
+                "Title or aliases: pick wording that does not overlap with a built-in action "
+                "or another custom task. "
+                f"{message}"
+            )
+        if "could not be found for editing" in lower_message:
+            return (
+                "This task could not be reopened for editing. "
+                "Refresh the Created Tasks window and try again. "
+                f"{message}"
+            )
+        if "aliases" in lower_message:
+            return (
+                "Aliases: aliases are optional alternate phrases for the same task. "
+                "Keep each one distinct from the title and from the other aliases. "
+                f"{message}"
+            )
+        if "title" in lower_message:
+            return (
+                "Title: this is the main name people will type or click to run the task. "
+                "Choose a short, distinct action name. "
+                f"{message}"
+            )
+        if "target kind" in lower_message:
+            return (
+                "Task type: choose the kind that matches where this task should go, "
+                "then follow the target guidance for that type. "
+                f"{message}"
+            )
+        if (
+            "target" in lower_message
+            or "path" in lower_message
+            or "command" in lower_message
+            or "http" in lower_message
+            or "url" in lower_message
+        ):
+            return (
+                "Target: "
+                f"{self.TARGET_ERROR_GUIDANCE.get(self.current_target_kind(), 'Check where this task should open or launch.')} "
+                f"{message}"
+            )
+        if "could not be saved" in lower_message and "source" in lower_message:
+            return (
+                "Custom task changes were blocked before write so the existing source stays safe. "
+                f"{message}"
+            )
+        return message
+
     def set_error_text(self, text: str):
-        self.status_label.setText(text or "")
+        self.status_label.setText(self._format_error_text(text))
 
     def _handle_create_clicked(self):
         if self._submit_handler is None:
@@ -490,7 +694,9 @@ class SavedActionEditDialog(SavedActionCreateDialog):
             submit_handler,
             dialog_title="Edit Custom Task",
             heading_text="Edit Custom Task",
-            hint_text="Update the task type, title, optional aliases, and destination for this custom task.",
+            hint_text=(
+                "Update the fields below for this custom task."
+            ),
             submit_button_text="Save",
             initial_draft=initial_draft,
             lifecycle_callback=lifecycle_callback,

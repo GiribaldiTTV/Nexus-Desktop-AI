@@ -392,6 +392,56 @@ def _test_type_first_dialog_maps_all_supported_kinds():
         _assert(draft.aliases == ("alpha", "beta"), "type-first dialog should parse comma-separated aliases")
 
 
+def _test_create_dialog_surfaces_field_level_guidance():
+    _app()
+    dialog = renderer_mod.SavedActionCreateDialog()
+
+    _assert(
+        "main name" in dialog.title_guidance_label.text().casefold(),
+        "create dialog should explain what the title field does",
+    )
+    _assert(
+        "alternate phrases" in dialog.aliases_guidance_label.text().casefold(),
+        "create dialog should explain what aliases do",
+    )
+    _assert(
+        "suggestions appear after you add a title" in dialog.aliases_suggestion_label.text().casefold(),
+        "create dialog should explain that alias suggestions follow the title",
+    )
+    _assert(
+        "what nexus launches" in dialog.target_guidance_label.text().casefold(),
+        "application target guidance should explain what the target launches",
+    )
+    _assert(
+        "launch / open string examples" in dialog.target_examples_title.text().casefold(),
+        "create dialog should show a boxed examples section below the fields",
+    )
+    _assert(
+        "application: notepad.exe" in dialog.target_examples_label.text().casefold()
+        and "website url: https://example.com/docs" in dialog.target_examples_label.text().casefold(),
+        "target examples box should show all supported launch/open string formats",
+    )
+
+    dialog.title_input.setText("Open Reports")
+    _assert(
+        "reports" in dialog.aliases_suggestion_label.text().casefold()
+        and "show reports" in dialog.aliases_suggestion_label.text().casefold(),
+        "alias suggestions should update from the title without overwriting the aliases field",
+    )
+
+    dialog.type_combo.setCurrentText("Folder")
+    _assert(
+        "full folder path" in dialog.target_guidance_label.text().casefold(),
+        "folder guidance should explain that the target points to a folder",
+    )
+
+    dialog.type_combo.setCurrentText("Website URL")
+    _assert(
+        "full address" in dialog.target_guidance_label.text().casefold(),
+        "website guidance should explain that the target needs a full URL",
+    )
+
+
 def _test_successful_create_flow_reloads_inventory_immediately():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
@@ -450,8 +500,8 @@ def _test_invalid_input_shows_dialog_error_and_does_not_write():
 
         _assert(dialog_instances, "invalid input path should still open the create dialog")
         _assert(
-            "title" in dialog_instances[0].status_label.text().casefold(),
-            "invalid input should surface a clear validation error inside the dialog",
+            "main name people will type or click" in dialog_instances[0].status_label.text().casefold(),
+            "invalid input should explain what the title field is for, not just that it failed",
         )
         _assert(
             not source_path.exists(),
@@ -491,6 +541,10 @@ def _test_invalid_folder_target_shows_dialog_error_and_does_not_write():
             "invalid folder targets should surface a clear path-structure error inside the dialog",
         )
         _assert(
+            "folder tasks need an absolute windows path" in dialog_instances[0].status_label.text().casefold(),
+            "invalid folder targets should explain why the target failed, not only the raw validation message",
+        )
+        _assert(
             not source_path.exists(),
             "invalid folder targets should not write the saved-action source",
         )
@@ -528,6 +582,10 @@ def _test_invalid_application_target_shows_dialog_error_and_does_not_write():
             "invalid application targets should surface a clear application-target format error",
         )
         _assert(
+            "application tasks only accept a bare command" in dialog_instances[0].status_label.text().casefold(),
+            "invalid application targets should explain what a valid application target looks like",
+        )
+        _assert(
             not source_path.exists(),
             "invalid application targets should not write the saved-action source",
         )
@@ -563,6 +621,10 @@ def _test_invalid_file_target_shows_dialog_error_and_does_not_write():
         _assert(
             "illegal windows path characters" in dialog_instances[0].status_label.text().casefold(),
             "invalid file targets should surface a clear path-structure error inside the dialog",
+        )
+        _assert(
+            "file tasks need an absolute windows path" in dialog_instances[0].status_label.text().casefold(),
+            "invalid file targets should explain what a valid file target looks like",
         )
         _assert(
             not source_path.exists(),
@@ -779,6 +841,10 @@ def _test_invalid_edit_input_shows_dialog_error_and_does_not_write():
             "invalid edit input should surface a clear dialog error",
         )
         _assert(
+            "website tasks need the full address" in dialog_instances[0].status_label.text().casefold(),
+            "invalid edit input should explain how the target should be fixed",
+        )
+        _assert(
             source_path.read_text(encoding="utf-8") == original_text,
             "invalid edit input should not write the saved-action source",
         )
@@ -820,6 +886,7 @@ def main():
         ("Created Tasks dialog exposes edit trigger", _test_created_tasks_dialog_exposes_edit_trigger_for_saved_inventory_items),
         ("Created Tasks dialog keeps edit reachability beyond six items", _test_created_tasks_dialog_edit_reachability_extends_beyond_six_items),
         ("type-first dialog maps supported kinds", _test_type_first_dialog_maps_all_supported_kinds),
+        ("create dialog surfaces field-level guidance", _test_create_dialog_surfaces_field_level_guidance),
         ("successful create flow reloads inventory", _test_successful_create_flow_reloads_inventory_immediately),
         ("invalid input shows dialog error without write", _test_invalid_input_shows_dialog_error_and_does_not_write),
         ("invalid folder target shows dialog error without write", _test_invalid_folder_target_shows_dialog_error_and_does_not_write),
