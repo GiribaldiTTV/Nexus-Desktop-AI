@@ -146,6 +146,19 @@ Every revision must include:
 - runtime log review
 - crash log review when present
 - artifact cleanup verification when relevant
+- session cleanup verification when relevant
+
+After any validation run, test pass, runtime exercise, harness execution, or other operational step, Codex must also clean up what it created or opened during that session unless there is a deliberate reason to preserve it.
+
+That includes, when relevant:
+
+- closing programs, dialogs, or windows Codex opened
+- stopping helper processes, harnesses, validators, or temporary runtimes Codex started
+- deleting temporary files, temporary documents, scratch outputs, or probe files Codex created only for the pass
+- restoring source files, settings, or local state Codex intentionally modified for the test
+- confirming the machine or workspace is not left in a noisier or more invasive state than necessary for the user
+
+If something created during the pass must remain on disk or stay open intentionally, Codex must say so explicitly and explain why it was preserved.
 
 Before handing a user-visible runtime, UI, or manual validation path back to the user, Codex must run that same path or the closest faithful equivalent when feasible.
 

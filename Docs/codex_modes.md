@@ -126,6 +126,7 @@ Workflow mode should usually return:
 - a distinct summary of validator results
 - a distinct summary of synthetic or headless validation results and the supporting validation artifacts created or used
 - a distinct summary of interactive OS-level execution results when that path is feasible
+- session cleanup performed, including what was closed, stopped, restored, or deleted after the pass
 - any remaining simulated-only findings or reasoning-only gaps that still matter
 - deeper branch-local validation or hardening findings when the slice changes runtime or user-visible behavior
 - a detailed `## User Test Summary` manual checklist when the slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or another operator-facing path
@@ -230,6 +231,7 @@ Codex must also:
 - run a deeper branch-local hardening pass against the implemented path
 - add or create the smallest reliable validation infrastructure when meaningful blind spots remain
 - preserve an evidence trail of the validators, harnesses, helper scripts, fixtures, runtime logs, traces, screenshots, or other validation artifacts actually used
+- clean up test-session side effects such as temporary files, launched apps, helper processes, probe documents, or altered local state unless there is an intentional reason to preserve them
 - use synthetic or headless validators and harnesses as supporting proof rather than the final gate when a real desktop session is feasible
 - launch and exercise the real desktop or runtime path through an interactive OS-level session when feasible
 - explicitly distinguish validator results, synthetic or headless validation results, simulated reasoning, interactive OS-level execution results, and manual user-test handoff

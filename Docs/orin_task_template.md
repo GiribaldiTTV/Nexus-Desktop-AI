@@ -224,7 +224,8 @@ If an execution task is too broad for one approved pass, explain the cleaner exe
 
 1. Perform only the approved execution work.
 2. Verify the result directly.
-3. Report what changed and what was verified.
+3. Clean up session-scoped side effects from the pass unless there is an explicit reason to preserve them.
+4. Report what changed, what was verified, and what was cleaned up or intentionally left in place.
 
 ## Verification Requirements
 
@@ -239,8 +240,18 @@ If applicable, also verify:
 - healthy path
 - failure path
 - artifact cleanup
+- session cleanup and teardown
 - no regressions in locked behavior
 - no drift outside the allowed surfaces
+
+Session cleanup and teardown includes, when relevant:
+
+- closing programs, windows, or dialogs opened during the pass
+- stopping helper processes, harnesses, temporary runtimes, or validators started during the pass
+- deleting temporary files, scratch documents, probe files, or other temporary outputs created only for the pass
+- restoring any local state or source inputs intentionally changed for verification
+
+If anything remains intentionally open or preserved after the pass, the output must say so explicitly and explain why.
 
 If the slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or another manual operator-facing path, the final output must include a `## User Test Summary` section as a concrete manual checklist.
 
