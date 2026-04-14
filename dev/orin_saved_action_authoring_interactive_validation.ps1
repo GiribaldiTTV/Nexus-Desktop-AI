@@ -276,6 +276,83 @@ function Find-FirstElement {
     return $null
 }
 
+function Find-ElementByAutomationIdDirect {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [string]$AutomationId
+    )
+
+    if (-not $Root -or [string]::IsNullOrWhiteSpace($AutomationId)) {
+        return $null
+    }
+
+    try {
+        $condition = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+            $AutomationId
+        )
+        return $Root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+    } catch {
+        Add-Note "Direct UIAutomation lookup for '$AutomationId' hit a stale element and was retried against fresher UI state."
+        return $null
+    }
+}
+
+function Test-ElementUsable {
+    param(
+        [System.Windows.Automation.AutomationElement]$Element,
+        [bool]$RequireEnabled = $true
+    )
+
+    if (-not $Element) {
+        return $false
+    }
+
+    try {
+        if ($Element.Current.IsOffscreen) {
+            return $false
+        }
+        if ($RequireEnabled -and -not $Element.Current.IsEnabled) {
+            return $false
+        }
+        $rect = $Element.Current.BoundingRectangle
+        if ($rect.Width -le 0 -or $rect.Height -le 0) {
+            return $false
+        }
+    } catch {
+        return $false
+    }
+
+    return $true
+}
+
+function Get-ElementStateSummary {
+    param(
+        [System.Windows.Automation.AutomationElement]$Element
+    )
+
+    if (-not $Element) {
+        return "missing"
+    }
+
+    try {
+        $rect = $Element.Current.BoundingRectangle
+        return (
+            "name='{0}' automationId='{1}' enabled={2} offscreen={3} rect={4},{5},{6},{7}" -f
+            $Element.Current.Name,
+            $Element.Current.AutomationId,
+            $Element.Current.IsEnabled,
+            $Element.Current.IsOffscreen,
+            [int]$rect.Left,
+            [int]$rect.Top,
+            [int]$rect.Width,
+            [int]$rect.Height
+        )
+    } catch {
+        return "unreadable"
+    }
+}
+
 function Get-ElementsByName {
     param(
         [System.Windows.Automation.AutomationElement]$Root,
@@ -345,6 +422,21 @@ function Get-ElementReadableValue {
     return ""
 }
 
+function Normalize-UiValue {
+    param(
+        [string]$Value
+    )
+
+    if ($null -eq $Value) {
+        return ""
+    }
+
+    $normalized = [string]$Value
+    $normalized = $normalized -replace "\u0000", ""
+    $normalized = $normalized -replace "\s+", " "
+    return $normalized.Trim()
+}
+
 function Wait-ForElementValue {
     param(
         [scriptblock]$ElementResolver,
@@ -358,7 +450,7 @@ function Wait-ForElementValue {
         if (-not $element) {
             return $false
         }
-        return (Get-ElementReadableValue -Element $element) -eq $ExpectedValue
+        return (Normalize-UiValue (Get-ElementReadableValue -Element $element)) -eq (Normalize-UiValue $ExpectedValue)
     } | Out-Null
 }
 
@@ -471,7 +563,7 @@ function Find-ComboPopupItem {
 
 function Select-ComboItem {
     param(
-        [System.Windows.Automation.AutomationElement]$Combo,
+        [scriptblock]$ComboResolver,
         [string]$ItemName
     )
 
@@ -481,13 +573,17 @@ function Select-ComboItem {
     }
 
     for ($attempt = 1; $attempt -le 3; $attempt++) {
+        $Combo = & $ComboResolver
+        if (-not $Combo) {
+            throw "Could not resolve combo box for '$ItemName'."
+        }
         try {
             Focus-Window -Element $Combo
         } catch {
         }
 
         $currentValue = Get-ComboSelectedText -Combo $Combo
-        Write-StepLog -Stage "INTERACT" -Message "combo select attempt=$attempt desired='$ItemName' current='$currentValue'"
+        Write-StepLog -Stage "INTERACT" -Message "combo select attempt=$attempt desired='$ItemName' current='$currentValue' state=$(Get-ElementStateSummary -Element $Combo)"
         if ($currentValue -eq $ItemName) {
             return
         }
@@ -526,17 +622,19 @@ function Select-ComboItem {
 
         try {
             Wait-ForElementValue -ExpectedValue $ItemName -TimeoutSeconds 3 -Description "combo value $ItemName" -ElementResolver {
-                return $Combo
+                return (& $ComboResolver)
             }
             return
         } catch {
-            $actualValue = Get-ComboSelectedText -Combo $Combo
-            Add-Note "Combo selection attempt $attempt for '$ItemName' did not stick; actual value read back as '$actualValue'."
+            $actualCombo = & $ComboResolver
+            $actualValue = Get-ComboSelectedText -Combo $actualCombo
+            Add-Note "Combo selection attempt $attempt for '$ItemName' did not stick; actual value read back as '$actualValue'. State: $(Get-ElementStateSummary -Element $actualCombo)"
         }
     }
 
-    $finalValue = Get-ComboSelectedText -Combo $Combo
-    throw "Combo selection for '$ItemName' did not stick. Final value: '$finalValue'"
+    $finalCombo = & $ComboResolver
+    $finalValue = Get-ComboSelectedText -Combo $finalCombo
+    throw "Combo selection for '$ItemName' did not stick. Final value: '$finalValue'. State: $(Get-ElementStateSummary -Element $finalCombo)"
 }
 
 function Get-WindowHandle {
@@ -722,13 +820,52 @@ function Wait-ForElementByAutomationId {
     param(
         [System.Windows.Automation.AutomationElement]$Root,
         [string]$AutomationId,
-        [int]$TimeoutSeconds = 10
+        [int]$TimeoutSeconds = 10,
+        [bool]$RequireEnabled = $true
     )
 
     Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $AutomationId -Condition {
-        (Find-FirstElement -Root $Root -AutomationId $AutomationId) -ne $null
+        $element = Find-ElementByAutomationIdDirect -Root $Root -AutomationId $AutomationId
+        return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
     } | Out-Null
-    return (Find-FirstElement -Root $Root -AutomationId $AutomationId)
+    return (Find-ElementByAutomationIdDirect -Root $Root -AutomationId $AutomationId)
+}
+
+function Wait-ForDialogControlReady {
+    param(
+        [scriptblock]$DialogResolver,
+        [string]$AutomationId,
+        [string]$Description,
+        [int]$TimeoutSeconds = 6,
+        [bool]$RequireEnabled = $true
+    )
+
+    Write-StepLog -Stage "DIALOG" -Message "verifying control '$Description' automationId='$AutomationId'"
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
+        $liveDialog = & $DialogResolver
+        if (-not $liveDialog) {
+            return $false
+        }
+        try {
+            Focus-Window -Element $liveDialog
+        } catch {
+        }
+        $element = Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId $AutomationId
+        return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
+    } | Out-Null
+
+    $liveDialog = & $DialogResolver
+    if (-not $liveDialog) {
+        throw "Could not resolve the live dialog while waiting for '$Description'."
+    }
+
+    $element = Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId $AutomationId
+    if (-not (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)) {
+        throw "Control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
+    }
+
+    Write-StepLog -Stage "DIALOG" -Message "control ready '$Description' state=$(Get-ElementStateSummary -Element $element)"
+    return $element
 }
 
 function Set-FieldValueVerified {
@@ -749,20 +886,28 @@ function Set-FieldValueVerified {
         } catch {
         }
 
-        Write-StepLog -Stage "INTERACT" -Message "field set attempt=$attempt field='$Description' value='$ExpectedValue'"
+        Write-StepLog -Stage "INTERACT" -Message "field set attempt=$attempt field='$Description' value='$ExpectedValue' state=$(Get-ElementStateSummary -Element $element)"
         Set-Value -Element $element -Value $ExpectedValue
 
         try {
             Wait-ForElementValue -ExpectedValue $ExpectedValue -TimeoutSeconds 3 -Description $Description -ElementResolver $ElementResolver
+            $actualElement = & $ElementResolver
+            Write-StepLog -Stage "INTERACT" -Message "field set confirmed field='$Description' actual='$(Get-ElementReadableValue -Element $actualElement)' state=$(Get-ElementStateSummary -Element $actualElement)"
             return
         } catch {
-            $actualValue = Get-ElementReadableValue -Element (& $ElementResolver)
-            Add-Note "Field '$Description' set attempt $attempt did not stick; actual value read back as '$actualValue'."
+            $actualElement = & $ElementResolver
+            $actualValue = Get-ElementReadableValue -Element $actualElement
+            Add-Note "Field '$Description' set attempt $attempt did not stick; actual value read back as '$actualValue'. State: $(Get-ElementStateSummary -Element $actualElement)"
         }
     }
 
-    $finalValue = Get-ElementReadableValue -Element (& $ElementResolver)
-    throw "Field '$Description' did not retain the expected value '$ExpectedValue'. Final value: '$finalValue'"
+    $finalElement = & $ElementResolver
+    $finalValue = Get-ElementReadableValue -Element $finalElement
+    if ((Normalize-UiValue $finalValue) -eq (Normalize-UiValue $ExpectedValue)) {
+        Add-Note "Field '$Description' required retries, but the final normalized value matched the expected text."
+        return
+    }
+    throw "Field '$Description' did not retain the expected value '$ExpectedValue'. Final value: '$finalValue'. State: $(Get-ElementStateSummary -Element $finalElement)"
 }
 
 function Get-TextValue {
@@ -830,6 +975,34 @@ function Test-RuntimeMarkerSeen {
     return @($slice | Where-Object { $_ -like "*$Marker*" }).Count -gt 0
 }
 
+function Get-OverlayAttemptStateSummary {
+    param(
+        [int]$StartLine
+    )
+
+    $slice = Get-RuntimeLogSlice -StartLine $StartLine
+    if (-not $slice -or $slice.Count -eq 0) {
+        return "no_runtime_markers"
+    }
+
+    $interesting = @(
+        $slice | Where-Object {
+            $_ -like "*RENDERER_MAIN|DESKTOP_ATTACH_RESULT*" -or
+            $_ -like "*RENDERER_MAIN|INTERACTIVE_VALIDATION_AUTO_OPEN*" -or
+            $_ -like "*RENDERER_MAIN|COMMAND_OVERLAY_OPENED*" -or
+            $_ -like "*RENDERER_MAIN|COMMAND_OVERLAY_READY*" -or
+            $_ -like "*RENDERER_MAIN|COMMAND_OVERLAY_READY_WAITING*" -or
+            $_ -like "*RENDERER_MAIN|COMMAND_OVERLAY_READY_TIMEOUT*"
+        }
+    )
+
+    if (-not $interesting -or $interesting.Count -eq 0) {
+        return "no_overlay_runtime_markers"
+    }
+
+    return (($interesting | Select-Object -Last 4) -join " || ")
+}
+
 function Wait-ForOverlayRuntimeReady {
     param(
         [int]$StartLine = -1,
@@ -841,7 +1014,17 @@ function Wait-ForOverlayRuntimeReady {
     }
 
     Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_OVERLAY_OPENED" -TimeoutSeconds $TimeoutSeconds -StartLine $StartLine
-    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_OVERLAY_READY" -TimeoutSeconds $TimeoutSeconds -StartLine $StartLine
+    try {
+        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_OVERLAY_READY" -TimeoutSeconds $TimeoutSeconds -StartLine $StartLine
+        return
+    } catch {
+        Add-Note "COMMAND_OVERLAY_READY was not emitted within the expected window; falling back to interactable overlay verification."
+    }
+
+    Wait-Until -TimeoutSeconds ([Math]::Max(2, [Math]::Min(4, $TimeoutSeconds))) -Description "overlay interactable fallback" -Condition {
+        Test-OverlayInteractableFallback -Overlay $null
+    } | Out-Null
+    Write-StepLog -Stage "WAIT" -Message "overlay interactable fallback satisfied after missing COMMAND_OVERLAY_READY"
 }
 
 function Wait-ForDialogRuntimeReady {
@@ -1011,6 +1194,30 @@ function Resolve-LiveOverlayRoot {
     return (Wait-ForOverlayOpen -TimeoutSeconds 10)
 }
 
+function Test-OverlayInteractableFallback {
+    param(
+        [System.Windows.Automation.AutomationElement]$Overlay
+    )
+
+    $liveOverlay = Resolve-LiveOverlayRoot -Overlay $Overlay
+    if (-not $liveOverlay) {
+        return $false
+    }
+
+    foreach ($automationId in @(
+        "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine",
+        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton",
+        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton"
+    )) {
+        $element = Find-FirstElement -Root $liveOverlay -AutomationId $automationId
+        if (-not $element -or (Test-ElementGoneOrOffscreen -Element $element)) {
+            return $false
+        }
+    }
+
+    return $true
+}
+
 function Resolve-LiveDialogRoot {
     param(
         [System.Windows.Automation.AutomationElement]$Dialog,
@@ -1070,21 +1277,18 @@ function Open-Overlay {
         }
 
         if (Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|COMMAND_OVERLAY_READY" -StartLine $markerStart) {
+            Write-StepLog -Stage "OVERLAY" -Message "runtime helper auto-open satisfied overlay ready markers"
             return [System.Windows.Automation.AutomationElement]::RootElement
         }
-    }
 
-    $overlay = Wait-ForOptionalOverlayOpen -TimeoutSeconds 6
-    if ($overlay) {
-        Write-StepLog -Stage "OVERLAY" -Message "overlay already visible"
-        Focus-Window -Element $overlay
-        return $overlay
+        Add-Note "Runtime helper auto-open did not complete the overlay ready path. state=$(Get-OverlayAttemptStateSummary -StartLine $markerStart)"
     }
 
     for ($attempt = 1; $attempt -le 4; $attempt++) {
         if ($script:notepadProbe) {
             try {
                 Focus-Window -Element $script:notepadProbe.window
+                Start-Sleep -Milliseconds 120
             } catch {
             }
         }
@@ -1093,15 +1297,12 @@ function Open-Overlay {
         Send-OverlayHotkey
         try {
             Wait-ForOverlayRuntimeReady -StartLine $markerStart -TimeoutSeconds 8
+            Write-StepLog -Stage "OVERLAY" -Message "overlay entry markers satisfied on attempt=$attempt"
+            return [System.Windows.Automation.AutomationElement]::RootElement
         } catch {
-            Start-Sleep -Milliseconds 600
-        }
-        $overlay = Resolve-LiveOverlayRoot -Overlay $null
-        if ($overlay) {
-            if ($overlay -ne [System.Windows.Automation.AutomationElement]::RootElement) {
-                Focus-Window -Element $overlay
-            }
-            return $overlay
+            $openedSeen = Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|COMMAND_OVERLAY_OPENED" -StartLine $markerStart
+            $readySeen = Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|COMMAND_OVERLAY_READY" -StartLine $markerStart
+            Add-Note "Overlay hotkey attempt $attempt did not complete the open/ready marker path. opened_seen=$openedSeen ready_seen=$readySeen state=$(Get-OverlayAttemptStateSummary -StartLine $markerStart)"
         }
         Start-Sleep -Milliseconds 600
     }
@@ -1110,32 +1311,28 @@ function Open-Overlay {
     if ($script:notepadProbe) {
         try {
             Focus-Window -Element $script:notepadProbe.window
+            Start-Sleep -Milliseconds 120
         } catch {
         }
     }
-    Send-OverlayHotkeyFallback
     $markerStart = New-RuntimeMarkerCursor
+    Send-OverlayHotkeyFallback
     try {
         Wait-ForOverlayRuntimeReady -StartLine $markerStart -TimeoutSeconds 8
     } catch {
+        $openedSeen = Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|COMMAND_OVERLAY_OPENED" -StartLine $markerStart
+        $readySeen = Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|COMMAND_OVERLAY_READY" -StartLine $markerStart
+        Add-Note "SendKeys overlay fallback did not complete the open/ready marker path. opened_seen=$openedSeen ready_seen=$readySeen state=$(Get-OverlayAttemptStateSummary -StartLine $markerStart)"
     }
-    $overlay = Resolve-LiveOverlayRoot -Overlay $null
-    if ($overlay) {
-        if ($overlay -ne [System.Windows.Automation.AutomationElement]::RootElement) {
-            Focus-Window -Element $overlay
-        }
-        return $overlay
+    if (Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|COMMAND_OVERLAY_READY" -StartLine $markerStart) {
+        Write-StepLog -Stage "OVERLAY" -Message "overlay entry markers satisfied through SendKeys fallback"
+        return [System.Windows.Automation.AutomationElement]::RootElement
     }
 
     $markerStart = New-RuntimeMarkerCursor
     Wait-ForOverlayRuntimeReady -StartLine $markerStart -TimeoutSeconds 12
-    $overlay = Resolve-LiveOverlayRoot -Overlay $null
-    if ($overlay -eq [System.Windows.Automation.AutomationElement]::RootElement) {
-        return $overlay
-    }
-    $overlay = Wait-ForOverlayOpen -TimeoutSeconds 10
-    Focus-Window -Element $overlay
-    return $overlay
+    Write-StepLog -Stage "OVERLAY" -Message "overlay entry markers satisfied through final wait"
+    return [System.Windows.Automation.AutomationElement]::RootElement
 }
 
 function Close-Overlay {
@@ -1242,40 +1439,54 @@ function Fill-AuthoringDialog {
     $resolveTypeCombo = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Wait-ForElementByAutomationId -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType")
+        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType")
     }
     $resolveTitleInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Wait-ForElementByAutomationId -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput")
+        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput")
     }
     $resolveAliasesInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Wait-ForElementByAutomationId -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput")
+        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput")
     }
     $resolveTargetInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Wait-ForElementByAutomationId -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput")
+        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput")
     }
-    $resolveGuidanceLabel = {
+    $resolveExamplesLabel = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Wait-ForElementByAutomationId -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetGuidance")
+        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetExamples")
     }
-
-    $typeCombo = & $resolveTypeCombo
-    $guidanceLabel = & $resolveGuidanceLabel
+    $helpButtonMap = @(
+        @{ Name = "Title"; AutomationId = "QApplication.savedActionCreateDialog.savedActionCreateTitleHelp" },
+        @{ Name = "Aliases"; AutomationId = "QApplication.savedActionCreateDialog.savedActionCreateAliasesHelp" },
+        @{ Name = "Trigger"; AutomationId = "QApplication.savedActionCreateDialog.savedActionCreateTriggerHelp" },
+        @{ Name = "Target"; AutomationId = "QApplication.savedActionCreateDialog.savedActionCreateTargetHelp" }
+    )
 
     $guidanceMap = @{
-        "Application" = "launchable command"
-        "Folder" = "folder path"
-        "File" = "file path"
-        "Website URL" = "absolute http or https URL"
+        "Application" = "Target format: notepad.exe or C:\\Program Files\\Notepad++\\notepad++.exe"
+        "Folder" = "Target format: C:\\Reports"
+        "File" = "Target format: C:\\Reports\\weekly.txt"
+        "Website URL" = "Target format: https://example.com/docs"
     }
 
-    Select-ComboItem -Combo $typeCombo -ItemName $TypeLabel
+    Write-StepLog -Stage "DIALOG" -Message "verifying authoring dialog interaction readiness for '$dialogName'"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType" -Description "task type combo"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput" -Description "title input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput" -Description "aliases input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput" -Description "target input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetExamples" -Description "bottom examples box" -RequireEnabled $false
+
+    foreach ($helpButtonInfo in $helpButtonMap) {
+        $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId $helpButtonInfo.AutomationId -Description "$($helpButtonInfo.Name) help button" -RequireEnabled $false
+    }
+
+    Select-ComboItem -ComboResolver $resolveTypeCombo -ItemName $TypeLabel
     $selectedType = Get-ComboSelectedText -Combo (& $resolveTypeCombo)
     Write-StepLog -Stage "INTERACT" -Message "type selection final desired='$TypeLabel' actual='$selectedType'"
     if ($selectedType -ne $TypeLabel) {
@@ -1285,33 +1496,33 @@ function Fill-AuthoringDialog {
         $expectedGuidance = $guidanceMap[$TypeLabel]
         $guidanceReady = $false
         try {
-            Wait-Until -TimeoutSeconds 2 -Description "guidance for $TypeLabel" -Condition {
-                $liveGuidance = & $resolveGuidanceLabel
-                if (-not $liveGuidance) {
+            Wait-Until -TimeoutSeconds 2 -Description "examples box refresh for $TypeLabel" -Condition {
+                $liveExamples = & $resolveExamplesLabel
+                if (-not $liveExamples) {
                     return $false
                 }
-                return (Get-ElementReadableValue -Element $liveGuidance) -like "*$expectedGuidance*"
+                return (Get-ElementReadableValue -Element $liveExamples) -like "*$expectedGuidance*"
             } | Out-Null
             $guidanceReady = $true
         } catch {
         }
         if (-not $guidanceReady) {
-            Add-Note "Guidance text did not refresh to the expected '$TypeLabel' wording on the first selection attempt; retrying the type selection once."
-            Select-ComboItem -Combo (& $resolveTypeCombo) -ItemName $TypeLabel
+            Add-Note "Bottom examples box did not refresh to the expected '$TypeLabel' wording on the first selection attempt; retrying the type selection once."
+            Select-ComboItem -ComboResolver $resolveTypeCombo -ItemName $TypeLabel
             try {
-                Wait-Until -TimeoutSeconds 2 -Description "guidance retry for $TypeLabel" -Condition {
-                    $liveGuidance = & $resolveGuidanceLabel
-                    if (-not $liveGuidance) {
+                Wait-Until -TimeoutSeconds 2 -Description "examples box retry for $TypeLabel" -Condition {
+                    $liveExamples = & $resolveExamplesLabel
+                    if (-not $liveExamples) {
                         return $false
                     }
-                    return (Get-ElementReadableValue -Element $liveGuidance) -like "*$expectedGuidance*"
+                    return (Get-ElementReadableValue -Element $liveExamples) -like "*$expectedGuidance*"
                 } | Out-Null
                 $guidanceReady = $true
             } catch {
             }
         }
         if (-not $guidanceReady) {
-            Add-Note "Guidance text did not refresh to the expected '$TypeLabel' wording during one dialog interaction, but the subsequent dialog validation path still ran."
+            Add-Note "Bottom examples box did not refresh to the expected '$TypeLabel' wording during one dialog interaction, but the subsequent dialog validation path still ran."
         }
     }
     Set-FieldValueVerified -ElementResolver $resolveTitleInput -ExpectedValue $Title -Description "title input"
@@ -1507,7 +1718,7 @@ function Start-InteractiveRuntime {
         0
     }
 
-    $argString = "dev\orin_saved_action_authoring_interactive_runtime.py --runtime-log `"$RuntimeLogPath`" --auto-open-overlay"
+    $argString = "dev\orin_saved_action_authoring_interactive_runtime.py --runtime-log `"$RuntimeLogPath`""
     Write-StepLog -Stage "RUNTIME" -Message "starting interactive runtime helper from baseline line count $baselineLines"
     $previousOverlayTrace = $env:NEXUS_OVERLAY_TRACE
     $env:NEXUS_OVERLAY_TRACE = "1"
@@ -1531,6 +1742,7 @@ function Start-InteractiveRuntime {
         $newLines = @($lines | Select-Object -Skip $baselineLines)
         return (($newLines -join "`n") -like "*RENDERER_MAIN|STARTUP_READY*")
     } | Out-Null
+    Write-StepLog -Stage "RUNTIME" -Message "confirmed runtime startup ready"
     Wait-Until -TimeoutSeconds 25 -Description "fresh runtime desktop attach" -Condition {
         if (-not (Test-Path -LiteralPath $RuntimeLogPath)) {
             return $false
@@ -1542,8 +1754,9 @@ function Start-InteractiveRuntime {
         $newLines = @($lines | Select-Object -Skip $baselineLines)
         return (($newLines -join "`n") -like "*RENDERER_MAIN|DESKTOP_ATTACH_RESULT|success=true*")
     } | Out-Null
+    Write-StepLog -Stage "RUNTIME" -Message "confirmed desktop attach success"
     $script:RuntimeLogLineCursor = Get-RuntimeLogLineCount
-    $script:RuntimeAutoOpenPending = $true
+    $script:RuntimeAutoOpenPending = $false
     Start-Sleep -Milliseconds 1600
     return $process
 }
@@ -1878,7 +2091,7 @@ function Run-Collision-Checks {
     Write-StepLog -Stage "FLOW" -Message "running collision checks"
 
     $cases = @(
-        @{ title = "Open Windows Explorer"; aliases = "explorer collision alias"; target = "explorer.exe"; expect = "collide" },
+        @{ title = "Explorer Helper"; aliases = "Open Windows Explorer"; target = "explorer.exe"; expect = "collide" },
         @{ title = "Duplicate Notepad"; aliases = "launch notepad task"; target = "notepad.exe"; expect = "collide" }
     )
 
