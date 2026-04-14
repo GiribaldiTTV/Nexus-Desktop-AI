@@ -1,3 +1,10 @@
+param(
+    [int]$InteractiveRunHardTimeoutSeconds = 420,
+    [int]$NoProgressTimeoutSeconds = 45,
+    [int]$ScenarioTimeoutSeconds = 90,
+    [int]$TransitionTimeoutSeconds = 25
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
@@ -41,6 +48,8 @@ $ArtifactsDir = Join-Path $LogRoot "artifacts"
 $ReportPath = Join-Path $ReportsDir "FB036SavedActionAuthoringInteractiveValidationReport_$Stamp.txt"
 $RuntimeLogPath = Join-Path $ArtifactsDir "${Stamp}_runtime.log"
 $StepLogPath = Join-Path $ArtifactsDir "${Stamp}_interactive_steps.log"
+$SourceBackupPath = Join-Path $ArtifactsDir "${Stamp}_source_backup.bin"
+$WatchdogScriptPath = Join-Path $ArtifactsDir "${Stamp}_watchdog.ps1"
 $SourcePath = Join-Path $env:LOCALAPPDATA "Nexus Desktop AI\saved_actions.json"
 $DesktopUtsPath = "C:\Users\anden\OneDrive\Desktop\User Test Summary.txt"
 
@@ -59,8 +68,307 @@ $ValidationState = [ordered]@{
     notes = @()
 }
 
+$script:InteractiveRunHardTimeoutSeconds = $InteractiveRunHardTimeoutSeconds
+$script:NoProgressTimeoutSeconds = $NoProgressTimeoutSeconds
+$script:ScenarioTimeoutSeconds = $ScenarioTimeoutSeconds
+$script:TransitionTimeoutSeconds = $TransitionTimeoutSeconds
+$script:RunStartedAt = Get-Date
+$script:RunDeadline = $script:RunStartedAt.AddSeconds($script:InteractiveRunHardTimeoutSeconds)
+$script:LastProgressAt = $script:RunStartedAt
+$script:LastProgressPoint = "harness_start"
+$script:CurrentScenarioDeadline = $null
+$script:CurrentScenarioName = ""
+$script:CurrentTransitionDeadline = $null
+$script:CurrentTransitionName = ""
+$script:TimeoutTripReason = $null
+
 $script:RuntimeLogLineCursor = 0
 $script:RuntimeAutoOpenPending = $false
+
+function Record-ValidationProgress {
+    param(
+        [string]$Point
+    )
+
+    if ($script:TimeoutTripReason) {
+        return
+    }
+
+    $script:LastProgressAt = Get-Date
+    if ($Point) {
+        $script:LastProgressPoint = $Point
+    }
+}
+
+function Set-TimeoutFailureContext {
+    param(
+        [string]$Reason
+    )
+
+    if (-not $script:TimeoutTripReason) {
+        $script:TimeoutTripReason = $Reason
+    }
+}
+
+function Enter-ScenarioBudget {
+    param(
+        [string]$Name,
+        [int]$TimeoutSeconds = $script:ScenarioTimeoutSeconds
+    )
+
+    $script:CurrentScenarioName = $Name
+    $script:CurrentScenarioDeadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    Write-StepLog -Stage "BUDGET" -Message "scenario '$Name' budget started (${TimeoutSeconds}s)"
+}
+
+function Clear-ScenarioBudget {
+    param(
+        [string]$Name = $script:CurrentScenarioName
+    )
+
+    if ($script:CurrentScenarioName) {
+        Write-StepLog -Stage "BUDGET" -Message "scenario '$Name' budget cleared"
+    }
+    $script:CurrentScenarioDeadline = $null
+    $script:CurrentScenarioName = ""
+}
+
+function Enter-TransitionBudget {
+    param(
+        [string]$Name,
+        [int]$TimeoutSeconds = $script:TransitionTimeoutSeconds
+    )
+
+    $script:CurrentTransitionName = $Name
+    $script:CurrentTransitionDeadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    Write-StepLog -Stage "BUDGET" -Message "transition '$Name' budget started (${TimeoutSeconds}s)"
+}
+
+function Clear-TransitionBudget {
+    param(
+        [string]$Name = $script:CurrentTransitionName
+    )
+
+    if ($script:CurrentTransitionName) {
+        Write-StepLog -Stage "BUDGET" -Message "transition '$Name' budget cleared"
+    }
+    $script:CurrentTransitionDeadline = $null
+    $script:CurrentTransitionName = ""
+}
+
+function Assert-ValidationBudget {
+    param(
+        [string]$Description = "validation wait"
+    )
+
+    if ($script:TimeoutTripReason) {
+        throw $script:TimeoutTripReason
+    }
+
+    $now = Get-Date
+    $reason = $null
+    if ($now -ge $script:RunDeadline) {
+        $reason = "Full-run hard timeout exceeded while waiting for $Description. Last confirmed progress: $($script:LastProgressPoint)."
+    } elseif ($now -ge $script:LastProgressAt.AddSeconds($script:NoProgressTimeoutSeconds)) {
+        $reason = "No-progress watchdog exceeded while waiting for $Description. Last confirmed progress: $($script:LastProgressPoint)."
+    } elseif ($script:CurrentScenarioDeadline -and $now -ge $script:CurrentScenarioDeadline) {
+        $reason = "Scenario timeout exceeded for '$($script:CurrentScenarioName)' while waiting for $Description. Last confirmed progress: $($script:LastProgressPoint)."
+    } elseif ($script:CurrentTransitionDeadline -and $now -ge $script:CurrentTransitionDeadline) {
+        $reason = "Transition timeout exceeded for '$($script:CurrentTransitionName)' while waiting for $Description. Last confirmed progress: $($script:LastProgressPoint)."
+    }
+
+    if ($reason) {
+        Set-TimeoutFailureContext -Reason $reason
+        throw $reason
+    }
+}
+
+function Add-CleanupNote {
+    param([string]$Message)
+    $ValidationState.notes += "Cleanup: $Message"
+    Write-StepLog -Stage "CLEANUP" -Message $Message
+}
+
+function Start-ValidationWatchdog {
+    param(
+        [int]$ParentPid,
+        [string]$StepLogPath,
+        [string]$ReportPath,
+        [string]$RuntimeLogPath,
+        [string]$SourcePath,
+        [string]$SourceBackupPath,
+        [string]$WatchdogScriptPath,
+        [bool]$SourceOriginallyPresent,
+        [string]$ProbePath,
+        [int]$RunHardTimeoutSeconds,
+        [int]$NoProgressTimeoutSeconds
+    )
+
+    $watchdogScript = @'
+param(
+    [int]$ParentPid,
+    [string]$StepLogPath,
+    [string]$ReportPath,
+    [string]$RuntimeLogPath,
+    [string]$SourcePath,
+    [string]$SourceBackupPath,
+    [string]$WatchdogScriptPath,
+    [bool]$SourceOriginallyPresent,
+    [string]$ProbePath,
+    [int]$RunHardTimeoutSeconds,
+    [int]$NoProgressTimeoutSeconds
+)
+
+$startUtc = [DateTime]::UtcNow
+$runDeadlineUtc = $startUtc.AddSeconds($RunHardTimeoutSeconds)
+
+function Add-WatchdogLine {
+    param([string]$Stage, [string]$Message)
+    try {
+        $timestamp = Get-Date -Format 'HH:mm:ss.fff'
+        Add-Content -LiteralPath $StepLogPath -Value "[$timestamp] [$Stage] $Message" -Encoding utf8
+    } catch {
+    }
+}
+
+while ($true) {
+    $parent = Get-Process -Id $ParentPid -ErrorAction SilentlyContinue
+    if (-not $parent) {
+        exit 0
+    }
+
+    $lastProgressUtc = $startUtc
+    try {
+        if (Test-Path -LiteralPath $StepLogPath) {
+            $lastProgressUtc = (Get-Item -LiteralPath $StepLogPath).LastWriteTimeUtc
+        }
+    } catch {
+    }
+
+    $nowUtc = [DateTime]::UtcNow
+    $timeoutReason = $null
+    if ($nowUtc -ge $runDeadlineUtc) {
+        $timeoutReason = "Full-run hard timeout exceeded before the interactive harness completed."
+    } elseif (($nowUtc - $lastProgressUtc).TotalSeconds -ge $NoProgressTimeoutSeconds) {
+        $timeoutReason = "No-progress watchdog exceeded while waiting for the next interactive validation step."
+    }
+
+    if ($timeoutReason) {
+        $lastProgressPoint = ''
+        try {
+            if (Test-Path -LiteralPath $StepLogPath) {
+                $lastProgressPoint = @((Get-Content -LiteralPath $StepLogPath) | Select-Object -Last 1) -join ''
+            }
+        } catch {
+        }
+
+        Add-WatchdogLine -Stage 'WATCHDOG' -Message "$timeoutReason Last confirmed progress: $lastProgressPoint"
+
+        try {
+            if ($SourceOriginallyPresent -and (Test-Path -LiteralPath $SourceBackupPath)) {
+                [System.IO.File]::WriteAllBytes($SourcePath, [System.IO.File]::ReadAllBytes($SourceBackupPath))
+                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog restored saved_actions.json from backup'
+            } elseif ((-not $SourceOriginallyPresent) -and (Test-Path -LiteralPath $SourcePath)) {
+                Remove-Item -LiteralPath $SourcePath -Force -ErrorAction SilentlyContinue
+                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog removed test-created saved_actions.json'
+            }
+        } catch {
+            Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog could not restore saved_actions.json cleanly'
+        }
+
+        try {
+            $runtimeTargets = Get-CimInstance Win32_Process | Where-Object {
+                ($_.Name -like 'python*.exe' -or $_.Name -eq 'python.exe') -and
+                $_.CommandLine -and
+                $_.CommandLine -like '*orin_saved_action_authoring_interactive_runtime.py*' -and
+                $_.CommandLine -like "*$RuntimeLogPath*"
+            }
+            foreach ($target in $runtimeTargets) {
+                Stop-Process -Id $target.ProcessId -Force -ErrorAction SilentlyContinue
+            }
+            if ($runtimeTargets) {
+                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog stopped interactive runtime helper processes'
+            }
+        } catch {
+        }
+
+        try {
+            if ($ProbePath) {
+                $probeLeaf = [System.IO.Path]::GetFileName($ProbePath)
+                Get-Process notepad -ErrorAction SilentlyContinue |
+                    Where-Object { $_.MainWindowTitle -like "*$probeLeaf*" } |
+                    ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+                if (Test-Path -LiteralPath $ProbePath) {
+                    Remove-Item -LiteralPath $ProbePath -Force -ErrorAction SilentlyContinue
+                }
+                Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog closed and removed the validation Notepad probe'
+            }
+        } catch {
+        }
+
+        try {
+            if (Test-Path -LiteralPath $SourceBackupPath) {
+                Remove-Item -LiteralPath $SourceBackupPath -Force -ErrorAction SilentlyContinue
+            }
+        } catch {
+        }
+
+        try {
+            if (Test-Path -LiteralPath $WatchdogScriptPath) {
+                Remove-Item -LiteralPath $WatchdogScriptPath -Force -ErrorAction SilentlyContinue
+            }
+        } catch {
+        }
+
+        try {
+            $reportLines = @(
+                'FB-036 SAVED-ACTION AUTHORING INTERACTIVE VALIDATION',
+                "Report: $ReportPath",
+                "Timestamp: $((Get-Date).ToString('o'))",
+                '',
+                'Timeout Budgets:',
+                "  full_run_hard_timeout_seconds: $RunHardTimeoutSeconds",
+                "  no_progress_timeout_seconds: $NoProgressTimeoutSeconds",
+                "  last_confirmed_progress_point: $lastProgressPoint",
+                "  timeout_abort_reason: $timeoutReason",
+                '',
+                'Notes:',
+                "  - Watchdog terminated the stalled interactive validation run.",
+                "  - $timeoutReason",
+                "  - Last confirmed progress: $lastProgressPoint"
+            )
+            [System.IO.File]::WriteAllText($ReportPath, ($reportLines -join "`r`n"), [System.Text.UTF8Encoding]::new($false))
+        } catch {
+        }
+
+        Stop-Process -Id $ParentPid -Force -ErrorAction SilentlyContinue
+        exit 0
+    }
+
+    Start-Sleep -Seconds 2
+}
+'@
+
+    [System.IO.File]::WriteAllText($WatchdogScriptPath, $watchdogScript, [System.Text.UTF8Encoding]::new($false))
+    $argumentList = @(
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", $WatchdogScriptPath,
+        "-ParentPid", "$ParentPid",
+        "-StepLogPath", $StepLogPath,
+        "-ReportPath", $ReportPath,
+        "-RuntimeLogPath", $RuntimeLogPath,
+        "-SourcePath", $SourcePath,
+        "-SourceBackupPath", $SourceBackupPath,
+        "-WatchdogScriptPath", $WatchdogScriptPath,
+        "-SourceOriginallyPresent", $SourceOriginallyPresent,
+        "-ProbePath", $ProbePath,
+        "-RunHardTimeoutSeconds", "$RunHardTimeoutSeconds",
+        "-NoProgressTimeoutSeconds", "$NoProgressTimeoutSeconds"
+    )
+
+    return Start-Process -FilePath "powershell.exe" -ArgumentList $argumentList -WindowStyle Hidden -PassThru
+}
 
 function Write-StepLog {
     param(
@@ -71,6 +379,7 @@ function Write-StepLog {
     $timestamp = Get-Date -Format "HH:mm:ss.fff"
     $line = "[$timestamp] [$Stage] $Message"
     Add-Content -LiteralPath $StepLogPath -Value $line -Encoding utf8
+    Record-ValidationProgress -Point "$Stage :: $Message"
 }
 
 function Add-Note {
@@ -117,15 +426,19 @@ function Wait-Until {
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     while ((Get-Date) -lt $deadline) {
+        Assert-ValidationBudget -Description $Description
         try {
             if (& $Condition) {
+                Record-ValidationProgress -Point "wait satisfied :: $Description"
                 return $true
             }
         } catch {
+            Assert-ValidationBudget -Description $Description
         }
         Start-Sleep -Milliseconds $SleepMilliseconds
     }
 
+    Assert-ValidationBudget -Description $Description
     throw "Timed out waiting for $Description."
 }
 
@@ -705,6 +1018,14 @@ function Get-DialogLookupChildAutomationId {
     }
 }
 
+function Get-OverlayAnchorAutomationIds {
+    return @(
+        "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine",
+        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton",
+        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton"
+    )
+}
+
 function Get-DialogWindow {
     param(
         [string]$Name
@@ -760,7 +1081,14 @@ function Get-OverlayWindow {
         return $overlay
     }
 
-    return Find-FirstElement -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId "QApplication.commandOverlayWindow" -ClassName "CommandOverlayPanel"
+    foreach ($automationId in (Get-OverlayAnchorAutomationIds)) {
+        $anchor = Find-ElementByAutomationIdDirect -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId $automationId
+        if ($anchor -and -not (Test-ElementGoneOrOffscreen -Element $anchor)) {
+            return [System.Windows.Automation.AutomationElement]::RootElement
+        }
+    }
+
+    return $null
 }
 
 function Wait-ForOverlayOpen {
@@ -822,6 +1150,40 @@ function Wait-ForOptionalDialog {
         Start-Sleep -Milliseconds 150
     }
     return $null
+}
+
+function Test-DialogVisibleFast {
+    param(
+        [string]$Name
+    )
+
+    $automationId = if ($Name -eq "Created Tasks") {
+        "QApplication.savedActionCreatedTasksDialog"
+    } else {
+        "QApplication.savedActionCreateDialog"
+    }
+    $dialog = Find-ElementByAutomationIdDirect -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId $automationId
+    if ($dialog -and -not (Test-ElementGoneOrOffscreen -Element $dialog)) {
+        try {
+            if (-not $Name -or $dialog.Current.Name -eq $Name) {
+                return $true
+            }
+        } catch {
+        }
+    }
+
+    return $false
+}
+
+function Wait-ForDialogClosedFast {
+    param(
+        [string]$Name,
+        [int]$TimeoutSeconds = 6
+    )
+
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description "dialog '$Name' closed (fast)" -Condition {
+        return -not (Test-DialogVisibleFast -Name $Name)
+    } | Out-Null
 }
 
 function Wait-ForElementByAutomationId {
@@ -1080,6 +1442,7 @@ function Wait-ForRuntimeMarker {
     }
 
     $script:RuntimeLogLineCursor = Get-RuntimeLogLineCount
+    Write-StepLog -Stage "WAIT" -Message "runtime marker '$Marker' observed"
 }
 
 function Test-RuntimeMarkerSeen {
@@ -1300,12 +1663,8 @@ function Resolve-LiveOverlayRoot {
         return $Overlay
     }
 
-    foreach ($automationId in @(
-        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton",
-        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton",
-        "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine"
-    )) {
-        $anchor = Find-FirstElement -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId $automationId
+    foreach ($automationId in (Get-OverlayAnchorAutomationIds)) {
+        $anchor = Find-ElementByAutomationIdDirect -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId $automationId
         if ($anchor -and -not (Test-ElementGoneOrOffscreen -Element $anchor)) {
             return [System.Windows.Automation.AutomationElement]::RootElement
         }
@@ -1324,12 +1683,8 @@ function Test-OverlayInteractableFallback {
         return $false
     }
 
-    foreach ($automationId in @(
-        "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine",
-        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton",
-        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton"
-    )) {
-        $element = Find-FirstElement -Root $liveOverlay -AutomationId $automationId
+    foreach ($automationId in (Get-OverlayAnchorAutomationIds)) {
+        $element = Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId $automationId
         if (-not $element -or (Test-ElementGoneOrOffscreen -Element $element)) {
             return $false
         }
@@ -1546,19 +1901,28 @@ function Open-CreatedTasksDialog {
         [System.Windows.Automation.AutomationElement]$Overlay
     )
 
-    $Overlay = Resolve-LiveOverlayRoot -Overlay $Overlay
-    $button = Find-FirstElement -Root $Overlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton"
-    if (-not $button) {
-        throw "Created Tasks button was not found in the overlay."
+    $resolveOverlay = {
+        Resolve-LiveOverlayRoot -Overlay $Overlay
     }
+    $resolveCreatedTasksButton = {
+        $liveOverlay = & $resolveOverlay
+        if (-not $liveOverlay) {
+            return $null
+        }
+        return (Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton")
+    }
+
+    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton" -Description "Created Tasks button"
+    $button = Focus-ElementForInteraction -ElementResolver $resolveCreatedTasksButton -Description "Created Tasks button" -RequireExactFocus $false
     Write-StepLog -Stage "DIALOG" -Message "opening Created Tasks"
     $markerStart = New-RuntimeMarkerCursor
-    $button.SetFocus()
     Invoke-ElementRobust -Element $button -Description "Created Tasks button"
 
     try {
         Wait-ForDialogRuntimeReady -SignalBase "CREATED_TASKS_DIALOG" -StartLine $markerStart -TimeoutSeconds 8
     } catch {
+        Add-Note "Created Tasks markers were not observed after the first entry button invoke; retrying once."
+        $button = Focus-ElementForInteraction -ElementResolver $resolveCreatedTasksButton -Description "Created Tasks button retry" -RequireExactFocus $false
         Invoke-ElementRobust -Element $button -Description "Created Tasks button retry"
         Wait-ForDialogRuntimeReady -SignalBase "CREATED_TASKS_DIALOG" -StartLine $markerStart -TimeoutSeconds 8
     }
@@ -1734,7 +2098,7 @@ function Cancel-Dialog {
     try {
         Wait-ForDialogRuntimeClosed -SignalBase $signalBase -StartLine $markerStart -TimeoutSeconds 5
         try {
-            Wait-ForDialogClosed -Name $Dialog.Current.Name -TimeoutSeconds 2
+            Wait-ForDialogClosedFast -Name $Dialog.Current.Name -TimeoutSeconds 2
         } catch {
             Add-Note "Dialog close readback lagged after a closed marker; continuing without an ESC fallback."
         }
@@ -1760,6 +2124,64 @@ function Wait-ForDialogClosed {
         $dialog = Get-DialogWindow -Name $Name
         return (Test-ElementGoneOrOffscreen -Element $dialog)
     } | Out-Null
+}
+
+function Reset-ScenarioTransitionState {
+    param(
+        [string]$Reason
+    )
+
+    $script:RuntimeLogLineCursor = Get-RuntimeLogLineCount
+    Enter-TransitionBudget -Name $Reason
+    Write-StepLog -Stage "FLOW" -Message "resetting transition state for $Reason"
+}
+
+function Wait-ForOverlayReadyForNextStep {
+    param(
+        [System.Windows.Automation.AutomationElement]$Overlay,
+        [string]$Reason,
+        [int]$TimeoutSeconds = 8
+    )
+
+    Write-StepLog -Stage "FLOW" -Message "waiting for overlay next-step readiness after $Reason"
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description "overlay next-step readiness after $Reason" -Condition {
+        foreach ($dialogName in @("Create Custom Task", "Edit Custom Task", "Created Tasks")) {
+            if (Test-DialogVisibleFast -Name $dialogName) {
+                return $false
+            }
+        }
+
+        $liveOverlay = Resolve-LiveOverlayRoot -Overlay $Overlay
+        if (-not $liveOverlay) {
+            return $false
+        }
+
+        foreach ($automationId in (Get-OverlayAnchorAutomationIds)) {
+            $element = Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId $automationId
+            if (-not (Test-ElementUsable -Element $element -RequireEnabled $true)) {
+                return $false
+            }
+        }
+
+        return $true
+    } | Out-Null
+
+    $liveOverlay = Resolve-LiveOverlayRoot -Overlay $Overlay
+    if (-not $liveOverlay) {
+        throw "Could not resolve the overlay after $Reason."
+    }
+
+    $resolveOverlayInput = {
+        $currentOverlay = Resolve-LiveOverlayRoot -Overlay $liveOverlay
+        if (-not $currentOverlay) {
+            return $null
+        }
+        return (Find-ElementByAutomationIdDirect -Root $currentOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine")
+    }
+    $null = Focus-ElementForInteraction -ElementResolver $resolveOverlayInput -Description "overlay input after $Reason" -RequireExactFocus $false
+    Clear-TransitionBudget -Name $Reason
+    Write-StepLog -Stage "FLOW" -Message "overlay ready for next step after $Reason"
+    return (Resolve-LiveOverlayRoot -Overlay $liveOverlay)
 }
 
 function Close-CreatedTasksDialog {
@@ -1799,6 +2221,12 @@ function Close-CreatedTasksDialog {
             Add-Note "Overlay-ready follow-up lagged after the Created Tasks close fallback; continuing with re-resolved overlay state."
         }
     }
+
+    try {
+        Wait-ForDialogClosedFast -Name "Created Tasks" -TimeoutSeconds 3
+    } catch {
+        Add-Note "Created Tasks fast close confirmation lagged after runtime closure markers; relying on overlay reacquisition."
+    }
 }
 
 function Wait-ForInventoryText {
@@ -1823,26 +2251,36 @@ function Wait-ForInventoryText {
 
 function Ensure-OverlayReady {
     param(
-        [System.Windows.Automation.AutomationElement]$Overlay
+        [System.Windows.Automation.AutomationElement]$Overlay,
+        [string]$Reason = "dialog transition"
     )
 
-    $liveOverlay = Wait-ForOptionalOverlayOpen -TimeoutSeconds 2
-    if ($liveOverlay) {
-        try {
-            $markerStart = New-RuntimeMarkerCursor
-            Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_OVERLAY_READY" -TimeoutSeconds 2 -StartLine $markerStart
-        } catch {
+    Reset-ScenarioTransitionState -Reason $Reason
+    Write-StepLog -Stage "FLOW" -Message "verifying overlay controls for next step after $Reason"
+
+    $resolveOverlay = {
+        Resolve-LiveOverlayRoot -Overlay $Overlay
+    }
+    $resolveOverlayInput = {
+        $liveOverlay = & $resolveOverlay
+        if (-not $liveOverlay) {
+            return $null
         }
-        return $liveOverlay
+        return (Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine")
     }
 
-    $resolvedOverlay = Resolve-LiveOverlayRoot -Overlay $Overlay
-    if ($resolvedOverlay) {
-        return $resolvedOverlay
+    try {
+        $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine" -Description "overlay input after $Reason"
+        $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton" -Description "Create Custom Task button after $Reason"
+        $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton" -Description "Created Tasks button after $Reason"
+        $null = Focus-ElementForInteraction -ElementResolver $resolveOverlayInput -Description "overlay input after $Reason" -RequireExactFocus $false
+        Clear-TransitionBudget -Name $Reason
+        Write-StepLog -Stage "FLOW" -Message "overlay ready for next step after $Reason"
+        return (& $resolveOverlay)
+    } catch {
+        Add-Note "Overlay was not ready after $Reason; reopening it for the next validation step. Cause: $($_.Exception.Message)"
+        return (Open-OverlayWithRuntimeRestartFallback -MaxAttempts 2)
     }
-
-    Add-Note "Overlay was not visible after a dialog transition; reopening it for the next validation step."
-    return (Open-OverlayWithRuntimeRestartFallback -MaxAttempts 2)
 }
 
 function Get-OverlayInput {
@@ -2171,18 +2609,20 @@ function Run-Create-Flow {
     Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATE_ATTEMPT_STARTED|title=Open Notepad Task" -StartLine $markerStart
     Wait-ForCatalogReloadCompleted -StartLine $markerStart
     Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATED|action_id=open_notepad_task" -StartLine $markerStart
+    Write-StepLog -Stage "FLOW" -Message "valid create markers completed; confirming dialog closure"
     try {
         Wait-ForDialogRuntimeClosed -SignalBase "CUSTOM_TASK_CREATE_DIALOG" -StartLine $markerStart -TimeoutSeconds 4
-        Wait-ForDialogClosed -Name "Create Custom Task" -TimeoutSeconds 4
     } catch {
         Add-Note "Create dialog close readback lagged after a successful create marker, but the runtime marker and persisted source still confirmed the save."
     }
-    $Overlay = Wait-ForOverlayOpen
+    $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "successful create flow"
+    Write-StepLog -Stage "FLOW" -Message "verifying created inventory after successful create"
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $Overlay
     Wait-ForInventoryText -Overlay $createdTasksDialog -Text "Open Notepad Task"
     Close-CreatedTasksDialog -Dialog $createdTasksDialog
     Copy-SourceSnapshot -Slug "after_create" | Out-Null
-    return (Ensure-OverlayReady -Overlay $Overlay)
+    Write-StepLog -Stage "FLOW" -Message "valid create flow complete; preparing next scenario"
+    return (Ensure-OverlayReady -Overlay $Overlay -Reason "post-create inventory verification")
 }
 
 function Run-Invalid-Create-Checks {
@@ -2239,8 +2679,12 @@ function Run-Invalid-Create-Checks {
             Add-Note "Invalid target case '$($case.type)' kept the dialog open and preserved the source, but the interactive status-label readback was blank."
         }
         Cancel-Dialog -Dialog $dialog
-        Wait-ForDialogClosed -Name "Create Custom Task"
-        $Overlay = Ensure-OverlayReady -Overlay $Overlay
+        try {
+            Wait-ForDialogClosedFast -Name "Create Custom Task" -TimeoutSeconds 3
+        } catch {
+            Add-Note "Invalid create dialog close readback lagged after cancel; continuing with overlay reacquisition."
+        }
+        $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "invalid create case '$($case.type)'"
     }
 }
 
@@ -2296,8 +2740,12 @@ function Run-Collision-Checks {
             Add-Note "Collision case '$($case.title)' stayed blocked with no write, but the interactive status-label readback was blank."
         }
         Cancel-Dialog -Dialog $dialog
-        Wait-ForDialogClosed -Name "Create Custom Task"
-        $Overlay = Ensure-OverlayReady -Overlay $Overlay
+        try {
+            Wait-ForDialogClosedFast -Name "Create Custom Task" -TimeoutSeconds 3
+        } catch {
+            Add-Note "Collision dialog close readback lagged after cancel; continuing with overlay reacquisition."
+        }
+        $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "collision create case '$($case.title)'"
     }
 }
 
@@ -2339,16 +2787,17 @@ function Run-Edit-Flow {
     }
     try {
         Wait-ForDialogRuntimeClosed -SignalBase "CUSTOM_TASK_EDIT_DIALOG" -StartLine $markerStart -TimeoutSeconds 4
-        Wait-ForDialogClosed -Name "Edit Custom Task" -TimeoutSeconds 4
     } catch {
         Add-Note "Edit dialog close readback lagged after a successful update marker, but the runtime marker and refreshed inventory still confirmed the save."
     }
-    $Overlay = Wait-ForOverlayOpen
+    $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "successful edit flow"
+    Write-StepLog -Stage "FLOW" -Message "verifying created inventory after successful edit"
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $Overlay
     Wait-ForInventoryText -Overlay $createdTasksDialog -Text "Open Weekly Reports"
     Close-CreatedTasksDialog -Dialog $createdTasksDialog
     Copy-SourceSnapshot -Slug "after_edit" | Out-Null
-    return (Ensure-OverlayReady -Overlay $Overlay)
+    Write-StepLog -Stage "FLOW" -Message "valid edit flow complete; preparing next scenario"
+    return (Ensure-OverlayReady -Overlay $Overlay -Reason "post-edit inventory verification")
 }
 
 function Run-Invalid-Edit-Check {
@@ -2402,14 +2851,18 @@ function Run-Invalid-Edit-Check {
         Add-Note "Invalid edit target kept the dialog open and preserved the source, but the interactive status-label readback was blank."
     }
     Cancel-Dialog -Dialog $dialog
-    Wait-ForDialogClosed -Name "Edit Custom Task"
-    $Overlay = Ensure-OverlayReady -Overlay $Overlay
+    try {
+        Wait-ForDialogClosedFast -Name "Edit Custom Task" -TimeoutSeconds 3
+    } catch {
+        Add-Note "Invalid edit dialog close readback lagged after cancel; continuing with overlay reacquisition."
+    }
+    $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "invalid edit check"
 }
 
 function Run-ExactMatch-Execution {
     param([System.Windows.Automation.AutomationElement]$Overlay)
     Write-StepLog -Stage "FLOW" -Message "running exact-match execution check"
-    $Overlay = Ensure-OverlayReady -Overlay $Overlay
+    $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "exact-match execution check"
     $input = Get-OverlayInput -Overlay $Overlay
     Set-Value -Element $input -Value "Open Weekly Reports"
     $input.SetFocus()
@@ -2427,7 +2880,7 @@ function Run-ExactMatch-Execution {
         } | Out-Null
     } catch {
         Add-Note "First exact-match submit did not surface a fresh confirm or launch marker; retrying the submit path once."
-        $Overlay = Ensure-OverlayReady -Overlay $Overlay
+        $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "exact-match execution retry"
         $input = Get-OverlayInput -Overlay $Overlay
         $input.SetFocus()
         Start-Sleep -Milliseconds 150
@@ -2458,7 +2911,8 @@ function Run-Reopen-Check {
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $overlay
     Wait-ForInventoryText -Overlay $createdTasksDialog -Text "Open Weekly Reports"
     Close-CreatedTasksDialog -Dialog $createdTasksDialog
-    return $overlay
+    Write-StepLog -Stage "FLOW" -Message "overlay reopen persistence check complete; preparing next scenario"
+    return (Ensure-OverlayReady -Overlay $overlay -Reason "overlay reopen persistence check")
 }
 
 function Run-Large-Inventory-Check {
@@ -2495,16 +2949,16 @@ function Run-Large-Inventory-Check {
     Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_UPDATED|action_id=open_reports_8" -StartLine $markerStart
     try {
         Wait-ForDialogRuntimeClosed -SignalBase "CUSTOM_TASK_EDIT_DIALOG" -StartLine $markerStart -TimeoutSeconds 4
-        Wait-ForDialogClosed -Name "Edit Custom Task" -TimeoutSeconds 4
     } catch {
         Add-Note "Late-item edit dialog close readback lagged after a successful update marker, but the runtime marker and refreshed Created Tasks view still confirmed the save."
     }
-    $overlay = Wait-ForOverlayOpen
+    $overlay = Ensure-OverlayReady -Overlay $overlay -Reason "large inventory edit flow"
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $overlay
     Wait-ForInventoryText -Overlay $createdTasksDialog -Text "Open Reports Eight"
     Close-CreatedTasksDialog -Dialog $createdTasksDialog
     Copy-SourceSnapshot -Slug "after_large_inventory_edit" | Out-Null
-    return (Ensure-OverlayReady -Overlay $overlay)
+    Write-StepLog -Stage "FLOW" -Message "large inventory late-item edit check complete; preparing next scenario"
+    return (Ensure-OverlayReady -Overlay $overlay -Reason "post-large-inventory verification")
 }
 
 function Run-Unsafe-Source-Check {
@@ -2548,11 +3002,14 @@ function Run-Unsafe-Source-Check {
 
 $originalSourceExists = Test-Path -LiteralPath $SourcePath
 $originalSourceBytes = if ($originalSourceExists) { [System.IO.File]::ReadAllBytes($SourcePath) } else { [byte[]]@() }
+[System.IO.File]::WriteAllBytes($SourceBackupPath, $originalSourceBytes)
 $script:runtimeProcess = $null
 $script:notepadProbe = $null
+$script:watchdogProcess = $null
 $runFailure = $null
 
 try {
+    Write-StepLog -Stage "BUDGET" -Message "interactive validation budgets active: full_run=${script:InteractiveRunHardTimeoutSeconds}s no_progress=${script:NoProgressTimeoutSeconds}s scenario=${script:ScenarioTimeoutSeconds}s transition=${script:TransitionTimeoutSeconds}s"
     Stop-StaleInteractiveValidationProcesses
     $script:runtimeProcess = Start-InteractiveRuntime
     Add-Artifact -Label "interactive_runtime_log" -Path $RuntimeLogPath
@@ -2560,49 +3017,94 @@ try {
 
     $script:notepadProbe = Start-NotepadProbe
     Add-Artifact -Label "notepad_probe_file" -Path $script:notepadProbe.path
+    $script:watchdogProcess = Start-ValidationWatchdog `
+        -ParentPid $PID `
+        -StepLogPath $StepLogPath `
+        -ReportPath $ReportPath `
+        -RuntimeLogPath $RuntimeLogPath `
+        -SourcePath $SourcePath `
+        -SourceBackupPath $SourceBackupPath `
+        -WatchdogScriptPath $WatchdogScriptPath `
+        -SourceOriginallyPresent $originalSourceExists `
+        -ProbePath $script:notepadProbe.path `
+        -RunHardTimeoutSeconds $script:InteractiveRunHardTimeoutSeconds `
+        -NoProgressTimeoutSeconds $script:NoProgressTimeoutSeconds
+    Add-Note "Started interactive validation watchdog with full-run and no-progress enforcement."
 
     New-HealthySource
     Copy-SourceSnapshot -Slug "initial_source" | Out-Null
 
+    Enter-ScenarioBudget -Name "overlay_open"
     $overlay = Open-OverlayWithRuntimeRestartFallback
     Add-ScenarioResult -Name "overlay_open" -Passed $true -Details "Overlay opened through the real hotkey and the runtime log recorded COMMAND_OVERLAY_OPENED."
+    Clear-ScenarioBudget -Name "overlay_open"
 
+    Enter-ScenarioBudget -Name "valid_create"
     $overlay = Run-Create-Flow -Overlay $overlay
     Add-ScenarioResult -Name "valid_create" -Passed $true -Details "A real create dialog session created Open Notepad Task and refreshed inventory immediately."
+    Clear-ScenarioBudget -Name "valid_create"
 
+    Enter-ScenarioBudget -Name "invalid_create_rejection"
     Run-Invalid-Create-Checks -Overlay $overlay
     Add-ScenarioResult -Name "invalid_create_rejection" -Passed $true -Details "Application, folder, file, and URL invalid targets stayed blocked in the real dialog with no write."
+    Clear-ScenarioBudget -Name "invalid_create_rejection"
 
+    Enter-ScenarioBudget -Name "collision_rejection"
     Run-Collision-Checks -Overlay $overlay
     Add-ScenarioResult -Name "collision_rejection" -Passed $true -Details "Built-in and saved-action collisions were blocked in the real create dialog."
+    Clear-ScenarioBudget -Name "collision_rejection"
 
+    Enter-ScenarioBudget -Name "valid_edit"
     $overlay = Run-Edit-Flow -Overlay $overlay
     Add-ScenarioResult -Name "valid_edit" -Passed $true -Details "The real edit dialog updated the same saved action in place and refreshed inventory immediately."
+    Clear-ScenarioBudget -Name "valid_edit"
 
+    Enter-ScenarioBudget -Name "invalid_edit_rejection"
     Run-Invalid-Edit-Check -Overlay $overlay
     Add-ScenarioResult -Name "invalid_edit_rejection" -Passed $true -Details "A malformed edit target stayed blocked in the real edit dialog and did not write."
+    Clear-ScenarioBudget -Name "invalid_edit_rejection"
 
+    Enter-ScenarioBudget -Name "exact_match_execution"
     Run-ExactMatch-Execution -Overlay $overlay
     Add-ScenarioResult -Name "exact_match_execution" -Passed $true -Details "Exact-match execution sent a real launch request for the edited saved action through the live overlay path."
+    Clear-ScenarioBudget -Name "exact_match_execution"
 
+    Enter-ScenarioBudget -Name "reopen_persistence"
     $overlay = Run-Reopen-Check
     Add-ScenarioResult -Name "reopen_persistence" -Passed $true -Details "Close/reopen preserved the latest saved action state and returned to a clean entry baseline."
+    Clear-ScenarioBudget -Name "reopen_persistence"
 
+    Enter-ScenarioBudget -Name "large_inventory_reachability"
     $overlay = Run-Large-Inventory-Check
     Add-ScenarioResult -Name "large_inventory_reachability" -Passed $true -Details "A later saved action beyond the old six-item cap was reachable and editable in the real UI."
+    Clear-ScenarioBudget -Name "large_inventory_reachability"
 
+    Enter-ScenarioBudget -Name "unsafe_source_blocking"
     Run-Unsafe-Source-Check
     Add-ScenarioResult -Name "unsafe_source_blocking" -Passed $true -Details "An invalid saved-actions source blocked real create entry and surfaced repair-oriented status feedback."
+    Clear-ScenarioBudget -Name "unsafe_source_blocking"
 
+    Enter-ScenarioBudget -Name "no_input_leakage"
     $notepadText = Get-NotepadText -Probe $script:notepadProbe
     if ($notepadText -ne "") {
         throw "Outside Notepad probe received unexpected input: '$notepadText'"
     }
     Add-ScenarioResult -Name "no_input_leakage" -Passed $true -Details "The outside Notepad probe stayed empty through overlay open, dialog interaction, submit, and reopen."
+    Clear-ScenarioBudget -Name "no_input_leakage"
 
     Copy-SourceSnapshot -Slug "final_source_before_restore" | Out-Null
 }
 catch {
+    if ($script:TimeoutTripReason) {
+        Add-Note "Timeout/abort reason: $($script:TimeoutTripReason)"
+        Add-Note "Last confirmed progress point: $($script:LastProgressPoint)"
+        if ($script:CurrentScenarioName) {
+            Add-Note "Scenario active at timeout: $($script:CurrentScenarioName)"
+        }
+        if ($script:CurrentTransitionName) {
+            Add-Note "Transition active at timeout: $($script:CurrentTransitionName)"
+        }
+    }
     $windowNames = @()
     try {
         $windowNames = @(
@@ -2628,19 +3130,56 @@ catch {
 }
 finally {
     Restore-SavedActionSource -HadOriginal $originalSourceExists -OriginalBytes $originalSourceBytes
+    Add-CleanupNote -Message "restored saved_actions.json to its pre-run state"
+
+    if ($script:watchdogProcess) {
+        try {
+            Stop-ProcessQuietly -Process $script:watchdogProcess
+            Add-CleanupNote -Message "stopped the interactive validation watchdog"
+        } catch {
+        }
+    }
 
     if ($script:notepadProbe) {
         try {
             Stop-ProcessQuietly -Process $script:notepadProbe.process
+            Add-CleanupNote -Message "closed the validation Notepad probe window"
         } catch {
+        }
+        try {
+            if ($script:notepadProbe.path -and (Test-Path -LiteralPath $script:notepadProbe.path)) {
+                Remove-Item -LiteralPath $script:notepadProbe.path -Force
+                Add-CleanupNote -Message "deleted the validation Notepad probe file"
+            }
+        } catch {
+            Add-Note "Cleanup could not delete the validation Notepad probe file cleanly."
         }
     }
 
     if ($script:runtimeProcess) {
         try {
             Stop-ProcessQuietly -Process $script:runtimeProcess
+            Add-CleanupNote -Message "stopped the interactive runtime helper"
         } catch {
         }
+    }
+
+    try {
+        if (Test-Path -LiteralPath $SourceBackupPath) {
+            Remove-Item -LiteralPath $SourceBackupPath -Force
+            Add-CleanupNote -Message "deleted the watchdog source backup artifact"
+        }
+    } catch {
+        Add-Note "Cleanup could not delete the watchdog source backup artifact cleanly."
+    }
+
+    try {
+        if (Test-Path -LiteralPath $WatchdogScriptPath) {
+            Remove-Item -LiteralPath $WatchdogScriptPath -Force
+            Add-CleanupNote -Message "deleted the watchdog helper script"
+        }
+    } catch {
+        Add-Note "Cleanup could not delete the watchdog helper script cleanly."
     }
 }
 
@@ -2648,6 +3187,16 @@ $reportLines = @()
 $reportLines += "FB-036 SAVED-ACTION AUTHORING INTERACTIVE VALIDATION"
 $reportLines += "Report: $ReportPath"
 $reportLines += "Timestamp: $(Get-Date -Format o)"
+$reportLines += ""
+$reportLines += "Timeout Budgets:"
+$reportLines += "  full_run_hard_timeout_seconds: $($script:InteractiveRunHardTimeoutSeconds)"
+$reportLines += "  no_progress_timeout_seconds: $($script:NoProgressTimeoutSeconds)"
+$reportLines += "  scenario_timeout_seconds: $($script:ScenarioTimeoutSeconds)"
+$reportLines += "  transition_timeout_seconds: $($script:TransitionTimeoutSeconds)"
+$reportLines += "  last_confirmed_progress_point: $($script:LastProgressPoint)"
+if ($script:TimeoutTripReason) {
+    $reportLines += "  timeout_abort_reason: $($script:TimeoutTripReason)"
+}
 $reportLines += ""
 $reportLines += "Scenarios:"
 foreach ($scenario in $ValidationState.scenarios) {
@@ -2674,6 +3223,14 @@ Add-Artifact -Label "interactive_validation_report" -Path $ReportPath
 $summary = [pscustomobject]@{
     report = $ReportPath
     runtime_log = $RuntimeLogPath
+    timeout_budgets = [pscustomobject]@{
+        full_run_hard_timeout_seconds = $script:InteractiveRunHardTimeoutSeconds
+        no_progress_timeout_seconds = $script:NoProgressTimeoutSeconds
+        scenario_timeout_seconds = $script:ScenarioTimeoutSeconds
+        transition_timeout_seconds = $script:TransitionTimeoutSeconds
+    }
+    timeout_abort_reason = $script:TimeoutTripReason
+    last_confirmed_progress_point = $script:LastProgressPoint
     scenarios = $ValidationState.scenarios
     artifacts = $ValidationState.artifacts
     notes = $ValidationState.notes
