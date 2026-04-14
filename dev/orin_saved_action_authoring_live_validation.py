@@ -304,7 +304,7 @@ def _run_invalid_and_collision_paths():
                 submit_handler,
                 lambda dialog: (
                     dialog.type_combo.setCurrentText("Application"),
-                    dialog.title_input.setText("Open Windows Explorer"),
+                    dialog.title_input.setText("Explorer Helper"),
                     dialog.aliases_input.setText("open windows explorer"),
                     dialog.target_input.setText("explorer.exe"),
                 ),
@@ -336,8 +336,8 @@ def _run_trigger_phrase_resolution():
                 submit_handler,
                 lambda dialog: (
                     dialog.type_combo.setCurrentText("Application"),
-                    dialog.title_input.setText("Nexus"),
-                    dialog.aliases_input.setText("NDAI"),
+                    dialog.title_input.setText("Open Nexus"),
+                    dialog.aliases_input.setText("Nexus, NDAI"),
                     dialog.trigger_combo.setCurrentText("Launch and Open"),
                     dialog.target_input.setText("notepad.exe"),
                 ),
@@ -358,6 +358,10 @@ def _run_trigger_phrase_resolution():
                 tuple(action.id for action in matches) == (expected_id,),
                 f"live validation should resolve '{phrase}' through the reloaded catalog",
             )
+        _assert(
+            tuple(action.id for action in catalog.resolve_actions("Open Open Nexus")) == (),
+            "live validation should confirm new tasks do not generate trigger phrases from the title label",
+        )
 
         return {
             "action_id": expected_id,

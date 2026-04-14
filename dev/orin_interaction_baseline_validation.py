@@ -322,10 +322,11 @@ def _test_trigger_generated_saved_action_phrases_stay_exact_and_bounded():
         (
             CommandAction(
                 id="open_nexus_site",
-                title="Nexus",
+                title="Open Nexus Site",
                 target_kind="url",
                 target="https://example.com/docs/start",
-                aliases=("NDAI",),
+                aliases=("Nexus", "NDAI"),
+                invocation_mode="aliases_only",
                 trigger_mode="launch_and_open",
                 origin="saved",
             ),
@@ -347,6 +348,10 @@ def _test_trigger_generated_saved_action_phrases_stay_exact_and_bounded():
     _assert(
         tuple(action.id for action in action_catalog.resolve_actions("Open NDAI")) == ("open_nexus_site",),
         "trigger-generated open phrases should resolve for saved-action aliases",
+    )
+    _assert(
+        tuple(action.id for action in action_catalog.resolve_actions("Open Nexus Site")) == (),
+        "alias-root saved actions should not make the title label callable unless it is also an alias",
     )
     _assert(
         tuple(action.id for action in action_catalog.resolve_actions("Launch Legacy Docs")) == (),

@@ -404,11 +404,11 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "field headers should be more prominent than the surrounding guidance copy",
     )
     _assert(
-        "main task name" in dialog.title_help_button.toolTip().casefold(),
+        "display label" in dialog.title_help_button.toolTip().casefold(),
         "title help icon should explain what the title field does",
     )
     _assert(
-        "alternate names" in dialog.aliases_help_button.toolTip().casefold(),
+        "exact words or phrases" in dialog.aliases_help_button.toolTip().casefold(),
         "aliases help icon should explain what aliases are for",
     )
     _assert(
@@ -416,39 +416,39 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "trigger help icon should explain what the trigger field does",
     )
     _assert(
-        "main name" in dialog.title_guidance_label.text().casefold(),
-        "create dialog should explain what the title field does",
+        not hasattr(dialog, "title_guidance_label"),
+        "create dialog should not keep a separate helper-text label under the title field",
     )
     _assert(
-        "alternate phrases" in dialog.aliases_guidance_label.text().casefold(),
-        "create dialog should explain what aliases do",
+        not hasattr(dialog, "aliases_guidance_label"),
+        "create dialog should not keep a separate helper-text label under the aliases field",
     )
     _assert(
-        "suggestions appear after you add a title" in dialog.aliases_suggestion_label.text().casefold(),
-        "create dialog should explain that alias suggestions follow the title",
+        not hasattr(dialog, "aliases_suggestion_label"),
+        "create dialog should not keep a separate alias-suggestions label under the aliases field",
     )
     _assert(
-        "leading phrase" in dialog.trigger_guidance_label.text().casefold(),
-        "create dialog should explain what the trigger field controls",
+        not hasattr(dialog, "trigger_guidance_label"),
+        "create dialog should not keep a separate helper-text label under the trigger field",
     )
     _assert(
         dialog.current_trigger_mode() == "launch",
         "application tasks should default to Launch until the trigger is changed manually",
     )
     _assert(
-        "what nexus launches" in dialog.target_guidance_label.text().casefold(),
-        "application target guidance should explain what the target launches",
+        not hasattr(dialog, "target_guidance_label"),
+        "create dialog should not keep a separate helper-text label under the target field",
     )
     _assert(
         "how you can call this task" in dialog.target_examples_title.text().casefold(),
-        "create dialog should show a boxed callable-examples section below the fields",
+        "create dialog should show one boxed callable-examples section below the fields",
     )
 
     dialog.title_input.setText("Nexus")
     _assert(
-        "nexus" in dialog.aliases_suggestion_label.text().casefold()
-        and "show nexus" in dialog.aliases_suggestion_label.text().casefold(),
-        "alias suggestions should update from the title without overwriting the aliases field",
+        "suggested aliases:" in dialog.target_examples_label.text().casefold()
+        and "nexus" in dialog.target_examples_label.text().casefold(),
+        "alias suggestions should move into the single bottom guidance box",
     )
 
     dialog.type_combo.setCurrentText("Folder")
@@ -457,18 +457,14 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "folder tasks should default to Open while the trigger is still following the selected type",
     )
     _assert(
-        "full folder path" in dialog.target_guidance_label.text().casefold(),
-        "folder guidance should explain that the target points to a folder",
-    )
-    _assert(
         "folder nexus opens" in dialog.target_help_button.toolTip().casefold(),
         "target help icon should update with the current target-kind examples",
     )
 
     dialog.type_combo.setCurrentText("Website URL")
     _assert(
-        "full address" in dialog.target_guidance_label.text().casefold(),
-        "website guidance should explain that the target needs a full URL",
+        "full website address" in dialog.target_help_button.toolTip().casefold(),
+        "website guidance should now live in the target tooltip instead of under the field",
     )
 
 
@@ -482,8 +478,8 @@ def _test_create_dialog_trigger_controls_and_dynamic_examples():
     )
 
     dialog.type_combo.setCurrentText("Website URL")
-    dialog.title_input.setText("Nexus")
-    dialog.aliases_input.setText("NDAI")
+    dialog.title_input.setText("Open Nexus")
+    dialog.aliases_input.setText("Nexus, NDAI")
     dialog.trigger_combo.setCurrentText("Launch and Open")
     examples_text = dialog.target_examples_label.text().casefold()
 
@@ -492,11 +488,15 @@ def _test_create_dialog_trigger_controls_and_dynamic_examples():
         "examples box should explain the real callable phrases for the current draft",
     )
     _assert(
-        "open nexus" in examples_text
+        "nexus" in examples_text
         and "launch nexus" in examples_text
         and "open ndai" in examples_text
         and "launch ndai" in examples_text,
-        "launch-and-open mode should show both trigger families for the title and aliases",
+        "launch-and-open mode should show both trigger families for aliases and not rely on the title label",
+    )
+    _assert(
+        "open open nexus" not in examples_text and "launch open nexus" not in examples_text,
+        "examples box should not generate trigger phrases from the title label when the task is alias-root",
     )
     _assert(
         "target format: https://example.com/docs" in examples_text,
@@ -522,11 +522,15 @@ def _test_create_dialog_trigger_controls_and_dynamic_examples():
     _assert(
         "force open nexus" in custom_examples_text
         and "duck duck goose ndai" in custom_examples_text,
-        "custom trigger mode should show examples using the entered custom trigger phrases",
+        "custom trigger mode should show examples using the entered custom trigger phrases with aliases",
     )
     _assert(
         "launch nexus" not in custom_example_lines and "open nexus" not in custom_example_lines,
         "custom trigger mode should replace the standard trigger families in the examples box",
+    )
+    _assert(
+        "force open open nexus" not in custom_examples_text,
+        "custom trigger mode should not generate custom trigger phrases from the title label",
     )
 
 
@@ -652,8 +656,8 @@ def _test_invalid_input_shows_dialog_error_and_does_not_write():
 
         _assert(dialog_instances, "invalid input path should still open the create dialog")
         _assert(
-            "main name people will type or click" in dialog_instances[0].status_label.text().casefold(),
-            "invalid input should explain what the title field is for, not just that it failed",
+            "display label people will see" in dialog_instances[0].status_label.text().casefold(),
+            "invalid input should explain the title as a label, not as a callable phrase",
         )
         _assert(
             not source_path.exists(),

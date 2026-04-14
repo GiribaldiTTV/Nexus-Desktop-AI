@@ -19,6 +19,7 @@ from .shared_action_model import (
     default_saved_action_trigger_mode,
     normalize_command_text,
     normalize_saved_action_custom_triggers,
+    normalize_saved_action_invocation_mode,
     normalize_saved_action_trigger_mode,
     reload_default_command_action_catalog,
     validate_saved_action_target,
@@ -34,6 +35,7 @@ class SavedActionDraft:
     target_kind: str
     target: str
     aliases: tuple[str, ...] = ()
+    invocation_mode: str = "aliases_only"
     trigger_mode: str = ""
     custom_triggers: tuple[str, ...] = ()
 
@@ -80,6 +82,7 @@ def _coerce_draft(draft: SavedActionDraft | dict[str, Any]) -> SavedActionDraft:
             target_kind=draft.get("target_kind", ""),
             target=draft.get("target", ""),
             aliases=tuple(draft.get("aliases", ()) or ()),
+            invocation_mode=draft.get("invocation_mode", "aliases_only"),
             trigger_mode=draft.get("trigger_mode", ""),
             custom_triggers=tuple(draft.get("custom_triggers", ()) or ()),
         )
@@ -95,8 +98,10 @@ def _normalize_title(title: Any) -> str:
     return normalized
 
 
-def _normalize_aliases(aliases: Any, *, title: str) -> tuple[str, ...]:
+def _normalize_aliases(aliases: Any, *, title: str, invocation_mode: str) -> tuple[str, ...]:
     if aliases in (None, ""):
+        if invocation_mode == "aliases_only":
+            raise SavedActionDraftValidationError("Saved action aliases must contain at least one callable phrase.")
         return ()
     if not isinstance(aliases, (list, tuple)):
         raise SavedActionDraftValidationError("Saved action aliases must be a list of strings.")
@@ -115,7 +120,7 @@ def _normalize_aliases(aliases: Any, *, title: str) -> tuple[str, ...]:
         normalized_phrase = normalize_command_text(normalized_alias)
         if not normalized_phrase:
             raise SavedActionDraftValidationError("Saved action aliases must normalize to non-empty phrases.")
-        if normalized_phrase == normalized_title:
+        if invocation_mode != "aliases_only" and normalized_phrase == normalized_title:
             raise SavedActionDraftValidationError("Saved action aliases must not duplicate the title.")
         if normalized_phrase in seen_alias_phrases:
             raise SavedActionDraftValidationError("Saved action aliases must stay unique.")
@@ -169,15 +174,26 @@ def _normalize_trigger_fields(
     return trigger_mode, custom_triggers
 
 
+def _normalize_invocation_mode(draft: SavedActionDraft) -> str:
+    try:
+        return normalize_saved_action_invocation_mode(
+            draft.invocation_mode,
+            allow_empty=False,
+        )
+    except ValueError as exc:
+        raise SavedActionDraftValidationError(str(exc)) from exc
+
+
 def _normalize_draft_fields(
     draft: SavedActionDraft,
-) -> tuple[str, tuple[str, ...], str, str, str, tuple[str, ...]]:
+) -> tuple[str, tuple[str, ...], str, str, str, str, tuple[str, ...]]:
     title = _normalize_title(draft.title)
-    aliases = _normalize_aliases(draft.aliases, title=title)
+    invocation_mode = _normalize_invocation_mode(draft)
+    aliases = _normalize_aliases(draft.aliases, title=title, invocation_mode=invocation_mode)
     target_kind = _normalize_target_kind(draft.target_kind)
     target = _normalize_target(draft.target, target_kind=target_kind)
     trigger_mode, custom_triggers = _normalize_trigger_fields(draft, target_kind=target_kind)
-    return title, aliases, target_kind, target, trigger_mode, custom_triggers
+    return title, aliases, target_kind, target, invocation_mode, trigger_mode, custom_triggers
 
 
 def _load_saved_action_authoring_state(
@@ -244,7 +260,7 @@ def _build_saved_action_record_for_create(
     draft: SavedActionDraft,
     state: SavedActionAuthoringState,
 ) -> dict[str, Any]:
-    title, aliases, target_kind, target, trigger_mode, custom_triggers = _normalize_draft_fields(draft)
+    title, aliases, target_kind, target, invocation_mode, trigger_mode, custom_triggers = _normalize_draft_fields(draft)
 
     existing_ids = {action.id for action in DEFAULT_COMMAND_ACTIONS}
     existing_ids.update(action.id for action in state.existing_actions)
@@ -256,6 +272,7 @@ def _build_saved_action_record_for_create(
         "target_kind": target_kind,
         "target": target,
         "aliases": list(aliases),
+        "invocation_mode": invocation_mode,
         "trigger_mode": trigger_mode,
     }
     if custom_triggers:
@@ -276,6 +293,7 @@ def draft_from_saved_action_record(record: dict[str, Any]) -> SavedActionDraft:
         target_kind=action.target_kind,
         target=action.target,
         aliases=action.aliases,
+        invocation_mode=action.invocation_mode,
         trigger_mode=action.trigger_mode,
         custom_triggers=action.custom_triggers,
     )
@@ -296,13 +314,14 @@ def _build_saved_action_record_for_update(
     state: SavedActionAuthoringState,
 ) -> tuple[int, dict[str, Any]]:
     index, existing_record = _find_existing_saved_action_record(state, saved_action_id)
-    title, aliases, target_kind, target, trigger_mode, custom_triggers = _normalize_draft_fields(draft)
+    title, aliases, target_kind, target, invocation_mode, trigger_mode, custom_triggers = _normalize_draft_fields(draft)
 
     record = deepcopy(existing_record)
     record["title"] = title
     record["target_kind"] = target_kind
     record["target"] = target
     record["aliases"] = list(aliases)
+    record["invocation_mode"] = invocation_mode
     record["trigger_mode"] = trigger_mode
     if custom_triggers:
         record["custom_triggers"] = list(custom_triggers)

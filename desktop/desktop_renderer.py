@@ -252,48 +252,18 @@ class SavedActionCreateDialog(QDialog):
         ("Custom", "custom"),
     )
 
-    TITLE_GUIDANCE = (
-        "The main name people will type or click."
-    )
-
-    ALIASES_GUIDANCE = (
-        "Optional alternate phrases, separated by commas."
-    )
-
-    ALIASES_EMPTY_SUGGESTION = "Suggestions appear after you add a title."
-
-    TARGET_GUIDANCE = {
-        "app": (
-            "What Nexus launches. Use notepad.exe or a full app path."
-        ),
-        "folder": (
-            r"What Nexus opens. Use a full folder path like C:\Reports."
-        ),
-        "file": (
-            r"What Nexus opens. Use a full file path like C:\Reports\weekly.txt."
-        ),
-        "url": (
-            "What Nexus opens in the browser. Use the full address."
-        ),
-    }
-
-    TRIGGER_GUIDANCE = (
-        "Adds the leading phrase Nexus can use before the title or aliases."
-    )
-    CUSTOM_TRIGGERS_GUIDANCE = (
-        "Custom trigger phrases, separated by commas."
-    )
-
     TITLE_TOOLTIP_TEXT = (
-        "What it does: the main task name people type or click.\n"
-        "Examples: Nexus, Reports Hub."
+        "What it does: the display label for this task.\n"
+        "Examples: Open Nexus AI, Weekly Reports Hub."
     )
     ALIASES_TOOLTIP_TEXT = (
-        "What it does: alternate names for the same task.\n"
-        "Examples: NDAI, weekly reports."
+        "What it does: the exact words or phrases people can use to call this task.\n"
+        "Add at least one alias.\n"
+        "Examples: Nexus AI, NDAI, weekly reports."
     )
     TRIGGER_TOOLTIP_TEXT = (
-        "What it does: adds explicit call prefixes before the title or aliases.\n"
+        "What it does: adds explicit call prefixes before the aliases.\n"
+        "Custom triggers can use comma-separated phrases.\n"
         "Examples: Open, Launch, Force Open."
     )
     TARGET_TOOLTIP_TEXT = {
@@ -367,6 +337,7 @@ class SavedActionCreateDialog(QDialog):
         self._ready_signal_emitted = False
         self._syncing_trigger_selection = False
         self._trigger_manually_changed = False
+        self._invocation_mode = "aliases_only"
         self.setModal(True)
         self.setWindowTitle(dialog_title)
         self.setObjectName("savedActionCreateDialog")
@@ -407,14 +378,8 @@ class SavedActionCreateDialog(QDialog):
         self.title_input = QLineEdit(self)
         self.title_input.setObjectName("savedActionCreateTitleInput")
         self.title_input.setPlaceholderText("Open Reports")
-        self.title_input.textChanged.connect(self._update_alias_suggestions)
         self.title_input.textChanged.connect(self._refresh_examples_box)
         form.addWidget(self.title_input, 1, 1)
-        self.title_guidance_label = self._make_field_guidance_label(
-            self.TITLE_GUIDANCE,
-            "savedActionCreateTitleGuidance",
-        )
-        form.addWidget(self.title_guidance_label, 2, 1)
 
         self.aliases_header, self.aliases_header_label, self.aliases_help_button = self._make_form_header(
             "Aliases",
@@ -422,22 +387,12 @@ class SavedActionCreateDialog(QDialog):
             object_name="savedActionCreateAliasesHeader",
             help_object_name="savedActionCreateAliasesHelp",
         )
-        form.addWidget(self.aliases_header, 3, 0)
+        form.addWidget(self.aliases_header, 2, 0)
         self.aliases_input = QLineEdit(self)
         self.aliases_input.setObjectName("savedActionCreateAliasesInput")
-        self.aliases_input.setPlaceholderText("Optional, comma-separated")
+        self.aliases_input.setPlaceholderText("Required, comma-separated")
         self.aliases_input.textChanged.connect(self._refresh_examples_box)
-        form.addWidget(self.aliases_input, 3, 1)
-        self.aliases_guidance_label = self._make_field_guidance_label(
-            self.ALIASES_GUIDANCE,
-            "savedActionCreateAliasesGuidance",
-        )
-        form.addWidget(self.aliases_guidance_label, 4, 1)
-        self.aliases_suggestion_label = self._make_field_guidance_label(
-            "",
-            "savedActionCreateAliasesSuggestion",
-        )
-        form.addWidget(self.aliases_suggestion_label, 5, 1)
+        form.addWidget(self.aliases_input, 2, 1)
 
         self.trigger_header, self.trigger_header_label, self.trigger_help_button = self._make_form_header(
             "Trigger",
@@ -445,7 +400,7 @@ class SavedActionCreateDialog(QDialog):
             object_name="savedActionCreateTriggerHeader",
             help_object_name="savedActionCreateTriggerHelp",
         )
-        form.addWidget(self.trigger_header, 6, 0)
+        form.addWidget(self.trigger_header, 3, 0)
         self.trigger_combo = QComboBox(self)
         self.trigger_combo.setObjectName("savedActionCreateTrigger")
         for label, trigger_mode in self.TRIGGER_OPTIONS:
@@ -455,22 +410,12 @@ class SavedActionCreateDialog(QDialog):
         self.custom_triggers_input.setObjectName("savedActionCreateCustomTriggersInput")
         self.custom_triggers_input.setPlaceholderText("Force Open, Duck Duck Goose")
         self.custom_triggers_input.textChanged.connect(self._refresh_examples_box)
-        self.custom_triggers_guidance_label = self._make_field_guidance_label(
-            self.CUSTOM_TRIGGERS_GUIDANCE,
-            "savedActionCreateCustomTriggersGuidance",
-        )
         trigger_row = QVBoxLayout()
         trigger_row.setContentsMargins(0, 0, 0, 0)
         trigger_row.setSpacing(6)
         trigger_row.addWidget(self.trigger_combo)
         trigger_row.addWidget(self.custom_triggers_input)
-        trigger_row.addWidget(self.custom_triggers_guidance_label)
-        form.addLayout(trigger_row, 6, 1)
-        self.trigger_guidance_label = self._make_field_guidance_label(
-            self.TRIGGER_GUIDANCE,
-            "savedActionCreateTriggerGuidance",
-        )
-        form.addWidget(self.trigger_guidance_label, 7, 1)
+        form.addLayout(trigger_row, 3, 1)
 
         self.target_header, self.target_header_label, self.target_help_button = self._make_form_header(
             "Target",
@@ -478,7 +423,7 @@ class SavedActionCreateDialog(QDialog):
             object_name="savedActionCreateTargetHeader",
             help_object_name="savedActionCreateTargetHelp",
         )
-        form.addWidget(self.target_header, 8, 0)
+        form.addWidget(self.target_header, 4, 0)
         self.target_input = QLineEdit(self)
         self.target_input.setObjectName("savedActionCreateTargetInput")
         self.target_browse_button = QPushButton("Browse...", self)
@@ -489,12 +434,7 @@ class SavedActionCreateDialog(QDialog):
         target_row.setSpacing(8)
         target_row.addWidget(self.target_input, 1)
         target_row.addWidget(self.target_browse_button, 0)
-        form.addLayout(target_row, 8, 1)
-        self.target_guidance_label = self._make_field_guidance_label(
-            "",
-            "savedActionCreateTargetGuidance",
-        )
-        form.addWidget(self.target_guidance_label, 9, 1)
+        form.addLayout(target_row, 4, 1)
 
         layout.addLayout(form)
 
@@ -545,7 +485,7 @@ class SavedActionCreateDialog(QDialog):
                 font-size: 22px;
                 font-weight: 600;
             }
-            #savedActionCreateHint, QLabel[createRole="guidance"] {
+            #savedActionCreateHint {
                 color: rgba(172, 215, 235, 0.82);
                 font-size: 13px;
             }
@@ -616,7 +556,6 @@ class SavedActionCreateDialog(QDialog):
             """
         )
 
-        self._update_alias_suggestions()
         self._apply_default_trigger_mode(force=True)
         self._sync_trigger_ui_from_selection(mark_manual=False)
         self._trigger_manually_changed = False
@@ -687,13 +626,6 @@ class SavedActionCreateDialog(QDialog):
         layout.addStretch(1)
         return container, label, help_button
 
-    def _make_field_guidance_label(self, text: str, object_name: str) -> QLabel:
-        label = QLabel(text, self)
-        label.setObjectName(object_name)
-        label.setProperty("createRole", "guidance")
-        label.setWordWrap(True)
-        return label
-
     def current_target_kind(self) -> str:
         return str(self.type_combo.currentData() or "app")
 
@@ -718,29 +650,16 @@ class SavedActionCreateDialog(QDialog):
             normalized_value = re.sub(r"\s+", " ", value.strip())
             if not normalized_value:
                 return
-            if normalized_value.casefold() == lower_title:
-                return
             if any(existing.casefold() == normalized_value.casefold() for existing in suggestions):
                 return
             suggestions.append(normalized_value)
 
         if core_title and core_title.casefold() != lower_title:
             add_suggestion(core_title)
-            add_suggestion(f"show {core_title}")
-            add_suggestion(f"view {core_title}")
         else:
-            add_suggestion(f"open {normalized_title}")
-            add_suggestion(f"show {normalized_title}")
-            add_suggestion(f"view {normalized_title}")
+            add_suggestion(normalized_title)
 
         return tuple(suggestions[:3])
-
-    def _update_alias_suggestions(self):
-        suggestions = self._build_alias_suggestions(self.title_input.text())
-        if not suggestions:
-            self.aliases_suggestion_label.setText(self.ALIASES_EMPTY_SUGGESTION)
-            return
-        self.aliases_suggestion_label.setText(f"Suggested aliases: {' | '.join(suggestions)}")
 
     def _set_trigger_mode(self, trigger_mode: str):
         self._syncing_trigger_selection = True
@@ -769,7 +688,6 @@ class SavedActionCreateDialog(QDialog):
             self._trigger_manually_changed = True
         is_custom = self.current_trigger_mode() == "custom"
         self.custom_triggers_input.setVisible(is_custom)
-        self.custom_triggers_guidance_label.setVisible(is_custom)
         self._refresh_examples_box()
 
     def _parse_custom_triggers_text(self) -> tuple[str, ...]:
@@ -788,11 +706,19 @@ class SavedActionCreateDialog(QDialog):
         aliases = self._parse_aliases_text()
         trigger_mode = self.current_trigger_mode()
         custom_triggers = self._parse_custom_triggers_text()
+        alias_suggestions = self._build_alias_suggestions(title)
 
         lines: list[str] = []
+        if alias_suggestions:
+            lines.append("Suggested aliases:")
+            for suggestion in alias_suggestions[:3]:
+                lines.append(suggestion)
+            lines.append("")
+
         callable_phrases = build_saved_action_callable_phrases(
             title,
             aliases,
+            invocation_mode=self._invocation_mode,
             trigger_mode=trigger_mode,
             custom_triggers=custom_triggers,
         )
@@ -801,9 +727,9 @@ class SavedActionCreateDialog(QDialog):
             for phrase in callable_phrases[:6]:
                 lines.append(phrase)
         elif trigger_mode == "custom":
-            lines.append("Add a title and one or more custom triggers to see callable examples.")
+            lines.append("Add one or more aliases and custom triggers to see callable examples.")
         else:
-            lines.append("Add a title to see how this task can be called.")
+            lines.append("Add at least one alias to see how this task can be called.")
 
         target_format = self._target_format_example_text()
         if target_format:
@@ -813,7 +739,6 @@ class SavedActionCreateDialog(QDialog):
 
     def _update_target_guidance(self):
         target_kind = self.current_target_kind()
-        self.target_guidance_label.setText(self.TARGET_GUIDANCE.get(target_kind, ""))
         self.target_help_button.setToolTip(self._target_tooltip_text())
         if target_kind == "url":
             self.target_input.setPlaceholderText("https://example.com/docs")
@@ -890,12 +815,14 @@ class SavedActionCreateDialog(QDialog):
             target_kind=self.current_target_kind(),
             target=self.target_input.text(),
             aliases=self._parse_aliases_text(),
+            invocation_mode=self._invocation_mode,
             trigger_mode=self.current_trigger_mode(),
             custom_triggers=self._parse_custom_triggers_text(),
         )
 
     def load_draft(self, draft: SavedActionDraft):
         explicit_trigger_configured = bool(draft.trigger_mode or draft.custom_triggers)
+        self._invocation_mode = draft.invocation_mode or "legacy"
         for index in range(self.type_combo.count()):
             if str(self.type_combo.itemData(index) or "") == draft.target_kind:
                 self.type_combo.setCurrentIndex(index)
@@ -905,7 +832,6 @@ class SavedActionCreateDialog(QDialog):
         self.custom_triggers_input.setText(", ".join(draft.custom_triggers))
         self._set_trigger_mode(draft.trigger_mode or default_saved_action_trigger_mode(draft.target_kind))
         self.target_input.setText(draft.target)
-        self._update_alias_suggestions()
         self._sync_trigger_ui_from_selection(mark_manual=False)
         self._trigger_manually_changed = explicit_trigger_configured
         self._update_target_guidance()
@@ -924,7 +850,7 @@ class SavedActionCreateDialog(QDialog):
             )
         if "collides with" in lower_message:
             return (
-                "Title, aliases, or triggers: pick wording that does not overlap with a built-in action "
+                "Callable phrases: pick aliases or triggers that do not overlap with a built-in action "
                 "or another custom task. "
                 f"{message}"
             )
@@ -941,14 +867,14 @@ class SavedActionCreateDialog(QDialog):
             )
         if "aliases" in lower_message:
             return (
-                "Aliases: aliases are optional alternate phrases for the same task. "
-                "Keep each one distinct from the title and from the other aliases. "
+                "Aliases: add one or more distinct callable phrases for this task. "
+                "Keep each one unique after normalization. "
                 f"{message}"
             )
         if "title" in lower_message:
             return (
-                "Title: this is the main name people will type or click to run the task. "
-                "Choose a short, distinct action name. "
+                "Title: this is the display label people will see for the task. "
+                "Choose a short, readable label. "
                 f"{message}"
             )
         if "target kind" in lower_message:
@@ -1778,6 +1704,11 @@ class DesktopRuntimeWindow(QWidget):
         self._overlay_input_capture_until = 0.0
         self._overlay_local_input_engaged = False
         self._overlay_global_capture_suspended = False
+        self._overlay_ready_timer = None
+        self._overlay_ready_emitted = False
+        self._overlay_ready_wait_attempt = 0
+        self._overlay_ready_last_block_reason = ""
+        self._overlay_ready_timeout_emitted = False
         self._last_launch_failure_action_id = ""
         self._last_launch_failure_count = 0
         self._reported_recoverable_launch_failures = set()
@@ -1866,17 +1797,148 @@ class DesktopRuntimeWindow(QWidget):
             "source_path": getattr(inventory, "path", ""),
         }
 
+    def _ensure_overlay_ready_tracking(self):
+        if getattr(self, "_overlay_ready_timer", None) is None:
+            try:
+                timer = QTimer(self)
+                timer.setSingleShot(True)
+                timer.timeout.connect(self._check_overlay_ready_state)
+                self._overlay_ready_timer = timer
+            except RuntimeError:
+                self._overlay_ready_timer = False
+        if not hasattr(self, "_overlay_ready_emitted"):
+            self._overlay_ready_emitted = False
+        if not hasattr(self, "_overlay_ready_wait_attempt"):
+            self._overlay_ready_wait_attempt = 0
+        if not hasattr(self, "_overlay_ready_last_block_reason"):
+            self._overlay_ready_last_block_reason = ""
+        if not hasattr(self, "_overlay_ready_timeout_emitted"):
+            self._overlay_ready_timeout_emitted = False
+
+    def _reset_overlay_ready_tracking(self):
+        self._ensure_overlay_ready_tracking()
+        if self._overlay_ready_timer not in {None, False}:
+            self._overlay_ready_timer.stop()
+        self._overlay_ready_emitted = False
+        self._overlay_ready_wait_attempt = 0
+        self._overlay_ready_last_block_reason = ""
+        self._overlay_ready_timeout_emitted = False
+
+    def _overlay_ready_signal_fields(self) -> dict:
+        panel_visible = self._command_panel.isVisible()
+        input_focus = self._command_panel.input_line.hasFocus()
+        input_visible = self._command_panel.input_line.isVisible()
+        input_enabled = self._command_panel.input_line.isEnabled()
+        panel_active = self._command_panel.isActiveWindow()
+        capture_active = self._overlay_input_capture_active()
+        needs_global_capture = False
+        try:
+            needs_global_capture = self.overlay_needs_global_input_capture()
+        except Exception:
+            needs_global_capture = False
+        entry_actions_visible = (
+            self._command_panel.create_custom_task_button.isVisible()
+            and self._command_panel.created_tasks_button.isVisible()
+        )
+        return {
+            "phase": self._command_model.phase,
+            "input_armed": self._command_model.input_armed,
+            "model_visible": self._command_model.visible,
+            "panel_visible": panel_visible,
+            "panel_active": panel_active,
+            "input_focus": input_focus,
+            "input_visible": input_visible,
+            "input_enabled": input_enabled,
+            "input_capture_active": capture_active,
+            "local_input_engaged": self._overlay_local_input_engaged,
+            "global_capture_suspended": self._overlay_global_capture_suspended,
+            "needs_global_capture": needs_global_capture,
+            "entry_actions_visible": entry_actions_visible,
+            "panel_width": self._command_panel.width(),
+            "panel_height": self._command_panel.height(),
+        }
+
+    def _overlay_ready_state_reason(self, fields: dict) -> str:
+        if self._is_shutting_down:
+            return "shutting_down"
+        if not fields.get("model_visible"):
+            return "model_hidden"
+        if not fields.get("panel_visible"):
+            return "panel_hidden"
+        if int(fields.get("panel_width") or 0) <= 0 or int(fields.get("panel_height") or 0) <= 0:
+            return "panel_geometry_unstable"
+        if not fields.get("input_visible"):
+            return "input_hidden"
+        if not fields.get("input_enabled"):
+            return "input_disabled"
+        if fields.get("phase") != "entry":
+            return f"phase_{fields.get('phase') or 'unknown'}"
+        if not fields.get("input_armed"):
+            return "input_not_armed"
+        if not fields.get("entry_actions_visible"):
+            return "entry_actions_hidden"
+        if (
+            fields.get("input_focus")
+            or fields.get("local_input_engaged")
+            or fields.get("needs_global_capture")
+            or fields.get("input_capture_active")
+        ):
+            return "ready"
+        return "input_path_not_ready"
+
+    def _schedule_overlay_ready_check(self, delay_ms: int = 0):
+        self._ensure_overlay_ready_tracking()
+        if self._overlay_ready_timer is False:
+            return
+        if self._is_shutting_down or self._overlay_ready_emitted:
+            return
+        self._overlay_ready_timer.start(max(0, int(delay_ms)))
+
     def _emit_overlay_ready_signal(self):
-        if self._is_shutting_down or not self._command_model.visible or not self._command_panel.isVisible():
+        self._ensure_overlay_ready_tracking()
+        if self._overlay_ready_emitted:
+            return
+        fields = self._overlay_ready_signal_fields()
+        reason = self._overlay_ready_state_reason(fields)
+        if reason != "ready":
+            return
+        self._overlay_ready_emitted = True
+        if self._overlay_ready_timer not in {None, False}:
+            self._overlay_ready_timer.stop()
+        self._emit_runtime_signal("COMMAND_OVERLAY_READY", **fields)
+
+    def _check_overlay_ready_state(self):
+        self._ensure_overlay_ready_tracking()
+        if self._overlay_ready_emitted:
+            return
+        fields = self._overlay_ready_signal_fields()
+        reason = self._overlay_ready_state_reason(fields)
+        if reason == "ready":
+            self._emit_overlay_ready_signal()
             return
 
-        self._emit_runtime_signal(
-            "COMMAND_OVERLAY_READY",
-            phase=self._command_model.phase,
-            input_armed=self._command_model.input_armed,
-            local_input_engaged=self._overlay_local_input_engaged,
-            global_capture_suspended=self._overlay_global_capture_suspended,
-        )
+        self._overlay_ready_wait_attempt += 1
+        if (
+            reason != self._overlay_ready_last_block_reason
+            or self._overlay_ready_wait_attempt in {1, 5, 15}
+        ):
+            self._overlay_ready_last_block_reason = reason
+            self._emit_runtime_signal(
+                "COMMAND_OVERLAY_READY_WAITING",
+                reason=reason,
+                attempt=self._overlay_ready_wait_attempt,
+                **fields,
+            )
+        if self._overlay_ready_wait_attempt >= 25 and not self._overlay_ready_timeout_emitted:
+            self._overlay_ready_timeout_emitted = True
+            self._emit_runtime_signal(
+                "COMMAND_OVERLAY_READY_TIMEOUT",
+                reason=reason,
+                attempt=self._overlay_ready_wait_attempt,
+                **fields,
+            )
+        if self._command_model.visible and not self._is_shutting_down:
+            self._schedule_overlay_ready_check(40 if self._overlay_ready_wait_attempt < 15 else 120)
 
     def _handle_dialog_lifecycle_signal(self, signal_base: str, stage: str, dialog=None, **fields):
         signal_name = f"{signal_base}_{stage.upper()}"
@@ -2118,6 +2180,7 @@ class DesktopRuntimeWindow(QWidget):
             return
 
         self._result_close_timer.stop()
+        self._reset_overlay_ready_tracking()
         self._overlay_local_input_engaged = False
         self._overlay_global_capture_suspended = False
         self._arm_overlay_input_capture()
@@ -2135,7 +2198,7 @@ class DesktopRuntimeWindow(QWidget):
             phase=self._command_model.phase,
             input_armed=self._command_model.input_armed,
         )
-        QTimer.singleShot(0, self._emit_overlay_ready_signal)
+        self._schedule_overlay_ready_check(0)
 
     def overlay_needs_global_input_capture(self):
         if not self._command_model.visible or self._is_shutting_down:
@@ -2169,6 +2232,7 @@ class DesktopRuntimeWindow(QWidget):
             return
 
         self._result_close_timer.stop()
+        self._reset_overlay_ready_tracking()
         self._clear_overlay_input_capture()
         self._overlay_local_input_engaged = False
         self._overlay_global_capture_suspended = False
@@ -2505,6 +2569,7 @@ class DesktopRuntimeWindow(QWidget):
             return
         self._command_model.input_armed = bool(armed)
         self._apply_command_overlay_state()
+        self._schedule_overlay_ready_check(0)
 
     def handle_command_input_focus_acquired(self):
         if self._command_model.visible and self._command_model.phase == "entry":
@@ -2517,6 +2582,7 @@ class DesktopRuntimeWindow(QWidget):
                 self._overlay_global_capture_suspended = False
                 self._clear_overlay_input_capture()
                 self._trace_overlay("input_focus_acquired", manual_focus="true", mode="local")
+                self._schedule_overlay_ready_check(0)
                 return
 
             self._command_panel.input_line.set_local_typing_enabled(False)
@@ -2527,11 +2593,13 @@ class DesktopRuntimeWindow(QWidget):
                 manual_focus="true" if manual_focus else "false",
                 mode="fallback",
             )
+            self._schedule_overlay_ready_check(0)
 
     def handle_command_input_focus_lost(self):
         if not self._command_model.visible:
             return
         self._trace_overlay("input_focus_lost")
+        self._schedule_overlay_ready_check(0)
 
     def _command_panel_contains_global_point(self, x: int, y: int) -> bool:
         try:
@@ -2573,6 +2641,7 @@ class DesktopRuntimeWindow(QWidget):
             return
 
         if result == "closed":
+            self._reset_overlay_ready_tracking()
             self._command_panel.hide()
             self._log_event("RENDERER_MAIN|COMMAND_OVERLAY_CLOSED")
 

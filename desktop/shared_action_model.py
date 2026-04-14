@@ -25,6 +25,7 @@ class CommandAction:
     target_kind: str
     target: str
     aliases: tuple[str, ...]
+    invocation_mode: str = "legacy"
     trigger_mode: str = ""
     custom_triggers: tuple[str, ...] = ()
     origin: str = "built_in"
@@ -93,6 +94,7 @@ SUPPORTED_ACTION_TARGET_KINDS = frozenset({"app", "folder", "file", "url"})
 SUPPORTED_SAVED_ACTION_URL_SCHEMES = frozenset({"http", "https"})
 SUPPORTED_APP_TARGET_EXTENSIONS = frozenset({".exe", ".com", ".bat", ".cmd"})
 SUPPORTED_SAVED_ACTION_TRIGGER_MODES = frozenset({"launch", "open", "launch_and_open", "custom"})
+SUPPORTED_SAVED_ACTION_INVOCATION_MODES = frozenset({"legacy", "aliases_only"})
 LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS = frozenset(
     {"open_saved_actions_file", "open_saved_actions_folder"}
 )
@@ -238,6 +240,29 @@ def normalize_saved_action_custom_triggers(
     return tuple(normalized_triggers)
 
 
+def normalize_saved_action_invocation_mode(
+    invocation_mode: object,
+    *,
+    allow_empty: bool = False,
+) -> str:
+    if invocation_mode in (None, ""):
+        if allow_empty:
+            return ""
+        return "legacy"
+
+    if not isinstance(invocation_mode, str):
+        raise ValueError("Saved action invocation mode must be a string.")
+
+    normalized = invocation_mode.strip().casefold()
+    if not normalized:
+        if allow_empty:
+            return ""
+        return "legacy"
+    if normalized not in SUPPORTED_SAVED_ACTION_INVOCATION_MODES:
+        raise ValueError("Saved action invocation mode is unsupported.")
+    return normalized
+
+
 def _trigger_prefixes_for_action(
     *,
     trigger_mode: str,
@@ -258,6 +283,7 @@ def build_saved_action_callable_phrases(
     title: str,
     aliases: Iterable[str] = (),
     *,
+    invocation_mode: str = "legacy",
     trigger_mode: str = "",
     custom_triggers: Iterable[str] = (),
 ) -> tuple[str, ...]:
@@ -274,7 +300,10 @@ def build_saved_action_callable_phrases(
         seen_normalized.add(normalized_key)
         phrases.append(normalized_display)
 
-    base_phrases = tuple(phrase for phrase in (title, *tuple(aliases)) if isinstance(phrase, str))
+    if invocation_mode == "aliases_only":
+        base_phrases = tuple(phrase for phrase in tuple(aliases) if isinstance(phrase, str))
+    else:
+        base_phrases = tuple(phrase for phrase in (title, *tuple(aliases)) if isinstance(phrase, str))
     for phrase in base_phrases:
         add_phrase(phrase)
 
@@ -299,6 +328,7 @@ def _normalized_action_phrases(action: CommandAction) -> set[str]:
     for phrase in build_saved_action_callable_phrases(
         action.title,
         action.aliases,
+        invocation_mode=action.invocation_mode,
         trigger_mode=action.trigger_mode,
         custom_triggers=action.custom_triggers,
     ):
@@ -346,6 +376,13 @@ def _coerce_saved_action_aliases(record: dict) -> tuple[str, ...]:
         normalized_aliases.append(normalized)
 
     return tuple(normalized_aliases)
+
+
+def _coerce_saved_action_invocation_mode(record: dict) -> str:
+    return normalize_saved_action_invocation_mode(
+        record.get("invocation_mode", ""),
+        allow_empty=False,
+    )
 
 
 def _coerce_saved_action_trigger_mode(record: dict, *, target_kind: str) -> str:
@@ -504,6 +541,11 @@ def _command_action_from_saved_record(record: object) -> CommandAction:
         target_kind,
         _require_saved_action_string(record, "target"),
     )
+    invocation_mode = _coerce_saved_action_invocation_mode(record)
+    aliases = _coerce_saved_action_aliases(record)
+    invocation_mode = _coerce_saved_action_invocation_mode(record)
+    if invocation_mode == "aliases_only" and not aliases:
+        raise ValueError("Saved action aliases must contain at least one callable phrase.")
     trigger_mode = _coerce_saved_action_trigger_mode(record, target_kind=target_kind)
     custom_triggers = _coerce_saved_action_custom_triggers(record, trigger_mode=trigger_mode)
 
@@ -512,7 +554,8 @@ def _command_action_from_saved_record(record: object) -> CommandAction:
         title=_require_saved_action_string(record, "title"),
         target_kind=target_kind,
         target=target,
-        aliases=_coerce_saved_action_aliases(record),
+        aliases=aliases,
+        invocation_mode=invocation_mode,
         trigger_mode=trigger_mode,
         custom_triggers=custom_triggers,
         origin="saved",
@@ -687,6 +730,7 @@ def resolve_command_actions(text: str, actions=DEFAULT_COMMAND_ACTIONS):
         candidates = build_saved_action_callable_phrases(
             action.title,
             action.aliases,
+            invocation_mode=action.invocation_mode,
             trigger_mode=action.trigger_mode,
             custom_triggers=action.custom_triggers,
         )
