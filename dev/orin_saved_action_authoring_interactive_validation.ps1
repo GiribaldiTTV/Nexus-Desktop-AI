@@ -227,7 +227,7 @@ function Find-DialogFromChildAutomationId {
         [string]$ChildAutomationId
     )
 
-    $child = Find-FirstElement -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId $ChildAutomationId
+    $child = Find-ElementByAutomationIdDirect -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId $ChildAutomationId
     if (-not $child) {
         return $null
     }
@@ -710,11 +710,6 @@ function Get-DialogWindow {
         [string]$Name
     )
 
-    $dialog = Find-WindowAnywhere -Name $Name
-    if ($dialog) {
-        return $dialog
-    }
-
     $childAutomationId = Get-DialogLookupChildAutomationId -Name $Name
     if ($childAutomationId) {
         $dialog = Find-DialogFromChildAutomationId -ExpectedName $Name -ChildAutomationId $childAutomationId
@@ -724,10 +719,23 @@ function Get-DialogWindow {
     }
 
     if ($Name -eq "Created Tasks") {
-        return (Find-FirstElement -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId "QApplication.savedActionCreatedTasksDialog")
+        $dialog = Find-ElementByAutomationIdDirect -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId "QApplication.savedActionCreatedTasksDialog"
+        if ($dialog) {
+            return $dialog
+        }
+    } else {
+        $dialog = Find-ElementByAutomationIdDirect -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId "QApplication.savedActionCreateDialog"
+        if ($dialog) {
+            return $dialog
+        }
     }
 
-    return (Find-FirstElement -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId "QApplication.savedActionCreateDialog")
+    $dialog = Find-WindowAnywhere -Name $Name
+    if ($dialog) {
+        return $dialog
+    }
+
+    return $null
 }
 
 function Test-ElementGoneOrOffscreen {
@@ -866,6 +874,118 @@ function Wait-ForDialogControlReady {
 
     Write-StepLog -Stage "DIALOG" -Message "control ready '$Description' state=$(Get-ElementStateSummary -Element $element)"
     return $element
+}
+
+function Wait-ForOverlayControlReady {
+    param(
+        [scriptblock]$OverlayResolver,
+        [string]$AutomationId,
+        [string]$Description,
+        [int]$TimeoutSeconds = 6,
+        [bool]$RequireEnabled = $true
+    )
+
+    Write-StepLog -Stage "OVERLAY" -Message "verifying control '$Description' automationId='$AutomationId'"
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
+        $liveOverlay = & $OverlayResolver
+        if (-not $liveOverlay) {
+            return $false
+        }
+        $element = Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId $AutomationId
+        return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
+    } | Out-Null
+
+    $liveOverlay = & $OverlayResolver
+    if (-not $liveOverlay) {
+        throw "Could not resolve the live overlay while waiting for '$Description'."
+    }
+
+    $element = Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId $AutomationId
+    if (-not (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)) {
+        throw "Overlay control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
+    }
+
+    Write-StepLog -Stage "OVERLAY" -Message "control ready '$Description' state=$(Get-ElementStateSummary -Element $element)"
+    return $element
+}
+
+function Focus-ElementForInteraction {
+    param(
+        [scriptblock]$ElementResolver,
+        [string]$Description,
+        [int]$Attempts = 3,
+        [bool]$RequireExactFocus = $true
+    )
+
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        $element = & $ElementResolver
+        if (-not (Test-ElementUsable -Element $element -RequireEnabled $true)) {
+            Add-Note "Focus attempt $attempt for '$Description' skipped because the element was not yet usable. State: $(Get-ElementStateSummary -Element $element)"
+            Start-Sleep -Milliseconds 150
+            continue
+        }
+
+        try {
+            Focus-Window -Element $element
+        } catch {
+            Add-Note "Focus attempt $attempt for '$Description' could not foreground the element window. State: $(Get-ElementStateSummary -Element $element)"
+        }
+
+        $focused = $null
+        try {
+            $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        } catch {
+        }
+
+        if ($focused) {
+            try {
+                if (
+                    $focused.Current.AutomationId -eq $element.Current.AutomationId -and
+                    $focused.Current.ControlType.ProgrammaticName -eq $element.Current.ControlType.ProgrammaticName
+                ) {
+                    Write-StepLog -Stage "INTERACT" -Message "focus confirmed for '$Description' on attempt=$attempt state=$(Get-ElementStateSummary -Element $element)"
+                    return $element
+                }
+            } catch {
+            }
+        }
+
+        try {
+            $element.SetFocus()
+            Start-Sleep -Milliseconds 120
+        } catch {
+        }
+
+        $focused = $null
+        try {
+            $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        } catch {
+        }
+
+        if ($focused) {
+            try {
+                if (
+                    $focused.Current.AutomationId -eq $element.Current.AutomationId -and
+                    $focused.Current.ControlType.ProgrammaticName -eq $element.Current.ControlType.ProgrammaticName
+                ) {
+                    Write-StepLog -Stage "INTERACT" -Message "focus confirmed for '$Description' on attempt=$attempt after direct SetFocus state=$(Get-ElementStateSummary -Element $element)"
+                    return $element
+                }
+            } catch {
+            }
+        }
+
+        if (-not $RequireExactFocus -and (Test-ElementUsable -Element $element -RequireEnabled $true)) {
+            Write-StepLog -Stage "INTERACT" -Message "proceeding without exact focus for '$Description' on attempt=$attempt state=$(Get-ElementStateSummary -Element $element)"
+            Add-Note "Exact focus did not hold for '$Description', but the control remained usable so the harness proceeded with window-level focus."
+            return $element
+        }
+
+        Add-Note "Focus attempt $attempt for '$Description' did not hold. Element state: $(Get-ElementStateSummary -Element $element)"
+        Start-Sleep -Milliseconds 150
+    }
+
+    throw "Could not confirm focus for '$Description'."
 }
 
 function Set-FieldValueVerified {
@@ -1368,29 +1488,57 @@ function Open-CreateDialog {
         [System.Windows.Automation.AutomationElement]$Overlay
     )
 
-    $Overlay = Resolve-LiveOverlayRoot -Overlay $Overlay
-    $button = Find-FirstElement -Root $Overlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton"
-    if (-not $button) {
-        throw "Create Custom Task button was not found in the overlay."
+    $resolveOverlay = {
+        Resolve-LiveOverlayRoot -Overlay $Overlay
     }
+    $resolveCreateButton = {
+        $liveOverlay = & $resolveOverlay
+        if (-not $liveOverlay) {
+            return $null
+        }
+        return (Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton")
+    }
+
+    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton" -Description "Create Custom Task button"
+    $button = Focus-ElementForInteraction -ElementResolver $resolveCreateButton -Description "Create Custom Task button" -RequireExactFocus $false
     Write-StepLog -Stage "DIALOG" -Message "opening Create Custom Task"
     $markerStart = New-RuntimeMarkerCursor
-    $button.SetFocus()
     Invoke-ElementRobust -Element $button -Description "Create Custom Task button"
 
     try {
         Wait-ForDialogRuntimeReady -SignalBase "CUSTOM_TASK_CREATE_DIALOG" -StartLine $markerStart -TimeoutSeconds 8
     } catch {
+        Add-Note "Create dialog markers were not observed after the first Create Custom Task invoke; retrying the entry button once."
+        $button = Focus-ElementForInteraction -ElementResolver $resolveCreateButton -Description "Create Custom Task button retry" -RequireExactFocus $false
         Invoke-ElementRobust -Element $button -Description "Create Custom Task button retry"
         Wait-ForDialogRuntimeReady -SignalBase "CUSTOM_TASK_CREATE_DIALOG" -StartLine $markerStart -TimeoutSeconds 8
     }
 
-    $dialog = Wait-ForOptionalDialog -Name "Create Custom Task" -TimeoutSeconds 3
-    if ($dialog) {
-        return $dialog
+    $dialog = Wait-ForDialog -Name "Create Custom Task" -TimeoutSeconds 8
+    $resolveDialog = {
+        Resolve-LiveDialogRoot -Dialog $dialog -ExpectedName "Create Custom Task"
     }
 
-    return (Wait-ForDialog -Name "Create Custom Task" -TimeoutSeconds 8)
+    Write-StepLog -Stage "DIALOG" -Message "verifying create-dialog entry readiness after runtime markers"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType" -Description "create dialog task type combo"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput" -Description "create dialog title input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput" -Description "create dialog aliases input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput" -Description "create dialog target input"
+
+    $typeCombo = Focus-ElementForInteraction -ElementResolver {
+        $liveDialog = & $resolveDialog
+        if (-not $liveDialog) {
+            return $null
+        }
+        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType")
+    } -Description "create dialog task type combo"
+
+    if (-not $typeCombo) {
+        throw "Could not focus the create dialog task type combo after dialog ready."
+    }
+
+    Write-StepLog -Stage "DIALOG" -Message "create-dialog entry ready and first interaction control focused"
+    return (& $resolveDialog)
 }
 
 function Open-CreatedTasksDialog {
@@ -1480,11 +1628,6 @@ function Fill-AuthoringDialog {
     $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput" -Description "title input"
     $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput" -Description "aliases input"
     $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput" -Description "target input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetExamples" -Description "bottom examples box" -RequireEnabled $false
-
-    foreach ($helpButtonInfo in $helpButtonMap) {
-        $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId $helpButtonInfo.AutomationId -Description "$($helpButtonInfo.Name) help button" -RequireEnabled $false
-    }
 
     Select-ComboItem -ComboResolver $resolveTypeCombo -ItemName $TypeLabel
     $selectedType = Get-ComboSelectedText -Combo (& $resolveTypeCombo)
@@ -1492,6 +1635,21 @@ function Fill-AuthoringDialog {
     if ($selectedType -ne $TypeLabel) {
         throw "Type selection did not apply. Expected '$TypeLabel', saw '$selectedType'."
     }
+
+    try {
+        $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetExamples" -Description "bottom examples box" -TimeoutSeconds 2 -RequireEnabled $false
+    } catch {
+        Add-Note "Bottom examples box was not ready before the first field interactions, so the harness continued with the required input controls only."
+    }
+
+    foreach ($helpButtonInfo in $helpButtonMap) {
+        try {
+            $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId $helpButtonInfo.AutomationId -Description "$($helpButtonInfo.Name) help button" -TimeoutSeconds 2 -RequireEnabled $false
+        } catch {
+            Add-Note "$($helpButtonInfo.Name) help button was not ready before the first field interactions."
+        }
+    }
+
     if ($guidanceMap.ContainsKey($TypeLabel)) {
         $expectedGuidance = $guidanceMap[$TypeLabel]
         $guidanceReady = $false
