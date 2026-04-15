@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Active on feature/fb-036-saved-action-authoring`
+- `Active on feature/fb-036-validation-hardening`
 
 ## Release Stage
 
@@ -44,6 +44,7 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 - current supported saved-action target kinds remain `app`, `folder`, `file`, and `url`
 - malformed or colliding saved-action sources still block authoring rather than attempting salvage
 - branch-local validation and hardening work now also includes dedicated FB-036 validators, live-style harnesses, interactive runtime helpers, durable validation reports, and exported manual-test artifacts that future slices should reuse rather than recreate blindly
+- the full watchdog-enforced interactive desktop gate passed end-to-end on `2026-04-15` using `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260415_061125.txt`
 
 ## Scope
 
@@ -161,6 +162,221 @@ This workstream exists so users can manage non-standard custom tasks safely thro
   Reuse: keep it aligned with the workstream-owned `## User Test Summary` whenever the manual checklist changes.
 
 - Existing shared baseline validators such as `dev/orin_saved_action_source_validation.py`, `dev/orin_interaction_baseline_validation.py`, `dev/orin_overlay_input_capture_helper.py`, and `dev/orin_recoverable_launch_failed_validation.py` remain part of the required validation stack, but they are reused cross-lane infrastructure rather than FB-036-specific artifact owners.
+
+## Branch Closeout Traceability Record
+
+### Final Implementation Summary
+
+- new-model saved actions now use an alias-root invocation model
+  - `Title` is a display label
+  - `Aliases` are the invocation-bearing phrases
+  - `Trigger` chooses the prefix family that expands callable phrases at runtime
+- built-in trigger families remain bounded to `Launch`, `Open`, `Launch and Open`, and `Custom`
+- examples in the create/edit dialogs now reflect only real callable phrases generated from the current alias + trigger draft
+- new-model create and edit preserve exact-match discipline and do not widen into fuzzy language handling
+- legacy tasks remain backward compatible until explicitly migrated
+  - legacy no-trigger tasks stay bare-callable instead of silently widening on update
+  - legacy title-callable tasks remain title-callable after normal edits
+- the saved-action inventory now supports:
+  - create
+  - edit in place
+  - delete from `Created Tasks`
+  - immediate catalog reload after successful writes
+- browse-assisted target picking exists only for the currently validated bounded types:
+  - `Application`
+  - `Folder`
+  - `File`
+  - `Website URL` remains direct-entry only
+
+### Failure Timeline
+
+1. startup and attach instability
+   - early interactive runs could stall before a real overlay-open attempt because the harness performed blocking UIAutomation checks before sending the first hotkey
+2. overlay-ready signaling gaps
+   - `COMMAND_OVERLAY_OPENED` could arrive without a durable `COMMAND_OVERLAY_READY`, leaving the harness waiting on a one-shot readiness signal that was sometimes skipped
+3. create-dialog entry stalls
+   - the runtime marked the create dialog open/ready, but the harness still blocked on brittle dialog resolution and first-control interaction
+4. post-create transition stalls
+   - after successful create, the harness could lose the path back to an overlay-ready next step, especially after `Created Tasks` closed
+5. invalid-create cancel handoff stalls
+   - after rejection and cancel, the dialog-close marker existed, but the harness still relied on stale overlay references instead of a fresh reacquisition path
+6. combo-selection instability
+   - non-default type changes such as `Application -> Folder` or `Application -> File` could hang because combo handling depended on popup-item scanning and stale UIAutomation elements
+7. target-field write/readback drift
+   - the correct target text could already be present, but the helper still treated the write as unstable and burned the remaining scenario budget retrying
+8. invalid-create submit/marker timing failures
+   - the harness used one long invalid-create scenario budget for multiple blocked cases, so the final case timed out while waiting on otherwise-correct runtime markers
+9. edit-dialog entry/focus instability
+   - edit runs reached `CUSTOM_TASK_EDIT_DIALOG_READY`, but the harness still had weaker entry and focus behavior than the hardened create path
+10. watchdog and timeout non-enforcement
+    - early timeout work could detect stalls but still relied on the outer shell timeout because the watchdog launch and interruption path were not yet durable
+11. exact-match execution misalignment
+    - the harness assumed optional saved-action fields such as `custom_triggers` always existed and also reused invocation assumptions that no longer matched alias-root records
+12. reopen persistence stalls
+    - the runtime closed the overlay successfully, but the harness still tried to prove closure through UIAutomation disappearance instead of trusting the close marker and reopening fresh
+13. unsafe-source blocking seam instability
+    - after restart and overlay-ready, the final blocked-create path still used weaker direct element walks and could stall before reaching the actual fail-closed runtime markers
+14. system-wide focus instability
+    - create and edit dialog interactions still failed intermittently because controls were visible and enabled but did not always gain confirmed keyboard focus
+15. strict-mode property-access crash
+    - `ControlType.ProgrammaticName` was read directly at multiple call sites and could crash the harness when the UIAutomation object shape did not expose that property safely
+
+### Root Causes
+
+- the earliest harness design trusted UIAutomation state too early and too literally
+  - it assumed the presence or visibility of an element was enough to proceed
+  - it assumed a single event-loop tick or a single UIA lookup represented stable readiness
+- the harness initially mixed authoritative runtime markers with non-authoritative UIAutomation heuristics without clearly choosing which source won
+- too many transitions reused stale element handles across dialog close/open boundaries
+- several helpers assumed ideal object shapes under `Set-StrictMode -Version Latest`
+  - optional JSON fields such as `custom_triggers`
+  - optional or inconsistent UIAutomation metadata such as `ControlType.ProgrammaticName`
+- long multi-case scenarios treated elapsed time as shared state, so later cases inherited the cost of earlier ones and timed out for the wrong reason
+- focus checks originally assumed exact control identity instead of recognizing that some controls route keyboard focus through child/editor elements inside the same usable surface
+- the original watchdog approach assumed a child enforcement path existed, but it did not verify that the watchdog had actually started and could interrupt the parent if the parent wedged
+
+### Fix Patterns
+
+- marker-first validation
+  - runtime markers became the authoritative boundary for open, ready, close, blocked, and submit transitions
+  - UIAutomation evidence became a secondary usability check instead of the truth source for lifecycle changes
+- deterministic readiness checks
+  - overlay and dialog readiness now require real control availability, not just window presence
+  - first required controls are verified before interaction begins
+- re-resolve instead of reuse
+  - overlay roots, dialog roots, buttons, and fields are re-resolved after every close/open seam
+  - stale element references are treated as expected failure modes, not surprising exceptions
+- hardened interaction helpers
+  - combo selection uses deterministic strategies with readback verification
+  - field writing uses clear -> write -> immediate normalized readback -> bounded retry
+  - focus acquisition uses foreground + focus + click strategies with explicit focus confirmation
+- transition gating
+  - close markers are treated as authoritative, then the next surface is reacquired from scratch
+  - `Created Tasks` close, dialog cancel, overlay reopen, and post-edit continuation all use the same reacquire-and-verify pattern
+- watchdog enforcement
+  - full-run, no-progress, scenario, and transition budgets are enforced in-harness
+  - the external watchdog now proves startup, kills stalled runs when needed, records timeout reason, and performs cleanup instead of waiting on the outer shell timeout
+- null-safe property access
+  - optional saved-action fields and optional UIAutomation metadata now flow through helper-based safe access rather than strict-mode direct property reads
+
+### Validation Evolution
+
+- baseline validators
+  - `dev/orin_saved_action_authoring_validation.py` proved persistence safety, collision behavior, legacy compatibility, invocation generation, and fail-closed authoring semantics
+- UI validator
+  - `dev/orin_saved_action_authoring_ui_validation.py` proved dialog structure, control routing, bottom guidance presentation, delete reachability, and visible create/edit expectations
+- live-style validator
+  - `dev/orin_saved_action_authoring_live_validation.py` proved create/edit/delete, alias-root behavior, exact phrase generation, and reopen/catalog behavior without requiring a full OS-level run
+- interactive harness
+  - `dev/orin_saved_action_authoring_interactive_validation.ps1` became the authoritative full-gate proof for:
+    - hotkey entry
+    - real desktop dialogs
+    - real input flow
+    - real blocked cases
+    - reopen persistence
+    - unsafe-source behavior
+    - no-input-leakage proof
+- watchdog-enforced interactive proof
+  - time budgets and watchdog enforcement turned interactive validation from a best-effort probe into a bounded, repeatable continuation gate
+  - the final passing interactive run on `2026-04-15` is the branch-closeout proof point for this lane
+
+### Validation Infrastructure And Reuse Guidance
+
+- primary interactive driver
+  - `dev/orin_saved_action_authoring_interactive_validation.ps1`
+  - reuse this first for any future FB-036 regression or branch-closeout rerun
+- runtime helper
+  - `dev/orin_saved_action_authoring_interactive_runtime.py`
+  - use this when a future slice needs deterministic runtime startup and log capture
+- log and artifact roots
+  - `dev/logs/fb_036_authoring_live_validation/`
+  - `dev/logs/fb_036_authoring_interactive_validation/`
+  - future work should append evidence here rather than inventing new parallel log roots
+- saved-action snapshots
+  - `initial_source`
+  - `after_create`
+  - `after_edit`
+  - `after_large_inventory_edit`
+  - `final_source_before_restore`
+  - these snapshots are now part of the expected evidence package for meaningful interactive reruns
+- exported manual checklist
+  - `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt`
+  - keep it aligned with this workstream record whenever the human-run checklist changes
+
+### Key Engineering Rules For Future Work
+
+- never trust UI state alone when a runtime marker exists
+- never reuse a dialog or overlay reference across a close/open seam
+- always re-resolve the control you are about to interact with
+- treat visible + enabled as necessary but not sufficient; keyboard focus or equivalent interaction readiness must still be confirmed
+- keep validation time-budgeted
+  - full-run hard timeout
+  - no-progress timeout
+  - scenario budget
+  - transition budget
+- separate product bugs from harness bugs before changing runtime behavior
+- prefer marker-first fixes and null-safe helper patterns over ad hoc one-line patches
+- when a blocked state is the expected result, prove:
+  - no write
+  - correct blocked marker
+  - correct user-facing status
+  - correct recovery path
+
+### Remaining Non-Blocking Notes
+
+- help-button readiness is still noisy during early dialog interaction
+  - the final passing run recorded repeated notes that help buttons were not always ready before the first required field interactions
+  - this did not block the validated flow because the required inputs were still interactable
+- the bottom guidance/examples box can lag by one interaction attempt
+  - the harness occasionally needed one retry before the expected wording fully refreshed
+  - this did not invalidate the final run because the later dialog validation path still confirmed the correct model
+- status-label readback for blocked cases can be blank in UIAutomation even when the runtime and dialog state are correct
+  - the harness now treats this as a note rather than a blocker when the stronger runtime and no-write conditions are already proven
+- these notes are real but non-blocking
+  - they should be treated as polish or future hardening candidates, not as reasons to reopen the FB-036 core or closeout claim
+
+### Evidence References
+
+- final passing interactive report
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260415_061125.txt`
+- final passing interactive runtime log
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260415_061125_runtime.log`
+- final passing interactive step log
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260415_061125_interactive_steps.log`
+- final passing snapshots
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260415_061125_initial_source_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260415_061125_after_create_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260415_061125_after_edit_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260415_061125_after_large_inventory_edit_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260415_061125_final_source_before_restore_saved_actions.json`
+- final supporting live report
+  - `dev/logs/fb_036_authoring_live_validation/reports/FB036SavedActionAuthoringLiveValidationReport_20260415_061122.txt`
+- branch checkpoints that future slices can anchor to
+  - core checkpoint: `d20c1aa` on `feature/fb-036-saved-action-authoring`
+  - UI checkpoint: `11c1292` on `feature/fb-036-ui-clarity-polish`
+  - hardening closeout proof: full interactive pass on `feature/fb-036-validation-hardening`
+
+### Final Branch State
+
+- validated behavior that future work may rely on
+  - bounded create/edit/delete flows
+  - alias-root invocation for new tasks
+  - legacy compatibility preservation
+  - explicit trigger-family behavior
+  - exact-match execution after create/edit
+  - reopen persistence
+  - large-inventory edit reachability
+  - fail-closed unsafe-source blocking
+  - no-input-leakage proof during interactive authoring
+- validated infrastructure that future work should reuse
+  - the dedicated FB-036 validators
+  - the live-style harness
+  - the interactive runtime helper
+  - the watchdog-enforced interactive harness
+  - the evidence roots and saved-action snapshot pattern
+- what this closeout means
+  - FB-036 is no longer just “feature-complete”; it is now branch-closeout provable on real desktop interaction evidence
+  - future Codex or developer work should treat this workstream record and the final `2026-04-15` interactive report as the baseline truth to extend, not as a lane that still needs first-principles rediscovery
 
 ## User Test Summary
 
