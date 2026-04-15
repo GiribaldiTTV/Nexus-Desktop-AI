@@ -436,6 +436,9 @@ def _test_type_first_dialog_maps_all_supported_kinds():
 def _test_create_dialog_surfaces_field_level_guidance():
     _app()
     dialog = renderer_mod.SavedActionCreateDialog()
+    title_row = dialog.form_layout.getItemPosition(dialog.form_layout.indexOf(dialog.title_header))[0]
+    trigger_row = dialog.form_layout.getItemPosition(dialog.form_layout.indexOf(dialog.trigger_header))[0]
+    aliases_row = dialog.form_layout.getItemPosition(dialog.form_layout.indexOf(dialog.aliases_header))[0]
 
     _assert(
         dialog.title_header_label.font().pointSize() >= 14
@@ -455,6 +458,11 @@ def _test_create_dialog_surfaces_field_level_guidance():
     _assert(
         "explicit call prefixes" in dialog.trigger_help_button.toolTip().casefold(),
         "trigger help icon should explain what the trigger field does",
+    )
+    _assert(
+        hasattr(dialog.title_help_button, "show_help_tooltip_now")
+        and hasattr(dialog.trigger_help_button, "show_help_tooltip_now"),
+        "field help icons should support immediate tooltip display for faster response",
     )
     _assert(
         not hasattr(dialog, "title_guidance_label"),
@@ -484,10 +492,14 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "how you can call this task" in dialog.target_examples_title.text().casefold(),
         "create dialog should show one boxed callable-examples section below the fields",
     )
+    _assert(
+        title_row < trigger_row < aliases_row,
+        "Trigger should sit directly below Title and before Aliases in the UI branch layout",
+    )
 
     dialog.title_input.setText("Nexus")
     _assert(
-        "suggested aliases:" in dialog.target_examples_label.text().casefold()
+        "suggested aliases" in dialog.target_examples_label.text().casefold()
         and "nexus" in dialog.target_examples_label.text().casefold(),
         "alias suggestions should move into the single bottom guidance box",
     )
@@ -525,7 +537,7 @@ def _test_create_dialog_trigger_controls_and_dynamic_examples():
     examples_text = dialog.target_examples_label.text().casefold()
 
     _assert(
-        "examples (case does not matter)" in examples_text,
+        "real callable phrases" in examples_text and "case does not matter" in examples_text,
         "examples box should explain the real callable phrases for the current draft",
     )
     _assert(

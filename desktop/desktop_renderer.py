@@ -4,6 +4,7 @@ import ctypes
 import datetime
 import time
 import webbrowser
+from html import escape
 
 from PySide6.QtWidgets import (
     QWidget,
@@ -20,8 +21,9 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QFileDialog,
     QToolButton,
+    QToolTip,
 )
-from PySide6.QtCore import Qt, QTimer, QUrl, QRect, Signal
+from PySide6.QtCore import Qt, QTimer, QUrl, QRect, Signal, QPoint
 from PySide6.QtGui import QColor
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
@@ -255,6 +257,49 @@ class CommandInputLineEdit(QLineEdit):
         return self._last_focus_was_manual
 
 
+class ImmediateHelpButton(QToolButton):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMouseTracking(True)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setToolTipDuration(20000)
+
+    def _tooltip_anchor(self) -> QPoint:
+        return self.mapToGlobal(QPoint(self.width() + 10, max(8, self.height() // 2)))
+
+    def show_help_tooltip_now(self):
+        tooltip_text = (self.toolTip() or "").strip()
+        if not tooltip_text:
+            return
+        QToolTip.showText(
+            self._tooltip_anchor(),
+            tooltip_text,
+            self,
+            self.rect(),
+            self.toolTipDuration(),
+        )
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self.show_help_tooltip_now()
+
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        self.show_help_tooltip_now()
+
+    def mousePressEvent(self, event):
+        self.show_help_tooltip_now()
+        super().mousePressEvent(event)
+
+    def leaveEvent(self, event):
+        QToolTip.hideText()
+        super().leaveEvent(event)
+
+    def focusOutEvent(self, event):
+        QToolTip.hideText()
+        super().focusOutEvent(event)
+
+
 class SavedActionCreateDialog(QDialog):
     ACTION_TYPE_OPTIONS = (
         ("Application", "app"),
@@ -270,35 +315,36 @@ class SavedActionCreateDialog(QDialog):
     )
 
     TITLE_TOOLTIP_TEXT = (
-        "What it does: the display label for this task.\n"
-        "Examples: Open Nexus AI, Weekly Reports Hub."
+        "<div><b>What it does</b><br/>Display label for this task."
+        "<br/><br/><b>Examples</b><br/>Open Nexus AI<br/>Weekly Reports Hub</div>"
     )
     ALIASES_TOOLTIP_TEXT = (
-        "What it does: the exact words or phrases people can use to call this task.\n"
-        "Add at least one alias.\n"
-        "Examples: Nexus AI, NDAI, weekly reports."
+        "<div><b>What it does</b><br/>Exact words or phrases people can use to call this task."
+        "<br/>Add at least one alias."
+        "<br/><br/><b>Examples</b><br/>Nexus AI<br/>NDAI<br/>weekly reports</div>"
     )
     TRIGGER_TOOLTIP_TEXT = (
-        "What it does: adds explicit call prefixes before the aliases.\n"
-        "Custom triggers can use comma-separated phrases.\n"
-        "Examples: Open, Launch, Force Open."
+        "<div><b>What it does</b><br/>Adds explicit call prefixes before the aliases."
+        "<br/>Custom triggers can use comma-separated phrases."
+        "<br/><br/><b>Examples</b><br/>Open<br/>Launch<br/>Force Open</div>"
     )
     TARGET_TOOLTIP_TEXT = {
         "app": (
-            "What it does: points to what Nexus launches.\n"
-            r"Examples: notepad.exe or C:\Program Files\Notepad++\notepad++.exe"
+            "<div><b>What it does</b><br/>Points to what Nexus launches."
+            "<br/><br/><b>Examples</b><br/>notepad.exe"
+            r"<br/>C:\Program Files\Notepad++\notepad++.exe</div>"
         ),
         "folder": (
-            "What it does: points to the folder Nexus opens.\n"
-            r"Example: C:\Reports"
+            "<div><b>What it does</b><br/>Points to the folder Nexus opens."
+            r"<br/><br/><b>Example</b><br/>C:\Reports</div>"
         ),
         "file": (
-            "What it does: points to the file Nexus opens.\n"
-            r"Example: C:\Reports\weekly.txt"
+            "<div><b>What it does</b><br/>Points to the file Nexus opens."
+            r"<br/><br/><b>Example</b><br/>C:\Reports\weekly.txt</div>"
         ),
         "url": (
-            "What it does: points to the full website address Nexus opens.\n"
-            "Example: https://example.com/docs"
+            "<div><b>What it does</b><br/>Points to the full website address Nexus opens."
+            "<br/><br/><b>Example</b><br/>https://example.com/docs</div>"
         ),
     }
     TARGET_FORMAT_EXAMPLES = {
@@ -376,8 +422,9 @@ class SavedActionCreateDialog(QDialog):
         layout.addWidget(self.hint_label)
 
         form = QGridLayout()
+        self.form_layout = form
         form.setHorizontalSpacing(12)
-        form.setVerticalSpacing(8)
+        form.setVerticalSpacing(10)
 
         form.addWidget(self._make_form_label("Task type"), 0, 0)
         self.type_combo = QComboBox(self)
@@ -400,26 +447,13 @@ class SavedActionCreateDialog(QDialog):
         self.title_input.textChanged.connect(self._refresh_examples_box)
         form.addWidget(self.title_input, 1, 1)
 
-        self.aliases_header, self.aliases_header_label, self.aliases_help_button = self._make_form_header(
-            "Aliases",
-            tooltip_text=self.ALIASES_TOOLTIP_TEXT,
-            object_name="savedActionCreateAliasesHeader",
-            help_object_name="savedActionCreateAliasesHelp",
-        )
-        form.addWidget(self.aliases_header, 2, 0)
-        self.aliases_input = QLineEdit(self)
-        self.aliases_input.setObjectName("savedActionCreateAliasesInput")
-        self.aliases_input.setPlaceholderText("Required, comma-separated")
-        self.aliases_input.textChanged.connect(self._refresh_examples_box)
-        form.addWidget(self.aliases_input, 2, 1)
-
         self.trigger_header, self.trigger_header_label, self.trigger_help_button = self._make_form_header(
             "Trigger",
             tooltip_text=self.TRIGGER_TOOLTIP_TEXT,
             object_name="savedActionCreateTriggerHeader",
             help_object_name="savedActionCreateTriggerHelp",
         )
-        form.addWidget(self.trigger_header, 3, 0)
+        form.addWidget(self.trigger_header, 2, 0)
         self.trigger_combo = QComboBox(self)
         self.trigger_combo.setObjectName("savedActionCreateTrigger")
         for label, trigger_mode in self.TRIGGER_OPTIONS:
@@ -434,7 +468,20 @@ class SavedActionCreateDialog(QDialog):
         trigger_row.setSpacing(6)
         trigger_row.addWidget(self.trigger_combo)
         trigger_row.addWidget(self.custom_triggers_input)
-        form.addLayout(trigger_row, 3, 1)
+        form.addLayout(trigger_row, 2, 1)
+
+        self.aliases_header, self.aliases_header_label, self.aliases_help_button = self._make_form_header(
+            "Aliases",
+            tooltip_text=self.ALIASES_TOOLTIP_TEXT,
+            object_name="savedActionCreateAliasesHeader",
+            help_object_name="savedActionCreateAliasesHelp",
+        )
+        form.addWidget(self.aliases_header, 3, 0)
+        self.aliases_input = QLineEdit(self)
+        self.aliases_input.setObjectName("savedActionCreateAliasesInput")
+        self.aliases_input.setPlaceholderText("Required, comma-separated")
+        self.aliases_input.textChanged.connect(self._refresh_examples_box)
+        form.addWidget(self.aliases_input, 3, 1)
 
         self.target_header, self.target_header_label, self.target_help_button = self._make_form_header(
             "Target",
@@ -475,6 +522,7 @@ class SavedActionCreateDialog(QDialog):
         self.target_examples_label = QLabel("", self.target_examples_box)
         self.target_examples_label.setObjectName("savedActionCreateTargetExamples")
         self.target_examples_label.setWordWrap(True)
+        self.target_examples_label.setTextFormat(Qt.RichText)
         target_examples_layout.addWidget(self.target_examples_label)
 
         layout.addWidget(self.target_examples_box)
@@ -508,20 +556,29 @@ class SavedActionCreateDialog(QDialog):
                 color: rgba(172, 215, 235, 0.82);
                 font-size: 13px;
             }
+            QToolTip {
+                border: 1px solid rgba(118, 226, 255, 0.28);
+                border-radius: 10px;
+                background: rgba(5, 16, 28, 244);
+                color: rgba(236, 247, 255, 0.96);
+                padding: 10px 12px;
+                font-size: 12px;
+            }
             #savedActionCreateTargetExamplesBox {
-                border-radius: 12px;
-                border: 1px solid rgba(118, 226, 255, 0.16);
-                background: rgba(6, 18, 30, 168);
+                border-radius: 14px;
+                border: 1px solid rgba(118, 226, 255, 0.20);
+                background: rgba(7, 20, 34, 188);
             }
             #savedActionCreateTargetExamplesTitle {
-                color: rgba(118, 226, 255, 0.86);
-                font-size: 12px;
+                color: rgba(118, 226, 255, 0.92);
+                font-size: 13px;
                 font-weight: 600;
-                letter-spacing: 0.05em;
+                letter-spacing: 0.08em;
             }
             #savedActionCreateTargetExamples {
-                color: rgba(196, 230, 245, 0.90);
+                color: rgba(214, 238, 248, 0.94);
                 font-size: 12px;
+                line-height: 1.4em;
             }
             #savedActionCreateStatus {
                 min-height: 22px;
@@ -536,30 +593,32 @@ class SavedActionCreateDialog(QDialog):
             }
             QLabel[createRole="fieldHeader"] {
                 color: rgba(232, 246, 255, 0.98);
+                font-size: 16px;
             }
             QLineEdit, QComboBox {
-                min-height: 34px;
-                border-radius: 10px;
+                min-height: 36px;
+                border-radius: 11px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(6, 18, 30, 196);
                 color: rgba(238, 248, 255, 0.96);
-                padding: 4px 10px;
+                padding: 5px 11px;
             }
             QToolButton[createRole="helpIcon"] {
-                min-width: 22px;
-                max-width: 22px;
-                min-height: 22px;
-                max-height: 22px;
+                min-width: 24px;
+                max-width: 24px;
+                min-height: 24px;
+                max-height: 24px;
                 padding: 0;
-                border-radius: 11px;
-                border: 1px solid rgba(118, 226, 255, 0.20);
-                background: rgba(6, 18, 30, 168);
-                color: rgba(196, 230, 245, 0.94);
-                font-size: 11px;
+                border-radius: 12px;
+                border: 1px solid rgba(118, 226, 255, 0.28);
+                background: rgba(12, 28, 44, 214);
+                color: rgba(220, 243, 252, 0.98);
+                font-size: 12px;
                 font-weight: 700;
             }
             QToolButton[createRole="helpIcon"]:hover {
-                border: 1px solid rgba(118, 226, 255, 0.38);
+                border: 1px solid rgba(118, 226, 255, 0.48);
+                background: rgba(14, 34, 54, 232);
             }
             QPushButton {
                 min-height: 34px;
@@ -630,15 +689,15 @@ class SavedActionCreateDialog(QDialog):
         label.setObjectName(object_name)
         label.setProperty("createRole", "fieldHeader")
         header_font = label.font()
-        header_font.setPointSize(max(14, header_font.pointSize()))
+        header_font.setPointSize(max(16, header_font.pointSize()))
         header_font.setBold(True)
         label.setFont(header_font)
         layout.addWidget(label, 0, Qt.AlignVCenter)
 
-        help_button = QToolButton(container)
+        help_button = ImmediateHelpButton(container)
         help_button.setObjectName(help_object_name)
         help_button.setProperty("createRole", "helpIcon")
-        help_button.setText("?")
+        help_button.setText("i")
         help_button.setToolTip(tooltip_text)
         help_button.setAutoRaise(True)
         layout.addWidget(help_button, 0, Qt.AlignVCenter)
@@ -740,12 +799,15 @@ class SavedActionCreateDialog(QDialog):
         custom_triggers = self._parse_custom_triggers_text()
         alias_suggestions = self._build_alias_suggestions(title)
 
-        lines: list[str] = []
+        sections: list[str] = []
         if alias_suggestions:
-            lines.append("Suggested aliases:")
-            for suggestion in alias_suggestions[:3]:
-                lines.append(suggestion)
-            lines.append("")
+            suggestion_lines = "<br/>".join(
+                f"&bull; {escape(suggestion)}" for suggestion in alias_suggestions[:3]
+            )
+            sections.append(
+                "<div><span style=\"color: rgba(118, 226, 255, 0.92); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;\">Suggested aliases</span>"
+                f"<br/>{suggestion_lines}</div>"
+            )
 
         callable_phrases = build_saved_action_callable_phrases(
             title,
@@ -755,19 +817,32 @@ class SavedActionCreateDialog(QDialog):
             custom_triggers=custom_triggers,
         )
         if callable_phrases:
-            lines.append("Examples (case does not matter):")
-            for phrase in callable_phrases[:6]:
-                lines.append(phrase)
+            phrase_lines = "<br/>".join(
+                f"&bull; {escape(phrase)}" for phrase in callable_phrases[:6]
+            )
+            sections.append(
+                "<div><span style=\"color: rgba(118, 226, 255, 0.92); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;\">Real callable phrases</span>"
+                "<br/><span style=\"color: rgba(196, 230, 245, 0.86);\">Case does not matter.</span>"
+                f"<br/>{phrase_lines}</div>"
+            )
         elif trigger_mode == "custom":
-            lines.append("Add one or more aliases and custom triggers to see callable examples.")
+            sections.append(
+                "<div><span style=\"color: rgba(118, 226, 255, 0.92); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;\">Real callable phrases</span>"
+                "<br/>Add one or more aliases and custom triggers to see the callable surface.</div>"
+            )
         else:
-            lines.append("Add at least one alias to see how this task can be called.")
+            sections.append(
+                "<div><span style=\"color: rgba(118, 226, 255, 0.92); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;\">Real callable phrases</span>"
+                "<br/>Add at least one alias to see how this task can be called.</div>"
+            )
 
         target_format = self._target_format_example_text()
         if target_format:
-            lines.append("")
-            lines.append(target_format)
-        self.target_examples_label.setText("\n".join(lines))
+            sections.append(
+                "<div><span style=\"color: rgba(118, 226, 255, 0.92); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;\">Target format</span>"
+                f"<br/>{escape(target_format)}</div>"
+            )
+        self.target_examples_label.setText("<br/><br/>".join(sections))
 
     def _update_target_guidance(self):
         target_kind = self.current_target_kind()

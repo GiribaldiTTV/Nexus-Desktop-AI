@@ -38,6 +38,7 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 - new saved actions now use alias-root invocation, with `Title` treated as a label and callable phrases generated at runtime from `aliases`, `trigger_mode`, and optional `custom_triggers`
 - legacy saved actions that do not yet carry the new invocation-mode marker still remain title-plus-alias callable so existing tasks do not silently change behavior
 - create/edit dialogs now use stronger field headers, concise help icons, and a single bottom guidance/examples box that updates from the current title, aliases, trigger selection, and target kind
+- create/edit dialogs now place `Trigger` directly below `Title`, use faster NDAI-styled help tooltips, and present the bottom callable-surface box in clearer sections for alias suggestions, real callable phrases, and target format
 - exact-match resolution remains unchanged
 - the overlay phase machine remains bounded to `entry` -> `choose` -> `confirm` -> `result`
 - current supported saved-action target kinds remain `app`, `folder`, `file`, and `url`
@@ -79,6 +80,7 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 8. added the explicit Trigger model, runtime-generated callable phrases, stronger field headers/help icons, and a dynamic examples box for create/edit dialogs
 9. pivoted new saved actions to alias-root invocation while preserving legacy title-callable behavior for existing tasks
 10. added delete reachability for saved tasks through the secondary `Created Tasks` window
+11. polished the create/edit dialog layout so `Trigger` follows `Title`, help tooltips appear faster, and the single bottom callable-surface box is easier to scan
 
 ## Idea Impact Analysis And Route Adjustment
 
@@ -201,13 +203,13 @@ Failure Conditions / Edge Cases: the overlay skips entry state, either top-level
 
 2. Setup: stay in entry state with a healthy saved-action source.
 Action: click `Create Custom Task`, choose `Application`, then inspect the dialog before saving anything.
-Expected Behavior: the dialog shows stronger headers for `Title`, `Aliases`, `Trigger`, and `Target`; each header has a help icon; field-specific helper text is carried by the tooltips instead of stacked under the fields; `Trigger` offers `Launch`, `Open`, `Launch and Open`, and `Custom`; `Custom` keeps its comma-separated trigger field hidden until selected; and a single bottom guidance/examples box stays visible near the action buttons.
-Failure Conditions / Edge Cases: headers are not visually distinct, help icons are missing, field helper text still stacks under the inputs, the trigger dropdown is missing, the custom trigger field is always visible, or the bottom guidance/examples box is missing.
+Expected Behavior: the dialog shows stronger headers for `Title`, `Trigger`, `Aliases`, and `Target`; `Trigger` sits directly below `Title`; each header has a help icon; field-specific helper text is carried by the tooltips instead of stacked under the fields; the help tooltip appears quickly in a compact NDAI-styled card; `Trigger` offers `Launch`, `Open`, `Launch and Open`, and `Custom`; `Custom` keeps its comma-separated trigger field hidden until selected; and a single bottom guidance/examples box stays visible near the action buttons.
+Failure Conditions / Edge Cases: headers are not visually distinct, `Trigger` is still buried below `Aliases`, help icons are missing, field helper text still stacks under the inputs, tooltips feel delayed or unusable, the trigger dropdown is missing, the custom trigger field is always visible, or the bottom guidance/examples box is missing.
 
 3. Setup: stay in the same create dialog.
 Action: enter `Title = Open Nexus`, `Aliases = Nexus, NDAI`, confirm the default trigger for `Application`, then switch `Trigger` to `Launch and Open`.
-Expected Behavior: alias suggestions update from the title without overwriting the aliases field; `Application` defaults to `Launch`; the bottom examples box updates live to the current draft and shows only relevant callable phrases like `Nexus`, `NDAI`, `Launch Nexus`, `Open Nexus`, `Launch NDAI`, and `Open NDAI`; the title itself is treated as a label rather than a callable phrase source unless it also appears in aliases; and the target-format reminder stays specific to `Application`.
-Failure Conditions / Edge Cases: alias suggestions overwrite typed aliases, the default trigger does not match the selected type, the examples box does not update live, the title appears as a generated callable phrase even when it is not in aliases, irrelevant examples remain visible, or generated trigger phrases are missing.
+Expected Behavior: alias suggestions update from the title without overwriting the aliases field; `Application` defaults to `Launch`; the bottom callable-surface box updates live to the current draft and clearly separates suggested aliases, real callable phrases, and the target-format reminder; it shows only relevant callable phrases like `Nexus`, `NDAI`, `Launch Nexus`, `Open Nexus`, `Launch NDAI`, and `Open NDAI`; the title itself is treated as a label rather than a callable phrase source unless it also appears in aliases; and the target-format reminder stays specific to `Application`.
+Failure Conditions / Edge Cases: alias suggestions overwrite typed aliases, the default trigger does not match the selected type, the bottom box does not update live, the sectioned presentation becomes harder to read, the title appears as a generated callable phrase even when it is not in aliases, irrelevant examples remain visible, or generated trigger phrases are missing.
 
 4. Setup: still in the create dialog.
 Action: change `Trigger` to `Custom`, enter `Force Open, Duck Duck Goose`, then use `Browse...` or manual entry to set `Target = notepad.exe` and save.
@@ -282,8 +284,10 @@ Failure Conditions / Edge Cases: the dialog opens anyway, the source is auto-rep
 - runtime-generated callable phrases for new tasks include bare aliases and trigger + aliases
 - legacy saved actions without the new invocation-mode marker keep title-plus-alias callability until an explicit migration path exists
 - stronger headers and concise help icons improve readability without creating a text wall
+- `Trigger` now sits directly below `Title` in the create/edit dialog flow
+- help tooltips appear quickly and use a compact NDAI-styled presentation instead of slow generic hover bubbles
 - field-specific helper text now lives in the tooltips instead of separate labels under each field
-- the single bottom guidance/examples box shows suggested aliases, current callable phrases, and the relevant current target-format reminder
+- the single bottom guidance/examples box shows sectioned suggested aliases, real callable phrases, and the relevant current target-format reminder
 - `Application`, `Folder`, and `File` expose `Browse...` support while still allowing manual target entry
 - `Website URL` stays direct-entry only
 - generated trigger phrases participate in collision detection before write
