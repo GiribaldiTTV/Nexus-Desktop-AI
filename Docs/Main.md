@@ -69,6 +69,7 @@ Use these for current product posture, architecture boundaries, and release-stag
 - `Docs/orchestration.md`
 
 These remain authoritative for their layer even where older naming or path references still need later normalization.
+When a task depends on future post-Beta AI behavior, privacy posture, local-vs-external execution boundaries, or AI/UI identity, route to `Docs/orin_vision.md` rather than duplicating that intent in roadmap or workstream docs.
 
 ### Registry And Sequencing
 
@@ -136,6 +137,7 @@ These are reference layers, not active workstream or roadmap owners.
 - route through the layer that owns the truth you need
 - prefer index docs for historical or high-cardinality layers
 - do not treat a local-only document as canonical just because it exists in the workspace
+- keep future post-Beta AI behavior, privacy, and execution intent in `Docs/orin_vision.md` until a later selected workstream turns part of it into execution truth
 - do not create duplicate authority by making backlog, roadmap, and workstream docs all carry the same execution story
 - keep historical Jarvis material preserved, but mark it as historical rather than current reality
 - after a release, do not default to a standalone docs-only canon lane when a plausible next workstream can be selected from updated `main`

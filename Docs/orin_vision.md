@@ -111,6 +111,63 @@ Current merged truth should still be read as:
 - future boot and access planning deferred
 - product trust and resident presence concepts still living at planning level
 
+## Post-Beta AI Vision
+
+This section records intended post-Beta AI direction.
+
+It is future-facing product intent only.
+It does not change current pre-Beta runtime truth, roadmap sequencing, or the active `FB-036` + Idea 5 branch boundaries.
+
+### AI Behavior Goals
+
+- responses should feel organic and dynamic without becoming vague or improvisational
+- reasoning should feel smart and practical while staying inside explicit system constraints
+- the assistant should stay lightweight enough to feel responsive on normal hardware
+- the interaction model should be approachable for everyday use while still supporting deeper reasoning when needed
+- conversational behavior should remain grounded, predictable, and easy to trust
+
+### Capability Boundaries
+
+- common everyday queries should be handled locally where practical
+- the local system should avoid heavy or expensive workloads that do not fit the machine or the release stage
+- external deferral is acceptable when computation is too large, storage or model footprint is impractical, or an outside system is the better execution surface
+- when deferral happens, the system should say so clearly rather than hiding the boundary
+
+### Privacy Model
+
+- privacy-first defaults are non-negotiable
+- retain as little user data as practical and avoid unnecessary persistence
+- avoid third-party monitoring or exposure where a local or first-party path can satisfy the need
+- user trust, visibility, and local control are primary design constraints
+
+### Execution Model
+
+- the intended direction is hybrid and local-first
+- local logic should handle common tasks, routing, and assistant orchestration
+- external fallback should remain optional and reserved for queries that exceed reasonable local capability
+- even when external help is used, the product should still feel like a local system extension rather than a thin client for a remote dependency
+
+### Technology Exploration
+
+- Python is the primary exploration path for orchestration and rapid iteration
+- C++ is a candidate path for performance-critical components
+- CUDA is an optional acceleration path where a later workload actually justifies it
+- Java and C# remain open integration paths where platform or tooling fit warrants them
+- this is exploration space, not a locked implementation stack
+
+### Visual Identity Principles
+
+- the UI should read as a direct extension of the assistant rather than as a separate utility wrapped around it
+- the visual layer should represent AI state, handoff state, and boundary changes clearly
+- AI behavior and UI feedback should stay aligned so the product feels coherent rather than split into "assistant" and "tool"
+
+### Explicit Non-Goals For Current Release
+
+- do not treat this section as current implementation truth
+- do not introduce large local models or heavy local inference in the current release
+- do not widen the current branch beyond `FB-036` + Idea 5
+- do not reinterpret current workstream, validation, or release-posture docs through this future section
+
 ## Historical Relationship
 
 The public Nexus release line begins after the preserved Jarvis historical release line.
