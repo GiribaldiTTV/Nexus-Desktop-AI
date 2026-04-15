@@ -88,6 +88,7 @@ $script:CurrentScenarioName = ""
 $script:CurrentTransitionDeadline = $null
 $script:CurrentTransitionName = ""
 $script:TimeoutTripReason = $null
+$script:LoggedControlTypeFallbacks = @{}
 
 $script:RuntimeLogLineCursor = 0
 $script:RuntimeAutoOpenPending = $false
@@ -513,6 +514,86 @@ function Add-Note {
     Write-StepLog -Stage "NOTE" -Message $Message
 }
 
+function Add-ControlTypeFallbackNote {
+    param(
+        [string]$Context,
+        [string]$Reason
+    )
+
+    $noteKey = if ($Context) { "$Context|$Reason" } else { $Reason }
+    if (-not $script:LoggedControlTypeFallbacks.ContainsKey($noteKey)) {
+        $script:LoggedControlTypeFallbacks[$noteKey] = $true
+        $contextLabel = if ($Context) { $Context } else { "unknown context" }
+        Add-Note "UIAutomation control type metadata was unavailable in $contextLabel; using a safe fallback ($Reason)."
+    }
+}
+
+function Get-ControlTypeProgrammaticNameSafe {
+    param(
+        $ControlType,
+        [string]$Context = "",
+        [string]$Fallback = ""
+    )
+
+    if ($null -eq $ControlType) {
+        if ($Context) {
+            Add-ControlTypeFallbackNote -Context $Context -Reason "null_control_type"
+        }
+        return $Fallback
+    }
+
+    try {
+        $property = $ControlType.PSObject.Properties['ProgrammaticName']
+        if ($property -and $property.Value) {
+            return [string]$property.Value
+        }
+    } catch {
+    }
+
+    try {
+        $stringValue = [string]$ControlType
+        if ($stringValue) {
+            if ($Context) {
+                Add-ControlTypeFallbackNote -Context $Context -Reason "stringified_control_type"
+            }
+            return $stringValue
+        }
+    } catch {
+    }
+
+    if ($Context) {
+        Add-ControlTypeFallbackNote -Context $Context -Reason "missing_programmatic_name"
+    }
+    return $Fallback
+}
+
+function Get-ElementControlTypeNameSafe {
+    param(
+        [System.Windows.Automation.AutomationElement]$Element,
+        [string]$Context = "",
+        [string]$Fallback = ""
+    )
+
+    if (-not $Element) {
+        if ($Context) {
+            Add-ControlTypeFallbackNote -Context $Context -Reason "null_element"
+        }
+        return $Fallback
+    }
+
+    $controlType = $null
+    try {
+        $controlType = $Element.Current.ControlType
+    } catch {
+        if ($Context) {
+            Add-ControlTypeFallbackNote -Context $Context -Reason "control_type_read_failed"
+        }
+        return $Fallback
+    }
+
+    return Get-ControlTypeProgrammaticNameSafe -ControlType $controlType -Context $Context -Fallback $Fallback
+}
+
 function Add-ScenarioResult {
     param(
         [string]$Name,
@@ -646,7 +727,7 @@ function Find-RootWindow {
     )
 
     foreach ($candidate in (Get-RootWindows)) {
-        if ($candidate.Current.ControlType.ProgrammaticName -ne [System.Windows.Automation.ControlType]::Window.ProgrammaticName) {
+        if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Find-RootWindow") -ne [System.Windows.Automation.ControlType]::Window.ProgrammaticName) {
             continue
         }
         if ($AutomationId -and $candidate.Current.AutomationId -ne $AutomationId) {
@@ -719,7 +800,7 @@ function Find-DialogAncestorFromElement {
         try {
             if (
                 ($ExpectedName -and $current.Current.Name -eq $ExpectedName) -or
-                $current.Current.ControlType.ProgrammaticName -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName
+                (Get-ElementControlTypeNameSafe -Element $current -Context "Find-DialogAncestorFromElement") -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName
             ) {
                 return $current
             }
@@ -745,6 +826,11 @@ function Find-FirstElement {
     )
 
     $elements = Get-AllDescendants -Element $Root
+    $requestedControlTypeName = if ($ControlType) {
+        Get-ControlTypeProgrammaticNameSafe -ControlType $ControlType -Context "Find-FirstElement requested control type"
+    } else {
+        ""
+    }
     foreach ($element in $elements) {
         if ($AutomationId -and $element.Current.AutomationId -ne $AutomationId) {
             continue
@@ -752,7 +838,7 @@ function Find-FirstElement {
         if ($Name -and $element.Current.Name -ne $Name) {
             continue
         }
-        if ($ControlType -and $element.Current.ControlType.ProgrammaticName -ne $ControlType.ProgrammaticName) {
+        if ($ControlType -and (Get-ElementControlTypeNameSafe -Element $element -Context "Find-FirstElement candidate") -ne $requestedControlTypeName) {
             continue
         }
         if ($ClassName -and $element.Current.ClassName -ne $ClassName) {
@@ -1068,7 +1154,7 @@ function Find-ComboPopupItem {
 
     foreach ($candidate in (Get-AllDescendants -Element ([System.Windows.Automation.AutomationElement]::RootElement))) {
         try {
-            if ($candidate.Current.ControlType.ProgrammaticName -ne [System.Windows.Automation.ControlType]::ListItem.ProgrammaticName) {
+            if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Find-ComboPopupItem") -ne [System.Windows.Automation.ControlType]::ListItem.ProgrammaticName) {
                 continue
             }
             if ($candidate.Current.Name -ne $ItemName) {
@@ -1176,17 +1262,159 @@ function Get-WindowHandle {
     return [IntPtr]::new($Element.Current.NativeWindowHandle)
 }
 
+function Get-ElementRuntimeIdText {
+    param(
+        [System.Windows.Automation.AutomationElement]$Element
+    )
+
+    if (-not $Element) {
+        return ""
+    }
+
+    try {
+        $runtimeId = @($Element.GetRuntimeId())
+        if ($runtimeId.Count -lt 1) {
+            return ""
+        }
+        return (($runtimeId | ForEach-Object { [string]$_ }) -join ".")
+    } catch {
+        return ""
+    }
+}
+
+function Get-ElementOwningWindow {
+    param(
+        [System.Windows.Automation.AutomationElement]$Element
+    )
+
+    if (-not $Element) {
+        return $null
+    }
+
+    $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+    $current = $Element
+    while ($current) {
+        try {
+            $hwnd = Get-WindowHandle -Element $current
+            if ($hwnd -ne [IntPtr]::Zero) {
+                return $current
+            }
+        } catch {
+        }
+        try {
+            if ((Get-ElementControlTypeNameSafe -Element $current -Context "Get-ElementOwningWindow") -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName) {
+                return $current
+            }
+        } catch {
+        }
+        try {
+            $current = $walker.GetParent($current)
+        } catch {
+            return $null
+        }
+    }
+
+    return $null
+}
+
+function Get-FocusedElementSafe {
+    try {
+        return [System.Windows.Automation.AutomationElement]::FocusedElement
+    } catch {
+        return $null
+    }
+}
+
+function Test-ElementsEquivalent {
+    param(
+        [System.Windows.Automation.AutomationElement]$Left,
+        [System.Windows.Automation.AutomationElement]$Right
+    )
+
+    if (-not $Left -or -not $Right) {
+        return $false
+    }
+
+    $leftRuntimeId = Get-ElementRuntimeIdText -Element $Left
+    $rightRuntimeId = Get-ElementRuntimeIdText -Element $Right
+    if ($leftRuntimeId -and $rightRuntimeId -and $leftRuntimeId -eq $rightRuntimeId) {
+        return $true
+    }
+
+    try {
+        $leftControlTypeName = Get-ElementControlTypeNameSafe -Element $Left -Context "Test-ElementsEquivalent left"
+        $rightControlTypeName = Get-ElementControlTypeNameSafe -Element $Right -Context "Test-ElementsEquivalent right"
+        if (
+            $Left.Current.AutomationId -and
+            $Left.Current.AutomationId -eq $Right.Current.AutomationId -and
+            $leftControlTypeName -eq $rightControlTypeName
+        ) {
+            return $true
+        }
+    } catch {
+    }
+
+    return $false
+}
+
+function Test-ElementFocusSatisfied {
+    param(
+        [System.Windows.Automation.AutomationElement]$Target,
+        [ref]$FocusedSummary = ([ref]([string]::Empty))
+    )
+
+    $focused = Get-FocusedElementSafe
+    $FocusedSummary.Value = Get-ElementStateSummary -Element $focused
+
+    if (-not $Target -or -not $focused) {
+        return $false
+    }
+
+    try {
+        if ($Target.Current.HasKeyboardFocus) {
+            return $true
+        }
+    } catch {
+    }
+
+    if (Test-ElementsEquivalent -Left $Target -Right $focused) {
+        return $true
+    }
+
+    $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+    $current = $focused
+    $depth = 0
+    while ($current -and $depth -lt 16) {
+        if (Test-ElementsEquivalent -Left $Target -Right $current) {
+            return $true
+        }
+        try {
+            $current = $walker.GetParent($current)
+        } catch {
+            break
+        }
+        $depth += 1
+    }
+
+    return $false
+}
+
 function Focus-Window {
     param(
         [System.Windows.Automation.AutomationElement]$Element
     )
 
-    $hwnd = Get-WindowHandle -Element $Element
+    $targetWindow = Get-ElementOwningWindow -Element $Element
+    if (-not $targetWindow) {
+        $targetWindow = $Element
+    }
+
+    $hwnd = Get-WindowHandle -Element $targetWindow
     if ($hwnd -ne [IntPtr]::Zero) {
         [CodexInteractiveWin32]::ShowWindowAsync($hwnd, 5) | Out-Null
         [CodexInteractiveWin32]::SetForegroundWindow($hwnd) | Out-Null
     }
-    $Element.SetFocus()
+    $targetWindow.SetFocus()
     Start-Sleep -Milliseconds 250
 }
 
@@ -1514,63 +1742,73 @@ function Focus-ElementForInteraction {
             continue
         }
 
+        $focusSummary = ""
         try {
+            Write-StepLog -Stage "INTERACT" -Message "focus attempt=$attempt strategy=window_foreground target='$Description' state=$(Get-ElementStateSummary -Element $element)"
             Focus-Window -Element $element
         } catch {
             Add-Note "Focus attempt $attempt for '$Description' could not foreground the element window. State: $(Get-ElementStateSummary -Element $element)"
         }
 
-        $focused = $null
-        try {
-            $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
-        } catch {
-        }
-
-        if ($focused) {
-            try {
-                if (
-                    $focused.Current.AutomationId -eq $element.Current.AutomationId -and
-                    $focused.Current.ControlType.ProgrammaticName -eq $element.Current.ControlType.ProgrammaticName
-                ) {
-                    Write-StepLog -Stage "INTERACT" -Message "focus confirmed for '$Description' on attempt=$attempt state=$(Get-ElementStateSummary -Element $element)"
-                    return $element
-                }
-            } catch {
-            }
+        $element = & $ElementResolver
+        if (Test-ElementFocusSatisfied -Target $element -FocusedSummary ([ref]$focusSummary)) {
+            Write-StepLog -Stage "INTERACT" -Message "focus confirmed for '$Description' on attempt=$attempt strategy=window_foreground target_state=$(Get-ElementStateSummary -Element $element) focused_state=$focusSummary"
+            return $element
         }
 
         try {
+            Write-StepLog -Stage "INTERACT" -Message "focus attempt=$attempt strategy=set_focus target='$Description' state=$(Get-ElementStateSummary -Element $element)"
             $element.SetFocus()
             Start-Sleep -Milliseconds 120
         } catch {
         }
 
-        $focused = $null
-        try {
-            $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
-        } catch {
+        $element = & $ElementResolver
+        if (Test-ElementFocusSatisfied -Target $element -FocusedSummary ([ref]$focusSummary)) {
+            Write-StepLog -Stage "INTERACT" -Message "focus confirmed for '$Description' on attempt=$attempt strategy=set_focus target_state=$(Get-ElementStateSummary -Element $element) focused_state=$focusSummary"
+            return $element
         }
 
-        if ($focused) {
-            try {
-                if (
-                    $focused.Current.AutomationId -eq $element.Current.AutomationId -and
-                    $focused.Current.ControlType.ProgrammaticName -eq $element.Current.ControlType.ProgrammaticName
-                ) {
-                    Write-StepLog -Stage "INTERACT" -Message "focus confirmed for '$Description' on attempt=$attempt after direct SetFocus state=$(Get-ElementStateSummary -Element $element)"
-                    return $element
-                }
-            } catch {
+        try {
+            Write-StepLog -Stage "INTERACT" -Message "focus attempt=$attempt strategy=center_click target='$Description' state=$(Get-ElementStateSummary -Element $element)"
+            Click-Element -Element $element
+            Start-Sleep -Milliseconds 120
+        } catch {
+            Add-Note "Focus attempt $attempt for '$Description' could not click the target control. Cause: $($_.Exception.Message)"
+        }
+
+        $element = & $ElementResolver
+        if (Test-ElementFocusSatisfied -Target $element -FocusedSummary ([ref]$focusSummary)) {
+            Write-StepLog -Stage "INTERACT" -Message "focus confirmed for '$Description' on attempt=$attempt strategy=center_click target_state=$(Get-ElementStateSummary -Element $element) focused_state=$focusSummary"
+            return $element
+        }
+
+        try {
+            Write-StepLog -Stage "INTERACT" -Message "focus attempt=$attempt strategy=window_then_click_setfocus target='$Description' state=$(Get-ElementStateSummary -Element $element)"
+            Focus-Window -Element $element
+            Click-Element -Element $element
+            $element = & $ElementResolver
+            if ($element) {
+                $element.SetFocus()
             }
+            Start-Sleep -Milliseconds 140
+        } catch {
+            Add-Note "Focus attempt $attempt for '$Description' could not complete the fallback focus sequence. Cause: $($_.Exception.Message)"
+        }
+
+        $element = & $ElementResolver
+        if (Test-ElementFocusSatisfied -Target $element -FocusedSummary ([ref]$focusSummary)) {
+            Write-StepLog -Stage "INTERACT" -Message "focus confirmed for '$Description' on attempt=$attempt strategy=window_then_click_setfocus target_state=$(Get-ElementStateSummary -Element $element) focused_state=$focusSummary"
+            return $element
         }
 
         if (-not $RequireExactFocus -and (Test-ElementUsable -Element $element -RequireEnabled $true)) {
-            Write-StepLog -Stage "INTERACT" -Message "proceeding without exact focus for '$Description' on attempt=$attempt state=$(Get-ElementStateSummary -Element $element)"
+            Write-StepLog -Stage "INTERACT" -Message "proceeding without exact focus for '$Description' on attempt=$attempt target_state=$(Get-ElementStateSummary -Element $element) focused_state=$focusSummary"
             Add-Note "Exact focus did not hold for '$Description', but the control remained usable so the harness proceeded with window-level focus."
             return $element
         }
 
-        Add-Note "Focus attempt $attempt for '$Description' did not hold. Element state: $(Get-ElementStateSummary -Element $element)"
+        Add-Note "Focus attempt $attempt for '$Description' did not hold. Element state: $(Get-ElementStateSummary -Element $element) focused_state=$focusSummary"
         Start-Sleep -Milliseconds 150
     }
 
@@ -1889,7 +2127,7 @@ function Get-InventoryEditButtons {
 
     $buttons = @()
     foreach ($element in (Get-AllDescendants -Element $Overlay)) {
-        if ($element.Current.ControlType.ProgrammaticName -eq [System.Windows.Automation.ControlType]::Button.ProgrammaticName -and $element.Current.Name -eq "Edit") {
+        if ((Get-ElementControlTypeNameSafe -Element $element -Context "Get-InventoryEditButtons") -eq [System.Windows.Automation.ControlType]::Button.ProgrammaticName -and $element.Current.Name -eq "Edit") {
             $buttons += $element
         }
     }
@@ -1981,7 +2219,7 @@ function Get-InventoryTextRows {
 
     $rows = @()
     foreach ($element in (Get-AllDescendants -Element $Overlay)) {
-        if ($element.Current.ControlType.ProgrammaticName -eq [System.Windows.Automation.ControlType]::Text.ProgrammaticName -and $element.Current.Name -like "Open*") {
+        if ((Get-ElementControlTypeNameSafe -Element $element -Context "Get-InventoryTextRows") -eq [System.Windows.Automation.ControlType]::Text.ProgrammaticName -and $element.Current.Name -like "Open*") {
             $rows += $element.Current.Name
         }
     }
@@ -2062,8 +2300,13 @@ function Open-Overlay {
 }
 
 function Close-Overlay {
+    param(
+        [string]$Reason = "overlay close"
+    )
+
     $overlay = Get-OverlayWindow
     if (-not $overlay) {
+        Write-StepLog -Stage "OVERLAY" -Message "overlay already closed before $Reason"
         return
     }
 
@@ -2073,20 +2316,48 @@ function Close-Overlay {
     }
 
     $markerStart = New-RuntimeMarkerCursor
-    Write-StepLog -Stage "OVERLAY" -Message "closing overlay via escape"
+    Write-StepLog -Stage "OVERLAY" -Message "closing overlay via escape for $Reason"
     Send-VirtualKey -VirtualKey 0x1B
-    Start-Sleep -Milliseconds 350
-    if ((Get-OverlayWindow) -ne $null) {
-        Write-StepLog -Stage "OVERLAY" -Message "overlay still visible after escape, retrying with hotkey"
+
+    $closeConfirmed = $false
+    try {
+        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_OVERLAY_CLOSED" -TimeoutSeconds 3 -StartLine $markerStart
+        $closeConfirmed = $true
+        Write-StepLog -Stage "OVERLAY" -Message "overlay close confirmed by runtime marker after escape for $Reason"
+    } catch {
+        Write-StepLog -Stage "OVERLAY" -Message "overlay close marker did not arrive after escape; retrying close with hotkey for $Reason"
         Send-OverlayHotkey
     }
 
-    Wait-Until -TimeoutSeconds 8 -Description "overlay close" -Condition { (Get-OverlayWindow) -eq $null } | Out-Null
-    try {
-        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_OVERLAY_CLOSED" -TimeoutSeconds 4 -StartLine $markerStart
-    } catch {
-        Write-StepLog -Stage "OVERLAY" -Message "overlay closed without a fresh close marker"
+    if (-not $closeConfirmed) {
+        try {
+            Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_OVERLAY_CLOSED" -TimeoutSeconds 4 -StartLine $markerStart
+            $closeConfirmed = $true
+            Write-StepLog -Stage "OVERLAY" -Message "overlay close confirmed by runtime marker after hotkey retry for $Reason"
+        } catch {
+            Add-Note "Overlay close marker was still missing after the hotkey retry for $Reason; falling back to non-interactable overlay verification."
+        }
     }
+
+    if (-not $closeConfirmed) {
+        Wait-Until -TimeoutSeconds 4 -Description "overlay close fallback for $Reason" -Condition {
+            -not (Test-OverlayInteractableFallback -Overlay $null)
+        } | Out-Null
+        Write-StepLog -Stage "OVERLAY" -Message "overlay close fallback satisfied without a fresh runtime close marker for $Reason"
+        return
+    }
+}
+
+function Reopen-OverlayAfterClose {
+    param(
+        [string]$Reason = "overlay reopen"
+    )
+
+    Write-StepLog -Stage "OVERLAY" -Message "reopening overlay after $Reason"
+    $overlay = Open-OverlayWithRuntimeRestartFallback
+    $overlay = Ensure-OverlayReady -Overlay $overlay -Reason "$Reason reopen"
+    Write-StepLog -Stage "OVERLAY" -Message "overlay reopen ready confirmed after $Reason"
+    return $overlay
 }
 
 function Open-CreateDialog {
@@ -2875,7 +3146,7 @@ function Start-NotepadProbe {
     Wait-Until -TimeoutSeconds 15 -Description "notepad probe window" -Condition {
         foreach ($candidate in (Get-RootWindows)) {
             if (
-                $candidate.Current.ControlType.ProgrammaticName -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName -and
+                (Get-ElementControlTypeNameSafe -Element $candidate -Context "Start-NotepadProbe") -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName -and
                 $candidate.Current.ClassName -eq "Notepad" -and
                 ($candidate.Current.Name -eq $expectedTitle -or $candidate.Current.Name -eq "Notepad")
             ) {
@@ -2926,7 +3197,7 @@ function Resolve-NotepadProbeWindow {
     foreach ($candidate in (Get-RootWindows)) {
         try {
             if (
-                $candidate.Current.ControlType.ProgrammaticName -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName -and
+                (Get-ElementControlTypeNameSafe -Element $candidate -Context "Resolve-NotepadProbeWindow") -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName -and
                 $candidate.Current.ClassName -eq "Notepad"
             ) {
                 if ($expectedProcessId -gt 0 -and $candidate.Current.ProcessId -ne $expectedProcessId) {
@@ -2967,7 +3238,7 @@ function Resolve-NotepadEditor {
 
     foreach ($candidate in (Get-AllDescendants -Element $window)) {
         try {
-            if ($candidate.Current.ControlType.ProgrammaticName -eq [System.Windows.Automation.ControlType]::Edit.ProgrammaticName) {
+            if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Resolve-NotepadEditor") -eq [System.Windows.Automation.ControlType]::Edit.ProgrammaticName) {
                 return $candidate
             }
         } catch {
@@ -3071,6 +3342,111 @@ function Get-SavedActionRecordById {
     return $record
 }
 
+function Get-RecordPropertyValue {
+    param(
+        $Record,
+        [string]$PropertyName,
+        $Default = $null
+    )
+
+    if ($null -eq $Record) {
+        return $Default
+    }
+
+    $property = $Record.PSObject.Properties[$PropertyName]
+    if ($null -eq $property) {
+        return $Default
+    }
+
+    return $property.Value
+}
+
+function Get-SavedActionRecordId {
+    param(
+        $Record
+    )
+
+    return [string](Get-RecordPropertyValue -Record $Record -PropertyName "id" -Default "")
+}
+
+function Get-SavedActionRecordTitle {
+    param(
+        $Record
+    )
+
+    return [string](Get-RecordPropertyValue -Record $Record -PropertyName "title" -Default "")
+}
+
+function Get-SavedActionRecordAliases {
+    param(
+        $Record
+    )
+
+    $aliasesValue = Get-RecordPropertyValue -Record $Record -PropertyName "aliases" -Default @()
+    if ($null -eq $aliasesValue) {
+        return @()
+    }
+
+    return @(
+        @($aliasesValue) |
+            Where-Object { $_ -is [string] } |
+            ForEach-Object { [string]$_ }
+    )
+}
+
+function Get-SavedActionRecordInvocationMode {
+    param(
+        $Record
+    )
+
+    $invocationMode = [string](Get-RecordPropertyValue -Record $Record -PropertyName "invocation_mode" -Default "")
+    if ([string]::IsNullOrWhiteSpace($invocationMode)) {
+        return "legacy"
+    }
+    return $invocationMode
+}
+
+function Get-SavedActionRecordTriggerMode {
+    param(
+        $Record
+    )
+
+    return [string](Get-RecordPropertyValue -Record $Record -PropertyName "trigger_mode" -Default "")
+}
+
+function Get-SavedActionRecordCustomTriggers {
+    param(
+        $Record
+    )
+
+    $customTriggersValue = Get-RecordPropertyValue -Record $Record -PropertyName "custom_triggers" -Default @()
+    if ($null -eq $customTriggersValue) {
+        return @()
+    }
+
+    return @(
+        @($customTriggersValue) |
+            Where-Object { $_ -is [string] -and $_.Trim() } |
+            ForEach-Object { [string]$_ }
+    )
+}
+
+function Get-SavedActionRecordShapeSummary {
+    param(
+        $Record
+    )
+
+    $recordId = Get-SavedActionRecordId -Record $Record
+    $recordTitle = Get-SavedActionRecordTitle -Record $Record
+    $invocationMode = Get-SavedActionRecordInvocationMode -Record $Record
+    $triggerMode = Get-SavedActionRecordTriggerMode -Record $Record
+    $aliases = @(Get-SavedActionRecordAliases -Record $Record)
+    $customTriggers = @(Get-SavedActionRecordCustomTriggers -Record $Record)
+    $customTriggerProperty = $null -ne $Record -and $null -ne $Record.PSObject.Properties["custom_triggers"]
+
+    return "id='$recordId' title='$recordTitle' invocation_mode='$invocationMode' trigger_mode='$triggerMode' aliases=$($aliases.Count) custom_triggers=$($customTriggers.Count) has_custom_triggers_property=$customTriggerProperty"
+}
+
 function Get-SavedActionTriggerPrefixes {
     param(
         [string]$TriggerMode,
@@ -3100,20 +3476,13 @@ function Build-SavedActionCallablePhrases {
     $phrases = New-Object System.Collections.Generic.List[string]
     $seen = New-Object System.Collections.Generic.HashSet[string]
 
-    $aliases = @()
-    if ($null -ne $Record.aliases) {
-        $aliases = @($Record.aliases | Where-Object { $_ -is [string] })
-    }
+    $aliases = @(Get-SavedActionRecordAliases -Record $Record)
 
-    $invocationMode = if ($null -eq $Record.invocation_mode -or [string]::IsNullOrWhiteSpace([string]$Record.invocation_mode)) {
-        "legacy"
-    } else {
-        [string]$Record.invocation_mode
-    }
+    $invocationMode = Get-SavedActionRecordInvocationMode -Record $Record
     if ($invocationMode -eq "aliases_only") {
         $basePhrases = @($aliases)
     } else {
-        $basePhrases = @([string]$Record.title) + @($aliases)
+        $basePhrases = @((Get-SavedActionRecordTitle -Record $Record)) + @($aliases)
     }
 
     $addPhrase = {
@@ -3136,7 +3505,7 @@ function Build-SavedActionCallablePhrases {
         & $addPhrase $phrase
     }
 
-    $prefixes = Get-SavedActionTriggerPrefixes -TriggerMode ([string]$Record.trigger_mode) -CustomTriggers @($Record.custom_triggers)
+    $prefixes = @(Get-SavedActionTriggerPrefixes -TriggerMode (Get-SavedActionRecordTriggerMode -Record $Record) -CustomTriggers @(Get-SavedActionRecordCustomTriggers -Record $Record))
     foreach ($prefix in $prefixes) {
         $normalizedPrefix = Normalize-CommandPhrase $prefix
         if (-not $normalizedPrefix) {
@@ -3163,15 +3532,15 @@ function Get-PreferredExactInvocationPhrase {
         $Record
     )
 
-    $aliases = @()
-    if ($null -ne $Record.aliases) {
-        $aliases = @($Record.aliases | Where-Object { $_ -is [string] -and $_.Trim() })
-    }
+    $aliases = @(
+        Get-SavedActionRecordAliases -Record $Record |
+            Where-Object { $_.Trim() }
+    )
     if ($aliases.Count -lt 1) {
-        throw "Saved action '$($Record.id)' did not expose any callable aliases for exact-match execution."
+        throw "Saved action '$((Get-SavedActionRecordId -Record $Record))' did not expose any callable aliases for exact-match execution."
     }
 
-    $prefixes = Get-SavedActionTriggerPrefixes -TriggerMode ([string]$Record.trigger_mode) -CustomTriggers @($Record.custom_triggers)
+    $prefixes = @(Get-SavedActionTriggerPrefixes -TriggerMode (Get-SavedActionRecordTriggerMode -Record $Record) -CustomTriggers @(Get-SavedActionRecordCustomTriggers -Record $Record))
     if ($prefixes.Count -gt 0) {
         return [regex]::Replace("$($prefixes[0]) $($aliases[0])", "\s+", " ").Trim()
     }
@@ -3328,8 +3697,7 @@ function Run-Collision-Checks {
     Write-StepLog -Stage "FLOW" -Message "running collision checks"
 
     $cases = @(
-        @{ title = "Explorer Helper"; aliases = "Open Windows Explorer"; target = "explorer.exe"; expect = "collide" },
-        @{ title = "Duplicate Notepad"; aliases = "launch notepad task"; target = "notepad.exe"; expect = "collide" }
+        @{ title = "Explorer Helper"; aliases = "Open Windows Explorer"; target = "explorer.exe"; expect = "collide" }
     )
 
     foreach ($case in $cases) {
@@ -3377,6 +3745,48 @@ function Run-Collision-Checks {
         Cancel-Dialog -Dialog $dialog
         $Overlay = Restore-OverlayAfterAuthoringDialogCancel -Overlay $Overlay -Reason "collision create case '$($case.title)' cancel"
     }
+}
+
+function Run-SavedAlias-Ambiguity-Selection {
+    param([System.Windows.Automation.AutomationElement]$Overlay)
+    Write-StepLog -Stage "FLOW" -Message "running saved-vs-saved ambiguity selection check"
+
+    $dialog = Open-CreateDialog -Overlay $Overlay
+    Fill-AuthoringDialog -Dialog $dialog -TypeLabel "Application" -Title "Weekly Reports Explorer" -Aliases "weekly reports" -Target "explorer.exe"
+    $markerStart = New-RuntimeMarkerCursor
+    Submit-Dialog -Dialog $dialog -ButtonName "Create"
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATE_ATTEMPT_STARTED|title=Weekly Reports Explorer" -StartLine $markerStart
+    Wait-ForCatalogReloadCompleted -StartLine $markerStart
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATED|action_id=weekly_reports_explorer" -StartLine $markerStart
+    try {
+        Wait-ForDialogRuntimeClosed -SignalBase "CUSTOM_TASK_CREATE_DIALOG" -StartLine $markerStart -TimeoutSeconds 4
+    } catch {
+        Add-Note "Ambiguity setup create dialog close readback lagged after the create marker, but the saved action still persisted."
+    }
+
+    $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "saved-vs-saved ambiguity check"
+    $createdTasksDialog = Open-CreatedTasksDialog -Overlay $Overlay
+    Wait-ForInventoryText -Overlay $createdTasksDialog -Text "Weekly Reports Explorer"
+    $Overlay = Close-CreatedTasksDialog -Dialog $createdTasksDialog -Overlay $Overlay -Reason "post-ambiguity setup Created Tasks close"
+
+    $input = Get-OverlayInput -Overlay $Overlay
+    Set-Value -Element $input -Value "weekly reports"
+    $input.SetFocus()
+    Start-Sleep -Milliseconds 200
+
+    $ambiguousStart = New-RuntimeMarkerCursor
+    Send-VirtualKey -VirtualKey 0x0D
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_AMBIGUOUS|count=2" -StartLine $ambiguousStart
+
+    $selectionStart = New-RuntimeMarkerCursor
+    Send-VirtualKey -VirtualKey 0x32
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_DISAMBIGUATION_SELECTED|index=1|action_id=weekly_reports_explorer" -StartLine $selectionStart
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_CONFIRM_READY|action_id=weekly_reports_explorer" -StartLine $selectionStart
+
+    $launchStart = New-RuntimeMarkerCursor
+    Send-VirtualKey -VirtualKey 0x0D
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_LAUNCH_REQUEST_SENT|action_id=weekly_reports_explorer" -StartLine $launchStart
+    Copy-SourceSnapshot -Slug "after_ambiguity_selection" | Out-Null
 }
 
 function Run-Edit-Flow {
@@ -3474,10 +3884,16 @@ function Run-ExactMatch-Execution {
     Write-StepLog -Stage "FLOW" -Message "running exact-match execution check"
     $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "exact-match execution check"
     $record = Get-SavedActionRecordById -ActionId "open_notepad_task"
+    $recordId = Get-SavedActionRecordId -Record $record
+    $recordTitle = Get-SavedActionRecordTitle -Record $record
+    $recordInvocationMode = Get-SavedActionRecordInvocationMode -Record $record
+    $recordTriggerMode = Get-SavedActionRecordTriggerMode -Record $record
+    $recordCustomTriggers = @(Get-SavedActionRecordCustomTriggers -Record $record)
     $callablePhrases = @(Build-SavedActionCallablePhrases -Record $record)
     $invocationPhrase = Get-PreferredExactInvocationPhrase -Record $record
-    Write-StepLog -Stage "FLOW" -Message "exact-match callable phrases action_id=$($record.id) phrases=$([string]::Join(' | ', $callablePhrases))"
-    Write-StepLog -Stage "FLOW" -Message "exact-match invocation attempt action_id=$($record.id) phrase='$invocationPhrase' title='$($record.title)' invocation_mode='$($record.invocation_mode)' trigger_mode='$($record.trigger_mode)'"
+    Write-StepLog -Stage "FLOW" -Message "exact-match record shape $(Get-SavedActionRecordShapeSummary -Record $record)"
+    Write-StepLog -Stage "FLOW" -Message "exact-match callable phrases action_id=$recordId phrases=$([string]::Join(' | ', $callablePhrases))"
+    Write-StepLog -Stage "FLOW" -Message "exact-match invocation attempt action_id=$recordId phrase='$invocationPhrase' title='$recordTitle' invocation_mode='$recordInvocationMode' trigger_mode='$recordTriggerMode' custom_triggers=$($recordCustomTriggers.Count)"
 
     if (-not (@($callablePhrases | Where-Object { (Normalize-CommandPhrase $_) -eq (Normalize-CommandPhrase $invocationPhrase) }).Count -gt 0)) {
         throw "Exact-match invocation phrase '$invocationPhrase' was not present in the saved action callable phrase set."
@@ -3527,8 +3943,9 @@ function Run-ExactMatch-Execution {
 
 function Run-Reopen-Check {
     Write-StepLog -Stage "FLOW" -Message "running overlay reopen persistence check"
-    Close-Overlay
-    $overlay = Open-OverlayWithRuntimeRestartFallback
+    Close-Overlay -Reason "overlay reopen persistence check"
+    Write-StepLog -Stage "FLOW" -Message "overlay close confirmed for reopen persistence"
+    $overlay = Reopen-OverlayAfterClose -Reason "overlay reopen persistence check"
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $overlay
     Wait-ForInventoryText -Overlay $createdTasksDialog -Text "Open Weekly Reports"
     $overlay = Close-CreatedTasksDialog -Dialog $createdTasksDialog -Overlay $overlay -Reason "overlay reopen persistence Created Tasks close"
@@ -3587,26 +4004,60 @@ function Run-Unsafe-Source-Check {
     Corrupt-Source
     Restart-InteractiveRuntime | Out-Null
     $overlay = Open-OverlayWithRuntimeRestartFallback
-    $createButton = Find-FirstElement -Root $overlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton"
+    $overlay = Ensure-OverlayReady -Overlay $overlay -Reason "unsafe-source blocking check"
+
+    $resolveOverlay = {
+        Resolve-LiveOverlayRoot -Overlay $overlay
+    }
+    $resolveCreateButton = {
+        $liveOverlay = & $resolveOverlay
+        if (-not $liveOverlay) {
+            return $null
+        }
+        Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton"
+    }
+    $resolveCommandStatus = {
+        $liveOverlay = & $resolveOverlay
+        if (-not $liveOverlay) {
+            return $null
+        }
+        Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.commandStatus"
+    }
+
+    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton" -Description "Create Custom Task button in unsafe-source path"
+    $createButton = Focus-ElementForInteraction -ElementResolver $resolveCreateButton -Description "Create Custom Task button in unsafe-source path" -RequireExactFocus $false
     $markerStart = New-RuntimeMarkerCursor
+    Write-StepLog -Stage "FLOW" -Message "invoking blocked create path for unsafe saved-action source"
     Invoke-ElementRobust -Element $createButton -Description "Create Custom Task button in unsafe-source path"
     Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATE_BLOCKED|reason=source_invalid" -StartLine $markerStart
-    $dialog = Get-DialogWindow -Name "Create Custom Task"
-    if ($dialog) {
+    if (Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATE_DIALOG_OPENED" -StartLine $markerStart) {
         throw "Unsafe source should block the create dialog before it opens."
     }
     if (Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATED|" -StartLine $markerStart) {
         throw "Unsafe source unexpectedly produced a create marker."
     }
-    $status = Find-FirstElement -Root $overlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.commandStatus"
-    $statusText = if ($status) { $status.Current.Name } else { "" }
+
+    Write-StepLog -Stage "FLOW" -Message "confirming unsafe-source overlay feedback state"
+    Wait-Until -TimeoutSeconds 4 -Description "unsafe-source command status text" -Condition {
+        $statusElement = & $resolveCommandStatus
+        if (-not (Test-ElementUsable -Element $statusElement -RequireEnabled $false)) {
+            return $false
+        }
+        $statusValue = Get-ElementReadableValue -Element $statusElement
+        return -not [string]::IsNullOrWhiteSpace($statusValue)
+    } | Out-Null
+    $status = & $resolveCommandStatus
+    $statusText = if ($status) { Get-ElementReadableValue -Element $status } else { "" }
+    Write-StepLog -Stage "FLOW" -Message "unsafe-source overlay status='$statusText'"
     if ($statusText -notlike "*blocked*") {
         throw "Unsafe source did not surface blocked status text. Saw: '$statusText'"
     }
 
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $overlay
-    $dialogStatus = Find-FirstElement -Root $createdTasksDialog -AutomationId "QApplication.savedActionCreatedTasksDialog.savedActionCreatedTasksStatus"
-    $dialogStatusText = if ($dialogStatus) { $dialogStatus.Current.Name } else { "" }
+    Write-StepLog -Stage "FLOW" -Message "confirming unsafe-source Created Tasks status state"
+    $dialogStatus = Wait-ForDialogControlReady -DialogResolver { Resolve-LiveDialogRoot -Dialog $createdTasksDialog -ExpectedName "Created Tasks" } -AutomationId "QApplication.savedActionCreatedTasksDialog.savedActionCreatedTasksStatus" -Description "Created Tasks status in unsafe-source path" -RequireEnabled $false
+    $dialogStatusText = if ($dialogStatus) { Get-ElementReadableValue -Element $dialogStatus } else { "" }
+    Write-StepLog -Stage "FLOW" -Message "unsafe-source Created Tasks status='$dialogStatusText'"
     if (-not $dialogStatusText) {
         throw "Created Tasks dialog did not surface saved-action source status in the unsafe-source path."
     }
@@ -3680,7 +4131,7 @@ try {
 
     Enter-ScenarioBudget -Name "collision_rejection"
     Run-Collision-Checks -Overlay $overlay
-    Add-ScenarioResult -Name "collision_rejection" -Passed $true -Details "Built-in and saved-action collisions were blocked in the real create dialog."
+    Add-ScenarioResult -Name "collision_rejection" -Passed $true -Details "Built-in collisions stayed blocked in the real create dialog."
     Clear-ScenarioBudget -Name "collision_rejection"
 
     Enter-ScenarioBudget -Name "valid_edit"
@@ -3697,6 +4148,11 @@ try {
     Run-ExactMatch-Execution -Overlay $overlay
     Add-ScenarioResult -Name "exact_match_execution" -Passed $true -Details "Exact-match execution sent a real launch request for the edited saved action through the live overlay path."
     Clear-ScenarioBudget -Name "exact_match_execution"
+
+    Enter-ScenarioBudget -Name "saved_alias_ambiguity"
+    Run-SavedAlias-Ambiguity-Selection -Overlay $overlay
+    Add-ScenarioResult -Name "saved_alias_ambiguity" -Passed $true -Details "Two saved actions sharing the same alias surfaced the existing ambiguity chooser and selection executed the chosen action."
+    Clear-ScenarioBudget -Name "saved_alias_ambiguity"
 
     Enter-ScenarioBudget -Name "reopen_persistence"
     $overlay = Run-Reopen-Check

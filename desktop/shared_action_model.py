@@ -585,7 +585,6 @@ def _load_saved_command_actions_from_records(records: Iterable[object]) -> tuple
         built_in_phrases.update(_normalized_action_phrases(action))
 
     seen_saved_ids: set[str] = set()
-    seen_saved_phrases: set[str] = set()
     saved_actions: list[CommandAction] = []
     for record in records:
         action = _command_action_from_saved_record(record)
@@ -593,8 +592,6 @@ def _load_saved_command_actions_from_records(records: Iterable[object]) -> tuple
         normalized_phrases = _normalized_action_phrases(action)
         if normalized_id in seen_saved_ids:
             raise ValueError("Saved action id collides with another saved action.")
-        if normalized_phrases & seen_saved_phrases:
-            raise ValueError("Saved action title, alias, or trigger phrase collides with another saved action.")
 
         built_in_phrase_collisions = normalized_phrases & built_in_phrases
         if normalized_id in built_in_ids or built_in_phrase_collisions:
@@ -613,7 +610,6 @@ def _load_saved_command_actions_from_records(records: Iterable[object]) -> tuple
             continue
 
         seen_saved_ids.add(normalized_id)
-        seen_saved_phrases.update(normalized_phrases)
         saved_actions.append(action)
 
     return tuple(saved_actions)

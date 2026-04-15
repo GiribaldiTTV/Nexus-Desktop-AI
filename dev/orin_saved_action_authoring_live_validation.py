@@ -142,10 +142,14 @@ def _make_window(source_path: Path):
     window._saved_action_create_dialog_factory = None
     window._created_tasks_dialog_factory = None
     window._saved_action_edit_dialog_factory = None
-    window._result_close_timer = SimpleNamespace(stop=lambda: None)
+    window._result_close_timer = SimpleNamespace(stop=lambda: None, start=lambda *_args, **_kwargs: None)
     window._overlay_input_capture_until = 0.0
     window._overlay_local_input_engaged = False
     window._overlay_global_capture_suspended = False
+    window._last_launch_failure_action_id = ""
+    window._last_launch_failure_count = 0
+    window._reported_recoverable_launch_failures = set()
+    window.runtime_log_path = None
     window._command_model = CommandOverlayModel(action_catalog=build_default_command_action_catalog(source_path))
     window._command_panel = _HarnessPanel()
     window._events = []
@@ -321,6 +325,93 @@ def _run_invalid_and_collision_paths():
         return {
             "invalid_app_error": dialog_instances[-2].status_label.text(),
             "builtin_collision_error": dialog_instances[-1].status_label.text(),
+        }
+
+
+def _run_saved_alias_ambiguity_flow(stamp: str):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        window = _make_window(source_path)
+        create_dialogs = []
+
+        create_cases = [
+            ("Folder", "Weekly Reports Folder", "weekly reports", r"C:\Reports"),
+            ("Application", "Weekly Reports Explorer", "weekly reports", "explorer.exe"),
+        ]
+
+        for type_label, title, aliases, target in create_cases:
+            window._saved_action_create_dialog_factory = (
+                lambda parent, submit_handler, type_label=type_label, title=title, aliases=aliases, target=target: _AutoSubmitCreateDialog(
+                    None,
+                    submit_handler,
+                    lambda dialog, type_label=type_label, title=title, aliases=aliases, target=target: (
+                        dialog.type_combo.setCurrentText(type_label),
+                        dialog.title_input.setText(title),
+                        dialog.aliases_input.setText(aliases),
+                        dialog.target_input.setText(target),
+                    ),
+                    create_dialogs,
+                )
+            )
+            renderer_mod.DesktopRuntimeWindow.handle_create_custom_task_requested(window)
+
+        inventory = _inventory_items(window)
+        _assert(len(inventory) == 2, "saved-vs-saved ambiguity flow should keep both overlapping saved actions active")
+
+        matches = window._command_model.action_catalog.resolve_actions("weekly reports")
+        _assert(
+            tuple(action.id for action in matches) == ("weekly_reports_folder", "weekly_reports_explorer"),
+            "exact shared aliases should resolve to both saved actions in source order",
+        )
+
+        original_launch = renderer_mod.launch_command_action
+        launched_action_ids = []
+        renderer_mod.launch_command_action = lambda action: launched_action_ids.append(action.id)
+        try:
+            window._command_model.set_input_text("weekly reports")
+            renderer_mod.DesktopRuntimeWindow.handle_command_submit(window)
+            _assert(
+                any("COMMAND_AMBIGUOUS|count=2" in event for event in window._events),
+                "live ambiguity flow should surface the existing ambiguous overlay state",
+            )
+            payload = _payload(window)
+            _assert(payload.get("phase") == "choose", "ambiguous shared aliases should move the overlay into choose mode")
+            _assert(
+                [match.get("id") for match in payload.get("ambiguous_matches") or []] == ["weekly_reports_folder", "weekly_reports_explorer"],
+                "overlay ambiguity payload should preserve the exact candidate ordering",
+            )
+
+            renderer_mod.DesktopRuntimeWindow.handle_ambiguous_match_selected(window, 1)
+            payload = _payload(window)
+            _assert(payload.get("phase") == "confirm", "selecting an ambiguous candidate should move into the existing confirm flow")
+            _assert(
+                (payload.get("pending_action") or {}).get("id") == "weekly_reports_explorer",
+                "selecting the second ambiguous saved action should bind the existing confirm surface to that action",
+            )
+            _assert(
+                any("COMMAND_DISAMBIGUATION_SELECTED|index=1|action_id=weekly_reports_explorer" in event for event in window._events),
+                "live ambiguity flow should emit the existing disambiguation marker for the selected saved action",
+            )
+
+            renderer_mod.DesktopRuntimeWindow.handle_command_submit(window)
+            _assert(
+                launched_action_ids == ["weekly_reports_explorer"],
+                "confirming the selected ambiguous candidate should execute the chosen saved action only",
+            )
+            _assert(
+                any("COMMAND_LAUNCH_REQUEST_SENT|action_id=weekly_reports_explorer" in event for event in window._events),
+                "live ambiguity flow should reuse the standard launch-request marker after selection",
+            )
+        finally:
+            renderer_mod.launch_command_action = original_launch
+
+        artifact_path = _copy_artifact(source_path, stamp, "saved_alias_ambiguity_flow_saved_actions")
+        return {
+            "artifact_path": artifact_path,
+            "inventory_ids": [item.get("id") for item in inventory],
+            "ambiguous_match_ids": [action.id for action in matches],
+            "launched_action_ids": launched_action_ids,
+            "event_markers": [event for event in window._events if "COMMAND_" in event or "CUSTOM_TASK_" in event],
         }
 
 
@@ -693,7 +784,10 @@ def main():
         checks.append(("create/edit/reopen cycle", "PASS"))
 
         details["invalid_and_collision_paths"] = _run_invalid_and_collision_paths()
-        checks.append(("invalid target and collision rejection", "PASS"))
+        checks.append(("invalid target and built-in collision rejection", "PASS"))
+
+        details["saved_alias_ambiguity_flow"] = _run_saved_alias_ambiguity_flow(stamp)
+        checks.append(("saved-vs-saved ambiguity selection flow", "PASS"))
 
         details["trigger_phrase_resolution"] = _run_trigger_phrase_resolution()
         checks.append(("trigger phrase resolution", "PASS"))

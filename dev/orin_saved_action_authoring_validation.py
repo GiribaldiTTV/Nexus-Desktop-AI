@@ -410,7 +410,7 @@ def _test_generated_trigger_phrase_collides_with_built_in_before_write():
         )
 
 
-def _test_existing_saved_action_phrase_collisions_are_rejected_before_write():
+def _test_existing_saved_action_phrase_collisions_are_allowed_before_write():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
         _write_json(
@@ -428,30 +428,30 @@ def _test_existing_saved_action_phrase_collisions_are_rejected_before_write():
                 ],
             },
         )
-        original_text = source_path.read_text(encoding="utf-8")
 
-        try:
-            create_saved_action_from_draft(
-                SavedActionDraft(
-                    title="Reports Viewer",
-                    target_kind="folder",
-                    target=r"C:\Reports",
-                    aliases=("Open Reports Hub",),
-                ),
-                source_path,
-            )
-        except SavedActionDraftValidationError:
-            pass
-        else:
-            raise AssertionError("existing saved-action phrase collisions should be rejected before write")
+        result = create_saved_action_from_draft(
+            SavedActionDraft(
+                title="Reports Viewer",
+                target_kind="folder",
+                target=r"C:\Reports",
+                aliases=("Open Reports Hub",),
+            ),
+            source_path,
+        )
 
+        actions = json.loads(source_path.read_text(encoding="utf-8")).get("actions") or []
         _assert(
-            source_path.read_text(encoding="utf-8") == original_text,
-            "rejecting an existing saved-action collision should leave the source untouched",
+            len(actions) == 2,
+            "saved-vs-saved exact phrase overlaps should now persist as intentional ambiguity candidates",
+        )
+        _assert(
+            tuple(action.id for action in result.catalog.resolve_actions("Open Reports Hub"))
+            == ("show_reports_hub", "reports_viewer"),
+            "exact phrase resolution should return both saved actions in catalog order when they share a callable phrase",
         )
 
 
-def _test_generated_trigger_phrase_collides_with_existing_saved_action_before_write():
+def _test_generated_trigger_phrase_collides_with_existing_saved_action_is_allowed():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
         _write_json(
@@ -471,27 +471,22 @@ def _test_generated_trigger_phrase_collides_with_existing_saved_action_before_wr
                 ],
             },
         )
-        original_text = source_path.read_text(encoding="utf-8")
 
-        try:
-            create_saved_action_from_draft(
-                SavedActionDraft(
-                    title="Workspace Secondary Label",
-                    target_kind="folder",
-                    target=r"C:\Workspace\Secondary",
-                    aliases=("Workspace Hub",),
-                    trigger_mode="launch",
-                ),
-                source_path,
-            )
-        except SavedActionDraftValidationError:
-            pass
-        else:
-            raise AssertionError("generated trigger phrases should collide with existing saved-action callable phrases")
+        result = create_saved_action_from_draft(
+            SavedActionDraft(
+                title="Workspace Secondary Label",
+                target_kind="folder",
+                target=r"C:\Workspace\Secondary",
+                aliases=("Workspace Hub",),
+                trigger_mode="open",
+            ),
+            source_path,
+        )
 
         _assert(
-            source_path.read_text(encoding="utf-8") == original_text,
-            "generated saved-action trigger collisions should leave the source untouched",
+            tuple(action.id for action in result.catalog.resolve_actions("Open Workspace Hub"))
+            == ("workspace_hub", "workspace_secondary_label"),
+            "generated trigger phrases should also participate in saved-vs-saved ambiguity when they match exactly",
         )
 
 
@@ -629,7 +624,7 @@ def _test_legacy_saved_actions_can_stay_bare_only_when_edited_without_trigger_ch
         )
 
 
-def _test_invalid_existing_saved_actions_block_write_completely():
+def _test_invalid_existing_saved_actions_with_duplicate_ids_block_write_completely():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
         original_text = json.dumps(
@@ -644,7 +639,7 @@ def _test_invalid_existing_saved_actions_block_write_completely():
                         "aliases": ["show reports"],
                     },
                     {
-                        "id": "open_reports_archive",
+                        "id": "open_reports",
                         "title": "Open Reports Archive",
                         "target_kind": "folder",
                         "target": r"C:\Reports\Archive",
@@ -934,7 +929,7 @@ def _test_edit_rejects_builtin_collisions_without_writing():
         )
 
 
-def _test_edit_rejects_other_saved_action_collisions_without_self_collision():
+def _test_edit_allows_other_saved_action_collisions_without_self_collision():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
         _write_json(
@@ -976,29 +971,29 @@ def _test_edit_rejects_other_saved_action_collisions_without_self_collision():
             "editing a record without changing its phrases should not self-collide",
         )
 
-        try:
-            update_saved_action_from_draft(
-                "open_reports",
-                SavedActionDraft(
-                    title="Reports Label",
-                    target_kind="folder",
-                    target=r"C:\Reports",
-                    aliases=("show knowledge base",),
-                ),
-                source_path,
-            )
-        except SavedActionDraftValidationError:
-            pass
-        else:
-            raise AssertionError("editing into another saved-action phrase should be rejected")
+        result = update_saved_action_from_draft(
+            "open_reports",
+            SavedActionDraft(
+                title="Reports Label",
+                target_kind="folder",
+                target=r"C:\Reports",
+                aliases=("show knowledge base",),
+            ),
+            source_path,
+        )
 
         _assert(
             json.loads(source_path.read_text(encoding="utf-8"))["actions"][0]["id"] == "open_reports",
-            "edit collisions should not change the saved-action identity",
+            "edit ambiguity should not change the saved-action identity",
         )
         _assert(
             json.loads(source_path.read_text(encoding="utf-8"))["actions"][1]["id"] == "open_docs",
-            "edit collisions should not disturb other saved actions",
+            "edit ambiguity should not disturb other saved actions",
+        )
+        _assert(
+            tuple(action.id for action in result.catalog.resolve_actions("show knowledge base"))
+            == ("open_reports", "open_docs"),
+            "editing into another saved-action phrase should now produce an exact-match ambiguity set in source order",
         )
 
 
@@ -1091,7 +1086,7 @@ def _test_invalid_non_url_edit_targets_are_rejected_before_write():
             )
 
 
-def _test_invalid_existing_saved_actions_block_edit_completely():
+def _test_invalid_existing_saved_actions_with_duplicate_ids_block_edit_completely():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
         original_text = json.dumps(
@@ -1106,7 +1101,7 @@ def _test_invalid_existing_saved_actions_block_edit_completely():
                         "aliases": ["show reports"],
                     },
                     {
-                        "id": "open_reports_archive",
+                        "id": "open_reports",
                         "title": "Open Reports Archive",
                         "target_kind": "folder",
                         "target": r"C:\Reports\Archive",
@@ -1154,22 +1149,22 @@ def main():
         ("invalid non-url targets rejected before write", _test_invalid_non_url_targets_are_rejected_before_write),
         ("built-in collisions rejected before write", _test_builtin_collisions_are_rejected_before_write),
         ("generated trigger phrases collide with built-ins before write", _test_generated_trigger_phrase_collides_with_built_in_before_write),
-        ("existing saved-action collisions rejected before write", _test_existing_saved_action_phrase_collisions_are_rejected_before_write),
-        ("generated trigger phrases collide with saved actions before write", _test_generated_trigger_phrase_collides_with_existing_saved_action_before_write),
+        ("existing saved-action overlaps allowed before write", _test_existing_saved_action_phrase_collisions_are_allowed_before_write),
+        ("generated trigger phrase overlaps allowed across saved actions", _test_generated_trigger_phrase_collides_with_existing_saved_action_is_allowed),
         ("legacy saved actions remain bare-only without trigger fields", _test_existing_saved_actions_without_trigger_fields_remain_bare_only),
         ("legacy saved actions keep title callability when edited", _test_legacy_saved_actions_keep_title_callability_when_edited),
         ("legacy saved actions can stay bare-only when edited without trigger change", _test_legacy_saved_actions_can_stay_bare_only_when_edited_without_trigger_change),
-        ("invalid existing saved actions block write", _test_invalid_existing_saved_actions_block_write_completely),
+        ("invalid existing saved actions with duplicate ids block write", _test_invalid_existing_saved_actions_with_duplicate_ids_block_write_completely),
         ("atomic write failure preserves existing source", _test_atomic_write_failure_preserves_existing_source),
         ("edit loads existing saved action draft", _test_edit_loads_existing_saved_action_draft),
         ("valid edit updates existing record and preserves id", _test_valid_edit_updates_existing_record_and_preserves_id),
         ("delete removes existing record and reloads catalog", _test_delete_removes_existing_record_and_reloads_catalog),
         ("delete rejects missing record without write", _test_delete_rejects_missing_record_without_writing),
         ("edit rejects built-in collisions without write", _test_edit_rejects_builtin_collisions_without_writing),
-        ("edit rejects other saved-action collisions without self-collision", _test_edit_rejects_other_saved_action_collisions_without_self_collision),
+        ("edit allows other saved-action overlaps without self-collision", _test_edit_allows_other_saved_action_collisions_without_self_collision),
         ("invalid edit input is rejected before write", _test_invalid_edit_input_is_rejected_before_write),
         ("invalid non-url edit targets rejected before write", _test_invalid_non_url_edit_targets_are_rejected_before_write),
-        ("invalid existing saved actions block edit", _test_invalid_existing_saved_actions_block_edit_completely),
+        ("invalid existing saved actions with duplicate ids block edit", _test_invalid_existing_saved_actions_with_duplicate_ids_block_edit_completely),
     ]
 
     for name, fn in tests:
