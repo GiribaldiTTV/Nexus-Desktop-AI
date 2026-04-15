@@ -20,11 +20,11 @@ from PySide6.QtWidgets import (
     QComboBox,
     QScrollArea,
     QFileDialog,
-    QToolButton,
     QToolTip,
+    QSizePolicy,
 )
 from PySide6.QtCore import Qt, QTimer, QUrl, QRect, Signal, QPoint
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QFont
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 from .interaction_overlay_model import CommandOverlayModel
@@ -80,6 +80,53 @@ GetParentW.restype = ctypes.wintypes.HWND
 SW_HIDE = 0
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+DWMWA_WINDOW_CORNER_PREFERENCE = 33
+DWMWA_BORDER_COLOR = 34
+DWMWA_CAPTION_COLOR = 35
+DWMWA_TEXT_COLOR = 36
+DWMWCP_ROUND = 2
+
+
+def _windows_colorref(red: int, green: int, blue: int) -> int:
+    return (blue << 16) | (green << 8) | red
+
+
+def _apply_windows_dark_title_bar(widget):
+    if os.name != "nt":
+        return
+    hwnd = 0
+    try:
+        hwnd = int(widget.winId())
+    except Exception:
+        hwnd = 0
+    if not hwnd:
+        return
+
+    try:
+        dwmapi = ctypes.windll.dwmapi
+        set_window_attribute = dwmapi.DwmSetWindowAttribute
+    except Exception:
+        return
+
+    def set_int_attribute(attribute: int, value: int):
+        try:
+            attribute_value = ctypes.c_int(value)
+            set_window_attribute(
+                ctypes.wintypes.HWND(hwnd),
+                ctypes.c_uint(attribute),
+                ctypes.byref(attribute_value),
+                ctypes.sizeof(attribute_value),
+            )
+        except Exception:
+            pass
+
+    set_int_attribute(DWMWA_USE_IMMERSIVE_DARK_MODE, 1)
+    set_int_attribute(DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND)
+    set_int_attribute(DWMWA_CAPTION_COLOR, _windows_colorref(9, 18, 28))
+    set_int_attribute(DWMWA_TEXT_COLOR, _windows_colorref(236, 247, 255))
+    set_int_attribute(DWMWA_BORDER_COLOR, _windows_colorref(26, 61, 86))
+
 
 def _clear_layout_widgets(layout):
     while layout.count():
@@ -90,6 +137,20 @@ def _clear_layout_widgets(layout):
             widget.deleteLater()
         elif child_layout is not None:
             _clear_layout_widgets(child_layout)
+
+
+def _saved_inventory_target_kind_label(item: dict) -> str:
+    raw_target_kind = (item.get("target_kind_label") or item.get("target_kind") or "").strip()
+    normalized = raw_target_kind.casefold()
+    if normalized == "app":
+        return "Application"
+    if normalized == "folder":
+        return "Folder"
+    if normalized == "file":
+        return "File"
+    if normalized == "url":
+        return "Website URL"
+    return raw_target_kind
 
 
 def _build_saved_inventory_item_text(item: dict) -> str:
@@ -119,25 +180,50 @@ def _populate_saved_inventory_item_layout(
     for item in items:
         item_id = str(item.get("id") or "").strip()
         title = item.get("title", "")
+        origin_label = item.get("origin_label", "Saved")
+        target_kind_label = _saved_inventory_target_kind_label(item)
+        target_display = item.get("target_display") or item.get("target", "")
 
         item_frame = QFrame(parent)
         item_frame.setProperty("inventoryRole", "itemFrame")
         item_layout = QHBoxLayout(item_frame)
-        item_layout.setContentsMargins(0, 0, 0, 0)
-        item_layout.setSpacing(0)
+        item_layout.setContentsMargins(12, 12, 12, 12)
+        item_layout.setSpacing(12)
 
-        label = QLabel(_build_saved_inventory_item_text(item), item_frame)
-        label.setProperty("inventoryRole", "itemLabel")
-        label.setWordWrap(True)
-        label.setToolTip(item.get("target", ""))
-        item_layout.addWidget(label, 1)
+        content_layout = QVBoxLayout()
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(5)
+
+        title_label = QLabel(title, item_frame)
+        title_label.setProperty("inventoryRole", "itemTitle")
+        title_label.setWordWrap(True)
+        content_layout.addWidget(title_label)
+
+        metadata_bits = [f"{origin_label} task"]
+        if target_kind_label:
+            metadata_bits.append(target_kind_label)
+        metadata_label = QLabel(" | ".join(metadata_bits), item_frame)
+        metadata_label.setProperty("inventoryRole", "itemMeta")
+        metadata_label.setWordWrap(True)
+        content_layout.addWidget(metadata_label)
+
+        if target_display:
+            target_label = QLabel(target_display, item_frame)
+            target_label.setProperty("inventoryRole", "itemTarget")
+            target_label.setWordWrap(True)
+            target_label.setToolTip(item.get("target", ""))
+            content_layout.addWidget(target_label)
+
+        item_layout.addLayout(content_layout, 1)
 
         if item_id:
-            button_layout = QVBoxLayout()
-            button_layout.setContentsMargins(0, 8, 10, 8)
+            action_shell = QFrame(item_frame)
+            action_shell.setProperty("inventoryRole", "actionShell")
+            button_layout = QVBoxLayout(action_shell)
+            button_layout.setContentsMargins(7, 7, 7, 7)
             button_layout.setSpacing(6)
 
-            edit_button = QPushButton("Edit", item_frame)
+            edit_button = QPushButton("Edit", action_shell)
             edit_button.setProperty("inventoryRole", "editButton")
             edit_button.setToolTip(f'Edit "{title}"')
             edit_button.clicked.connect(
@@ -145,7 +231,7 @@ def _populate_saved_inventory_item_layout(
             )
             button_layout.addWidget(edit_button)
 
-            delete_button = QPushButton("Delete", item_frame)
+            delete_button = QPushButton("Delete", action_shell)
             delete_button.setProperty("inventoryRole", "deleteButton")
             delete_button.setToolTip(f'Delete "{title}"')
             delete_button.clicked.connect(
@@ -154,7 +240,7 @@ def _populate_saved_inventory_item_layout(
             button_layout.addWidget(delete_button)
             button_layout.addStretch(1)
 
-            item_layout.addLayout(button_layout, 0)
+            item_layout.addWidget(action_shell, 0, Qt.AlignTop)
 
         layout.addWidget(item_frame)
     layout.addStretch(1)
@@ -257,16 +343,19 @@ class CommandInputLineEdit(QLineEdit):
         return self._last_focus_was_manual
 
 
-class ImmediateHelpButton(QToolButton):
+class ImmediateHelpButton(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMouseTracking(True)
         self.setCursor(Qt.PointingHandCursor)
         self.setToolTipDuration(20000)
         self.setFocusPolicy(Qt.StrongFocus)
+        self.setAttribute(Qt.WA_Hover, True)
 
     def _tooltip_anchor(self) -> QPoint:
-        return self.mapToGlobal(QPoint(self.width() + 12, max(10, self.height() // 2)))
+        return self.mapToGlobal(
+            QPoint(max(22, min(self.width() - 12, self.width() // 3)), self.height() + 12)
+        )
 
     def show_help_tooltip_now(self):
         tooltip_text = (self.toolTip() or "").strip()
@@ -291,7 +380,14 @@ class ImmediateHelpButton(QToolButton):
 
     def mousePressEvent(self, event):
         self.show_help_tooltip_now()
-        super().mousePressEvent(event)
+        event.accept()
+
+    def keyPressEvent(self, event):
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Space):
+            self.show_help_tooltip_now()
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     def leaveEvent(self, event):
         QToolTip.hideText()
@@ -300,6 +396,64 @@ class ImmediateHelpButton(QToolButton):
     def focusOutEvent(self, event):
         QToolTip.hideText()
         super().focusOutEvent(event)
+
+
+class DialogChromeBar(QFrame):
+    def __init__(self, title: str, dialog: QDialog, *, object_prefix: str, parent=None, show_title: bool = False):
+        super().__init__(parent or dialog)
+        self._dialog = dialog
+        self._drag_offset: QPoint | None = None
+        self.setObjectName(f"{object_prefix}ChromeBar")
+        self.setProperty("chromeRole", "bar")
+        self.setProperty("showTitle", bool(show_title))
+        self.setCursor(Qt.OpenHandCursor)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(12, 8, 8, 0)
+        layout.setSpacing(6)
+
+        self.title_label = QLabel(title, self)
+        self.title_label.setObjectName(f"{object_prefix}ChromeTitle")
+        self.title_label.setProperty("chromeRole", "title")
+        self.title_label.setVisible(bool(show_title))
+        layout.addWidget(self.title_label, 0, Qt.AlignVCenter)
+        layout.addStretch(1)
+
+        self.close_button = QPushButton("\N{MULTIPLICATION SIGN}", self)
+        self.close_button.setObjectName(f"{object_prefix}ChromeClose")
+        self.close_button.setProperty("chromeRole", "close")
+        self.close_button.setToolTip("Close")
+        close_font = QFont("Segoe UI Symbol")
+        close_font.setPointSize(11)
+        close_font.setWeight(QFont.DemiBold)
+        self.close_button.setFont(close_font)
+        self.close_button.setFixedSize(24, 20)
+        self.close_button.clicked.connect(self._dialog.reject)
+        layout.addWidget(self.close_button, 0, Qt.AlignVCenter)
+        self.setFixedHeight(28)
+
+    def set_title(self, title: str):
+        self.title_label.setText(title)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._drag_offset = event.globalPosition().toPoint() - self._dialog.frameGeometry().topLeft()
+            self.setCursor(Qt.ClosedHandCursor)
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._drag_offset is not None and event.buttons() & Qt.LeftButton:
+            self._dialog.move(event.globalPosition().toPoint() - self._drag_offset)
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self._drag_offset = None
+        self.setCursor(Qt.OpenHandCursor)
+        super().mouseReleaseEvent(event)
 
 
 class SavedActionCreateDialog(QDialog):
@@ -317,41 +471,47 @@ class SavedActionCreateDialog(QDialog):
     )
 
     TITLE_TOOLTIP_TEXT = (
-        "<div style=\"max-width: 250px;\"><b>Role</b><br/>Display label for this task."
-        "<br/>It does not create callable phrases on its own unless you also use it in <b>Aliases</b>."
+        "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The display label people see for this task."
+        "<br/><br/><b>How it affects calling</b><br/>It does not create callable phrases on its own."
+        "<br/>Calling comes from <b>Aliases</b>."
         "<br/><br/><b>Examples</b><br/>Open Nexus AI<br/>Weekly Reports Hub</div>"
     )
     TASK_TYPE_TOOLTIP_TEXT = (
-        "<div style=\"max-width: 250px;\"><b>Role</b><br/>Chooses what kind of destination this task opens."
-        "<br/>It also controls the default trigger family and the target-format guidance."
+        "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The kind of destination this task opens."
+        "<br/><br/><b>How it affects calling</b><br/>It sets the default trigger family and target guidance."
         "<br/><br/><b>Options</b><br/>Application<br/>Folder<br/>File<br/>Website URL</div>"
     )
     ALIASES_TOOLTIP_TEXT = (
-        "<div style=\"max-width: 250px;\"><b>Role</b><br/>Exact words or phrases people can use to call this task."
+        "<div style=\"max-width: 250px;\"><b>What this is</b><br/>Exact callable words or phrases for this task."
+        "<br/><br/><b>How it affects calling</b><br/>New-model tasks are called from aliases, not the title."
         "<br/>Add at least one alias, separated by commas."
         "<br/><br/><b>Examples</b><br/>Nexus AI<br/>NDAI<br/>weekly reports</div>"
     )
     TRIGGER_TOOLTIP_TEXT = (
-        "<div style=\"max-width: 250px;\"><b>Role</b><br/>Adds explicit call prefixes before the aliases."
-        "<br/>Custom triggers can use comma-separated phrases."
+        "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The explicit call prefixes placed before aliases."
+        "<br/><br/><b>How it affects calling</b><br/>Launch, Open, or your custom phrases expand the callable surface."
         "<br/><br/><b>Examples</b><br/>Open<br/>Launch<br/>Force Open</div>"
     )
     TARGET_TOOLTIP_TEXT = {
         "app": (
-            "<div style=\"max-width: 250px;\"><b>Role</b><br/>Points to what Nexus launches."
+            "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The command or executable Nexus launches."
+            "<br/><br/><b>How it affects calling</b><br/>The task can resolve, but launch still depends on a valid application target."
             "<br/><br/><b>Examples</b><br/>notepad.exe"
             r"<br/>C:\Program Files\Notepad++\notepad++.exe</div>"
         ),
         "folder": (
-            "<div style=\"max-width: 250px;\"><b>Role</b><br/>Points to the folder Nexus opens."
+            "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The folder path Nexus opens."
+            "<br/><br/><b>How it affects calling</b><br/>Folder tasks open the exact folder you point to here."
             r"<br/><br/><b>Example</b><br/>C:\Reports</div>"
         ),
         "file": (
-            "<div style=\"max-width: 250px;\"><b>Role</b><br/>Points to the file Nexus opens."
+            "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The file path Nexus opens."
+            "<br/><br/><b>How it affects calling</b><br/>File tasks open the exact file you point to here."
             r"<br/><br/><b>Example</b><br/>C:\Reports\weekly.txt</div>"
         ),
         "url": (
-            "<div style=\"max-width: 250px;\"><b>Role</b><br/>Points to the full website address Nexus opens."
+            "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The full website address Nexus opens."
+            "<br/><br/><b>How it affects calling</b><br/>URL tasks open the exact address you enter here."
             "<br/><br/><b>Example</b><br/>https://example.com/docs</div>"
         ),
     }
@@ -412,13 +572,40 @@ class SavedActionCreateDialog(QDialog):
         self._preserve_legacy_bare_trigger = False
         self._invocation_mode = "aliases_only"
         self.setModal(True)
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowTitle(dialog_title)
         self.setObjectName("savedActionCreateDialog")
-        self.setMinimumWidth(440)
+        self.setMinimumWidth(820)
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(22, 20, 22, 20)
-        layout.setSpacing(12)
+        root_layout = QVBoxLayout(self)
+        root_layout.setContentsMargins(6, 6, 6, 6)
+        root_layout.setSpacing(0)
+
+        self.shell = QFrame(self)
+        self.shell.setObjectName("savedActionCreateShell")
+        root_layout.addWidget(self.shell)
+
+        shell_layout = QVBoxLayout(self.shell)
+        shell_layout.setContentsMargins(0, 0, 0, 0)
+        shell_layout.setSpacing(0)
+
+        self.content = QWidget(self.shell)
+        self.content.setObjectName("savedActionCreateContent")
+        shell_layout.addWidget(self.content)
+
+        self.chrome_bar = DialogChromeBar(
+            dialog_title,
+            self,
+            object_prefix="savedActionCreate",
+            parent=self.shell,
+            show_title=False,
+        )
+        self.chrome_bar.raise_()
+
+        layout = QVBoxLayout(self.content)
+        layout.setContentsMargins(24, 10, 24, 16)
+        layout.setSpacing(10)
 
         self.title_label = QLabel(heading_text, self)
         self.title_label.setObjectName("savedActionCreateTitle")
@@ -431,9 +618,9 @@ class SavedActionCreateDialog(QDialog):
 
         form = QGridLayout()
         self.form_layout = form
-        form.setHorizontalSpacing(14)
+        form.setHorizontalSpacing(16)
         form.setVerticalSpacing(12)
-        form.setColumnMinimumWidth(0, 122)
+        form.setColumnMinimumWidth(0, 128)
         form.setColumnStretch(1, 1)
 
         self.type_header, self.type_header_label, self.type_help_button = self._make_form_header(
@@ -445,7 +632,7 @@ class SavedActionCreateDialog(QDialog):
         form.addWidget(self.type_header, 0, 0)
         self.type_combo = QComboBox(self)
         self.type_combo.setObjectName("savedActionCreateType")
-        self.type_combo.setMinimumHeight(38)
+        self.type_combo.setMinimumHeight(42)
         for label, target_kind in self.ACTION_TYPE_OPTIONS:
             self.type_combo.addItem(label, target_kind)
         self.type_combo.currentIndexChanged.connect(self._handle_target_kind_changed)
@@ -460,7 +647,7 @@ class SavedActionCreateDialog(QDialog):
         form.addWidget(self.title_header, 1, 0)
         self.title_input = QLineEdit(self)
         self.title_input.setObjectName("savedActionCreateTitleInput")
-        self.title_input.setMinimumHeight(38)
+        self.title_input.setMinimumHeight(42)
         self.title_input.setPlaceholderText("Open Reports")
         self.title_input.textChanged.connect(self._refresh_examples_box)
         form.addWidget(self.title_input, 1, 1)
@@ -474,13 +661,13 @@ class SavedActionCreateDialog(QDialog):
         form.addWidget(self.trigger_header, 2, 0)
         self.trigger_combo = QComboBox(self)
         self.trigger_combo.setObjectName("savedActionCreateTrigger")
-        self.trigger_combo.setMinimumHeight(38)
+        self.trigger_combo.setMinimumHeight(42)
         for label, trigger_mode in self.TRIGGER_OPTIONS:
             self.trigger_combo.addItem(label, trigger_mode)
         self.trigger_combo.currentIndexChanged.connect(self._handle_trigger_selection_changed)
         self.custom_triggers_input = QLineEdit(self)
         self.custom_triggers_input.setObjectName("savedActionCreateCustomTriggersInput")
-        self.custom_triggers_input.setMinimumHeight(38)
+        self.custom_triggers_input.setMinimumHeight(42)
         self.custom_triggers_input.setPlaceholderText("Force Open, Duck Duck Goose")
         self.custom_triggers_input.textChanged.connect(self._refresh_examples_box)
         trigger_row = QVBoxLayout()
@@ -499,7 +686,7 @@ class SavedActionCreateDialog(QDialog):
         form.addWidget(self.aliases_header, 3, 0)
         self.aliases_input = QLineEdit(self)
         self.aliases_input.setObjectName("savedActionCreateAliasesInput")
-        self.aliases_input.setMinimumHeight(38)
+        self.aliases_input.setMinimumHeight(42)
         self.aliases_input.setPlaceholderText("Required, comma-separated")
         self.aliases_input.textChanged.connect(self._refresh_examples_box)
         form.addWidget(self.aliases_input, 3, 1)
@@ -513,10 +700,11 @@ class SavedActionCreateDialog(QDialog):
         form.addWidget(self.target_header, 4, 0)
         self.target_input = QLineEdit(self)
         self.target_input.setObjectName("savedActionCreateTargetInput")
-        self.target_input.setMinimumHeight(38)
+        self.target_input.setMinimumHeight(42)
         self.target_browse_button = QPushButton("Browse...", self)
         self.target_browse_button.setObjectName("savedActionCreateTargetBrowseButton")
-        self.target_browse_button.setMinimumHeight(38)
+        self.target_browse_button.setMinimumHeight(42)
+        self.target_browse_button.setMinimumWidth(112)
         self.target_browse_button.clicked.connect(self._handle_target_browse_clicked)
         target_row = QHBoxLayout()
         target_row.setContentsMargins(0, 0, 0, 0)
@@ -525,20 +713,26 @@ class SavedActionCreateDialog(QDialog):
         target_row.addWidget(self.target_browse_button, 0)
         form.addLayout(target_row, 4, 1)
 
-        layout.addLayout(form)
+        content_row = QHBoxLayout()
+        self.content_row = content_row
+        content_row.setContentsMargins(0, 0, 0, 0)
+        content_row.setSpacing(16)
+        content_row.addLayout(form, 1)
 
         self.status_label = QLabel("", self)
         self.status_label.setObjectName("savedActionCreateStatus")
         self.status_label.setWordWrap(True)
-        layout.addWidget(self.status_label)
 
         self.target_examples_box = QFrame(self)
         self.target_examples_box.setObjectName("savedActionCreateTargetExamplesBox")
+        self.target_examples_box.setMinimumWidth(268)
+        self.target_examples_box.setMaximumWidth(292)
+        self.target_examples_box.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         target_examples_layout = QVBoxLayout(self.target_examples_box)
-        target_examples_layout.setContentsMargins(14, 12, 14, 12)
-        target_examples_layout.setSpacing(8)
+        target_examples_layout.setContentsMargins(10, 10, 10, 10)
+        target_examples_layout.setSpacing(5)
 
-        self.target_examples_title = QLabel("How you can call this task", self.target_examples_box)
+        self.target_examples_title = QLabel("Callable surface", self.target_examples_box)
         self.target_examples_title.setObjectName("savedActionCreateTargetExamplesTitle")
         target_examples_layout.addWidget(self.target_examples_title)
 
@@ -548,22 +742,25 @@ class SavedActionCreateDialog(QDialog):
         self.target_examples_label.setTextFormat(Qt.RichText)
         target_examples_layout.addWidget(self.target_examples_label)
 
-        layout.addWidget(self.target_examples_box)
+        content_row.addWidget(self.target_examples_box, 0, Qt.AlignTop)
+
+        layout.addLayout(content_row)
+        layout.addWidget(self.status_label)
 
         button_row = QHBoxLayout()
-        button_row.setContentsMargins(0, 6, 0, 0)
+        button_row.setContentsMargins(0, 2, 0, 0)
         button_row.setSpacing(8)
         button_row.addStretch(1)
 
         self.cancel_button = QPushButton("Cancel", self)
         self.cancel_button.setObjectName("savedActionCreateCancelButton")
-        self.cancel_button.setMinimumHeight(36)
+        self.cancel_button.setMinimumHeight(40)
         self.cancel_button.clicked.connect(self.reject)
         button_row.addWidget(self.cancel_button)
 
         self.create_button = QPushButton(submit_button_text, self)
         self.create_button.setObjectName("savedActionCreateSubmitButton")
-        self.create_button.setMinimumHeight(36)
+        self.create_button.setMinimumHeight(40)
         self.create_button.setDefault(True)
         self.create_button.clicked.connect(self._handle_create_clicked)
         button_row.addWidget(self.create_button)
@@ -573,98 +770,146 @@ class SavedActionCreateDialog(QDialog):
         self.setStyleSheet(
             """
             #savedActionCreateDialog {
+                background: transparent;
+            }
+            #savedActionCreateShell {
+                border-radius: 20px;
+                border: 1px solid rgba(118, 226, 255, 0.16);
                 background: rgb(9, 18, 28);
             }
+            #savedActionCreateContent {
+                background: transparent;
+            }
+            #savedActionCreateChromeBar {
+                border: none;
+                background: transparent;
+            }
+            #savedActionCreateChromeTitle {
+                color: rgba(126, 171, 181, 0.84);
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.08em;
+            }
+            #savedActionCreateChromeClose {
+                min-width: 24px;
+                max-width: 24px;
+                min-height: 20px;
+                max-height: 20px;
+                padding: 0 0 1px 0;
+                text-align: center;
+                border-radius: 8px;
+                border: 1px solid rgba(118, 226, 255, 0.10);
+                background: rgba(11, 26, 40, 0.52);
+                color: rgba(191, 212, 207, 0.94);
+                font-size: 12px;
+                font-weight: 600;
+            }
+            #savedActionCreateChromeClose:hover {
+                border: 1px solid rgba(102, 219, 204, 0.24);
+                background: rgba(15, 36, 52, 0.70);
+            }
             #savedActionCreateTitle {
-                color: rgba(238, 248, 255, 0.96);
+                color: rgba(188, 212, 203, 0.97);
                 font-size: 24px;
                 font-weight: 650;
             }
             #savedActionCreateHint {
-                color: rgba(176, 216, 234, 0.80);
+                color: rgba(136, 165, 174, 0.88);
                 font-size: 12px;
                 line-height: 1.45em;
             }
             QToolTip {
-                border: 1px solid rgba(118, 226, 255, 0.24);
+                border: 1px solid rgba(102, 219, 204, 0.22);
                 border-radius: 12px;
                 background: rgba(5, 16, 28, 248);
-                color: rgba(236, 247, 255, 0.96);
+                color: rgba(192, 212, 207, 0.96);
                 padding: 12px 14px;
                 font-size: 12px;
+                line-height: 1.45em;
             }
             #savedActionCreateTargetExamplesBox {
-                border-radius: 16px;
-                border: 1px solid rgba(118, 226, 255, 0.16);
-                background: rgba(7, 20, 34, 204);
+                border-radius: 15px;
+                border: 1px solid rgba(118, 226, 255, 0.10);
+                background: rgba(7, 20, 34, 176);
             }
             #savedActionCreateTargetExamplesTitle {
-                color: rgba(118, 226, 255, 0.92);
-                font-size: 13px;
+                color: rgba(84, 192, 181, 0.88);
+                font-size: 11px;
                 font-weight: 600;
-                letter-spacing: 0.08em;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
             }
             #savedActionCreateTargetExamples {
-                color: rgba(214, 238, 248, 0.94);
+                color: rgba(168, 193, 199, 0.93);
                 font-size: 12px;
                 line-height: 1.45em;
             }
             #savedActionCreateStatus {
-                min-height: 22px;
+                min-height: 14px;
                 color: rgba(255, 189, 176, 0.96);
                 font-size: 13px;
             }
             QLabel[createRole="label"] {
-                color: rgba(118, 226, 255, 0.64);
+                color: rgba(78, 176, 173, 0.76);
                 font-size: 12px;
                 font-weight: 600;
                 letter-spacing: 0.08em;
             }
-            QLabel[createRole="fieldHeader"] {
-                color: rgba(232, 246, 255, 0.98);
+            QLabel[createRole="fieldHeader"], QLabel[createRole="fieldHeaderHelp"] {
+                color: rgba(182, 206, 198, 0.96);
                 font-size: 15px;
                 font-weight: 650;
             }
+            QLabel[createRole="fieldHeaderHelp"] {
+                padding-bottom: 2px;
+                border-bottom: 1px dotted rgba(102, 219, 204, 0.24);
+            }
+            QLabel[createRole="fieldHeaderHelp"]:hover {
+                color: rgba(198, 218, 211, 0.99);
+                border-bottom: 1px dotted rgba(102, 219, 204, 0.50);
+            }
+            QLabel[createRole="fieldHeaderHelp"]:focus {
+                color: rgba(198, 218, 211, 0.99);
+                border-bottom: 1px solid rgba(102, 219, 204, 0.50);
+            }
             QLineEdit, QComboBox {
-                min-height: 38px;
-                border-radius: 12px;
+                min-height: 42px;
+                border-radius: 13px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(6, 18, 30, 196);
-                color: rgba(238, 248, 255, 0.96);
-                padding: 5px 12px;
+                color: rgba(193, 213, 208, 0.96);
+                padding: 7px 14px;
             }
             QLineEdit:focus, QComboBox:focus {
                 border: 1px solid rgba(118, 226, 255, 0.42);
                 background: rgba(8, 23, 38, 216);
             }
-            QToolButton[createRole="helpIcon"] {
-                min-width: 25px;
-                max-width: 25px;
-                min-height: 25px;
-                max-height: 25px;
-                padding: 0;
+            QComboBox::drop-down {
+                border: none;
+                width: 28px;
+            }
+            QComboBox QAbstractItemView {
+                border: 1px solid rgba(118, 226, 255, 0.24);
                 border-radius: 12px;
-                border: 1px solid rgba(118, 226, 255, 0.22);
-                background: rgba(11, 28, 44, 224);
-                color: rgba(220, 243, 252, 0.98);
-                font-size: 12px;
-                font-weight: 700;
+                background: rgba(8, 18, 30, 248);
+                color: rgba(193, 213, 208, 0.96);
+                outline: 0;
+                padding: 6px;
+                selection-background-color: rgba(22, 61, 90, 232);
+                selection-color: rgba(205, 221, 216, 0.99);
             }
-            QToolButton[createRole="helpIcon"]:hover {
-                border: 1px solid rgba(118, 226, 255, 0.42);
-                background: rgba(15, 35, 55, 236);
-            }
-            QToolButton[createRole="helpIcon"]:focus {
-                border: 1px solid rgba(118, 226, 255, 0.46);
-                background: rgba(15, 35, 55, 238);
+            QComboBox QAbstractItemView::item {
+                min-height: 30px;
+                padding: 4px 8px;
+                border-radius: 8px;
             }
             QPushButton {
-                min-height: 36px;
-                padding: 0 16px;
+                min-height: 40px;
+                padding: 0 18px;
                 border-radius: 11px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(6, 18, 30, 196);
-                color: rgba(238, 248, 255, 0.96);
+                color: rgba(191, 212, 207, 0.96);
             }
             QPushButton:hover {
                 border: 1px solid rgba(118, 226, 255, 0.34);
@@ -707,8 +952,13 @@ class SavedActionCreateDialog(QDialog):
 
     def showEvent(self, event):
         super().showEvent(event)
+        self._update_chrome_overlay_geometry()
         self._emit_lifecycle_event("opened")
         QTimer.singleShot(0, self._emit_ready_signal)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_chrome_overlay_geometry()
 
     def done(self, result):
         self._emit_lifecycle_event(
@@ -717,6 +967,12 @@ class SavedActionCreateDialog(QDialog):
         )
         super().done(result)
 
+    def _update_chrome_overlay_geometry(self):
+        if not hasattr(self, "chrome_bar") or not hasattr(self, "shell"):
+            return
+        self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
+        self.chrome_bar.raise_()
+
     def _make_form_header(
         self,
         text: str,
@@ -724,31 +980,25 @@ class SavedActionCreateDialog(QDialog):
         tooltip_text: str,
         object_name: str,
         help_object_name: str,
-    ) -> tuple[QWidget, QLabel, QToolButton]:
+    ) -> tuple[QWidget, QLabel, QLabel]:
         container = QWidget(self)
+        container.setObjectName(object_name)
         layout = QHBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(6)
+        layout.setSpacing(0)
 
-        label = QLabel(text, container)
-        label.setObjectName(object_name)
-        label.setProperty("createRole", "fieldHeader")
+        label = ImmediateHelpButton(container)
+        label.setObjectName(help_object_name)
+        label.setProperty("createRole", "fieldHeaderHelp")
+        label.setText(text)
+        label.setToolTip(tooltip_text)
         header_font = label.font()
         header_font.setPointSize(max(16, header_font.pointSize()))
         header_font.setBold(True)
         label.setFont(header_font)
         layout.addWidget(label, 0, Qt.AlignVCenter)
-
-        help_button = ImmediateHelpButton(container)
-        help_button.setObjectName(help_object_name)
-        help_button.setProperty("createRole", "helpIcon")
-        help_button.setText("i")
-        help_button.setFixedSize(25, 25)
-        help_button.setToolTip(tooltip_text)
-        help_button.setAutoRaise(True)
-        layout.addWidget(help_button, 0, Qt.AlignVCenter)
         layout.addStretch(1)
-        return container, label, help_button
+        return container, label, label
 
     def current_target_kind(self) -> str:
         return str(self.type_combo.currentData() or "app")
@@ -840,13 +1090,13 @@ class SavedActionCreateDialog(QDialog):
 
     def _build_examples_section(self, title: str, body_html: str) -> str:
         return (
-            "<div style=\"margin: 0; padding: 8px 10px; "
-            "border-radius: 10px; border: 1px solid rgba(118, 226, 255, 0.10); "
-            "background: rgba(11, 29, 44, 0.52);\">"
-            f"<div style=\"color: rgba(118, 226, 255, 0.92); font-weight: 600; "
-            "letter-spacing: 0.08em; text-transform: uppercase;\">"
+            "<div style=\"margin: 0; padding: 6px 8px; "
+            "border-radius: 10px; border: 1px solid rgba(102, 219, 204, 0.08); "
+            "background: rgba(11, 29, 44, 0.34);\">"
+            f"<div style=\"color: rgba(84, 192, 181, 0.86); font-size: 10.5px; font-weight: 600; "
+            "letter-spacing: 0.04em; text-transform: uppercase;\">"
             f"{escape(title)}</div>"
-            f"<div style=\"margin-top: 5px; color: rgba(214, 238, 248, 0.94);\">{body_html}</div>"
+            f"<div style=\"margin-top: 3px; color: rgba(168, 193, 199, 0.93);\">{body_html}</div>"
             "</div>"
         )
 
@@ -856,11 +1106,16 @@ class SavedActionCreateDialog(QDialog):
         trigger_mode = self._effective_trigger_mode()
         custom_triggers = self._parse_custom_triggers_text()
         alias_suggestions = self._build_alias_suggestions(title)
+        normalized_aliases = {alias.casefold() for alias in aliases}
+        visible_suggestions = tuple(
+            suggestion for suggestion in alias_suggestions
+            if suggestion.casefold() not in normalized_aliases
+        )
 
         sections: list[str] = []
-        if alias_suggestions:
+        if visible_suggestions:
             suggestion_lines = "<br/>".join(
-                f"&bull; {escape(suggestion)}" for suggestion in alias_suggestions[:3]
+                f"&bull; {escape(suggestion)}" for suggestion in visible_suggestions[:3]
             )
             sections.append(self._build_examples_section("Suggested aliases", suggestion_lines))
 
@@ -878,7 +1133,7 @@ class SavedActionCreateDialog(QDialog):
             sections.append(
                 self._build_examples_section(
                     "Real callable phrases",
-                    "<span style=\"color: rgba(196, 230, 245, 0.86);\">Case does not matter.</span>"
+                    "<span style=\"color: rgba(146, 178, 181, 0.89);\">Exact phrases, case-insensitive.</span>"
                     f"<br/>{phrase_lines}",
                 )
             )
@@ -886,14 +1141,14 @@ class SavedActionCreateDialog(QDialog):
             sections.append(
                 self._build_examples_section(
                     "Real callable phrases",
-                    "Add one or more aliases and custom triggers to see the callable surface.",
+                    "Add an alias and at least one custom trigger to preview the callable surface.",
                 )
             )
         else:
             sections.append(
                 self._build_examples_section(
                     "Real callable phrases",
-                    "Add at least one alias to see how this task can be called.",
+                    "Add an alias to preview the exact callable phrases.",
                 )
             )
 
@@ -1037,7 +1292,7 @@ class SavedActionCreateDialog(QDialog):
         if "could not be found for editing" in lower_message:
             return (
                 "This task could not be reopened for editing. "
-                "Refresh the Created Tasks window and try again. "
+                "Refresh the Manage Custom Tasks window and try again. "
                 f"{message}"
             )
         if "aliases" in lower_message:
@@ -1128,20 +1383,47 @@ class CreatedTasksDialog(QDialog):
         self._lifecycle_callback = lifecycle_callback
         self._ready_signal_emitted = False
         self.setModal(True)
-        self.setWindowTitle("Created Tasks")
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setWindowTitle("Manage Custom Tasks")
         self.setObjectName("savedActionCreatedTasksDialog")
-        self.setMinimumWidth(500)
+        self.setMinimumWidth(660)
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 18, 20, 18)
-        layout.setSpacing(10)
+        root_layout = QVBoxLayout(self)
+        root_layout.setContentsMargins(6, 6, 6, 6)
+        root_layout.setSpacing(0)
 
-        self.title_label = QLabel("Created Tasks", self)
+        self.shell = QFrame(self)
+        self.shell.setObjectName("savedActionCreatedTasksShell")
+        root_layout.addWidget(self.shell)
+
+        shell_layout = QVBoxLayout(self.shell)
+        shell_layout.setContentsMargins(0, 0, 0, 0)
+        shell_layout.setSpacing(0)
+
+        self.content = QWidget(self.shell)
+        self.content.setObjectName("savedActionCreatedTasksContent")
+        shell_layout.addWidget(self.content)
+
+        self.chrome_bar = DialogChromeBar(
+            "Manage Custom Tasks",
+            self,
+            object_prefix="savedActionCreatedTasks",
+            parent=self.shell,
+            show_title=False,
+        )
+        self.chrome_bar.raise_()
+
+        layout = QVBoxLayout(self.content)
+        layout.setContentsMargins(20, 10, 20, 14)
+        layout.setSpacing(8)
+
+        self.title_label = QLabel("Manage Custom Tasks", self)
         self.title_label.setObjectName("savedActionCreatedTasksTitle")
         layout.addWidget(self.title_label)
 
         self.hint_label = QLabel(
-            "Review your existing custom tasks here, then choose Edit to update one or Delete to remove it.",
+            "Review, update, or remove tasks from the current saved-task source.",
             self,
         )
         self.hint_label.setObjectName("savedActionCreatedTasksHint")
@@ -1176,16 +1458,20 @@ class CreatedTasksDialog(QDialog):
         self.items_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.items_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.items_scroll.setFocusPolicy(Qt.NoFocus)
-        self.items_scroll.setMaximumHeight(280)
+        self.items_scroll.setMaximumHeight(300)
+        self.items_scroll.viewport().setObjectName("savedActionCreatedTasksViewport")
+        self.items_scroll.viewport().setAutoFillBackground(False)
         self.items_scroll.setWidget(self.items_frame)
         layout.addWidget(self.items_scroll)
 
         button_row = QHBoxLayout()
-        button_row.setContentsMargins(0, 6, 0, 0)
+        button_row.setContentsMargins(0, 2, 0, 0)
+        button_row.setSpacing(8)
         button_row.addStretch(1)
 
         self.close_button = QPushButton("Close", self)
         self.close_button.setObjectName("savedActionCreatedTasksClose")
+        self.close_button.setMinimumHeight(36)
         self.close_button.clicked.connect(self.reject)
         button_row.addWidget(self.close_button)
 
@@ -1194,58 +1480,128 @@ class CreatedTasksDialog(QDialog):
         self.setStyleSheet(
             """
             #savedActionCreatedTasksDialog {
+                background: transparent;
+            }
+            #savedActionCreatedTasksShell {
+                border-radius: 20px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
                 background: rgba(4, 16, 28, 244);
             }
-            #savedActionCreatedTasksTitle {
-                color: rgba(238, 250, 255, 0.96);
-                font-size: 28px;
+            #savedActionCreatedTasksContent {
+                background: transparent;
+            }
+            #savedActionCreatedTasksChromeBar {
+                border: none;
+                background: transparent;
+            }
+            #savedActionCreatedTasksChromeTitle {
+                color: rgba(126, 171, 181, 0.84);
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.08em;
+            }
+            #savedActionCreatedTasksChromeClose {
+                min-width: 24px;
+                max-width: 24px;
+                min-height: 20px;
+                max-height: 20px;
+                padding: 0 0 1px 0;
+                text-align: center;
+                border-radius: 8px;
+                border: 1px solid rgba(118, 226, 255, 0.10);
+                background: rgba(11, 26, 40, 0.52);
+                color: rgba(191, 212, 207, 0.94);
+                font-size: 12px;
                 font-weight: 600;
             }
+            #savedActionCreatedTasksChromeClose:hover {
+                border: 1px solid rgba(102, 219, 204, 0.24);
+                background: rgba(15, 36, 52, 0.70);
+            }
+            #savedActionCreatedTasksTitle {
+                color: rgba(188, 212, 203, 0.97);
+                font-size: 24px;
+                font-weight: 650;
+            }
             #savedActionCreatedTasksHint {
-                color: rgba(172, 215, 235, 0.82);
-                font-size: 14px;
+                color: rgba(136, 165, 174, 0.88);
+                font-size: 12px;
+                line-height: 1.45em;
             }
             #savedActionCreatedTasksStatus {
-                color: rgba(236, 247, 255, 0.92);
-                font-size: 13px;
+                color: rgba(148, 180, 178, 0.89);
+                font-size: 12px;
+                font-weight: 600;
             }
             #savedActionCreatedTasksStatus[statusKind="invalid_source"], #savedActionCreatedTasksStatus[statusKind="invalid_saved_actions"], #savedActionCreatedTasksStatus[statusKind="missing"] {
                 color: rgba(255, 189, 176, 0.96);
             }
             #savedActionCreatedTasksSource {
-                color: rgba(172, 215, 235, 0.80);
-                font-size: 12px;
+                color: rgba(126, 157, 171, 0.78);
+                font-size: 11px;
             }
             #savedActionCreatedTasksGuidance {
-                color: rgba(166, 247, 195, 0.88);
-                font-size: 12px;
+                color: rgba(110, 201, 164, 0.86);
+                font-size: 11px;
+                line-height: 1.4em;
+            }
+            #savedActionCreatedTasksItemsScroll {
+                border: none;
+                background: transparent;
+            }
+            #savedActionCreatedTasksViewport {
+                border-radius: 18px;
+                background: rgba(8, 20, 34, 0.96);
+            }
+            #savedActionCreatedTasksItems {
+                background: transparent;
             }
             QFrame[inventoryRole="itemFrame"] {
-                border-radius: 14px;
-                border: 1px solid rgba(118, 226, 255, 0.16);
-                background: rgba(6, 18, 30, 196);
+                border-radius: 16px;
+                border: 1px solid rgba(118, 226, 255, 0.12);
+                background: rgba(7, 20, 34, 0.96);
             }
-            QLabel[inventoryRole="itemLabel"] {
-                padding: 10px 12px;
-                color: rgba(234, 246, 255, 0.94);
+            QFrame[inventoryRole="actionShell"] {
+                border-radius: 14px;
+                border: 1px solid rgba(118, 226, 255, 0.10);
+                background: rgba(10, 25, 39, 0.86);
+            }
+            QLabel[inventoryRole="itemTitle"] {
+                color: rgba(184, 208, 200, 0.96);
+                font-size: 14px;
+                font-weight: 650;
+            }
+            QLabel[inventoryRole="itemMeta"] {
+                color: rgba(84, 192, 181, 0.83);
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+            QLabel[inventoryRole="itemTarget"] {
+                color: rgba(163, 189, 196, 0.92);
                 font-size: 12px;
             }
             QPushButton[inventoryRole="editButton"], QPushButton[inventoryRole="deleteButton"], #savedActionCreatedTasksClose {
-                min-height: 32px;
-                padding: 0 12px;
-                border-radius: 10px;
+                min-height: 34px;
+                padding: 0 14px;
+                border-radius: 11px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(8, 24, 38, 220);
-                color: rgba(238, 248, 255, 0.96);
+                color: rgba(191, 212, 207, 0.96);
                 font-size: 12px;
                 font-weight: 600;
             }
             QPushButton[inventoryRole="editButton"], QPushButton[inventoryRole="deleteButton"] {
-                min-width: 86px;
+                min-width: 92px;
+            }
+            QPushButton[inventoryRole="editButton"] {
+                border: 1px solid rgba(118, 226, 255, 0.30);
+                background: rgba(18, 52, 78, 214);
             }
             QPushButton[inventoryRole="deleteButton"] {
                 border: 1px solid rgba(255, 138, 138, 0.26);
-                background: rgba(40, 12, 16, 220);
+                background: rgba(34, 12, 16, 212);
                 color: rgba(255, 231, 231, 0.96);
             }
             QPushButton[inventoryRole="editButton"]:hover, QPushButton[inventoryRole="deleteButton"]:hover, #savedActionCreatedTasksClose:hover {
@@ -1254,8 +1610,30 @@ class CreatedTasksDialog(QDialog):
             QPushButton[inventoryRole="deleteButton"]:hover {
                 border: 1px solid rgba(255, 166, 166, 0.42);
             }
-            #savedActionCreatedTasksItemsScroll {
-                border: none;
+            #savedActionCreatedTasksItemsScroll QScrollBar:vertical {
+                width: 10px;
+                margin: 6px 2px 6px 0;
+                border-radius: 5px;
+                background: rgba(10, 24, 38, 0.74);
+            }
+            #savedActionCreatedTasksItemsScroll QScrollBar::handle:vertical {
+                min-height: 42px;
+                border-radius: 5px;
+                background: rgba(118, 226, 255, 0.28);
+            }
+            #savedActionCreatedTasksItemsScroll QScrollBar::handle:vertical:hover {
+                background: rgba(118, 226, 255, 0.42);
+            }
+            #savedActionCreatedTasksItemsScroll QScrollBar::handle:vertical:pressed {
+                background: rgba(118, 226, 255, 0.54);
+            }
+            #savedActionCreatedTasksItemsScroll QScrollBar::add-line:vertical,
+            #savedActionCreatedTasksItemsScroll QScrollBar::sub-line:vertical {
+                height: 0px;
+                background: transparent;
+            }
+            #savedActionCreatedTasksItemsScroll QScrollBar::add-page:vertical,
+            #savedActionCreatedTasksItemsScroll QScrollBar::sub-page:vertical {
                 background: transparent;
             }
             """
@@ -1278,8 +1656,13 @@ class CreatedTasksDialog(QDialog):
 
     def showEvent(self, event):
         super().showEvent(event)
+        self._update_chrome_overlay_geometry()
         self._emit_lifecycle_event("opened")
         QTimer.singleShot(0, self._emit_ready_signal)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_chrome_overlay_geometry()
 
     def done(self, result):
         self._emit_lifecycle_event(
@@ -1287,6 +1670,12 @@ class CreatedTasksDialog(QDialog):
             result="accepted" if result == QDialog.Accepted else "rejected",
         )
         super().done(result)
+
+    def _update_chrome_overlay_geometry(self):
+        if not hasattr(self, "chrome_bar") or not hasattr(self, "shell"):
+            return
+        self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
+        self.chrome_bar.raise_()
 
     def selected_action_id(self) -> str:
         return self._selected_action_id
@@ -1308,7 +1697,7 @@ class CreatedTasksDialog(QDialog):
         inventory_payload = inventory_payload or {}
         item_count = int(inventory_payload.get("count", 0))
         self.title_label.setText(
-            f"Created Tasks ({item_count})" if item_count else "Created Tasks"
+            f"Manage Custom Tasks ({item_count})" if item_count else "Manage Custom Tasks"
         )
 
         status_kind = inventory_payload.get("status_kind", "hidden")
@@ -1319,11 +1708,18 @@ class CreatedTasksDialog(QDialog):
 
         source_path = inventory_payload.get("path", "")
         source_display = inventory_payload.get("path_display") or source_path
-        self.source_label.setText(f"Source: {source_display}" if source_display else "")
-        self.source_label.setToolTip(source_path)
-        self.guidance_label.setText(inventory_payload.get("guidance_text", ""))
-
         items = inventory_payload.get("items") or []
+        show_source_details = status_kind in {"invalid_source", "invalid_saved_actions", "missing", "template_only"} or not items
+        self.source_label.setText(f"Source: {source_display}" if show_source_details and source_display else "")
+        self.source_label.setToolTip(source_path)
+        guidance_text = inventory_payload.get("guidance_text", "")
+        show_guidance = bool(guidance_text) and (
+            status_kind in {"invalid_source", "invalid_saved_actions", "missing", "template_only"} or not items
+        )
+        self.guidance_label.setText(guidance_text if show_guidance else "")
+        self.source_label.setVisible(bool(self.source_label.text()))
+        self.guidance_label.setVisible(bool(self.guidance_label.text()))
+
         _populate_saved_inventory_item_layout(
             self.items_layout,
             self.items_frame,
@@ -1332,6 +1728,12 @@ class CreatedTasksDialog(QDialog):
             self._handle_delete_requested,
         )
         self.items_scroll.setVisible(bool(items))
+        if items:
+            self.items_layout.activate()
+            desired_height = min(320, max(112, self.items_frame.sizeHint().height() + 2))
+            self.items_scroll.setFixedHeight(desired_height)
+        else:
+            self.items_scroll.setFixedHeight(0)
 
 
 class CommandOverlayPanel(QWidget):
@@ -1415,33 +1817,79 @@ class CommandOverlayPanel(QWidget):
         self.saved_inventory_frame = QFrame(self.panel)
         self.saved_inventory_frame.setObjectName("savedActionInventory")
         saved_inventory_layout = QVBoxLayout(self.saved_inventory_frame)
-        saved_inventory_layout.setContentsMargins(18, 16, 18, 14)
-        saved_inventory_layout.setSpacing(8)
+        saved_inventory_layout.setContentsMargins(18, 16, 18, 16)
+        saved_inventory_layout.setSpacing(10)
 
-        self.saved_inventory_title = QLabel("Task actions", self.saved_inventory_frame)
+        self.saved_inventory_title = QLabel("Custom tasks", self.saved_inventory_frame)
         self.saved_inventory_title.setObjectName("savedActionInventoryTitle")
         saved_inventory_layout.addWidget(self.saved_inventory_title)
 
-        self.saved_inventory_status = QLabel("Choose an action to continue.", self.saved_inventory_frame)
+        self.saved_inventory_status = QLabel(
+            "Create a new task or manage the tasks you already saved.",
+            self.saved_inventory_frame,
+        )
         self.saved_inventory_status.setObjectName("savedActionInventoryStatus")
         self.saved_inventory_status.setWordWrap(True)
         saved_inventory_layout.addWidget(self.saved_inventory_status)
 
-        self.create_custom_task_button = QPushButton("Create Custom Task", self.saved_inventory_frame)
+        self.entry_actions_layout = QGridLayout()
+        self.entry_actions_layout.setContentsMargins(0, 0, 0, 0)
+        self.entry_actions_layout.setHorizontalSpacing(12)
+        self.entry_actions_layout.setVerticalSpacing(0)
+        self.entry_actions_layout.setColumnStretch(0, 1)
+        self.entry_actions_layout.setColumnStretch(1, 1)
+
+        self.create_action_frame = QFrame(self.saved_inventory_frame)
+        self.create_action_frame.setProperty("entryActionCard", "true")
+        self.create_action_frame.setProperty("entryActionVariant", "primary")
+        create_action_layout = QVBoxLayout(self.create_action_frame)
+        create_action_layout.setContentsMargins(12, 12, 12, 12)
+        create_action_layout.setSpacing(6)
+
+        self.create_custom_task_button = QPushButton("Create Custom Task", self.create_action_frame)
         self.create_custom_task_button.setObjectName("savedActionCreateButton")
         self.create_custom_task_button.setProperty("entryAction", "true")
+        self.create_custom_task_button.setProperty("entryActionVariant", "primary")
         self.create_custom_task_button.clicked.connect(
             lambda _checked=False: self.create_custom_task_requested.emit()
         )
-        saved_inventory_layout.addWidget(self.create_custom_task_button)
+        create_action_layout.addWidget(self.create_custom_task_button)
 
-        self.created_tasks_button = QPushButton("Created Tasks", self.saved_inventory_frame)
+        self.create_custom_task_description = QLabel(
+            "Start a new application, folder, file, or website task.",
+            self.create_action_frame,
+        )
+        self.create_custom_task_description.setObjectName("savedActionCreateDescription")
+        self.create_custom_task_description.setWordWrap(True)
+        create_action_layout.addWidget(self.create_custom_task_description)
+        self.entry_actions_layout.addWidget(self.create_action_frame, 0, 0)
+
+        self.manage_action_frame = QFrame(self.saved_inventory_frame)
+        self.manage_action_frame.setProperty("entryActionCard", "true")
+        self.manage_action_frame.setProperty("entryActionVariant", "secondary")
+        manage_action_layout = QVBoxLayout(self.manage_action_frame)
+        manage_action_layout.setContentsMargins(12, 12, 12, 12)
+        manage_action_layout.setSpacing(6)
+
+        self.created_tasks_button = QPushButton("Manage Custom Tasks", self.manage_action_frame)
         self.created_tasks_button.setObjectName("savedActionCreatedTasksButton")
         self.created_tasks_button.setProperty("entryAction", "true")
+        self.created_tasks_button.setProperty("entryActionVariant", "secondary")
         self.created_tasks_button.clicked.connect(
             lambda _checked=False: self.created_tasks_requested.emit()
         )
-        saved_inventory_layout.addWidget(self.created_tasks_button)
+        manage_action_layout.addWidget(self.created_tasks_button)
+
+        self.created_tasks_description = QLabel(
+            "Review, edit, or remove the tasks you have already saved.",
+            self.manage_action_frame,
+        )
+        self.created_tasks_description.setObjectName("savedActionCreatedTasksDescription")
+        self.created_tasks_description.setWordWrap(True)
+        manage_action_layout.addWidget(self.created_tasks_description)
+        self.entry_actions_layout.addWidget(self.manage_action_frame, 0, 1)
+
+        saved_inventory_layout.addLayout(self.entry_actions_layout)
 
         saved_inventory_layout.addStretch(1)
 
@@ -1507,20 +1955,20 @@ class CommandOverlayPanel(QWidget):
                 background: rgba(4, 16, 28, 238);
             }
             #commandKicker {
-                color: rgba(118, 226, 255, 0.72);
+                color: rgba(84, 192, 181, 0.84);
                 font-size: 12px;
                 font-weight: 600;
                 letter-spacing: 0.24em;
             }
             #commandTitle {
                 margin-top: 8px;
-                color: rgba(238, 250, 255, 0.96);
+                color: rgba(188, 212, 203, 0.97);
                 font-size: 28px;
                 font-weight: 600;
             }
             #commandHint {
                 margin-top: 10px;
-                color: rgba(172, 215, 235, 0.82);
+                color: rgba(136, 165, 174, 0.88);
                 font-size: 14px;
             }
             #commandInputShell {
@@ -1538,19 +1986,19 @@ class CommandOverlayPanel(QWidget):
                 background: rgba(8, 18, 30, 214);
             }
             #commandPrompt {
-                color: rgba(118, 226, 255, 0.84);
+                color: rgba(84, 192, 181, 0.88);
                 font-size: 22px;
                 font-weight: 600;
             }
             #commandInputLine {
                 border: none;
                 background: transparent;
-                color: rgba(238, 248, 255, 0.96);
+                color: rgba(193, 213, 208, 0.96);
                 font-size: 21px;
                 selection-background-color: rgba(118, 226, 255, 0.28);
             }
             #commandInputLine:read-only {
-                color: rgba(170, 194, 208, 0.92);
+                color: rgba(133, 155, 164, 0.92);
             }
             #commandCaret {
                 min-width: 10px;
@@ -1566,7 +2014,7 @@ class CommandOverlayPanel(QWidget):
             #commandStatus {
                 margin-top: 14px;
                 min-height: 22px;
-                color: rgba(174, 215, 232, 0.88);
+                color: rgba(146, 176, 178, 0.89);
                 font-size: 14px;
             }
             #commandStatus[statusKind="not_found"], #commandStatus[statusKind="launch_failed"] {
@@ -1585,30 +2033,56 @@ class CommandOverlayPanel(QWidget):
                 border: 1px solid rgba(118, 226, 255, 0.12);
             }
             #savedActionInventoryTitle {
-                color: rgba(118, 226, 255, 0.84);
-                font-size: 13px;
+                color: rgba(84, 192, 181, 0.90);
+                font-size: 14px;
                 font-weight: 600;
-                letter-spacing: 0.10em;
+                letter-spacing: 0.08em;
             }
             #savedActionInventoryStatus {
-                color: rgba(172, 215, 235, 0.82);
+                color: rgba(136, 165, 174, 0.88);
                 font-size: 13px;
+                line-height: 1.45em;
+            }
+            QFrame[entryActionCard="true"] {
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.12);
+                background: rgba(7, 20, 34, 0.82);
+            }
+            QFrame[entryActionCard="true"][entryActionVariant="primary"] {
+                border: 1px solid rgba(118, 226, 255, 0.20);
+                background: rgba(10, 28, 46, 0.90);
+            }
+            QFrame[entryActionCard="true"][entryActionVariant="secondary"] {
+                background: rgba(9, 22, 37, 0.88);
+            }
+            #savedActionCreateDescription, #savedActionCreatedTasksDescription {
+                color: rgba(147, 174, 182, 0.87);
+                font-size: 12px;
+                line-height: 1.4em;
             }
             QPushButton[entryAction="true"] {
-                min-height: 34px;
-                margin-top: 4px;
-                padding: 0 12px;
+                min-height: 40px;
+                margin-top: 0;
+                padding: 0 14px;
                 border-radius: 12px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(6, 18, 30, 196);
-                color: rgba(238, 248, 255, 0.96);
+                color: rgba(191, 212, 207, 0.96);
                 text-align: left;
-                font-size: 13px;
-                font-weight: 600;
+                font-size: 14px;
+                font-weight: 650;
+            }
+            QPushButton[entryAction="true"][entryActionVariant="primary"] {
+                border: 1px solid rgba(118, 226, 255, 0.34);
+                background: rgba(18, 52, 78, 228);
             }
             QPushButton[entryAction="true"]:hover {
                 border: 1px solid rgba(118, 226, 255, 0.36);
                 background: rgba(8, 24, 38, 220);
+            }
+            QPushButton[entryAction="true"][entryActionVariant="primary"]:hover {
+                border: 1px solid rgba(118, 226, 255, 0.50);
+                background: rgba(22, 61, 90, 238);
             }
             #commandAmbiguous {
                 min-height: 20px;
@@ -1638,18 +2112,18 @@ class CommandOverlayPanel(QWidget):
                 border: 1px solid rgba(118, 226, 255, 0.14);
             }
             QLabel[confirmRole="label"] {
-                color: rgba(118, 226, 255, 0.66);
+                color: rgba(78, 176, 173, 0.78);
                 font-size: 12px;
                 font-weight: 600;
                 letter-spacing: 0.12em;
             }
             QLabel[confirmRole="value"] {
-                color: rgba(236, 247, 255, 0.94);
+                color: rgba(189, 210, 204, 0.95);
                 font-size: 15px;
             }
             #commandConfirmHelp {
                 margin-top: 14px;
-                color: rgba(172, 215, 235, 0.84);
+                color: rgba(140, 168, 176, 0.89);
                 font-size: 13px;
             }
             """
@@ -1824,11 +2298,11 @@ class CommandOverlayPanel(QWidget):
         if show_inventory:
             self.create_custom_task_button.setEnabled(True)
             self.created_tasks_button.setEnabled(True)
-            self.saved_inventory_title.setText("Task actions")
+            self.saved_inventory_title.setText("Custom tasks")
             self.saved_inventory_status.setProperty("statusKind", "idle")
             self.saved_inventory_status.style().unpolish(self.saved_inventory_status)
             self.saved_inventory_status.style().polish(self.saved_inventory_status)
-            self.saved_inventory_status.setText("Choose an action to continue.")
+            self.saved_inventory_status.setText("Create a new task or manage the tasks you already saved.")
         else:
             self.saved_inventory_status.setText("")
 

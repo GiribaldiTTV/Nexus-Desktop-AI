@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtWidgets import QApplication, QDialog, QPushButton
+from PySide6.QtWidgets import QApplication, QDialog, QLabel, QPushButton, QToolButton
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -215,10 +215,10 @@ def _test_created_tasks_trigger_is_present_and_clickable():
 
     panel.created_tasks_button.click()
     _assert(
-        panel.created_tasks_button.text() == "Created Tasks",
-        "entry-state UI should expose a Created Tasks trigger",
+        panel.created_tasks_button.text() == "Manage Custom Tasks",
+        "entry-state UI should expose a Manage Custom Tasks trigger",
     )
-    _assert(fired == ["clicked"], "Created Tasks trigger should be reachable and clickable")
+    _assert(fired == ["clicked"], "Manage Custom Tasks trigger should be reachable and clickable")
 
 
 def _test_entry_surface_keeps_inventory_details_out_of_landing_view():
@@ -273,9 +273,34 @@ def _test_entry_surface_keeps_inventory_details_out_of_landing_view():
         "entry-state landing surface should stay button-led and should not expose inline edit buttons",
     )
     _assert(
-        panel.saved_inventory_status.text() == "Choose an action to continue.",
-        "entry-state landing surface should keep its inline copy minimal",
+        panel.saved_inventory_title.text() == "Custom tasks",
+        "entry-state landing surface should use a more intentional custom-task heading",
     )
+    _assert(
+        panel.saved_inventory_status.text() == "Create a new task or manage the tasks you already saved.",
+        "entry-state landing surface should explain the two task actions more clearly",
+    )
+    _assert(
+        "application, folder, file, or website" in panel.create_custom_task_description.text().casefold(),
+        "create action should explain what creating a custom task actually does",
+    )
+    _assert(
+        "review, edit, or remove" in panel.created_tasks_description.text().casefold(),
+        "created-tasks action should explain that it opens the management surface for existing tasks",
+    )
+    _assert(
+        panel.create_action_frame.property("entryActionVariant") == "primary"
+        and panel.manage_action_frame.property("entryActionVariant") == "secondary",
+        "entry actions should be visually differentiated so the section feels like a real entry point",
+    )
+    panel.show()
+    _app().processEvents()
+    _assert(
+        abs(panel.create_action_frame.y() - panel.manage_action_frame.y()) <= 4
+        and panel.manage_action_frame.x() > panel.create_action_frame.x(),
+        "entry-state landing surface should present create and manage as peer actions on one row",
+    )
+    panel.close()
 
 
 def _test_created_tasks_dialog_exposes_edit_trigger_for_saved_inventory_items():
@@ -307,11 +332,68 @@ def _test_created_tasks_dialog_exposes_edit_trigger_for_saved_inventory_items():
         if button.text() == "Edit"
     ]
 
-    _assert(edit_buttons, "Created Tasks dialog should expose edit triggers for saved actions")
+    _assert(edit_buttons, "Manage Custom Tasks dialog should expose edit triggers for saved actions")
+    _assert(
+        dialog.windowTitle() == "Manage Custom Tasks",
+        "management dialog should expose the clearer Manage Custom Tasks window title",
+    )
+    _assert(
+        bool(dialog.windowFlags() & renderer_mod.Qt.FramelessWindowHint),
+        "management dialog should use integrated frameless chrome instead of the native title bar",
+    )
+    _assert(
+        hasattr(dialog, "chrome_bar") and dialog.chrome_bar.close_button.text() == "\N{MULTIPLICATION SIGN}",
+        "management dialog should expose an integrated dark close affordance in the custom chrome bar",
+    )
+    _assert(
+        not dialog.chrome_bar.title_label.isVisible(),
+        "management dialog should remove the visible title-bar label so the window reads as one continuous surface",
+    )
+    _assert(
+        dialog.hint_label.text() == "Review, update, or remove tasks from the current saved-task source.",
+        "management dialog should keep a lighter hint so the list stays visually central",
+    )
+    _assert(
+        dialog.guidance_label.isHidden() and dialog.source_label.isHidden(),
+        "management dialog should hide redundant guidance and source detail in the normal loaded state",
+    )
+    title_labels = [
+        label
+        for label in dialog.items_frame.findChildren(QLabel)
+        if label.property("inventoryRole") == "itemTitle"
+    ]
+    meta_labels = [
+        label
+        for label in dialog.items_frame.findChildren(QLabel)
+        if label.property("inventoryRole") == "itemMeta"
+    ]
+    target_labels = [
+        label
+        for label in dialog.items_frame.findChildren(QLabel)
+        if label.property("inventoryRole") == "itemTarget"
+    ]
+    _assert(
+        title_labels and meta_labels and target_labels,
+        "management rows should separate title, metadata, and target into distinct labels for better hierarchy",
+    )
+    _assert(
+        dialog.items_scroll.viewport().objectName() == "savedActionCreatedTasksViewport",
+        "management dialog should theme the scroll viewport instead of leaving a white gutter behind the list",
+    )
+    _assert(
+        "qscrollbar:vertical" in dialog.styleSheet().casefold(),
+        "management dialog should style the vertical scrollbar explicitly instead of falling back to the default white scrollbar",
+    )
+    dialog.show()
+    _app().processEvents()
+    _assert(
+        dialog.title_label.y() <= 18,
+        "management dialog title should sit close to the true top edge instead of below a dead header band",
+    )
     edit_buttons[0].click()
     _assert(
         dialog.selected_action_id() == "open_reports",
-        "Created Tasks dialog should preserve stable edit-button mapping for the selected saved action",
+        "management dialog should preserve stable edit-button mapping for the selected saved action",
     )
 
 
@@ -344,11 +426,15 @@ def _test_created_tasks_dialog_exposes_delete_trigger_for_saved_inventory_items(
         if button.text() == "Delete"
     ]
 
-    _assert(delete_buttons, "Created Tasks dialog should expose delete triggers for saved actions")
+    _assert(delete_buttons, "Manage Custom Tasks dialog should expose delete triggers for saved actions")
+    _assert(
+        dialog.guidance_label.isHidden() and dialog.source_label.isHidden(),
+        "management delete surface should keep the loaded-state header stack light",
+    )
     delete_buttons[0].click()
     _assert(
         dialog.selected_delete_action_id() == "open_reports",
-        "Created Tasks dialog should preserve stable delete-button mapping for the selected saved action",
+        "management dialog should preserve stable delete-button mapping for the selected saved action",
     )
     _assert(
         dialog.selected_action_id() == "",
@@ -450,6 +536,27 @@ def _test_create_dialog_surfaces_field_level_guidance():
         and dialog.target_header_label.font().pointSize() >= 14,
         "field headers should be more prominent than the surrounding guidance copy",
     )
+    help_icon_buttons = [
+        button
+        for button in dialog.findChildren(QToolButton)
+        if button.property("createRole") == "helpIcon"
+    ]
+    _assert(
+        not help_icon_buttons,
+        "create dialog should move help discovery onto the field headers instead of keeping a separate icon column",
+    )
+    _assert(
+        bool(dialog.windowFlags() & renderer_mod.Qt.FramelessWindowHint),
+        "create dialog should use integrated frameless chrome instead of the native title bar",
+    )
+    _assert(
+        hasattr(dialog, "chrome_bar") and dialog.chrome_bar.close_button.text() == "\N{MULTIPLICATION SIGN}",
+        "create dialog should expose an integrated dark close affordance in the custom chrome bar",
+    )
+    _assert(
+        not dialog.chrome_bar.title_label.isVisible(),
+        "create dialog should remove the visible title-bar label so the window reads as one continuous surface",
+    )
     _assert(
         "default trigger family" in dialog.type_help_button.toolTip().casefold(),
         "task type help icon should explain how task type shapes trigger and target behavior",
@@ -459,29 +566,38 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "title help icon should explain what the title field does",
     )
     _assert(
-        "does not create callable phrases" in dialog.title_help_button.toolTip().casefold(),
+        "calling comes from" in dialog.title_help_button.toolTip().casefold(),
         "title help icon should reinforce that the title is label-only for alias-root tasks",
     )
     _assert(
-        "exact words or phrases" in dialog.aliases_help_button.toolTip().casefold(),
+        "exact callable words or phrases" in dialog.aliases_help_button.toolTip().casefold(),
         "aliases help icon should explain what aliases are for",
     )
     _assert(
-        "explicit call prefixes" in dialog.trigger_help_button.toolTip().casefold(),
+        "explicit call prefixes" in dialog.trigger_help_button.toolTip().casefold()
+        or "explicit call prefixes placed before aliases" in dialog.trigger_help_button.toolTip().casefold(),
         "trigger help icon should explain what the trigger field does",
     )
     _assert(
         hasattr(dialog.title_help_button, "show_help_tooltip_now")
         and hasattr(dialog.trigger_help_button, "show_help_tooltip_now"),
-        "field help icons should support immediate tooltip display for faster response",
+        "field-header help affordances should support immediate tooltip display for faster response",
     )
     _assert(
         dialog.title_help_button.focusPolicy() == renderer_mod.Qt.StrongFocus,
-        "help buttons should be keyboard-focusable for a more consistent immediate-help experience",
+        "field-header help affordances should remain keyboard-focusable for a more consistent immediate-help experience",
     )
     _assert(
         hasattr(dialog.type_help_button, "show_help_tooltip_now"),
-        "task type help icon should also support immediate tooltip display",
+        "task type header should also support immediate tooltip display",
+    )
+    _assert(
+        dialog.type_help_button is dialog.type_header_label
+        and dialog.title_help_button is dialog.title_header_label
+        and dialog.aliases_help_button is dialog.aliases_header_label
+        and dialog.trigger_help_button is dialog.trigger_header_label
+        and dialog.target_help_button is dialog.target_header_label,
+        "tooltip help should now live on the visible field labels themselves",
     )
     _assert(
         not hasattr(dialog, "title_guidance_label"),
@@ -508,20 +624,34 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "create dialog should not keep a separate helper-text label under the target field",
     )
     _assert(
-        "how you can call this task" in dialog.target_examples_title.text().casefold(),
-        "create dialog should show one boxed callable-examples section below the fields",
+        "callable surface" in dialog.target_examples_title.text().casefold(),
+        "create dialog should show one boxed callable-examples section beside the fields",
     )
     _assert(
         type_row < title_row < trigger_row < aliases_row,
         "Task type should remain the first full field row, followed by Title, Trigger, and Aliases",
     )
     _assert(
-        dialog.form_layout.verticalSpacing() >= 12 and dialog.form_layout.horizontalSpacing() >= 14,
-        "create dialog spacing should stay roomy enough to keep the stronger header hierarchy readable",
+        dialog.form_layout.verticalSpacing() >= 12 and dialog.form_layout.horizontalSpacing() >= 16,
+        "create dialog spacing should stay open enough to keep the stronger header hierarchy readable without reintroducing dead space",
     )
     _assert(
-        dialog.create_button.minimumHeight() >= 36 and dialog.cancel_button.minimumHeight() >= 36,
+        dialog.create_button.minimumHeight() >= 40 and dialog.cancel_button.minimumHeight() >= 40,
         "dialog action buttons should keep the tighter but still comfortable padding rhythm",
+    )
+    dialog.show()
+    _app().processEvents()
+    _assert(
+        dialog.title_label.y() <= 18,
+        "create dialog title should sit close to the true top edge instead of below a dead header band",
+    )
+    _assert(
+        dialog.target_examples_box.x() > dialog.aliases_input.x(),
+        "callable-surface guidance should sit to the right of the form instead of consuming the full lower section",
+    )
+    _assert(
+        dialog.title_input.minimumHeight() >= 42 and dialog.aliases_input.minimumHeight() >= 42,
+        "form inputs should feel roomier and less cramped than the earlier compact version",
     )
 
     dialog.title_input.setText("Nexus")
@@ -537,7 +667,7 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "folder tasks should default to Open while the trigger is still following the selected type",
     )
     _assert(
-        "folder nexus opens" in dialog.target_help_button.toolTip().casefold(),
+        "folder path nexus opens" in dialog.target_help_button.toolTip().casefold(),
         "target help icon should update with the current target-kind examples",
     )
     _assert(
@@ -550,6 +680,7 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "full website address" in dialog.target_help_button.toolTip().casefold(),
         "website guidance should now live in the target tooltip instead of under the field",
     )
+    dialog.close()
 
 
 def _test_create_dialog_trigger_controls_and_dynamic_examples():
@@ -568,7 +699,7 @@ def _test_create_dialog_trigger_controls_and_dynamic_examples():
     examples_text = dialog.target_examples_label.text().casefold()
 
     _assert(
-        "real callable phrases" in examples_text and "case does not matter" in examples_text,
+        "real callable phrases" in examples_text and "exact phrases, case-insensitive" in examples_text,
         "examples box should explain the real callable phrases for the current draft",
     )
     _assert(
@@ -589,6 +720,10 @@ def _test_create_dialog_trigger_controls_and_dynamic_examples():
     _assert(
         "notepad.exe" not in examples_text and r"c:\reports\weekly.txt" not in examples_text,
         "examples box should remove irrelevant target-kind examples",
+    )
+    _assert(
+        "suggested aliases" not in examples_text,
+        "alias suggestions should drop out of the bottom box once they no longer add value over the typed aliases",
     )
 
     dialog.trigger_combo.setCurrentText("Custom")
@@ -1003,8 +1138,8 @@ def _test_created_tasks_navigation_routes_into_edit_dialog():
                 inventory_payload,
                 lambda dialog: (
                     _assert(
-                        dialog.title_label.text() == "Created Tasks (1)",
-                        "Created Tasks dialog should reflect the current saved-action count",
+                        dialog.title_label.text() == "Manage Custom Tasks (1)",
+                        "Manage Custom Tasks dialog should reflect the current saved-action count",
                     ),
                     dialog._handle_edit_requested("open_reports"),
                 ),
@@ -1035,15 +1170,15 @@ def _test_created_tasks_navigation_routes_into_edit_dialog():
         inventory = window._command_model.view_payload().get("saved_action_inventory") or {}
         items = inventory.get("items") or []
 
-        _assert(created_tasks_dialogs, "Created Tasks navigation should open the secondary Created Tasks dialog")
-        _assert(edit_dialogs, "Created Tasks navigation should route selected items into the existing edit dialog")
+        _assert(created_tasks_dialogs, "Manage Custom Tasks navigation should open the secondary management dialog")
+        _assert(edit_dialogs, "Manage Custom Tasks navigation should route selected items into the existing edit dialog")
         _assert(
             items and items[0].get("title") == "Open Weekly Reports",
-            "Created Tasks navigation should preserve the existing edit/update behavior",
+            "Manage Custom Tasks navigation should preserve the existing edit/update behavior",
         )
         _assert(
             renderer_mod.DesktopRuntimeWindow.overlay_needs_global_input_capture(window),
-            "Created Tasks navigation should still restore fallback input capture readiness afterward",
+            "Manage Custom Tasks navigation should still restore fallback input capture readiness afterward",
         )
 
 
@@ -1081,8 +1216,8 @@ def _test_created_tasks_navigation_routes_into_delete_flow():
                 inventory_payload,
                 lambda dialog: (
                     _assert(
-                        dialog.title_label.text() == "Created Tasks (2)",
-                        "Created Tasks delete flow should reflect the current saved-action count",
+                        dialog.title_label.text() == "Manage Custom Tasks (2)",
+                        "Manage Custom Tasks delete flow should reflect the current saved-action count",
                     ),
                     dialog._handle_delete_requested("open_reports"),
                 ),
@@ -1095,7 +1230,7 @@ def _test_created_tasks_navigation_routes_into_delete_flow():
         inventory = window._command_model.view_payload().get("saved_action_inventory") or {}
         items = inventory.get("items") or []
 
-        _assert(created_tasks_dialogs, "Created Tasks delete flow should open the secondary Created Tasks dialog")
+        _assert(created_tasks_dialogs, "Manage Custom Tasks delete flow should open the secondary management dialog")
         _assert(window._command_model.phase == "entry", "delete flow should preserve entry phase")
         _assert(window._command_model.status_kind == "ready", "delete flow should surface success feedback")
         _assert("deleted" in window._command_model.status_text.casefold(), "delete flow should confirm the removal")

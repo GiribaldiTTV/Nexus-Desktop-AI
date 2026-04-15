@@ -31,14 +31,14 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 
 - the branch already includes safe saved-action persistence, bounded deletion, and explicit catalog reload after writes
 - the branch already includes a type-first create flow and a bounded edit flow
-- the entry-state NCP opening now stays lightweight and button-led, with `Create Custom Task` and `Created Tasks` as the primary authoring entry points
-- detailed saved-action inventory viewing and edit reachability now live in the secondary `Created Tasks` window instead of being expanded inline on the initial opening surface
-- the secondary `Created Tasks` window now supports both edit and delete actions for existing saved tasks
+- the entry-state NCP opening now stays lightweight and button-led, with peer `Create Custom Task` and `Manage Custom Tasks` actions as the primary authoring entry points
+- detailed saved-action inventory viewing and edit reachability now live in the secondary `Manage Custom Tasks` window instead of being expanded inline on the initial opening surface
+- the secondary `Manage Custom Tasks` window now supports both edit and delete actions for existing saved tasks
 - create/edit dialogs now expose an explicit `Trigger` field with `Launch`, `Open`, `Launch and Open`, and `Custom` options
 - new saved actions now use alias-root invocation, with `Title` treated as a label and callable phrases generated at runtime from `aliases`, `trigger_mode`, and optional `custom_triggers`
 - legacy saved actions that do not yet carry the new invocation-mode marker still remain title-plus-alias callable so existing tasks do not silently change behavior
-- create/edit dialogs now use stronger field headers, concise help icons, and a single bottom guidance/examples box that updates from the current title, aliases, trigger selection, and target kind
-- create/edit dialogs now place `Trigger` directly below `Title`, use faster NDAI-styled help tooltips, and present the bottom callable-surface box in clearer sections for alias suggestions, real callable phrases, and target format
+- create/edit dialogs now use stronger field headers with label-hover help, darker integrated chrome, and a single callable-surface panel that updates from the current title, aliases, trigger selection, and target kind
+- create/edit dialogs now place `Trigger` directly below `Title`, use faster NDAI-styled help tooltips from the field labels themselves, and keep the callable-surface panel to the right of the form for clearer scanning
 - exact-match resolution remains unchanged
 - the overlay phase machine remains bounded to `entry` -> `choose` -> `confirm` -> `result`
 - current supported saved-action target kinds remain `app`, `folder`, `file`, and `url`
@@ -48,7 +48,7 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 ## Scope
 
 - bounded saved-action create and edit UX
-- bounded saved-action deletion from the secondary `Created Tasks` window
+- bounded saved-action deletion from the secondary `Manage Custom Tasks` window
 - safe persistence and validation-before-write
 - immediate catalog reload after successful writes
 - explicit user-facing type selection mapped to the current persisted target kinds
@@ -184,7 +184,7 @@ Confirm that the full FB-036 branch behavior is stable for real desktop use, inc
 Open the desktop overlay on `feature/fb-036-saved-action-authoring` with a healthy `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json` source and use the lightweight button-led entry surface as the authoring landing path:
 
 - `Create Custom Task`
-- `Created Tasks`
+- `Manage Custom Tasks`
 
 ### Setup / Prerequisites
 
@@ -198,13 +198,13 @@ Open the desktop overlay on `feature/fb-036-saved-action-authoring` with a healt
 
 1. Setup: launch the desktop runtime and open the overlay in its normal typed-first way.
 Action: inspect the entry-state panel before typing anything.
-Expected Behavior: the overlay opens in the normal entry baseline, the initial landing surface stays lightweight, `Create Custom Task` and `Created Tasks` are both visible, and no inline saved-action detail or `Edit` buttons overload the first surface.
+Expected Behavior: the overlay opens in the normal entry baseline, the initial landing surface stays lightweight, `Create Custom Task` and `Manage Custom Tasks` are both visible as peer actions, and no inline saved-action detail or `Edit` buttons overload the first surface.
 Failure Conditions / Edge Cases: the overlay skips entry state, either top-level button is missing, inline inventory/edit detail still clutters the landing surface, or outside text receives stray typing.
 
 2. Setup: stay in entry state with a healthy saved-action source.
 Action: click `Create Custom Task`, choose `Application`, then inspect the dialog before saving anything.
-Expected Behavior: the dialog shows stronger headers for `Title`, `Trigger`, `Aliases`, and `Target`; `Trigger` sits directly below `Title`; each header has a help icon; field-specific helper text is carried by the tooltips instead of stacked under the fields; the help tooltip appears quickly in a compact NDAI-styled card; `Trigger` offers `Launch`, `Open`, `Launch and Open`, and `Custom`; `Custom` keeps its comma-separated trigger field hidden until selected; and a single bottom guidance/examples box stays visible near the action buttons.
-Failure Conditions / Edge Cases: headers are not visually distinct, `Trigger` is still buried below `Aliases`, help icons are missing, field helper text still stacks under the inputs, tooltips feel delayed or unusable, the trigger dropdown is missing, the custom trigger field is always visible, or the bottom guidance/examples box is missing.
+Expected Behavior: the dialog shows stronger headers for `Title`, `Trigger`, `Aliases`, and `Target`; `Trigger` sits directly below `Title`; the field labels themselves surface hover help; field-specific helper text is carried by the tooltips instead of stacked under the fields; the help tooltip appears quickly in a compact NDAI-styled card; `Trigger` offers `Launch`, `Open`, `Launch and Open`, and `Custom`; `Custom` keeps its comma-separated trigger field hidden until selected; and a single callable-surface panel stays visible to the right of the form.
+Failure Conditions / Edge Cases: headers are not visually distinct, `Trigger` is still buried below `Aliases`, hover-help affordances feel undiscoverable, field helper text still stacks under the inputs, tooltips feel delayed or unusable, the trigger dropdown is missing, the custom trigger field is always visible, or the callable-surface panel is missing.
 
 3. Setup: stay in the same create dialog.
 Action: enter `Title = Open Nexus`, `Aliases = Nexus, NDAI`, confirm the default trigger for `Application`, then switch `Trigger` to `Launch and Open`.
@@ -244,7 +244,7 @@ Expected Behavior: the dialog stays open, collision feedback is clear, and no wr
 Failure Conditions / Edge Cases: a colliding action is saved, an existing record is overwritten, or inventory count changes.
 
 8. Setup: with the created task already present.
-Action: click `Created Tasks`, then `Edit`, verify current values preload, change `Trigger` to `Open`, change type to `File`, use `Browse...` to choose `C:\Reports\weekly.txt`, and save.
+Action: click `Manage Custom Tasks`, then `Edit`, verify current values preload, change `Trigger` to `Open`, change type to `File`, use `Browse...` to choose `C:\Reports\weekly.txt`, and save.
 Expected Behavior: the edit dialog preloads the existing title, aliases, trigger choice, and target; type changes still update the default trigger until you deliberately choose a trigger yourself; the same saved action updates in place; and the examples box refreshes to match the edited trigger and target kind.
 Failure Conditions / Edge Cases: preload is blank or incomplete, the trigger resets unexpectedly after a manual choice, browse support disappears for `File`, the examples box stays stale, the save creates a duplicate, or refresh only happens after restart.
 
@@ -254,8 +254,8 @@ Expected Behavior: the alias-root phrases still work; the current trigger family
 Failure Conditions / Edge Cases: old trigger phrases still resolve after the trigger mode changed, current alias-root phrases do not resolve, or the title label behaves like an invocation source for the new task even when it is not in aliases.
 
 10. Setup: with at least two saved actions present after a successful create or edit pass.
-Action: click `Created Tasks`, choose `Delete` for one task, then return to the overlay and verify the remaining inventory.
-Expected Behavior: the selected task is removed immediately without restart, the remaining tasks stay intact, the deleted task disappears from `Created Tasks`, and the overlay returns to entry-ready state with clear deletion feedback.
+Action: click `Manage Custom Tasks`, choose `Delete` for one task, then return to the overlay and verify the remaining inventory.
+Expected Behavior: the selected task is removed immediately without restart, the remaining tasks stay intact, the deleted task disappears from `Manage Custom Tasks`, and the overlay returns to entry-ready state with clear deletion feedback.
 Failure Conditions / Edge Cases: deleting one task removes the wrong row, inventory does not refresh until restart, the deleted task still resolves as callable, or the overlay does not recover cleanly afterward.
 
 11. Setup: use or create one saved action record that predates the alias-root invocation marker, then open `Created Tasks` and edit it without changing its compatibility mode.
@@ -269,8 +269,8 @@ Expected Behavior: later items remain reachable through the secondary window, sc
 Failure Conditions / Edge Cases: only the first six items remain editable, `Created Tasks` does not expose later rows cleanly, scroll behavior breaks layout, later `Edit` buttons open the wrong item, or later edits do not refresh correctly.
 
 13. Setup: back up `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json`, then intentionally corrupt it with invalid JSON.
-Action: reopen the overlay, try `Create Custom Task`, then open `Created Tasks`; if any saved-action rows still show `Edit`, try that too.
-Expected Behavior: authoring is blocked cleanly with repair-oriented messaging, no dialog proceeds into a real save path, and the source is not silently rewritten. In a fail-closed invalid-source state, `Created Tasks` may still open for status visibility while edit affordances disappear entirely; that absence is acceptable as long as the UI does not expose a live edit path.
+Action: reopen the overlay, try `Create Custom Task`, then open `Manage Custom Tasks`; if any saved-action rows still show `Edit`, try that too.
+Expected Behavior: authoring is blocked cleanly with repair-oriented messaging, no dialog proceeds into a real save path, and the source is not silently rewritten. In a fail-closed invalid-source state, `Manage Custom Tasks` may still open for status visibility while edit affordances disappear entirely; that absence is acceptable as long as the UI does not expose a live edit path.
 Failure Conditions / Edge Cases: the dialog opens anyway, the source is auto-repaired silently, inventory becomes inconsistent, a live edit path is still reachable against the broken source, or outside text/input-capture behavior regresses while blocked.
 
 ### Branch / Slice-Specific Validation Focus
