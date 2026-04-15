@@ -722,6 +722,7 @@ class SavedActionCreateDialog(QDialog):
         self.status_label = QLabel("", self)
         self.status_label.setObjectName("savedActionCreateStatus")
         self.status_label.setWordWrap(True)
+        self.status_label.hide()
 
         self.target_examples_box = QFrame(self)
         self.target_examples_box.setObjectName("savedActionCreateTargetExamplesBox")
@@ -742,13 +743,8 @@ class SavedActionCreateDialog(QDialog):
         self.target_examples_label.setTextFormat(Qt.RichText)
         target_examples_layout.addWidget(self.target_examples_label)
 
-        content_row.addWidget(self.target_examples_box, 0, Qt.AlignTop)
-
-        layout.addLayout(content_row)
-        layout.addWidget(self.status_label)
-
         button_row = QHBoxLayout()
-        button_row.setContentsMargins(0, 2, 0, 0)
+        button_row.setContentsMargins(0, 0, 0, 0)
         button_row.setSpacing(8)
         button_row.addStretch(1)
 
@@ -765,7 +761,18 @@ class SavedActionCreateDialog(QDialog):
         self.create_button.clicked.connect(self._handle_create_clicked)
         button_row.addWidget(self.create_button)
 
-        layout.addLayout(button_row)
+        right_rail = QVBoxLayout()
+        self.right_rail_layout = right_rail
+        right_rail.setContentsMargins(0, 0, 0, 0)
+        right_rail.setSpacing(10)
+        right_rail.addWidget(self.target_examples_box, 0)
+        right_rail.addStretch(1)
+        right_rail.addLayout(button_row)
+
+        content_row.addLayout(right_rail, 0)
+
+        layout.addLayout(content_row)
+        layout.addWidget(self.status_label)
 
         self.setStyleSheet(
             """
@@ -845,7 +852,7 @@ class SavedActionCreateDialog(QDialog):
                 line-height: 1.45em;
             }
             #savedActionCreateStatus {
-                min-height: 14px;
+                min-height: 0px;
                 color: rgba(255, 189, 176, 0.96);
                 font-size: 13px;
             }
@@ -1333,7 +1340,9 @@ class SavedActionCreateDialog(QDialog):
         return message
 
     def set_error_text(self, text: str):
-        self.status_label.setText(self._format_error_text(text))
+        message = self._format_error_text(text)
+        self.status_label.setText(message)
+        self.status_label.setVisible(bool(message))
 
     def _handle_create_clicked(self):
         if self._submit_handler is None:
@@ -1464,18 +1473,20 @@ class CreatedTasksDialog(QDialog):
         self.items_scroll.setWidget(self.items_frame)
         layout.addWidget(self.items_scroll)
 
-        button_row = QHBoxLayout()
-        button_row.setContentsMargins(0, 2, 0, 0)
-        button_row.setSpacing(8)
-        button_row.addStretch(1)
+        self.footer_frame = QFrame(self)
+        self.footer_frame.setObjectName("savedActionCreatedTasksFooter")
+        footer_layout = QHBoxLayout(self.footer_frame)
+        footer_layout.setContentsMargins(0, 8, 0, 0)
+        footer_layout.setSpacing(8)
+        footer_layout.addStretch(1)
 
-        self.close_button = QPushButton("Close", self)
+        self.close_button = QPushButton("Close", self.footer_frame)
         self.close_button.setObjectName("savedActionCreatedTasksClose")
-        self.close_button.setMinimumHeight(36)
+        self.close_button.setMinimumHeight(34)
         self.close_button.clicked.connect(self.reject)
-        button_row.addWidget(self.close_button)
+        footer_layout.addWidget(self.close_button)
 
-        layout.addLayout(button_row)
+        layout.addWidget(self.footer_frame)
 
         self.setStyleSheet(
             """
@@ -1488,6 +1499,10 @@ class CreatedTasksDialog(QDialog):
                 background: rgba(4, 16, 28, 244);
             }
             #savedActionCreatedTasksContent {
+                background: transparent;
+            }
+            #savedActionCreatedTasksFooter {
+                border-top: 1px solid rgba(118, 226, 255, 0.08);
                 background: transparent;
             }
             #savedActionCreatedTasksChromeBar {
