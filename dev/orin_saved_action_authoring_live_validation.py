@@ -454,6 +454,69 @@ def _run_large_inventory_late_edit(stamp: str):
         }
 
 
+def _run_delete_flow(stamp: str):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        source_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "actions": [
+                        {
+                            "id": "open_reports",
+                            "title": "Open Reports",
+                            "target_kind": "folder",
+                            "target": r"C:\Reports",
+                            "aliases": ["show reports"],
+                        },
+                        {
+                            "id": "knowledge_pages",
+                            "title": "Knowledge Pages",
+                            "target_kind": "url",
+                            "target": "https://example.com/docs",
+                            "aliases": ["knowledge pages"],
+                        },
+                    ],
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        window = _make_window(source_path)
+        created_tasks_dialogs = []
+        window._created_tasks_dialog_factory = (
+            lambda parent, inventory_payload: _AutoSelectCreatedTasksDialog(
+                None,
+                inventory_payload,
+                lambda dialog: dialog._handle_delete_requested("open_reports"),
+                created_tasks_dialogs,
+            )
+        )
+
+        renderer_mod.DesktopRuntimeWindow.handle_created_tasks_requested(window)
+        inventory = _inventory_items(window)
+        artifact_path = _copy_artifact(source_path, stamp, "delete_flow_saved_actions")
+
+        _assert(created_tasks_dialogs, "delete flow should pass through the Created Tasks dialog")
+        _assert(len(inventory) == 1, "delete flow should remove one saved action from inventory")
+        _assert(
+            tuple(item.get("id") for item in inventory) == ("knowledge_pages",),
+            "delete flow should preserve the remaining saved action in inventory order",
+        )
+        _assert(
+            any("CUSTOM_TASK_DELETED" in event for event in window._events),
+            "delete flow should emit deletion evidence in the live event log",
+        )
+
+        return {
+            "artifact_path": artifact_path,
+            "remaining_ids": [item.get("id") for item in inventory],
+            "event_markers": [event for event in window._events if "CUSTOM_TASK_" in event],
+        }
+
+
 def _write_report(report_path: Path, *, checks: list[tuple[str, str]], details: dict[str, object]):
     lines = [
         "FB-036 SAVED-ACTION AUTHORING LIVE VALIDATION",
@@ -499,6 +562,9 @@ def main():
 
         details["large_inventory_late_edit"] = _run_large_inventory_late_edit(stamp)
         checks.append(("large inventory late-item edit", "PASS"))
+
+        details["delete_flow"] = _run_delete_flow(stamp)
+        checks.append(("delete flow through Created Tasks", "PASS"))
     except Exception as exc:
         checks.append(("live validation", f"FAIL ({exc})"))
         details["failure"] = repr(exc)

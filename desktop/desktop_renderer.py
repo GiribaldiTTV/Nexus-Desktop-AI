@@ -31,6 +31,7 @@ from .saved_action_authoring import (
     SavedActionDraftValidationError,
     SavedActionUnsafeSourceError,
     create_saved_action_from_draft,
+    delete_saved_action,
     load_saved_action_draft_for_edit,
     update_saved_action_from_draft,
 )
@@ -110,6 +111,7 @@ def _populate_saved_inventory_item_layout(
     parent,
     items: list[dict],
     edit_handler,
+    delete_handler,
 ):
     _clear_layout_widgets(layout)
     for item in items:
@@ -129,13 +131,28 @@ def _populate_saved_inventory_item_layout(
         item_layout.addWidget(label, 1)
 
         if item_id:
+            button_layout = QVBoxLayout()
+            button_layout.setContentsMargins(0, 8, 10, 8)
+            button_layout.setSpacing(6)
+
             edit_button = QPushButton("Edit", item_frame)
             edit_button.setProperty("inventoryRole", "editButton")
             edit_button.setToolTip(f'Edit "{title}"')
             edit_button.clicked.connect(
                 lambda _checked=False, action_id=item_id: edit_handler(action_id)
             )
-            item_layout.addWidget(edit_button, 0, Qt.AlignTop)
+            button_layout.addWidget(edit_button)
+
+            delete_button = QPushButton("Delete", item_frame)
+            delete_button.setProperty("inventoryRole", "deleteButton")
+            delete_button.setToolTip(f'Delete "{title}"')
+            delete_button.clicked.connect(
+                lambda _checked=False, action_id=item_id: delete_handler(action_id)
+            )
+            button_layout.addWidget(delete_button)
+            button_layout.addStretch(1)
+
+            item_layout.addLayout(button_layout, 0)
 
         layout.addWidget(item_frame)
     layout.addStretch(1)
@@ -949,6 +966,7 @@ class CreatedTasksDialog(QDialog):
     def __init__(self, parent=None, inventory_payload: dict | None = None, lifecycle_callback=None):
         super().__init__(parent)
         self._selected_action_id = ""
+        self._selected_delete_action_id = ""
         self._lifecycle_callback = lifecycle_callback
         self._ready_signal_emitted = False
         self.setModal(True)
@@ -965,7 +983,7 @@ class CreatedTasksDialog(QDialog):
         layout.addWidget(self.title_label)
 
         self.hint_label = QLabel(
-            "Review your existing custom tasks here, then choose Edit when you want the detailed task window.",
+            "Review your existing custom tasks here, then choose Edit to update one or Delete to remove it.",
             self,
         )
         self.hint_label.setObjectName("savedActionCreatedTasksHint")
@@ -1054,7 +1072,7 @@ class CreatedTasksDialog(QDialog):
                 color: rgba(234, 246, 255, 0.94);
                 font-size: 12px;
             }
-            QPushButton[inventoryRole="editButton"], #savedActionCreatedTasksClose {
+            QPushButton[inventoryRole="editButton"], QPushButton[inventoryRole="deleteButton"], #savedActionCreatedTasksClose {
                 min-height: 32px;
                 padding: 0 12px;
                 border-radius: 10px;
@@ -1064,11 +1082,19 @@ class CreatedTasksDialog(QDialog):
                 font-size: 12px;
                 font-weight: 600;
             }
-            QPushButton[inventoryRole="editButton"] {
-                margin: 8px 10px 8px 0;
+            QPushButton[inventoryRole="editButton"], QPushButton[inventoryRole="deleteButton"] {
+                min-width: 86px;
             }
-            QPushButton[inventoryRole="editButton"]:hover, #savedActionCreatedTasksClose:hover {
+            QPushButton[inventoryRole="deleteButton"] {
+                border: 1px solid rgba(255, 138, 138, 0.26);
+                background: rgba(40, 12, 16, 220);
+                color: rgba(255, 231, 231, 0.96);
+            }
+            QPushButton[inventoryRole="editButton"]:hover, QPushButton[inventoryRole="deleteButton"]:hover, #savedActionCreatedTasksClose:hover {
                 border: 1px solid rgba(118, 226, 255, 0.36);
+            }
+            QPushButton[inventoryRole="deleteButton"]:hover {
+                border: 1px solid rgba(255, 166, 166, 0.42);
             }
             #savedActionCreatedTasksItemsScroll {
                 border: none;
@@ -1107,8 +1133,17 @@ class CreatedTasksDialog(QDialog):
     def selected_action_id(self) -> str:
         return self._selected_action_id
 
+    def selected_delete_action_id(self) -> str:
+        return self._selected_delete_action_id
+
     def _handle_edit_requested(self, action_id: str):
         self._selected_action_id = action_id
+        self._selected_delete_action_id = ""
+        self.accept()
+
+    def _handle_delete_requested(self, action_id: str):
+        self._selected_delete_action_id = action_id
+        self._selected_action_id = ""
         self.accept()
 
     def refresh_inventory(self, inventory_payload: dict):
@@ -1136,6 +1171,7 @@ class CreatedTasksDialog(QDialog):
             self.items_frame,
             items,
             self._handle_edit_requested,
+            self._handle_delete_requested,
         )
         self.items_scroll.setVisible(bool(items))
 
@@ -2442,14 +2478,19 @@ class DesktopRuntimeWindow(QWidget):
             lifecycle_callback=self._handle_dialog_lifecycle_signal,
         )
         selected_action_id = ""
+        selected_delete_action_id = ""
         try:
             dialog.exec()
             if hasattr(dialog, "selected_action_id"):
                 selected_action_id = str(dialog.selected_action_id() or "").strip()
+            if hasattr(dialog, "selected_delete_action_id"):
+                selected_delete_action_id = str(dialog.selected_delete_action_id() or "").strip()
         finally:
             self._resume_overlay_capture_after_authoring_dialog()
 
-        if selected_action_id:
+        if selected_delete_action_id:
+            self.handle_delete_saved_action_requested(selected_delete_action_id)
+        elif selected_action_id:
             self.handle_edit_saved_action_requested(selected_action_id)
 
     def handle_edit_saved_action_requested(self, saved_action_id: str):
@@ -2508,6 +2549,67 @@ class DesktopRuntimeWindow(QWidget):
             dialog.exec()
         finally:
             self._resume_overlay_capture_after_authoring_dialog()
+
+    def handle_delete_saved_action_requested(self, saved_action_id: str):
+        if not self._command_model.visible or self._command_model.phase != "entry":
+            return
+
+        inventory = self._command_model.action_catalog.saved_action_inventory
+        if inventory.status_kind in {"invalid_source", "invalid_saved_actions"}:
+            self._set_entry_feedback("not_found", self._saved_action_authoring_block_message("deletion"))
+            self._emit_runtime_signal(
+                "CUSTOM_TASK_DELETE_BLOCKED",
+                reason="source_invalid",
+                action_id=saved_action_id,
+                status_kind=inventory.status_kind,
+                **self._saved_action_inventory_signal_fields(inventory),
+            )
+            return
+
+        self._emit_runtime_signal(
+            "CUSTOM_TASK_DELETE_ATTEMPT_STARTED",
+            action_id=saved_action_id,
+        )
+        try:
+            result = delete_saved_action(
+                saved_action_id,
+                source_path=self._saved_action_source_path,
+            )
+        except SavedActionUnsafeSourceError:
+            self._set_entry_feedback("not_found", self._saved_action_authoring_block_message("deletion"))
+            self._emit_runtime_signal(
+                "CUSTOM_TASK_DELETE_BLOCKED",
+                reason="unsafe_source",
+                action_id=saved_action_id,
+            )
+            return
+        except SavedActionDraftValidationError as exc:
+            self._set_entry_feedback("not_found", str(exc))
+            self._emit_runtime_signal(
+                "CUSTOM_TASK_DELETE_BLOCKED",
+                reason="missing_record",
+                action_id=saved_action_id,
+                detail=str(exc),
+            )
+            return
+        except SavedActionSourceWriteBlocked as exc:
+            self._set_entry_feedback("not_found", str(exc))
+            self._emit_runtime_signal(
+                "CUSTOM_TASK_DELETE_BLOCKED",
+                reason="write_blocked",
+                action_id=saved_action_id,
+                detail=str(exc),
+            )
+            return
+
+        self.reload_command_action_catalog(self._saved_action_source_path)
+        self._set_entry_feedback("ready", f'Custom task deleted: "{result.record["title"]}".')
+        self._emit_runtime_signal(
+            "CUSTOM_TASK_DELETED",
+            action_id=result.record["id"],
+            title=result.record["title"],
+            target_kind=result.record["target_kind"],
+        )
 
     def handle_command_text_changed(self, text: str):
         self._command_model.set_input_text(text)

@@ -55,6 +55,13 @@ class SavedActionUpdateResult:
 
 
 @dataclass(frozen=True)
+class SavedActionDeleteResult:
+    path: Path
+    record: dict[str, Any]
+    catalog: CommandActionCatalog
+
+
+@dataclass(frozen=True)
 class SavedActionAuthoringState:
     path: Path
     existing_records: tuple[dict[str, Any], ...]
@@ -243,9 +250,11 @@ def generate_saved_action_id(title: str, existing_ids: set[str] | tuple[str, ...
 def _find_existing_saved_action_record(
     state: SavedActionAuthoringState,
     saved_action_id: str,
+    *,
+    operation_label: str = "editing",
 ) -> tuple[int, dict[str, Any]]:
     if not isinstance(saved_action_id, str) or not saved_action_id.strip():
-        raise SavedActionDraftValidationError("Saved action id must be provided for editing.")
+        raise SavedActionDraftValidationError(f"Saved action id must be provided for {operation_label}.")
 
     normalized_id = saved_action_id.strip().casefold()
     for index, record in enumerate(state.existing_records):
@@ -253,7 +262,7 @@ def _find_existing_saved_action_record(
         if isinstance(record_id, str) and record_id.strip().casefold() == normalized_id:
             return index, deepcopy(record)
 
-    raise SavedActionDraftValidationError("Saved action could not be found for editing.")
+    raise SavedActionDraftValidationError(f"Saved action could not be found for {operation_label}.")
 
 
 def _build_saved_action_record_for_create(
@@ -386,6 +395,32 @@ def update_saved_action_from_draft(
         catalog = build_default_command_action_catalog(source_path)
 
     return SavedActionUpdateResult(
+        path=payload.path,
+        record=record,
+        catalog=catalog,
+    )
+
+
+def delete_saved_action(
+    saved_action_id: str,
+    source_path: str | Path | None = None,
+) -> SavedActionDeleteResult:
+    state = _load_saved_action_authoring_state(source_path)
+    index, record = _find_existing_saved_action_record(
+        state,
+        saved_action_id,
+        operation_label="deleting",
+    )
+    updated_records = list(deepcopy(state.existing_records))
+    updated_records.pop(index)
+    payload = write_saved_action_source(updated_records, source_path)
+
+    if source_path is None:
+        catalog = reload_default_command_action_catalog()
+    else:
+        catalog = build_default_command_action_catalog(source_path)
+
+    return SavedActionDeleteResult(
         path=payload.path,
         record=record,
         catalog=catalog,

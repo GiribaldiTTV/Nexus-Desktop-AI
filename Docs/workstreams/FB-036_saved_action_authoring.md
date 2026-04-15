@@ -29,10 +29,11 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 
 ## Current Branch Truth
 
-- the branch already includes safe saved-action persistence and explicit catalog reload after writes
+- the branch already includes safe saved-action persistence, bounded deletion, and explicit catalog reload after writes
 - the branch already includes a type-first create flow and a bounded edit flow
 - the entry-state NCP opening now stays lightweight and button-led, with `Create Custom Task` and `Created Tasks` as the primary authoring entry points
 - detailed saved-action inventory viewing and edit reachability now live in the secondary `Created Tasks` window instead of being expanded inline on the initial opening surface
+- the secondary `Created Tasks` window now supports both edit and delete actions for existing saved tasks
 - create/edit dialogs now expose an explicit `Trigger` field with `Launch`, `Open`, `Launch and Open`, and `Custom` options
 - new saved actions now use alias-root invocation, with `Title` treated as a label and callable phrases generated at runtime from `aliases`, `trigger_mode`, and optional `custom_triggers`
 - legacy saved actions that do not yet carry the new invocation-mode marker still remain title-plus-alias callable so existing tasks do not silently change behavior
@@ -46,6 +47,7 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 ## Scope
 
 - bounded saved-action create and edit UX
+- bounded saved-action deletion from the secondary `Created Tasks` window
 - safe persistence and validation-before-write
 - immediate catalog reload after successful writes
 - explicit user-facing type selection mapped to the current persisted target kinds
@@ -57,7 +59,7 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 
 ## Non-Goals
 
-- delete or disable flows
+- disable flows
 - Action Studio behavior
 - taskbar or tray authoring surfaces
 - resolution-model changes
@@ -76,6 +78,7 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 7. added browse-assisted target selection for `Application`, `Folder`, and `File` while keeping `Website URL` direct-entry only
 8. added the explicit Trigger model, runtime-generated callable phrases, stronger field headers/help icons, and a dynamic examples box for create/edit dialogs
 9. pivoted new saved actions to alias-root invocation while preserving legacy title-callable behavior for existing tasks
+10. added delete reachability for saved tasks through the secondary `Created Tasks` window
 
 ## Idea Impact Analysis And Route Adjustment
 
@@ -165,6 +168,7 @@ Confirm that the full FB-036 branch behavior is stable for real desktop use, inc
 
 - safe custom-task creation
 - bounded in-place editing
+- bounded deletion from `Created Tasks`
 - explicit Trigger configuration with runtime-generated callable phrases
 - alias-root invocation for newly created tasks without silently changing legacy tasks
 - validation-before-write for every supported target kind
@@ -247,17 +251,22 @@ Action: run the callable phrases that should still work for the edited task, the
 Expected Behavior: the alias-root phrases still work; the current trigger family works; and phrases from trigger families you removed no longer resolve for that task.
 Failure Conditions / Edge Cases: old trigger phrases still resolve after the trigger mode changed, current alias-root phrases do not resolve, or the title label behaves like an invocation source for the new task even when it is not in aliases.
 
-10. Setup: use or create one saved action record that predates the alias-root invocation marker, then open `Created Tasks` and edit it without changing its compatibility mode.
+10. Setup: with at least two saved actions present after a successful create or edit pass.
+Action: click `Created Tasks`, choose `Delete` for one task, then return to the overlay and verify the remaining inventory.
+Expected Behavior: the selected task is removed immediately without restart, the remaining tasks stay intact, the deleted task disappears from `Created Tasks`, and the overlay returns to entry-ready state with clear deletion feedback.
+Failure Conditions / Edge Cases: deleting one task removes the wrong row, inventory does not refresh until restart, the deleted task still resolves as callable, or the overlay does not recover cleanly afterward.
+
+11. Setup: use or create one saved action record that predates the alias-root invocation marker, then open `Created Tasks` and edit it without changing its compatibility mode.
 Action: save a valid edit and then run the legacy task again by bare title.
 Expected Behavior: the legacy task keeps its title-callable behavior after the edit because existing tasks must not silently convert.
 Failure Conditions / Edge Cases: a legacy task loses bare-title callability after a normal edit, or it silently flips into the new alias-root model without an explicit migration step.
 
-11. Setup: prepare at least eight valid saved actions and reopen the overlay.
+12. Setup: prepare at least eight valid saved actions and reopen the overlay.
 Action: click `Created Tasks`, scroll the inventory there, find the seventh or eighth saved action, click `Edit`, change it, and save.
 Expected Behavior: later items remain reachable through the secondary window, scrolling stays stable, the correct later item opens for editing, and the updated later item refreshes immediately after save.
 Failure Conditions / Edge Cases: only the first six items remain editable, `Created Tasks` does not expose later rows cleanly, scroll behavior breaks layout, later `Edit` buttons open the wrong item, or later edits do not refresh correctly.
 
-12. Setup: back up `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json`, then intentionally corrupt it with invalid JSON.
+13. Setup: back up `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json`, then intentionally corrupt it with invalid JSON.
 Action: reopen the overlay, try `Create Custom Task`, then open `Created Tasks`; if any saved-action rows still show `Edit`, try that too.
 Expected Behavior: authoring is blocked cleanly with repair-oriented messaging, no dialog proceeds into a real save path, and the source is not silently rewritten. In a fail-closed invalid-source state, `Created Tasks` may still open for status visibility while edit affordances disappear entirely; that absence is acceptable as long as the UI does not expose a live edit path.
 Failure Conditions / Edge Cases: the dialog opens anyway, the source is auto-repaired silently, inventory becomes inconsistent, a live edit path is still reachable against the broken source, or outside text/input-capture behavior regresses while blocked.

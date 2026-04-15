@@ -315,6 +315,47 @@ def _test_created_tasks_dialog_exposes_edit_trigger_for_saved_inventory_items():
     )
 
 
+def _test_created_tasks_dialog_exposes_delete_trigger_for_saved_inventory_items():
+    _app()
+    inventory_payload = {
+        "visible": True,
+        "status_kind": "loaded",
+        "status_text": "1 saved action is available.",
+        "guidance_text": 'Use "Open Saved Actions File" or "Open Saved Actions Folder" to inspect the source.',
+        "path": r"C:\Users\Test\AppData\Local\Nexus Desktop AI\saved_actions.json",
+        "path_display": r"C:\Users\Test\AppData\Local\Nexus Desktop AI\saved_actions.json",
+        "count": 1,
+        "items": [
+            {
+                "id": "open_reports",
+                "title": "Open Reports",
+                "origin": "saved",
+                "origin_label": "Saved",
+                "target_kind": "folder",
+                "target": r"C:\Reports",
+                "target_display": r"C:\Reports",
+            }
+        ],
+    }
+    dialog = renderer_mod.CreatedTasksDialog(inventory_payload=inventory_payload)
+    delete_buttons = [
+        button
+        for button in dialog.items_frame.findChildren(QPushButton)
+        if button.text() == "Delete"
+    ]
+
+    _assert(delete_buttons, "Created Tasks dialog should expose delete triggers for saved actions")
+    delete_buttons[0].click()
+    _assert(
+        dialog.selected_delete_action_id() == "open_reports",
+        "Created Tasks dialog should preserve stable delete-button mapping for the selected saved action",
+    )
+    _assert(
+        dialog.selected_action_id() == "",
+        "Created Tasks dialog delete selection should not leak into the edit-selection channel",
+    )
+
+
 def _test_created_tasks_dialog_edit_reachability_extends_beyond_six_items():
     _app()
     items = []
@@ -888,6 +929,73 @@ def _test_created_tasks_navigation_routes_into_edit_dialog():
         )
 
 
+def _test_created_tasks_navigation_routes_into_delete_flow():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        source_path.write_text(
+            """{
+  "schema_version": 1,
+  "actions": [
+    {
+      "id": "open_reports",
+      "title": "Open Reports",
+      "target_kind": "folder",
+      "target": "C:\\\\Reports",
+      "aliases": ["show reports"]
+    },
+    {
+      "id": "knowledge_pages",
+      "title": "Knowledge Pages",
+      "target_kind": "url",
+      "target": "https://example.com/docs",
+      "aliases": ["knowledge pages"]
+    }
+  ]
+}
+""",
+            encoding="utf-8",
+        )
+        window = _make_window(source_path)
+        created_tasks_dialogs = []
+        window._created_tasks_dialog_factory = (
+            lambda parent, inventory_payload: _AutoSelectCreatedTasksDialog(
+                None,
+                inventory_payload,
+                lambda dialog: (
+                    _assert(
+                        dialog.title_label.text() == "Created Tasks (2)",
+                        "Created Tasks delete flow should reflect the current saved-action count",
+                    ),
+                    dialog._handle_delete_requested("open_reports"),
+                ),
+                created_tasks_dialogs,
+            )
+        )
+
+        renderer_mod.DesktopRuntimeWindow.handle_created_tasks_requested(window)
+
+        inventory = window._command_model.view_payload().get("saved_action_inventory") or {}
+        items = inventory.get("items") or []
+
+        _assert(created_tasks_dialogs, "Created Tasks delete flow should open the secondary Created Tasks dialog")
+        _assert(window._command_model.phase == "entry", "delete flow should preserve entry phase")
+        _assert(window._command_model.status_kind == "ready", "delete flow should surface success feedback")
+        _assert("deleted" in window._command_model.status_text.casefold(), "delete flow should confirm the removal")
+        _assert(inventory.get("count") == 1, "delete flow should reduce the visible inventory count immediately")
+        _assert(
+            tuple(item.get("id") for item in items) == ("knowledge_pages",),
+            "delete flow should remove the selected saved action from the visible inventory immediately",
+        )
+        _assert(
+            "open_reports" not in source_path.read_text(encoding="utf-8"),
+            "delete flow should persist the removal to the saved-action source",
+        )
+        _assert(
+            renderer_mod.DesktopRuntimeWindow.overlay_needs_global_input_capture(window),
+            "delete flow should still restore fallback input capture readiness afterward",
+        )
+
+
 def _test_successful_edit_flow_loads_existing_values_and_reloads_inventory():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
@@ -1040,6 +1148,7 @@ def main():
         ("Created Tasks trigger present and clickable", _test_created_tasks_trigger_is_present_and_clickable),
         ("entry surface stays button-led", _test_entry_surface_keeps_inventory_details_out_of_landing_view),
         ("Created Tasks dialog exposes edit trigger", _test_created_tasks_dialog_exposes_edit_trigger_for_saved_inventory_items),
+        ("Created Tasks dialog exposes delete trigger", _test_created_tasks_dialog_exposes_delete_trigger_for_saved_inventory_items),
         ("Created Tasks dialog keeps edit reachability beyond six items", _test_created_tasks_dialog_edit_reachability_extends_beyond_six_items),
         ("type-first dialog maps supported kinds", _test_type_first_dialog_maps_all_supported_kinds),
         ("create dialog surfaces field-level guidance", _test_create_dialog_surfaces_field_level_guidance),
@@ -1052,6 +1161,7 @@ def main():
         ("invalid file target shows dialog error without write", _test_invalid_file_target_shows_dialog_error_and_does_not_write),
         ("unsafe source blocks before dialog open", _test_unsafe_source_blocks_before_dialog_open),
         ("Created Tasks navigation routes into edit dialog", _test_created_tasks_navigation_routes_into_edit_dialog),
+        ("Created Tasks navigation routes into delete flow", _test_created_tasks_navigation_routes_into_delete_flow),
         ("successful edit flow reloads inventory", _test_successful_edit_flow_loads_existing_values_and_reloads_inventory),
         ("invalid edit input shows dialog error without write", _test_invalid_edit_input_shows_dialog_error_and_does_not_write),
         ("unsafe source blocks edit before dialog open", _test_unsafe_source_blocks_edit_before_dialog_open),

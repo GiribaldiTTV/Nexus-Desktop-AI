@@ -17,6 +17,7 @@ from desktop.saved_action_authoring import (
     SavedActionDraftValidationError,
     SavedActionUnsafeSourceError,
     create_saved_action_from_draft,
+    delete_saved_action,
     load_saved_action_draft_for_edit,
     prepare_saved_action_record_for_create,
     update_saved_action_from_draft,
@@ -757,6 +758,90 @@ def _test_valid_edit_updates_existing_record_and_preserves_id():
         )
 
 
+def _test_delete_removes_existing_record_and_reloads_catalog():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        _write_json(
+            source_path,
+            {
+                "schema_version": 1,
+                "actions": [
+                    {
+                        "id": "open_reports",
+                        "title": "Open Reports",
+                        "target_kind": "folder",
+                        "target": r"C:\Reports",
+                        "aliases": ["show reports"],
+                    },
+                    {
+                        "id": "knowledge_pages",
+                        "title": "Knowledge Pages",
+                        "target_kind": "url",
+                        "target": "https://example.com/docs",
+                        "aliases": ["knowledge pages"],
+                    },
+                ],
+            },
+        )
+
+        result = delete_saved_action("open_reports", source_path)
+
+        payload = json.loads(source_path.read_text(encoding="utf-8"))
+        actions = payload.get("actions") or []
+
+        _assert(len(actions) == 1, "delete should remove the selected saved action from the source")
+        _assert(actions[0]["id"] == "knowledge_pages", "delete should preserve the remaining saved actions")
+        _assert(result.record["id"] == "open_reports", "delete should report the deleted saved action identity")
+        _assert(
+            tuple(action.id for action in result.catalog.saved_action_inventory.actions) == ("knowledge_pages",),
+            "delete should reload the inventory without the removed saved action",
+        )
+        _assert(
+            tuple(action.id for action in result.catalog.resolve_actions("show reports")) == (),
+            "delete should remove the deleted action from exact resolution",
+        )
+        _assert(
+            tuple(action.id for action in result.catalog.resolve_actions("knowledge pages")) == ("knowledge_pages",),
+            "delete should preserve exact resolution for the remaining saved action",
+        )
+
+
+def _test_delete_rejects_missing_record_without_writing():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        _write_json(
+            source_path,
+            {
+                "schema_version": 1,
+                "actions": [
+                    {
+                        "id": "open_reports",
+                        "title": "Open Reports",
+                        "target_kind": "folder",
+                        "target": r"C:\Reports",
+                        "aliases": ["show reports"],
+                    }
+                ],
+            },
+        )
+        original_text = source_path.read_text(encoding="utf-8")
+
+        try:
+            delete_saved_action("missing_action", source_path)
+        except SavedActionDraftValidationError as exc:
+            _assert(
+                "could not be found for deleting" in str(exc).casefold(),
+                "delete should explain when the selected saved action no longer exists",
+            )
+        else:
+            raise AssertionError("delete should fail closed when the selected saved action is missing")
+
+        _assert(
+            source_path.read_text(encoding="utf-8") == original_text,
+            "missing-record delete attempts should leave the source untouched",
+        )
+
+
 def _test_edit_rejects_builtin_collisions_without_writing():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
@@ -1027,6 +1112,8 @@ def main():
         ("atomic write failure preserves existing source", _test_atomic_write_failure_preserves_existing_source),
         ("edit loads existing saved action draft", _test_edit_loads_existing_saved_action_draft),
         ("valid edit updates existing record and preserves id", _test_valid_edit_updates_existing_record_and_preserves_id),
+        ("delete removes existing record and reloads catalog", _test_delete_removes_existing_record_and_reloads_catalog),
+        ("delete rejects missing record without write", _test_delete_rejects_missing_record_without_writing),
         ("edit rejects built-in collisions without write", _test_edit_rejects_builtin_collisions_without_writing),
         ("edit rejects other saved-action collisions without self-collision", _test_edit_rejects_other_saved_action_collisions_without_self_collision),
         ("invalid edit input is rejected before write", _test_invalid_edit_input_is_rejected_before_write),
