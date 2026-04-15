@@ -1107,7 +1107,8 @@ function Send-ComboSelectionSequence {
         [int]$DesiredIndex,
         [int]$CurrentIndex = -1,
         [bool]$OpenDropdown = $true,
-        [bool]$ResetFromTop = $false
+        [bool]$ResetFromTop = $false,
+        [string]$CommitMode = "enter"
     )
 
     if ($OpenDropdown) {
@@ -1137,8 +1138,16 @@ function Send-ComboSelectionSequence {
         }
     }
 
-    Send-VirtualKey -VirtualKey 0x0D
-    Start-Sleep -Milliseconds 180
+    switch ($CommitMode) {
+        "toggle" {
+            Send-VirtualKey -VirtualKey 0x73
+            Start-Sleep -Milliseconds 180
+        }
+        default {
+            Send-VirtualKey -VirtualKey 0x0D
+            Start-Sleep -Milliseconds 180
+        }
+    }
 }
 
 function Find-ComboPopupItem {
@@ -1199,7 +1208,7 @@ function Select-ComboItem {
         throw "Unsupported combo item '$ItemName'."
     }
 
-    for ($attempt = 1; $attempt -le 3; $attempt++) {
+    for ($attempt = 1; $attempt -le 4; $attempt++) {
         $Combo = & $ComboResolver
         if (-not $Combo) {
             throw "Could not resolve combo box for '$ItemName'."
@@ -1216,20 +1225,24 @@ function Select-ComboItem {
 
         try {
             $strategy = switch ($attempt) {
-                1 { "keyboard_open_delta" }
-                2 { "keyboard_open_reset" }
-                default { "keyboard_closed_reset" }
+                1 { "keyboard_open_delta_toggle" }
+                2 { "keyboard_open_reset_toggle" }
+                3 { "keyboard_open_delta_enter" }
+                default { "keyboard_open_reset_enter" }
             }
             Write-StepLog -Stage "INTERACT" -Message "combo select strategy=$strategy desired='$ItemName' attempt=$attempt"
             switch ($attempt) {
                 1 {
-                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $false
+                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $false -CommitMode "toggle"
                 }
                 2 {
-                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $true
+                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $true -CommitMode "toggle"
+                }
+                3 {
+                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $false -CommitMode "enter"
                 }
                 default {
-                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $false -ResetFromTop $true
+                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $true -CommitMode "enter"
                 }
             }
         } catch {
@@ -1449,27 +1462,150 @@ function Send-OverlayHotkeyFallback {
     }
 }
 
-function Get-DialogLookupChildAutomationId {
+function Get-CreateDialogControlAutomationIds {
+    param(
+        [string]$LeafAutomationId
+    )
+
+    $legacyBase = "QApplication.savedActionCreateDialog"
+    $currentBase = "QApplication.savedActionCreateDialog.savedActionCreateShell.savedActionCreateContent"
+
+    switch ($LeafAutomationId) {
+        "savedActionCreateTypeHelp" {
+            return @(
+                "$currentBase.savedActionCreateTypeHeader.savedActionCreateTypeHelp",
+                "$legacyBase.savedActionCreateTypeHelp"
+            )
+        }
+        "savedActionCreateTitleHelp" {
+            return @(
+                "$currentBase.savedActionCreateTitleHeader.savedActionCreateTitleHelp",
+                "$legacyBase.savedActionCreateTitleHelp"
+            )
+        }
+        "savedActionCreateTriggerHelp" {
+            return @(
+                "$currentBase.savedActionCreateTriggerHeader.savedActionCreateTriggerHelp",
+                "$legacyBase.savedActionCreateTriggerHelp"
+            )
+        }
+        "savedActionCreateAliasesHelp" {
+            return @(
+                "$currentBase.savedActionCreateAliasesHeader.savedActionCreateAliasesHelp",
+                "$legacyBase.savedActionCreateAliasesHelp"
+            )
+        }
+        "savedActionCreateTargetHelp" {
+            return @(
+                "$currentBase.savedActionCreateTargetHeader.savedActionCreateTargetHelp",
+                "$legacyBase.savedActionCreateTargetHelp"
+            )
+        }
+        "savedActionCreateTargetExamples" {
+            return @(
+                "$currentBase.savedActionCreateTargetExamplesBox.savedActionCreateTargetExamples",
+                "$legacyBase.savedActionCreateTargetExamples"
+            )
+        }
+        default {
+            return @(
+                "$currentBase.$LeafAutomationId",
+                "$legacyBase.$LeafAutomationId"
+            )
+        }
+    }
+}
+
+function Get-CreatedTasksDialogControlAutomationIds {
+    param(
+        [string]$LeafAutomationId
+    )
+
+    $legacyBase = "QApplication.savedActionCreatedTasksDialog"
+    $currentBase = "QApplication.savedActionCreatedTasksDialog.savedActionCreatedTasksShell.savedActionCreatedTasksContent"
+    return @(
+        "$currentBase.$LeafAutomationId",
+        "$legacyBase.$LeafAutomationId"
+    )
+}
+
+function Get-CreatedTasksDialogWindow {
+    $dialog = Find-ElementByAutomationIdDirect -Root ([System.Windows.Automation.AutomationElement]::RootElement) -AutomationId "QApplication.savedActionCreatedTasksDialog"
+    if ($dialog -and -not (Test-ElementGoneOrOffscreen -Element $dialog)) {
+        return $dialog
+    }
+    return $null
+}
+
+function Resolve-LiveCreatedTasksDialogRoot {
+    param(
+        [System.Windows.Automation.AutomationElement]$Dialog
+    )
+
+    $liveDialog = Get-CreatedTasksDialogWindow
+    if ($liveDialog) {
+        return $liveDialog
+    }
+
+    return (Resolve-LiveDialogRoot -Dialog $Dialog)
+}
+
+function Get-DialogLookupChildAutomationIds {
     param(
         [string]$Name
     )
 
     switch ($Name) {
         "Created Tasks" {
-            return "QApplication.savedActionCreatedTasksDialog.savedActionCreatedTasksStatus"
+            return (Get-CreatedTasksDialogControlAutomationIds -LeafAutomationId "savedActionCreatedTasksStatus")
         }
         default {
-            return "QApplication.savedActionCreateDialog.savedActionCreateTitleInput"
+            return (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput")
         }
     }
 }
 
 function Get-OverlayAnchorAutomationIds {
+    $ids = @(
+        "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine"
+    )
+    $ids += Get-OverlayCreateButtonAutomationIds
+    $ids += Get-OverlayManageButtonAutomationIds
+    return $ids
+}
+
+function Get-OverlayCreateButtonAutomationIds {
     return @(
-        "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine",
-        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton",
+        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.QFrame.savedActionCreateButton",
+        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton"
+    )
+}
+
+function Get-OverlayManageButtonAutomationIds {
+    return @(
+        "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.QFrame.savedActionCreatedTasksButton",
         "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton"
     )
+}
+
+function Find-ElementByAutomationIdsDirect {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [string[]]$AutomationIds
+    )
+
+    foreach ($automationId in @($AutomationIds)) {
+        if ([string]::IsNullOrWhiteSpace($automationId)) {
+            continue
+        }
+
+        $element = Find-ElementByAutomationIdDirect -Root $Root -AutomationId $automationId
+        if ($element) {
+            return $element
+        }
+    }
+
+    return $null
 }
 
 function Get-DialogWindow {
@@ -1484,11 +1620,13 @@ function Get-DialogWindow {
         }
     }
 
-    $childAutomationId = Get-DialogLookupChildAutomationId -Name $Name
-    if ($childAutomationId) {
-        $dialog = Find-DialogFromChildAutomationId -ExpectedName $Name -ChildAutomationId $childAutomationId
-        if ($dialog) {
-            return $dialog
+    $childAutomationIds = @(Get-DialogLookupChildAutomationIds -Name $Name)
+    if ($childAutomationIds.Count -gt 0) {
+        foreach ($childAutomationId in $childAutomationIds) {
+            $dialog = Find-DialogFromChildAutomationId -ExpectedName $Name -ChildAutomationId $childAutomationId
+            if ($dialog) {
+                return $dialog
+            }
         }
     }
 
@@ -1658,12 +1796,21 @@ function Wait-ForDialogControlReady {
     param(
         [scriptblock]$DialogResolver,
         [string]$AutomationId,
+        [string[]]$AutomationIds,
         [string]$Description,
         [int]$TimeoutSeconds = 6,
         [bool]$RequireEnabled = $true
     )
 
-    Write-StepLog -Stage "DIALOG" -Message "verifying control '$Description' automationId='$AutomationId'"
+    $automationIdsToSearch = @($AutomationIds | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($automationIdsToSearch.Count -eq 0 -and -not [string]::IsNullOrWhiteSpace($AutomationId)) {
+        $automationIdsToSearch = @($AutomationId)
+    }
+    if ($automationIdsToSearch.Count -eq 0) {
+        throw "No dialog automation IDs were supplied for '$Description'."
+    }
+
+    Write-StepLog -Stage "DIALOG" -Message "verifying control '$Description' automationId='$($automationIdsToSearch -join ' | ')'"
     Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
         $liveDialog = & $DialogResolver
         if (-not $liveDialog) {
@@ -1675,7 +1822,7 @@ function Wait-ForDialogControlReady {
             }
         } catch {
         }
-        $element = Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId $AutomationId
+        $element = Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds $automationIdsToSearch
         return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
     } | Out-Null
 
@@ -1684,7 +1831,7 @@ function Wait-ForDialogControlReady {
         throw "Could not resolve the live dialog while waiting for '$Description'."
     }
 
-    $element = Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId $AutomationId
+    $element = Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds $automationIdsToSearch
     if (-not (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)) {
         throw "Control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
     }
@@ -1697,18 +1844,27 @@ function Wait-ForOverlayControlReady {
     param(
         [scriptblock]$OverlayResolver,
         [string]$AutomationId,
+        [string[]]$AutomationIds,
         [string]$Description,
         [int]$TimeoutSeconds = 6,
         [bool]$RequireEnabled = $true
     )
 
-    Write-StepLog -Stage "OVERLAY" -Message "verifying control '$Description' automationId='$AutomationId'"
+    $automationIdsToSearch = @($AutomationIds | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($automationIdsToSearch.Count -eq 0 -and -not [string]::IsNullOrWhiteSpace($AutomationId)) {
+        $automationIdsToSearch = @($AutomationId)
+    }
+    if ($automationIdsToSearch.Count -eq 0) {
+        throw "No overlay automation IDs were supplied for '$Description'."
+    }
+
+    Write-StepLog -Stage "OVERLAY" -Message "verifying control '$Description' automationId='$($automationIdsToSearch -join ' | ')'"
     Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
         $liveOverlay = & $OverlayResolver
         if (-not $liveOverlay) {
             return $false
         }
-        $element = Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId $AutomationId
+        $element = Find-ElementByAutomationIdsDirect -Root $liveOverlay -AutomationIds $automationIdsToSearch
         return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
     } | Out-Null
 
@@ -1717,7 +1873,7 @@ function Wait-ForOverlayControlReady {
         throw "Could not resolve the live overlay while waiting for '$Description'."
     }
 
-    $element = Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId $AutomationId
+    $element = Find-ElementByAutomationIdsDirect -Root $liveOverlay -AutomationIds $automationIdsToSearch
     if (-not (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)) {
         throw "Overlay control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
     }
@@ -2219,8 +2375,11 @@ function Get-InventoryTextRows {
 
     $rows = @()
     foreach ($element in (Get-AllDescendants -Element $Overlay)) {
-        if ((Get-ElementControlTypeNameSafe -Element $element -Context "Get-InventoryTextRows") -eq [System.Windows.Automation.ControlType]::Text.ProgrammaticName -and $element.Current.Name -like "Open*") {
-            $rows += $element.Current.Name
+        if ((Get-ElementControlTypeNameSafe -Element $element -Context "Get-InventoryTextRows") -eq [System.Windows.Automation.ControlType]::Text.ProgrammaticName) {
+            $text = $element.Current.Name
+            if (-not [string]::IsNullOrWhiteSpace($text)) {
+                $rows += $text
+            }
         }
     }
     return @($rows)
@@ -2373,10 +2532,10 @@ function Open-CreateDialog {
         if (-not $liveOverlay) {
             return $null
         }
-        return (Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton")
+        return (Find-ElementByAutomationIdsDirect -Root $liveOverlay -AutomationIds (Get-OverlayCreateButtonAutomationIds))
     }
 
-    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton" -Description "Create Custom Task button"
+    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationIds (Get-OverlayCreateButtonAutomationIds) -Description "Create Custom Task button"
     $button = Focus-ElementForInteraction -ElementResolver $resolveCreateButton -Description "Create Custom Task button" -RequireExactFocus $false
     Write-StepLog -Stage "DIALOG" -Message "opening Create Custom Task"
     $markerStart = New-RuntimeMarkerCursor
@@ -2397,17 +2556,17 @@ function Open-CreateDialog {
     }
 
     Write-StepLog -Stage "DIALOG" -Message "verifying create-dialog entry readiness after runtime markers"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType" -Description "create dialog task type combo"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput" -Description "create dialog title input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput" -Description "create dialog aliases input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput" -Description "create dialog target input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType") -Description "create dialog task type combo"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput") -Description "create dialog title input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesInput") -Description "create dialog aliases input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetInput") -Description "create dialog target input"
 
     $typeCombo = Focus-ElementForInteraction -ElementResolver {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) {
             return $null
         }
-        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType")
+        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType"))
     } -Description "create dialog task type combo"
 
     if (-not $typeCombo) {
@@ -2431,10 +2590,10 @@ function Open-CreatedTasksDialog {
         if (-not $liveOverlay) {
             return $null
         }
-        return (Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton")
+        return (Find-ElementByAutomationIdsDirect -Root $liveOverlay -AutomationIds (Get-OverlayManageButtonAutomationIds))
     }
 
-    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton" -Description "Created Tasks button"
+    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationIds (Get-OverlayManageButtonAutomationIds) -Description "Created Tasks button"
     $button = Focus-ElementForInteraction -ElementResolver $resolveCreatedTasksButton -Description "Created Tasks button" -RequireExactFocus $false
     Write-StepLog -Stage "DIALOG" -Message "opening Created Tasks"
     $markerStart = New-RuntimeMarkerCursor
@@ -2449,12 +2608,10 @@ function Open-CreatedTasksDialog {
         Wait-ForDialogRuntimeReady -SignalBase "CREATED_TASKS_DIALOG" -StartLine $markerStart -TimeoutSeconds 8
     }
 
-    $dialog = Wait-ForOptionalDialog -Name "Created Tasks" -TimeoutSeconds 3
-    if ($dialog) {
-        return $dialog
-    }
-
-    return (Wait-ForDialog -Name "Created Tasks" -TimeoutSeconds 8)
+    Wait-Until -TimeoutSeconds 8 -Description "Manage Custom Tasks dialog" -Condition {
+        return [bool](Get-CreatedTasksDialogWindow)
+    } | Out-Null
+    return (Get-CreatedTasksDialogWindow)
 }
 
 function Wait-ForInventoryEditButtonReady {
@@ -2504,7 +2661,7 @@ function Open-EditDialog {
     )
 
     $resolveCreatedTasksDialog = {
-        Resolve-LiveDialogRoot -Dialog $CreatedTasksDialog -ExpectedName "Created Tasks"
+        Resolve-LiveCreatedTasksDialogRoot -Dialog $CreatedTasksDialog
     }
     $resolveEditButton = {
         $liveDialog = & $resolveCreatedTasksDialog
@@ -2548,17 +2705,17 @@ function Open-EditDialog {
         return $dialogScope
     }
 
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType" -Description "edit dialog task type combo"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput" -Description "edit dialog title input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput" -Description "edit dialog aliases input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput" -Description "edit dialog target input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType") -Description "edit dialog task type combo"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput") -Description "edit dialog title input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesInput") -Description "edit dialog aliases input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetInput") -Description "edit dialog target input"
 
     $typeCombo = Focus-ElementForInteraction -ElementResolver {
         $liveScope = & $resolveDialog
         if (-not $liveScope) {
             return $null
         }
-        return (Find-ElementByAutomationIdDirect -Root $liveScope -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType")
+        return (Find-ElementByAutomationIdsDirect -Root $liveScope -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType"))
     } -Description "edit dialog task type combo"
 
     if (-not $typeCombo) {
@@ -2593,33 +2750,33 @@ function Fill-AuthoringDialog {
     $resolveTypeCombo = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType")
+        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType"))
     }
     $resolveTitleInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput")
+        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput"))
     }
     $resolveAliasesInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput")
+        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesInput"))
     }
     $resolveTargetInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput")
+        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetInput"))
     }
     $resolveExamplesLabel = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdDirect -Root $liveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetExamples")
+        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetExamples"))
     }
     $helpButtonMap = @(
-        @{ Name = "Title"; AutomationId = "QApplication.savedActionCreateDialog.savedActionCreateTitleHelp" },
-        @{ Name = "Aliases"; AutomationId = "QApplication.savedActionCreateDialog.savedActionCreateAliasesHelp" },
-        @{ Name = "Trigger"; AutomationId = "QApplication.savedActionCreateDialog.savedActionCreateTriggerHelp" },
-        @{ Name = "Target"; AutomationId = "QApplication.savedActionCreateDialog.savedActionCreateTargetHelp" }
+        @{ Name = "Title"; AutomationIds = (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleHelp") },
+        @{ Name = "Aliases"; AutomationIds = (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesHelp") },
+        @{ Name = "Trigger"; AutomationIds = (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTriggerHelp") },
+        @{ Name = "Target"; AutomationIds = (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetHelp") }
     )
 
     $guidanceMap = @{
@@ -2630,10 +2787,10 @@ function Fill-AuthoringDialog {
     }
 
     Write-StepLog -Stage "DIALOG" -Message "verifying authoring dialog interaction readiness for '$dialogName'"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateType" -Description "task type combo"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTitleInput" -Description "title input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateAliasesInput" -Description "aliases input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetInput" -Description "target input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType") -Description "task type combo"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput") -Description "title input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesInput") -Description "aliases input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetInput") -Description "target input"
 
     Select-ComboItem -ComboResolver $resolveTypeCombo -ItemName $TypeLabel
     $selectedType = Get-ComboSelectedText -Combo (& $resolveTypeCombo)
@@ -2643,14 +2800,14 @@ function Fill-AuthoringDialog {
     }
 
     try {
-        $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateTargetExamples" -Description "bottom examples box" -TimeoutSeconds 2 -RequireEnabled $false
+        $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetExamples") -Description "bottom examples box" -TimeoutSeconds 2 -RequireEnabled $false
     } catch {
         Add-Note "Bottom examples box was not ready before the first field interactions, so the harness continued with the required input controls only."
     }
 
     foreach ($helpButtonInfo in $helpButtonMap) {
         try {
-            $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationId $helpButtonInfo.AutomationId -Description "$($helpButtonInfo.Name) help button" -TimeoutSeconds 2 -RequireEnabled $false
+            $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds $helpButtonInfo.AutomationIds -Description "$($helpButtonInfo.Name) help button" -TimeoutSeconds 2 -RequireEnabled $false
         } catch {
             Add-Note "$($helpButtonInfo.Name) help button was not ready before the first field interactions."
         }
@@ -2699,7 +2856,7 @@ function Get-DialogStatusText {
         [System.Windows.Automation.AutomationElement]$Dialog
     )
 
-    $status = Find-FirstElement -Root $Dialog -AutomationId "QApplication.savedActionCreateDialog.savedActionCreateStatus"
+    $status = Find-ElementByAutomationIdsDirect -Root $Dialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateStatus")
     if (-not $status) {
         return ""
     }
@@ -2956,8 +3113,8 @@ function Ensure-OverlayReady {
 
     try {
         $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.commandInputShell.commandInputLine" -Description "overlay input after $Reason"
-        $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton" -Description "Create Custom Task button after $Reason"
-        $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreatedTasksButton" -Description "Created Tasks button after $Reason"
+        $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationIds (Get-OverlayCreateButtonAutomationIds) -Description "Create Custom Task button after $Reason"
+        $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationIds (Get-OverlayManageButtonAutomationIds) -Description "Created Tasks button after $Reason"
         $null = Focus-ElementForInteraction -ElementResolver $resolveOverlayInput -Description "overlay input after $Reason" -RequireExactFocus $false
         Clear-TransitionBudget -Name $Reason
         Write-StepLog -Stage "FLOW" -Message "overlay ready for next step after $Reason"
@@ -3751,6 +3908,17 @@ function Run-SavedAlias-Ambiguity-Selection {
     param([System.Windows.Automation.AutomationElement]$Overlay)
     Write-StepLog -Stage "FLOW" -Message "running saved-vs-saved ambiguity selection check"
 
+    $liveOverlay = Wait-ForOptionalOverlayOpen -TimeoutSeconds 2
+    if ($liveOverlay) {
+        Write-StepLog -Stage "FLOW" -Message "overlay still visible after exact-match execution; forcing a clean reopen before saved-vs-saved ambiguity setup"
+        Close-Overlay -Reason "post exact-match execution before saved-vs-saved ambiguity setup"
+        $Overlay = Reopen-OverlayAfterClose -Reason "saved-vs-saved ambiguity setup reset"
+    } else {
+        Write-StepLog -Stage "FLOW" -Message "overlay closed after exact-match execution; reopening before saved-vs-saved ambiguity setup"
+        $Overlay = Open-OverlayWithRuntimeRestartFallback -MaxAttempts 2
+        $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "saved-vs-saved ambiguity setup"
+    }
+
     $dialog = Open-CreateDialog -Overlay $Overlay
     Fill-AuthoringDialog -Dialog $dialog -TypeLabel "Application" -Title "Weekly Reports Explorer" -Aliases "weekly reports" -Target "explorer.exe"
     $markerStart = New-RuntimeMarkerCursor
@@ -4014,7 +4182,7 @@ function Run-Unsafe-Source-Check {
         if (-not $liveOverlay) {
             return $null
         }
-        Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton"
+        Find-ElementByAutomationIdsDirect -Root $liveOverlay -AutomationIds (Get-OverlayCreateButtonAutomationIds)
     }
     $resolveCommandStatus = {
         $liveOverlay = & $resolveOverlay
@@ -4024,7 +4192,7 @@ function Run-Unsafe-Source-Check {
         Find-ElementByAutomationIdDirect -Root $liveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.commandStatus"
     }
 
-    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationId "QApplication.commandOverlayWindow.commandPanel.savedActionInventory.savedActionCreateButton" -Description "Create Custom Task button in unsafe-source path"
+    $null = Wait-ForOverlayControlReady -OverlayResolver $resolveOverlay -AutomationIds (Get-OverlayCreateButtonAutomationIds) -Description "Create Custom Task button in unsafe-source path"
     $createButton = Focus-ElementForInteraction -ElementResolver $resolveCreateButton -Description "Create Custom Task button in unsafe-source path" -RequireExactFocus $false
     $markerStart = New-RuntimeMarkerCursor
     Write-StepLog -Stage "FLOW" -Message "invoking blocked create path for unsafe saved-action source"
@@ -4055,7 +4223,7 @@ function Run-Unsafe-Source-Check {
 
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $overlay
     Write-StepLog -Stage "FLOW" -Message "confirming unsafe-source Created Tasks status state"
-    $dialogStatus = Wait-ForDialogControlReady -DialogResolver { Resolve-LiveDialogRoot -Dialog $createdTasksDialog -ExpectedName "Created Tasks" } -AutomationId "QApplication.savedActionCreatedTasksDialog.savedActionCreatedTasksStatus" -Description "Created Tasks status in unsafe-source path" -RequireEnabled $false
+    $dialogStatus = Wait-ForDialogControlReady -DialogResolver { Resolve-LiveCreatedTasksDialogRoot -Dialog $createdTasksDialog } -AutomationIds (Get-CreatedTasksDialogControlAutomationIds -LeafAutomationId "savedActionCreatedTasksStatus") -Description "Created Tasks status in unsafe-source path" -RequireEnabled $false
     $dialogStatusText = if ($dialogStatus) { Get-ElementReadableValue -Element $dialogStatus } else { "" }
     Write-StepLog -Stage "FLOW" -Message "unsafe-source Created Tasks status='$dialogStatusText'"
     if (-not $dialogStatusText) {
