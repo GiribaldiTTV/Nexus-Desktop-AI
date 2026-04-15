@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Active on feature/fb-036-validation-hardening`
+- `Active on feature/fb-036-idea5-integrated-hardening`
 
 ## Release Stage
 
@@ -40,11 +40,14 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 - create/edit dialogs now use stronger field headers with label-hover help, darker integrated chrome, and a single callable-surface panel that updates from the current title, aliases, trigger selection, and target kind
 - create/edit dialogs now place `Trigger` directly below `Title`, use faster NDAI-styled help tooltips from the field labels themselves, and keep the callable-surface panel to the right of the form for clearer scanning
 - exact-match resolution remains unchanged
+- new integrated truth now allows multiple saved actions to share the same exact callable phrase while still keeping exact-match normalization and resolution bounded
+- saved-vs-saved exact ambiguities now surface through the existing overlay ambiguity chooser, then continue through the normal confirm step before execution
+- built-in vs saved callable-phrase overlap still remains blocked rather than becoming ambiguous in this lane
 - the overlay phase machine remains bounded to `entry` -> `choose` -> `confirm` -> `result`
 - current supported saved-action target kinds remain `app`, `folder`, `file`, and `url`
 - malformed or colliding saved-action sources still block authoring rather than attempting salvage
 - branch-local validation and hardening work now also includes dedicated FB-036 validators, live-style harnesses, interactive runtime helpers, durable validation reports, and exported manual-test artifacts that future slices should reuse rather than recreate blindly
-- the full watchdog-enforced interactive desktop gate passed end-to-end on `2026-04-15` using `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260415_061125.txt`
+- the final integrated FB-036 + Idea 5 watchdog-enforced interactive desktop gate passed end-to-end on `2026-04-15` using `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260415_115705.txt`
 
 ## Scope
 
@@ -64,10 +67,12 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 - disable flows
 - Action Studio behavior
 - taskbar or tray authoring surfaces
-- resolution-model changes
 - overlay phase changes
 - new persisted action kinds
 - malformed-source repair logic
+- built-in vs saved ambiguity
+- ambiguity ranking logic changes
+- fuzzy matching
 
 ## Executed Slices So Far
 
@@ -82,6 +87,8 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 9. pivoted new saved actions to alias-root invocation while preserving legacy title-callable behavior for existing tasks
 10. added delete reachability for saved tasks through the secondary `Created Tasks` window
 11. polished the create/edit dialog layout so `Trigger` follows `Title`, help tooltips appear faster, and the single bottom callable-surface box is easier to scan
+12. allowed saved-vs-saved exact-match ambiguity while preserving built-in collision rejection and the existing choose -> confirm -> execute overlay flow
+13. integrated the latest FB-036 UI lane, hardening lane, and Idea 5 ambiguity lane into one final proof branch and re-cleared the full watchdog-backed interactive desktop gate
 
 ## Idea Impact Analysis And Route Adjustment
 
@@ -171,6 +178,10 @@ This workstream exists so users can manage non-standard custom tasks safely thro
   - `Title` is a display label
   - `Aliases` are the invocation-bearing phrases
   - `Trigger` chooses the prefix family that expands callable phrases at runtime
+- exact-match discipline still remains the routing contract
+  - one exact phrase can now intentionally resolve to more than one saved action
+  - when that happens, the existing overlay ambiguity chooser presents the candidates and the user selects one before the normal confirm step executes it
+  - built-in vs saved exact overlaps remain blocked in this lane
 - built-in trigger families remain bounded to `Launch`, `Open`, `Launch and Open`, and `Custom`
 - examples in the create/edit dialogs now reflect only real callable phrases generated from the current alias + trigger draft
 - new-model create and edit preserve exact-match discipline and do not widen into fuzzy language handling
@@ -393,18 +404,20 @@ Confirm that the full FB-036 branch behavior is stable for real desktop use, inc
 - immediate catalog reload after save
 - fail-closed handling for unsafe saved-action sources
 - edit reachability for inventories larger than six items
+- saved-vs-saved exact-match ambiguity surfaced through candidate selection
+- built-in-vs-saved overlap still blocked before write
 - no regression in the typed-first overlay baseline
 
 ### Scenario / Entry Point
 
-Open the desktop overlay on `feature/fb-036-saved-action-authoring` with a healthy `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json` source and use the lightweight button-led entry surface as the authoring landing path:
+Open the desktop overlay on `feature/fb-036-idea5-integrated-hardening` with a healthy `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json` source and use the lightweight button-led entry surface as the authoring landing path:
 
 - `Create Custom Task`
 - `Manage Custom Tasks`
 
 ### Setup / Prerequisites
 
-- start from a clean desktop runtime launch on `feature/fb-036-saved-action-authoring`
+- start from a clean desktop runtime launch on `feature/fb-036-idea5-integrated-hardening`
 - keep a safe outside text target open, such as Notepad, so stray typing is easy to spot
 - know where `%LOCALAPPDATA%\Nexus Desktop AI\saved_actions.json` lives
 - for the large-inventory checks, prepare at least eight valid saved actions in the source
@@ -441,7 +454,12 @@ Action: type callable phrases through the normal overlay input:
 Expected Behavior: each exact phrase resolves through the existing typed-first path with no fuzzy expansion because the aliases are the invocation roots for the new task.
 Failure Conditions / Edge Cases: alias-root phrases do not resolve, custom-trigger phrases do not resolve, the title label resolves even though it is not present in aliases, resolution becomes fuzzy or ambiguous unexpectedly, or restart is required before the new phrases work.
 
-6. Setup: open `Create Custom Task` again.
+6. Setup: with two valid saved actions intentionally sharing the same alias, for example `weekly reports`.
+Action: type the shared phrase into the normal overlay input, confirm that the ambiguity chooser appears, choose the second candidate, then confirm execution.
+Expected Behavior: the overlay stays within the existing typed-first phase model, shows multiple exact candidates for the shared phrase, accepts numbered or direct chooser selection, advances to the normal confirm step for the selected action only, and executes only that chosen saved action.
+Failure Conditions / Edge Cases: the shared exact phrase is rejected as an authoring error, the overlay silently picks one action without showing candidates, the candidate ordering is unstable across repeats, confirmation is skipped, or the wrong saved action executes after selection.
+
+7. Setup: open `Create Custom Task` again.
 Action: test invalid creates one at a time:
 `Application` with `Target = notepad.exe --help`
 `Folder` with `Target = Reports\Daily`
@@ -451,7 +469,7 @@ then set `Trigger = Custom` and enter duplicate custom trigger phrases like `For
 Expected Behavior: each invalid case stays in the dialog, shows a clear explanation for what failed, and writes nothing to disk.
 Failure Conditions / Edge Cases: any invalid target or invalid custom trigger set is accepted, the dialog closes anyway, inventory changes, or the error text is vague or missing.
 
-7. Setup: with at least one saved action already present.
+8. Setup: with at least one saved action already present.
 Action: attempt collision creates:
 use an alias like `Open Windows Explorer`
 use another saved action's existing title or alias
@@ -459,22 +477,22 @@ use wording that collides only through generated trigger phrases, such as creati
 Expected Behavior: the dialog stays open, collision feedback is clear, and no write occurs.
 Failure Conditions / Edge Cases: a colliding action is saved, an existing record is overwritten, or inventory count changes.
 
-8. Setup: with the created task already present.
+9. Setup: with the created task already present.
 Action: click `Manage Custom Tasks`, then `Edit`, verify current values preload, change `Trigger` to `Open`, change type to `File`, use `Browse...` to choose `C:\Reports\weekly.txt`, and save.
 Expected Behavior: the edit dialog preloads the existing title, aliases, trigger choice, and target; type changes still update the default trigger until you deliberately choose a trigger yourself; the same saved action updates in place; and the examples box refreshes to match the edited trigger and target kind.
 Failure Conditions / Edge Cases: preload is blank or incomplete, the trigger resets unexpectedly after a manual choice, browse support disappears for `File`, the examples box stays stale, the save creates a duplicate, or refresh only happens after restart.
 
-9. Setup: after the valid edit succeeds.
+10. Setup: after the valid edit succeeds.
 Action: run the callable phrases that should still work for the edited task, then verify phrases that should no longer work after the trigger change.
 Expected Behavior: the alias-root phrases still work; the current trigger family works; and phrases from trigger families you removed no longer resolve for that task.
 Failure Conditions / Edge Cases: old trigger phrases still resolve after the trigger mode changed, current alias-root phrases do not resolve, or the title label behaves like an invocation source for the new task even when it is not in aliases.
 
-10. Setup: with at least two saved actions present after a successful create or edit pass.
+11. Setup: with at least two saved actions present after a successful create or edit pass.
 Action: click `Manage Custom Tasks`, choose `Delete` for one task, then return to the overlay and verify the remaining inventory.
 Expected Behavior: the selected task is removed immediately without restart, the remaining tasks stay intact, the deleted task disappears from `Manage Custom Tasks`, and the overlay returns to entry-ready state with clear deletion feedback.
 Failure Conditions / Edge Cases: deleting one task removes the wrong row, inventory does not refresh until restart, the deleted task still resolves as callable, or the overlay does not recover cleanly afterward.
 
-11. Setup: use or create one saved action record that predates the alias-root invocation marker, then open `Created Tasks` and edit it without changing its compatibility mode.
+12. Setup: use or create one saved action record that predates the alias-root invocation marker, then open `Created Tasks` and edit it without changing its compatibility mode.
 Action: save a valid edit and then run the legacy task again by bare title.
 Expected Behavior: the legacy task keeps its title-callable behavior after the edit because existing tasks must not silently convert.
 Failure Conditions / Edge Cases: a legacy task loses bare-title callability after a normal edit, or it silently flips into the new alias-root model without an explicit migration step.
