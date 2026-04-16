@@ -137,6 +137,8 @@ class CommandGroup:
     aliases: tuple[str, ...]
     member_action_ids: tuple[str, ...]
     member_actions: tuple[CommandAction, ...]
+    origin: str = "saved"
+    is_protected: bool = False
 
 
 @dataclass(frozen=True)
@@ -400,6 +402,47 @@ def _normalized_group_phrases(group: CommandGroup) -> set[str]:
             raise ValueError("Callable group aliases must be non-empty.")
         normalized_phrases.add(normalized)
     return normalized_phrases
+
+
+def _build_default_command_groups() -> tuple[CommandGroup, ...]:
+    action_by_id = {
+        action.id.casefold(): action
+        for action in DEFAULT_COMMAND_ACTIONS
+    }
+    member_ids = tuple(
+        action.id
+        for action in DEFAULT_COMMAND_ACTIONS
+        if action.id in {
+            "open_jarvis_workspace",
+            "open_jarvis_docs",
+            "open_windows_explorer",
+            "open_saved_actions_file",
+            "open_saved_actions_folder",
+        }
+    )
+    member_actions = tuple(
+        action_by_id[action_id.casefold()]
+        for action_id in member_ids
+        if action_id.casefold() in action_by_id
+    )
+    return (
+        CommandGroup(
+            id="nexus_core_tasks",
+            title="Nexus Core Tasks",
+            aliases=(
+                "nexus core tasks",
+                "ndai core tasks",
+                "nexus default tasks",
+            ),
+            member_action_ids=member_ids,
+            member_actions=member_actions,
+            origin="built_in",
+            is_protected=True,
+        ),
+    )
+
+
+DEFAULT_COMMAND_GROUPS = _build_default_command_groups()
 
 
 LEGACY_SAVED_ACTIONS_ACCESS_ACTION_PHRASES = frozenset(
@@ -781,6 +824,8 @@ def _command_group_from_saved_record(
         aliases=_coerce_saved_group_aliases(record),
         member_action_ids=member_action_ids,
         member_actions=tuple(member_actions),
+        origin="saved",
+        is_protected=bool(record.get("is_protected", False)),
     )
 
 
@@ -802,8 +847,13 @@ def _load_saved_command_groups_from_records(
     for action in available_actions:
         action_phrases.update(_normalized_action_phrases(action))
 
-    seen_group_ids: set[str] = set()
+    seen_group_ids: set[str] = {
+        group.id.casefold()
+        for group in DEFAULT_COMMAND_GROUPS
+    }
     seen_group_aliases: set[str] = set()
+    for group in DEFAULT_COMMAND_GROUPS:
+        seen_group_aliases.update(_normalized_group_phrases(group))
     groups: list[CommandGroup] = []
     for record in records:
         group = _command_group_from_saved_record(record, available_actions=available_actions)
@@ -998,14 +1048,14 @@ def build_default_command_action_catalog(
         return CommandActionCatalog(
             DEFAULT_COMMAND_ACTIONS,
             saved_action_inventory=saved_action_inventory,
-            groups=saved_group_inventory.groups,
+            groups=(*DEFAULT_COMMAND_GROUPS, *saved_group_inventory.groups),
             saved_group_inventory=saved_group_inventory,
         )
 
     return CommandActionCatalog(
         (*DEFAULT_COMMAND_ACTIONS, *saved_action_inventory.actions),
         saved_action_inventory=saved_action_inventory,
-        groups=saved_group_inventory.groups,
+        groups=(*DEFAULT_COMMAND_GROUPS, *saved_group_inventory.groups),
         saved_group_inventory=saved_group_inventory,
     )
 

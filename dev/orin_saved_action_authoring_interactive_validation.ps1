@@ -332,13 +332,26 @@ try {
             try {
                 if ($ProbePath) {
                     $probeLeaf = [System.IO.Path]::GetFileName($ProbePath)
-                    Get-Process notepad -ErrorAction SilentlyContinue |
-                        Where-Object { $_.MainWindowTitle -like "*$probeLeaf*" } |
-                        ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+                    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+                        Where-Object {
+                            (
+                                $_.Name -like 'powershell*.exe' -or
+                                $_.Name -eq 'pwsh.exe' -or
+                                $_.Name -eq 'notepad.exe' -or
+                                $_.Name -eq 'pythonw.exe' -or
+                                $_.Name -eq 'python.exe'
+                            ) -and
+                            $_.CommandLine -and
+                            (
+                                $_.CommandLine -like "*$ProbePath*" -or
+                                $_.CommandLine -like "*$probeLeaf*"
+                            )
+                        } |
+                        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
                     if (Test-Path -LiteralPath $ProbePath) {
                         Remove-Item -LiteralPath $ProbePath -Force -ErrorAction SilentlyContinue
                     }
-                    Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog closed and removed the validation Notepad probe'
+                    Add-WatchdogLine -Stage 'CLEANUP' -Message 'watchdog closed and removed the validation external probe'
                 }
             } catch {
             }
@@ -1507,6 +1520,30 @@ function Get-CreateDialogControlAutomationIds {
                 "$legacyBase.savedActionCreateTargetExamples"
             )
         }
+        "savedActionCreateGroupsStatus" {
+            return @(
+                "$currentBase.savedActionCreateGroupsFrame.savedActionCreateGroupsStatus",
+                "$legacyBase.savedActionCreateGroupsStatus"
+            )
+        }
+        "savedActionCreateGroupsSummary" {
+            return @(
+                "$currentBase.savedActionCreateGroupsFrame.savedActionCreateGroupsSummary",
+                "$legacyBase.savedActionCreateGroupsSummary"
+            )
+        }
+        "savedActionCreateNewGroupButton" {
+            return @(
+                "$currentBase.savedActionCreateGroupsFrame.savedActionCreateNewGroupButton",
+                "$legacyBase.savedActionCreateNewGroupButton"
+            )
+        }
+        "savedActionCreateRemoveGroupButton" {
+            return @(
+                "$currentBase.savedActionCreateGroupsFrame.savedActionCreateRemoveGroupButton",
+                "$legacyBase.savedActionCreateRemoveGroupButton"
+            )
+        }
         default {
             return @(
                 "$currentBase.$LeafAutomationId",
@@ -1536,6 +1573,19 @@ function Get-QuickCreateGroupDialogControlAutomationIds {
 
     $legacyBase = "QApplication.quickCreateGroupDialog"
     $currentBase = "QApplication.quickCreateGroupDialog.quickCreateGroupShell.quickCreateGroupContent"
+    return @(
+        "$currentBase.$LeafAutomationId",
+        "$legacyBase.$LeafAutomationId"
+    )
+}
+
+function Get-TaskGroupAssignmentDialogControlAutomationIds {
+    param(
+        [string]$LeafAutomationId
+    )
+
+    $legacyBase = "QApplication.taskGroupAssignmentDialog"
+    $currentBase = "QApplication.taskGroupAssignmentDialog.taskGroupAssignmentShell.taskGroupAssignmentContent"
     return @(
         "$currentBase.$LeafAutomationId",
         "$legacyBase.$LeafAutomationId"
@@ -2725,7 +2775,7 @@ function Open-CreateDialog {
             return $null
         }
         return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType"))
-    } -Description "create dialog task type combo"
+    } -Description "create dialog task type combo" -RequireExactFocus $false
 
     if (-not $typeCombo) {
         throw "Could not focus the create dialog task type combo after dialog ready."
@@ -2773,7 +2823,11 @@ function Open-CreateGroupDialog {
 
     $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateNameInput") -Description "group dialog name input"
     $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateAliasesInput") -Description "group dialog aliases input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersFrame") -Description "group dialog members frame" -RequireEnabled $false
+    $groupMembersRegionAutomationIds = @(
+        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersScroll")
+        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersFrame")
+    )
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds $groupMembersRegionAutomationIds -Description "group dialog members region" -RequireEnabled $false
     return (& $resolveDialog)
 }
 
@@ -2811,6 +2865,134 @@ function Fill-CallableGroupDialog {
         }
         Set-CheckboxStateVerified -ElementResolver $resolveCheckbox -Checked $true -Description "group member '$memberName'"
     }
+}
+
+function Open-TaskGroupAssignmentDialog {
+    param(
+        [System.Windows.Automation.AutomationElement]$TaskDialog
+    )
+
+    $dialogName = $TaskDialog.Current.Name
+    $resolveTaskDialog = {
+        Resolve-LiveDialogRoot -Dialog $TaskDialog -ExpectedName $dialogName
+    }
+    $resolveAssignGroupButton = {
+        $liveDialog = & $resolveTaskDialog
+        if (-not $liveDialog) { return $null }
+        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateNewGroupButton"))
+    }
+
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveTaskDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateNewGroupButton") -Description "task dialog Assign Group button"
+    $button = Focus-ElementForInteraction -ElementResolver $resolveAssignGroupButton -Description "task dialog Assign Group button" -RequireExactFocus $false
+    Invoke-ElementRobust -Element $button -Description "task dialog Assign Group button"
+
+    $dialog = Wait-ForDialog -Name "Available Groups" -TimeoutSeconds 8
+    $resolveDialog = {
+        Resolve-LiveDialogRoot -Dialog $dialog -ExpectedName "Available Groups"
+    }
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-TaskGroupAssignmentDialogControlAutomationIds -LeafAutomationId "taskGroupAssignmentCreateButton") -Description "Available Groups create button"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-TaskGroupAssignmentDialogControlAutomationIds -LeafAutomationId "taskGroupAssignmentDoneButton") -Description "Available Groups done button"
+    return (& $resolveDialog)
+}
+
+function Get-TaskGroupAssignmentRowButton {
+    param(
+        [System.Windows.Automation.AutomationElement]$Dialog,
+        [string]$GroupTitle,
+        [string]$ButtonName
+    )
+
+    $liveDialog = Resolve-LiveDialogRoot -Dialog $Dialog -ExpectedName "Available Groups"
+    if (-not $liveDialog) {
+        return $null
+    }
+
+    $titleElement = Find-FirstElement -Root $liveDialog -Name $GroupTitle
+    if (-not $titleElement) {
+        return $null
+    }
+
+    $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+    $current = $titleElement
+    while ($current) {
+        $button = Find-FirstElement -Root $current -Name $ButtonName -ControlType ([System.Windows.Automation.ControlType]::Button)
+        if ($button) {
+            return $button
+        }
+        try {
+            $current = $walker.GetParent($current)
+        } catch {
+            return $null
+        }
+    }
+
+    if ($ButtonName -eq "Assign") {
+        $assignButtons = @()
+        foreach ($element in (Get-AllDescendants -Element $liveDialog)) {
+            try {
+                if (
+                    (Get-ElementControlTypeNameSafe -Element $element -Context "Get-TaskGroupAssignmentRowButton fallback") -eq [System.Windows.Automation.ControlType]::Button.ProgrammaticName -and
+                    $element.Current.Name -eq "Assign" -and
+                    -not $element.Current.IsOffscreen -and
+                    $element.Current.IsEnabled
+                ) {
+                    $assignButtons += $element
+                }
+            } catch {
+            }
+        }
+        if ($assignButtons.Count -eq 1) {
+            Add-Note "Resolved '$GroupTitle' assignment through the unique visible Assign button fallback in Available Groups."
+            return $assignButtons[0]
+        }
+    }
+
+    return $null
+}
+
+function Set-TaskGroupAssignmentRowState {
+    param(
+        [System.Windows.Automation.AutomationElement]$Dialog,
+        [string]$GroupTitle,
+        [string]$ButtonName,
+        [string]$Description
+    )
+
+    $resolveButton = {
+        return (Get-TaskGroupAssignmentRowButton -Dialog $Dialog -GroupTitle $GroupTitle -ButtonName $ButtonName)
+    }
+    Wait-Until -TimeoutSeconds 8 -Description "$Description ready" -Condition {
+        return [bool](& $resolveButton)
+    }
+    $button = Focus-ElementForInteraction -ElementResolver $resolveButton -Description $Description -RequireExactFocus $false
+    Invoke-ElementRobust -Element $button -Description $Description
+}
+
+function Open-AssignmentCreateGroupDialog {
+    param(
+        [System.Windows.Automation.AutomationElement]$AssignmentDialog
+    )
+
+    $resolveAssignmentDialog = {
+        Resolve-LiveDialogRoot -Dialog $AssignmentDialog -ExpectedName "Available Groups"
+    }
+    $resolveCreateButton = {
+        $liveDialog = & $resolveAssignmentDialog
+        if (-not $liveDialog) { return $null }
+        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-TaskGroupAssignmentDialogControlAutomationIds -LeafAutomationId "taskGroupAssignmentCreateButton"))
+    }
+
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveAssignmentDialog -AutomationIds (Get-TaskGroupAssignmentDialogControlAutomationIds -LeafAutomationId "taskGroupAssignmentCreateButton") -Description "Available Groups create button"
+    $button = Focus-ElementForInteraction -ElementResolver $resolveCreateButton -Description "Available Groups create button" -RequireExactFocus $false
+    Invoke-ElementRobust -Element $button -Description "Available Groups create button"
+
+    $dialog = Wait-ForDialog -Name "Create Custom Group" -TimeoutSeconds 8
+    $resolveDialog = {
+        Resolve-LiveDialogRoot -Dialog $dialog -ExpectedName "Create Custom Group"
+    }
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateNameInput") -Description "inline group dialog name input"
+    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateAliasesInput") -Description "inline group dialog aliases input"
+    return (& $resolveDialog)
 }
 
 function Open-QuickCreateGroupDialog {
@@ -3095,12 +3277,6 @@ function Fill-AuthoringDialog {
         throw "Type selection did not apply. Expected '$TypeLabel', saw '$selectedType'."
     }
 
-    try {
-        $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetExamples") -Description "bottom examples box" -TimeoutSeconds 2 -RequireEnabled $false
-    } catch {
-        Add-Note "Bottom examples box was not ready before the first field interactions, so the harness continued with the required input controls only."
-    }
-
     foreach ($helpButtonInfo in $helpButtonMap) {
         try {
             $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds $helpButtonInfo.AutomationIds -Description "$($helpButtonInfo.Name) help button" -TimeoutSeconds 2 -RequireEnabled $false
@@ -3118,7 +3294,11 @@ function Fill-AuthoringDialog {
                 if (-not $liveExamples) {
                     return $false
                 }
-                return (Get-ElementReadableValue -Element $liveExamples) -like "*$expectedGuidance*"
+                try {
+                    return (Get-ElementReadableValue -Element $liveExamples) -like "*$expectedGuidance*"
+                } catch {
+                    return $false
+                }
             } | Out-Null
             $guidanceReady = $true
         } catch {
@@ -3596,51 +3776,212 @@ function Stop-WatchdogMonitorQuietly {
     }
 }
 
+function Get-NotepadProcessIds {
+    return @(
+        Get-Process notepad -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty Id
+    )
+}
+
+function Get-ExplorerWindowHandles {
+    $handles = @()
+    try {
+        $shell = New-Object -ComObject Shell.Application
+        foreach ($window in @($shell.Windows())) {
+            try {
+                $fullName = [string]$window.FullName
+                if (-not $fullName) {
+                    continue
+                }
+                if ((Split-Path $fullName -Leaf).ToLowerInvariant() -ne "explorer.exe") {
+                    continue
+                }
+                $hwnd = 0
+                try {
+                    $hwnd = [int64]$window.HWND
+                } catch {
+                    $hwnd = 0
+                }
+                if ($hwnd -gt 0) {
+                    $handles += $hwnd
+                }
+            } catch {
+            }
+        }
+    } catch {
+    }
+    return @($handles | Sort-Object -Unique)
+}
+
+function Stop-NewNotepadProcesses {
+    param(
+        [int[]]$BaselineProcessIds = @(),
+        [int[]]$ExcludeProcessIds = @()
+    )
+
+    $baseline = @{}
+    foreach ($processId in @($BaselineProcessIds)) {
+        $baseline[[string]$processId] = $true
+    }
+    $exclude = @{}
+    foreach ($processId in @($ExcludeProcessIds)) {
+        $exclude[[string]$processId] = $true
+    }
+
+    $stoppedCount = 0
+    foreach ($process in @(Get-Process notepad -ErrorAction SilentlyContinue)) {
+        if ($baseline.ContainsKey([string]$process.Id) -or $exclude.ContainsKey([string]$process.Id)) {
+            continue
+        }
+        try {
+            Stop-ProcessQuietly -Process $process
+            $stoppedCount += 1
+        } catch {
+        }
+    }
+    return $stoppedCount
+}
+
+function Close-NewExplorerWindows {
+    param(
+        [int64[]]$BaselineWindowHandles = @()
+    )
+
+    $baseline = @{}
+    foreach ($handle in @($BaselineWindowHandles)) {
+        $baseline[[string]$handle] = $true
+    }
+
+    $closedCount = 0
+    try {
+        $shell = New-Object -ComObject Shell.Application
+        foreach ($window in @($shell.Windows())) {
+            try {
+                $fullName = [string]$window.FullName
+                if (-not $fullName) {
+                    continue
+                }
+                if ((Split-Path $fullName -Leaf).ToLowerInvariant() -ne "explorer.exe") {
+                    continue
+                }
+                $hwnd = 0
+                try {
+                    $hwnd = [int64]$window.HWND
+                } catch {
+                    $hwnd = 0
+                }
+                if ($hwnd -le 0 -or $baseline.ContainsKey([string]$hwnd)) {
+                    continue
+                }
+                $window.Quit()
+                $closedCount += 1
+            } catch {
+            }
+        }
+    } catch {
+    }
+    return $closedCount
+}
+
 function Start-NotepadProbe {
     $probeFile = Join-Path $ArtifactsDir "${Stamp}_notepad_probe.txt"
     Write-Utf8NoBomFile -Path $probeFile -Content ""
-    $process = Start-Process -FilePath "notepad.exe" -ArgumentList "`"$probeFile`"" -PassThru
+    $probeLeaf = Split-Path -Leaf $probeFile
     $expectedTitle = "$(Split-Path -Leaf $probeFile) - Notepad"
+    $probeScriptPath = Join-Path $ArtifactsDir "${Stamp}_notepad_probe_window.py"
+    $probeScript = @"
+import pathlib
+import sys
+import tkinter as tk
+
+probe_path = pathlib.Path(sys.argv[1])
+window_title = sys.argv[2]
+probe_path.write_text("", encoding="utf-8")
+
+root = tk.Tk()
+root.title(window_title)
+root.geometry("760x460")
+root.minsize(540, 320)
+
+text = tk.Text(root, wrap="none", undo=False)
+text.pack(fill="both", expand=True)
+
+def persist():
+    try:
+        probe_path.write_text(text.get("1.0", "end-1c"), encoding="utf-8")
+    except Exception:
+        pass
+
+def pump():
+    persist()
+    root.after(250, pump)
+
+def close_window():
+    persist()
+    root.destroy()
+
+root.protocol("WM_DELETE_WINDOW", close_window)
+root.after(100, lambda: (root.lift(), root.focus_force(), text.focus_set()))
+root.after(250, pump)
+root.mainloop()
+"@
+    Write-Utf8NoBomFile -Path $probeScriptPath -Content $probeScript
+
+    $process = Start-Process -FilePath "pythonw.exe" -ArgumentList @(
+        $probeScriptPath,
+        $probeFile,
+        $expectedTitle
+    ) -PassThru
 
     $window = $null
     Wait-Until -TimeoutSeconds 15 -Description "notepad probe window" -Condition {
         foreach ($candidate in (Get-RootWindows)) {
-            if (
-                (Get-ElementControlTypeNameSafe -Element $candidate -Context "Start-NotepadProbe") -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName -and
-                $candidate.Current.ClassName -eq "Notepad" -and
-                ($candidate.Current.Name -eq $expectedTitle -or $candidate.Current.Name -eq "Notepad")
-            ) {
-                $script:window = $candidate
-                return $true
+            try {
+                if ($candidate.Current.Name -eq $expectedTitle) {
+                    $script:window = $candidate
+                    return $true
+                }
+            } catch {
             }
         }
         return $false
     } | Out-Null
 
     $window = $script:window
+
     if (-not $window) {
         throw "Could not resolve Notepad automation window from the launched process."
     }
     Focus-Window -Element $window
 
     $editor = $null
-    foreach ($candidate in (Get-AllDescendants -Element $window)) {
-        if ($candidate.Current.ClassName -eq "RichEditD2DPT") {
-            $editor = $candidate
-            break
+    try {
+        $editor = Resolve-NotepadEditor -Probe ([pscustomobject]@{
+            process = $process
+            process_id = $process.Id
+            window = $window
+            path = $probeFile
+            expected_title = $expectedTitle
+        })
+    } catch {
+    }
+    if ($editor) {
+        try {
+            Set-Value -Element $editor -Value ""
+        } catch {
         }
+    } else {
+        Add-Note "External probe text control was not immediately available after launch; file-backed fallback remains active."
     }
-    if (-not $editor) {
-        throw "Could not locate Notepad edit control."
-    }
-    Set-Value -Element $editor -Value ""
 
     return [pscustomobject]@{
         process = $process
         process_id = $process.Id
+        window_process_id = $process.Id
         window = $window
         editor = $editor
         path = $probeFile
+        script_path = $probeScriptPath
         expected_title = $expectedTitle
     }
 }
@@ -3654,22 +3995,41 @@ function Resolve-NotepadProbeWindow {
         $expectedProcessId = [int]$Probe.process_id
     } catch {
     }
+    try {
+        foreach ($candidate in (Get-RootWindows)) {
+            if ($candidate.Current.Name -eq $expectedTitle) {
+                if ($expectedProcessId -le 0 -or $candidate.Current.ProcessId -eq $expectedProcessId) {
+                    return $candidate
+                }
+            }
+        }
+    } catch {
+    }
+
+    $fallbackCandidate = $null
     foreach ($candidate in (Get-RootWindows)) {
         try {
+            $controlTypeName = Get-ElementControlTypeNameSafe -Element $candidate -Context "Resolve-NotepadProbeWindow"
             if (
-                (Get-ElementControlTypeNameSafe -Element $candidate -Context "Resolve-NotepadProbeWindow") -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName -and
+                ($controlTypeName -eq [System.Windows.Automation.ControlType]::Window.ProgrammaticName -or [string]::IsNullOrWhiteSpace($controlTypeName)) -and
                 $candidate.Current.ClassName -eq "Notepad"
             ) {
-                if ($expectedProcessId -gt 0 -and $candidate.Current.ProcessId -ne $expectedProcessId) {
-                    continue
-                }
                 if ($expectedTitle -and $candidate.Current.Name -ne $expectedTitle -and $candidate.Current.Name -ne "Notepad") {
                     continue
                 }
-                return $candidate
+                if ($expectedProcessId -gt 0 -and $candidate.Current.ProcessId -eq $expectedProcessId) {
+                    return $candidate
+                }
+                if (-not $fallbackCandidate) {
+                    $fallbackCandidate = $candidate
+                }
             }
         } catch {
         }
+    }
+
+    if ($fallbackCandidate) {
+        return $fallbackCandidate
     }
 
     if ($Probe.window -and -not (Test-ElementGoneOrOffscreen -Element $Probe.window)) {
@@ -4140,10 +4500,17 @@ function Run-Group-Invocation-Check {
     Send-VirtualKey -VirtualKey 0x0D
     Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_LAUNCH_REQUEST_SENT|action_id=open_saved_actions_folder" -StartLine $launchStart
 
-    $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "group built-in invocation verification"
-    $input = Get-OverlayInput -Overlay $Overlay
+    $liveOverlay = Wait-ForOptionalOverlayOpen -TimeoutSeconds 2
+    if ($liveOverlay) {
+        Close-Overlay -Reason "group built-in invocation verification reset"
+    }
+    $Overlay = Reopen-OverlayAfterClose -Reason "group built-in invocation verification"
+    $resolveOverlayInput = {
+        return (Get-OverlayInput -Overlay $Overlay)
+    }
+    $input = & $resolveOverlayInput
     Set-Value -Element $input -Value $phrase
-    $input.SetFocus()
+    $null = Focus-ElementForInteraction -ElementResolver $resolveOverlayInput -Description "overlay input for saved member group invocation" -RequireExactFocus $false
     Start-Sleep -Milliseconds 200
 
     $ambiguousStart = New-RuntimeMarkerCursor
@@ -4159,7 +4526,11 @@ function Run-Group-Invocation-Check {
     Send-VirtualKey -VirtualKey 0x0D
     Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_LAUNCH_REQUEST_SENT|action_id=open_notepad_task" -StartLine $launchStart
     Copy-SourceSnapshot -Slug "after_group_invocation" | Out-Null
-    return (Ensure-OverlayReady -Overlay $Overlay -Reason "post-group invocation verification")
+    $liveOverlay = Wait-ForOptionalOverlayOpen -TimeoutSeconds 2
+    if ($liveOverlay) {
+        Close-Overlay -Reason "post-group invocation verification reset"
+    }
+    return (Reopen-OverlayAfterClose -Reason "post-group invocation verification")
 }
 
 function Run-Task-Inline-Group-Check {
@@ -4171,17 +4542,33 @@ function Run-Task-Inline-Group-Check {
     $resolveDialog = {
         Resolve-LiveDialogRoot -Dialog $dialog -ExpectedName "Create Custom Task"
     }
-    $resolveExistingGroupCheckbox = {
-        $liveDialog = & $resolveDialog
-        if (-not $liveDialog) { return $null }
-        return (Get-CheckboxByName -Root $liveDialog -Name "Workspace Tools (2 members)")
+    $assignmentDialog = Open-TaskGroupAssignmentDialog -TaskDialog $dialog
+    Set-TaskGroupAssignmentRowState -Dialog $assignmentDialog -GroupTitle "Workspace Tools" -ButtonName "Assign" -Description "existing Workspace Tools group assign button"
+    $quickDialog = Open-AssignmentCreateGroupDialog -AssignmentDialog $assignmentDialog
+    Fill-CallableGroupDialog -Dialog $quickDialog -GroupName "Notes Suite" -Aliases "notes suite" -MemberNames @()
+    Submit-Dialog -Dialog $quickDialog -ButtonName "Create"
+    Start-Sleep -Milliseconds 900
+    Wait-Until -TimeoutSeconds 6 -Description "Available Groups returned after inline create group" -Condition {
+        $liveAssignmentDialog = Get-DialogWindow -Name "Available Groups"
+        return [bool]$liveAssignmentDialog
+    } | Out-Null
+    $assignmentDialog = Get-DialogWindow -Name "Available Groups"
+    if (-not $assignmentDialog) {
+        throw "Available Groups dialog did not return after inline group creation."
     }
-
-    Set-CheckboxStateVerified -ElementResolver $resolveExistingGroupCheckbox -Checked $true -Description "existing Workspace Tools group checkbox"
-    $quickDialog = Open-QuickCreateGroupDialog -TaskDialog $dialog
-    Fill-QuickCreateGroupDialog -Dialog $quickDialog -GroupName "Notes Suite" -Aliases "notes suite"
-    Submit-Dialog -Dialog $quickDialog -ButtonName "Add Group"
-    Wait-Until -TimeoutSeconds 6 -Description "task dialog returned after quick group create" -Condition {
+    $resolveInlineNotesButton = {
+        $liveAssignmentDialog = Resolve-LiveDialogRoot -Dialog $assignmentDialog -ExpectedName "Available Groups"
+        if (-not $liveAssignmentDialog) { return $null }
+        return (Find-ElementByAutomationIdsDirect -Root $liveAssignmentDialog -AutomationIds (Get-TaskGroupAssignmentDialogControlAutomationIds -LeafAutomationId "taskGroupAssignmentInlineGroupToggleButton"))
+    }
+    $null = Wait-ForDialogControlReady -DialogResolver { Resolve-LiveDialogRoot -Dialog $assignmentDialog -ExpectedName "Available Groups" } -AutomationIds (Get-TaskGroupAssignmentDialogControlAutomationIds -LeafAutomationId "taskGroupAssignmentInlineGroupToggleButton") -Description "new Notes Suite group assign button"
+    $inlineNotesButton = Focus-ElementForInteraction -ElementResolver $resolveInlineNotesButton -Description "new Notes Suite group assign button" -RequireExactFocus $false
+    if ($inlineNotesButton.Current.Name -ne "Assign") {
+        throw "Inline-created Notes Suite group returned with an unexpected toggle state instead of Assign."
+    }
+    Invoke-ElementRobust -Element $inlineNotesButton -Description "new Notes Suite group assign button"
+    Submit-Dialog -Dialog $assignmentDialog -ButtonName "Done"
+    Wait-Until -TimeoutSeconds 6 -Description "task dialog returned after group assignment" -Condition {
         $liveDialog = & $resolveDialog
         return [bool]$liveDialog
     } | Out-Null
@@ -4194,11 +4581,11 @@ function Run-Task-Inline-Group-Check {
 
     $workspaceGroup = Get-CallableGroupRecordById -GroupId "workspace_tools"
     $notesGroup = Get-CallableGroupRecordById -GroupId "notes_suite"
-    if (@($workspaceGroup.member_action_ids) -notcontains "open_notes_task") {
-        throw "Existing group membership did not pick up the newly created task."
+    if (@($workspaceGroup.member_action_ids) -contains "open_notes_task") {
+        throw "Single-group assignment should not keep the task attached to the previously assigned existing group after Notes Suite was assigned."
     }
     if (@($notesGroup.member_action_ids).Count -ne 1 -or @($notesGroup.member_action_ids)[0] -ne "open_notes_task") {
-        throw "Inline quick-create group did not persist with the new task as its first member."
+        throw "Inline quick-create group did not persist as the assigned single group for the new task."
     }
     Copy-SourceSnapshot -Slug "after_task_inline_group" | Out-Null
     return (Ensure-OverlayReady -Overlay $Overlay -Reason "post-inline-group task verification")
@@ -4438,8 +4825,9 @@ function Run-SavedAlias-Ambiguity-Selection {
 
     $liveOverlay = Wait-ForOptionalOverlayOpen -TimeoutSeconds 2
     if ($liveOverlay) {
-        Write-StepLog -Stage "FLOW" -Message "overlay still visible after exact-match execution; reusing the live overlay for saved-vs-saved ambiguity setup"
-        $Overlay = Ensure-OverlayReady -Overlay $liveOverlay -Reason "saved-vs-saved ambiguity setup reuse"
+        Write-StepLog -Stage "FLOW" -Message "overlay remained visible after exact-match execution; closing and reopening before saved-vs-saved ambiguity setup"
+        Close-Overlay -Reason "saved-vs-saved ambiguity setup reset"
+        $Overlay = Reopen-OverlayAfterClose -Reason "saved-vs-saved ambiguity setup reset"
     } else {
         Write-StepLog -Stage "FLOW" -Message "overlay closed after exact-match execution; reopening before saved-vs-saved ambiguity setup"
         $Overlay = Open-OverlayWithRuntimeRestartFallback -MaxAttempts 2
@@ -4482,7 +4870,11 @@ function Run-SavedAlias-Ambiguity-Selection {
     Send-VirtualKey -VirtualKey 0x0D
     Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|COMMAND_LAUNCH_REQUEST_SENT|action_id=weekly_reports_explorer" -StartLine $launchStart
     Copy-SourceSnapshot -Slug "after_ambiguity_selection" | Out-Null
-    return (Ensure-OverlayReady -Overlay $Overlay -Reason "post-saved-vs-saved ambiguity verification")
+    $liveOverlay = Wait-ForOptionalOverlayOpen -TimeoutSeconds 2
+    if ($liveOverlay) {
+        Close-Overlay -Reason "post-saved-vs-saved ambiguity verification reset"
+    }
+    return (Reopen-OverlayAfterClose -Reason "post-saved-vs-saved ambiguity verification")
 }
 
 function Run-Edit-Flow {
@@ -4774,17 +5166,18 @@ $originalSourceBytes = if ($originalSourceExists) { [System.IO.File]::ReadAllByt
 $script:runtimeProcess = $null
 $script:notepadProbe = $null
 $script:watchdogProcess = $null
+$script:baselineNotepadProcessIds = @(Get-NotepadProcessIds)
+$script:baselineExplorerWindowHandles = @(Get-ExplorerWindowHandles)
 $runFailure = $null
 
 try {
     Write-StepLog -Stage "BUDGET" -Message "interactive validation budgets active: full_run=${script:InteractiveRunHardTimeoutSeconds}s no_progress=${script:NoProgressTimeoutSeconds}s scenario=${script:ScenarioTimeoutSeconds}s transition=${script:TransitionTimeoutSeconds}s"
     Stop-StaleInteractiveValidationProcesses
+    $script:notepadProbe = Start-NotepadProbe
+    Add-Artifact -Label "notepad_probe_file" -Path $script:notepadProbe.path
     $script:runtimeProcess = Start-InteractiveRuntime
     Add-Artifact -Label "interactive_runtime_log" -Path $RuntimeLogPath
     Add-Artifact -Label "interactive_step_log" -Path $StepLogPath
-
-    $script:notepadProbe = Start-NotepadProbe
-    Add-Artifact -Label "notepad_probe_file" -Path $script:notepadProbe.path
     $script:watchdogProcess = Start-ValidationWatchdog `
         -ParentPid $PID `
         -StepLogPath $StepLogPath `
@@ -4949,7 +5342,19 @@ finally {
     if ($script:notepadProbe) {
         try {
             Stop-ProcessQuietly -Process $script:notepadProbe.process
-            Add-CleanupNote -Message "closed the validation Notepad probe window"
+            Add-CleanupNote -Message "closed the validation external probe window"
+        } catch {
+        }
+        try {
+            if (
+                $script:notepadProbe.window_process_id -and
+                $script:notepadProbe.process_id -ne $script:notepadProbe.window_process_id
+            ) {
+                $windowProcess = Get-Process -Id ([int]$script:notepadProbe.window_process_id) -ErrorAction SilentlyContinue
+                if ($windowProcess) {
+                    Stop-ProcessQuietly -Process $windowProcess
+                }
+            }
         } catch {
         }
         try {
@@ -4960,6 +5365,14 @@ finally {
         } catch {
             Add-Note "Cleanup could not delete the validation Notepad probe file cleanly."
         }
+        try {
+            if ($script:notepadProbe.script_path -and (Test-Path -LiteralPath $script:notepadProbe.script_path)) {
+                Remove-Item -LiteralPath $script:notepadProbe.script_path -Force
+                Add-CleanupNote -Message "deleted the validation probe helper script"
+            }
+        } catch {
+            Add-Note "Cleanup could not delete the validation probe helper script cleanly."
+        }
     }
 
     if ($script:runtimeProcess) {
@@ -4968,6 +5381,28 @@ finally {
             Add-CleanupNote -Message "stopped the interactive runtime helper"
         } catch {
         }
+    }
+
+    try {
+        $closedExplorerWindows = Close-NewExplorerWindows -BaselineWindowHandles $script:baselineExplorerWindowHandles
+        if ($closedExplorerWindows -gt 0) {
+            Add-CleanupNote -Message "closed $closedExplorerWindows File Explorer window(s) opened during validation"
+        }
+    } catch {
+        Add-Note "Cleanup could not close every File Explorer window opened during validation."
+    }
+
+    try {
+        $excludedNotepadIds = @()
+        if ($script:notepadProbe -and $script:notepadProbe.process_id) {
+            $excludedNotepadIds += [int]$script:notepadProbe.process_id
+        }
+        $closedNotepadProcesses = Stop-NewNotepadProcesses -BaselineProcessIds $script:baselineNotepadProcessIds -ExcludeProcessIds $excludedNotepadIds
+        if ($closedNotepadProcesses -gt 0) {
+            Add-CleanupNote -Message "closed $closedNotepadProcesses additional Notepad process(es) opened during validation"
+        }
+    } catch {
+        Add-Note "Cleanup could not close every extra Notepad window opened during validation."
     }
 
     try {

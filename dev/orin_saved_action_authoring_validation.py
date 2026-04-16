@@ -1214,6 +1214,11 @@ def _test_group_alias_collisions_stay_bounded_against_tasks_builtins_and_groups(
                 aliases=("workspace tools",),
                 member_action_ids=("open_reports",),
             ),
+            CallableGroupDraft(
+                title="Protected Built-In Group Collision",
+                aliases=("nexus core tasks",),
+                member_action_ids=("open_reports",),
+            ),
         ):
             try:
                 prepare_callable_group_record_for_create(draft, source_path)
@@ -1225,6 +1230,25 @@ def _test_group_alias_collisions_stay_bounded_against_tasks_builtins_and_groups(
         _assert(
             source_path.read_text(encoding="utf-8") == original_text,
             "rejected group alias collisions should leave the source untouched",
+        )
+
+
+def _test_builtin_group_stays_callable_but_outside_custom_group_management():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        _write_json(source_path, dict(DEFAULT_SAVED_ACTION_TEMPLATE))
+
+        catalog = build_default_command_action_catalog(source_path)
+        inventory = inspect_saved_group_inventory(source_path)
+        matched_group = catalog.resolve_group("nexus core tasks")
+
+        _assert(
+            matched_group is not None and matched_group.id == "nexus_core_tasks" and matched_group.is_protected,
+            "the shipped default-task group should stay callable as a protected built-in group",
+        )
+        _assert(
+            inventory.status_kind == "template_only" and len(inventory.groups) == 0,
+            "protected built-in groups should stay outside custom-group management and assignment inventory",
         )
 
 
@@ -1464,6 +1488,7 @@ def main():
         ("invalid existing saved actions with duplicate ids block edit", _test_invalid_existing_saved_actions_with_duplicate_ids_block_edit_completely),
         ("group create persists groups without schema bump", _test_group_create_persists_groups_without_changing_schema_version),
         ("group alias collisions stay bounded", _test_group_alias_collisions_stay_bounded_against_tasks_builtins_and_groups),
+        ("built-in group stays callable but outside custom management", _test_builtin_group_stays_callable_but_outside_custom_group_management),
         ("group edit and delete preserve identity and remove records", _test_group_edit_and_delete_preserve_group_identity_and_remove_records),
         ("task delete removes group membership and drops empty groups", _test_task_delete_removes_group_membership_and_drops_empty_groups),
         ("invalid groups do not block normal task authoring", _test_invalid_groups_do_not_block_normal_task_authoring_or_exact_task_resolution),

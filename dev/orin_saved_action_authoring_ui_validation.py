@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtWidgets import QApplication, QDialog, QLabel, QPushButton, QToolButton
+from PySide6.QtWidgets import QApplication, QDialog, QFrame, QLabel, QPushButton, QToolButton
 from PySide6.QtCore import Qt
 
 
@@ -397,6 +397,60 @@ def _test_entry_surface_keeps_inventory_details_out_of_landing_view():
     _assert(
         panel.saved_inventory_title.text() == "Custom tasks and groups",
         "entry-state landing surface should explain that both task and group authoring live here",
+    )
+
+
+def _test_entry_surface_positions_panel_as_right_sidecar():
+    _app()
+    panel = renderer_mod.CommandOverlayPanel()
+    panel.render_payload(
+        {
+            "visible": True,
+            "phase": "entry",
+            "input_armed": True,
+            "input_text": "",
+            "status_kind": "idle",
+            "status_text": "",
+            "typed_request": "",
+            "pending_action": None,
+            "pending_group": None,
+            "ambiguous_titles": [],
+            "ambiguous_matches": [],
+            "saved_action_inventory": {
+                "visible": True,
+                "status_kind": "loaded",
+                "status_text": "",
+                "guidance_text": "",
+                "path": "",
+                "path_display": "",
+                "count": 0,
+                "items": [],
+            },
+            "saved_group_inventory": {
+                "visible": True,
+                "status_kind": "loaded",
+                "status_text": "",
+                "guidance_text": "",
+                "path": "",
+                "path_display": "",
+                "count": 0,
+                "items": [],
+            },
+        }
+    )
+
+    host = renderer_mod.QRect(100, 100, 1100, 720)
+    bounds = renderer_mod.QRect(0, 0, 1600, 900)
+    panel._apply_geometry(host, bounds)
+    frame = panel.frameGeometry()
+
+    _assert(
+        frame.x() >= host.x() + int(host.width() * 0.56),
+        "entry-state overlay should sit as a right-sidecar instead of centering over the visualization",
+    )
+    _assert(
+        560 <= frame.width() <= 680,
+        "entry-state overlay should stay more horizontal while remaining bounded enough to avoid sprawling back across the visualization",
     )
     _assert(
         panel.saved_inventory_status.text() == "Create or manage exact-match tasks and callable groups.",
@@ -854,11 +908,13 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "Task type should remain the first full field row, followed by Title, Trigger, and Aliases",
     )
     _assert(
-        dialog.form_layout.verticalSpacing() >= 12 and dialog.form_layout.horizontalSpacing() >= 16,
-        "create dialog spacing should stay open enough to keep the stronger header hierarchy readable without reintroducing dead space",
+        7 <= dialog.form_layout.verticalSpacing() <= 9
+        and 12 <= dialog.form_layout.horizontalSpacing() <= 14,
+        "create dialog spacing should stay intentionally tightened without collapsing into a cramped layout",
     )
     _assert(
-        dialog.create_button.minimumHeight() >= 40 and dialog.cancel_button.minimumHeight() >= 40,
+        34 <= dialog.create_button.minimumHeight() <= 36
+        and 34 <= dialog.cancel_button.minimumHeight() <= 36,
         "dialog action buttons should keep the tighter but still comfortable padding rhythm",
     )
     _assert(
@@ -866,19 +922,37 @@ def _test_create_dialog_surfaces_field_level_guidance():
         and dialog.target_header.property("createRole") == "fieldHeaderDivider",
         "task dialog headers should use slim divider rows for stronger field separation without boxed chrome",
     )
+    _assert(
+        dialog.type_header_divider.property("createRole") == "fieldHeaderDividerLine"
+        and dialog.type_header_divider.sizePolicy().horizontalPolicy() == renderer_mod.QSizePolicy.Expanding,
+        "task dialog divider rows should carry a full-width line instead of only decorating the label column",
+    )
     dialog.show()
     _app().processEvents()
     _assert(
+        dialog.type_header_label.y() > dialog.type_header_divider.y(),
+        "task dialog headers should sit below the divider line instead of sharing the same row",
+    )
+    _assert(
         dialog.title_label.y() <= 18,
         "create dialog title should sit close to the true top edge instead of below a dead header band",
+    )
+    _assert(
+        bool(dialog.title_label.alignment() & Qt.AlignHCenter),
+        "create dialog title should center within the shell so the top composition does not feel lopsided against the close affordance",
     )
     _assert(
         dialog.target_examples_box.x() > dialog.aliases_input.x(),
         "callable-surface guidance should sit to the right of the form instead of consuming the full lower section",
     )
     _assert(
-        dialog.title_input.minimumHeight() >= 42 and dialog.aliases_input.minimumHeight() >= 42,
-        "form inputs should feel roomier and less cramped than the earlier compact version",
+        36 <= dialog.title_input.height() <= 40
+        and 36 <= dialog.aliases_input.height() <= 40,
+        "form inputs should stay compact enough to reduce overall dialog scale without becoming cramped",
+    )
+    _assert(
+        dialog.target_browse_button.y() > dialog.target_input.y(),
+        "target browse action should sit below the target field so the input keeps more horizontal space",
     )
 
     dialog.title_input.setText("Nexus")
@@ -1019,8 +1093,8 @@ def _test_group_create_dialog_surfaces_members_and_exact_alias_guidance():
         if label.property("createRole") == "fieldHeaderHelp"
     ]
     _assert(
-        member_header_labels and member_header_labels[0].text() == "Members",
-        "group dialog should expose a member-picker field",
+        member_header_labels and member_header_labels[0].text() == "Available Tasks",
+        "group dialog should expose an Available Tasks picker field",
     )
     _assert(
         dialog.name_header.property("createRole") == "fieldHeaderDivider",
@@ -1031,17 +1105,25 @@ def _test_group_create_dialog_surfaces_members_and_exact_alias_guidance():
         "group dialog should expose checkboxes for both saved-task and built-in members",
     )
     _assert(
-        dialog.maximumWidth() <= 560,
-        "group dialog should keep a bounded default width instead of expanding too far across the screen",
+        "QCheckBox::indicator" in dialog.styleSheet(),
+        "group dialog should strengthen unchecked checkbox visibility instead of relying on the default subtle indicator",
+    )
+    _assert(
+        620 <= dialog.maximumWidth() <= 680,
+        "group dialog should stay wider and more horizontal while still remaining width-bounded",
+    )
+    _assert(
+        bool(dialog.title_label.alignment() & Qt.AlignHCenter),
+        "group dialog title should center within the shell so it matches the other callable-management windows",
     )
     _assert(
         "QToolTip {" in dialog.styleSheet(),
         "group authoring should theme tooltips instead of falling back to the default tooltip styling",
     )
     _assert(
-        dialog.members_scroll.maximumHeight() <= 220
+        dialog.members_scroll.maximumHeight() <= 116
         and dialog.members_scroll.horizontalScrollBarPolicy() == Qt.ScrollBarAlwaysOff,
-        "group dialog should bound the members list with a vertical-only scroll region for reliability",
+        "group dialog should cap the Available Tasks list to roughly five visible rows with vertical-only scrolling",
     )
     _assert(
         "chromeRole=\"close\"" in dialog.styleSheet(),
@@ -1075,6 +1157,12 @@ def _test_group_create_dialog_surfaces_members_and_exact_alias_guidance():
     _assert(
         any("becomes selectable when this group's alias is used." in checkbox.toolTip().casefold() for checkbox in dialog._member_checkboxes),
         "group member rows should expose specific tooltips instead of a generic origin-only label",
+    )
+    dialog.show()
+    _app().processEvents()
+    _assert(
+        dialog.name_header.findChildren(QLabel)[-1].y() > dialog.name_header.findChildren(QFrame)[0].y(),
+        "group dialog section titles should sit below the divider line instead of sharing it",
     )
     dialog.name_input.setText("Workspace Tools")
     dialog.aliases_input.setText("workspace tools, tools group")
@@ -1847,6 +1935,7 @@ def main():
         ("Create Custom Group trigger present and clickable", _test_create_custom_group_trigger_is_present_and_clickable),
         ("Manage Custom Groups trigger present and clickable", _test_manage_custom_groups_trigger_is_present_and_clickable),
         ("entry surface stays button-led", _test_entry_surface_keeps_inventory_details_out_of_landing_view),
+        ("entry surface positions panel as right sidecar", _test_entry_surface_positions_panel_as_right_sidecar),
         ("Created Tasks dialog exposes edit trigger", _test_created_tasks_dialog_exposes_edit_trigger_for_saved_inventory_items),
         ("Created Tasks dialog exposes delete trigger", _test_created_tasks_dialog_exposes_delete_trigger_for_saved_inventory_items),
         ("Created Tasks dialog keeps edit reachability beyond six items", _test_created_tasks_dialog_edit_reachability_extends_beyond_six_items),
