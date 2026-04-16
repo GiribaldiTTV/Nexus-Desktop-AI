@@ -161,6 +161,33 @@ def _clear_layout_widgets(layout):
             _clear_layout_widgets(child_layout)
 
 
+def _visible_row_height_for_layout(layout, max_rows: int, *, extra_padding: int = 0) -> int:
+    if layout is None or max_rows <= 0:
+        return 0
+
+    spacing = max(0, int(layout.spacing()))
+    margins = layout.contentsMargins()
+    total_height = margins.top() + margins.bottom()
+    visible_rows = 0
+
+    for index in range(layout.count()):
+        item = layout.itemAt(index)
+        if item is None:
+            continue
+        widget = item.widget()
+        if widget is None or not widget.isVisible():
+            continue
+        total_height += max(widget.sizeHint().height(), widget.minimumSizeHint().height())
+        visible_rows += 1
+        if visible_rows >= max_rows:
+            break
+        total_height += spacing
+
+    if visible_rows == 0:
+        return 0
+    return total_height + max(0, int(extra_padding))
+
+
 def _screen_available_geometry_for_widget(widget: QWidget) -> QRect | None:
     screen = None
     try:
@@ -1402,8 +1429,8 @@ class SavedActionCreateDialog(QDialog):
         self.chrome_bar.raise_()
 
         layout = QVBoxLayout(self.content)
-        layout.setContentsMargins(16, 8, 16, 10)
-        layout.setSpacing(7)
+        layout.setContentsMargins(16, 6, 16, 10)
+        layout.setSpacing(6)
 
         self.title_label = QLabel(heading_text, self)
         self.title_label.setObjectName("savedActionCreateTitle")
@@ -1419,7 +1446,7 @@ class SavedActionCreateDialog(QDialog):
         form = QGridLayout()
         self.form_layout = form
         form.setHorizontalSpacing(12)
-        form.setVerticalSpacing(7)
+        form.setVerticalSpacing(6)
         form.setColumnMinimumWidth(0, 112)
         form.setColumnStretch(1, 1)
 
@@ -1838,12 +1865,14 @@ class SavedActionCreateDialog(QDialog):
         self._update_chrome_overlay_geometry()
         _schedule_window_clamp(self)
         self._emit_lifecycle_event("opened")
+        QTimer.singleShot(0, self._sync_items_scroll_height)
         QTimer.singleShot(0, self._emit_ready_signal)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_chrome_overlay_geometry()
         _schedule_window_clamp(self)
+        QTimer.singleShot(0, self._sync_items_scroll_height)
 
     def done(self, result):
         self._emit_lifecycle_event(
@@ -2406,8 +2435,8 @@ class CallableGroupCreateDialog(QDialog):
         self.chrome_bar.raise_()
 
         layout = QVBoxLayout(self.content)
-        layout.setContentsMargins(18, 8, 18, 10)
-        layout.setSpacing(7)
+        layout.setContentsMargins(16, 6, 16, 10)
+        layout.setSpacing(6)
 
         self.title_label = QLabel(heading_text, self)
         self.title_label.setObjectName("callableGroupCreateTitle")
@@ -2422,7 +2451,7 @@ class CallableGroupCreateDialog(QDialog):
 
         form = QVBoxLayout()
         form.setContentsMargins(0, 0, 0, 0)
-        form.setSpacing(10)
+        form.setSpacing(8)
 
         self.name_header, _, _, _ = SavedActionCreateDialog._make_form_header(
             self,
@@ -3164,6 +3193,29 @@ class CreatedTasksDialog(QDialog):
         self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
         self.chrome_bar.raise_()
 
+    def _sync_items_scroll_height(self):
+        if not hasattr(self, "items_scroll") or not hasattr(self, "items_layout"):
+            return
+        item_frames = [
+            self.items_layout.itemAt(index).widget()
+            for index in range(self.items_layout.count())
+            if self.items_layout.itemAt(index) is not None
+            and self.items_layout.itemAt(index).widget() is not None
+            and self.items_layout.itemAt(index).widget().property("inventoryRole") == "itemFrame"
+        ]
+        visible_rows = sum(1 for frame in item_frames if frame.isVisible())
+        if visible_rows <= 0:
+            self.items_scroll.setMaximumHeight(0)
+            self.items_scroll.setFixedHeight(0)
+            return
+        desired_height = _visible_row_height_for_layout(
+            self.items_layout,
+            min(5, visible_rows),
+            extra_padding=2,
+        )
+        self.items_scroll.setMaximumHeight(desired_height)
+        self.items_scroll.setFixedHeight(desired_height)
+
     def selected_action_id(self) -> str:
         return self._selected_action_id
 
@@ -3214,9 +3266,10 @@ class CreatedTasksDialog(QDialog):
         self.items_scroll.setVisible(bool(items))
         if items:
             self.items_layout.activate()
-            desired_height = min(430, max(100, self.items_frame.sizeHint().height() + 2))
-            self.items_scroll.setFixedHeight(desired_height)
+            self._sync_items_scroll_height()
+            QTimer.singleShot(0, self._sync_items_scroll_height)
         else:
+            self.items_scroll.setMaximumHeight(0)
             self.items_scroll.setFixedHeight(0)
 
 
@@ -3501,12 +3554,14 @@ class CreatedGroupsDialog(QDialog):
         self._update_chrome_overlay_geometry()
         _schedule_window_clamp(self)
         self._emit_lifecycle_event("opened")
+        QTimer.singleShot(0, self._sync_items_scroll_height)
         QTimer.singleShot(0, self._emit_ready_signal)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_chrome_overlay_geometry()
         _schedule_window_clamp(self)
+        QTimer.singleShot(0, self._sync_items_scroll_height)
 
     def done(self, result):
         self._emit_lifecycle_event(
@@ -3519,6 +3574,29 @@ class CreatedGroupsDialog(QDialog):
         if hasattr(self, "chrome_bar") and hasattr(self, "shell"):
             self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
             self.chrome_bar.raise_()
+
+    def _sync_items_scroll_height(self):
+        if not hasattr(self, "items_scroll") or not hasattr(self, "items_layout"):
+            return
+        item_frames = [
+            self.items_layout.itemAt(index).widget()
+            for index in range(self.items_layout.count())
+            if self.items_layout.itemAt(index) is not None
+            and self.items_layout.itemAt(index).widget() is not None
+            and self.items_layout.itemAt(index).widget().property("inventoryRole") == "itemFrame"
+        ]
+        visible_rows = sum(1 for frame in item_frames if frame.isVisible())
+        if visible_rows <= 0:
+            self.items_scroll.setMaximumHeight(0)
+            self.items_scroll.setFixedHeight(0)
+            return
+        desired_height = _visible_row_height_for_layout(
+            self.items_layout,
+            min(5, visible_rows),
+            extra_padding=2,
+        )
+        self.items_scroll.setMaximumHeight(desired_height)
+        self.items_scroll.setFixedHeight(desired_height)
 
     def selected_group_id(self) -> str:
         return self._selected_group_id
@@ -3570,9 +3648,10 @@ class CreatedGroupsDialog(QDialog):
         self.items_scroll.setVisible(bool(items))
         if items:
             self.items_layout.activate()
-            desired_height = min(396, max(96, self.items_frame.sizeHint().height() + 2))
-            self.items_scroll.setFixedHeight(desired_height)
+            self._sync_items_scroll_height()
+            QTimer.singleShot(0, self._sync_items_scroll_height)
         else:
+            self.items_scroll.setMaximumHeight(0)
             self.items_scroll.setFixedHeight(0)
 
 

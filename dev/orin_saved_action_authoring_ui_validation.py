@@ -684,6 +684,44 @@ def _test_created_tasks_dialog_edit_reachability_extends_beyond_six_items():
     )
 
 
+def _test_created_tasks_dialog_caps_loaded_viewport_to_five_rows():
+    _app()
+    items = []
+    for index in range(1, 7):
+        items.append(
+            {
+                "id": f"open_reports_{index}",
+                "title": f"Open Reports {index}",
+                "origin": "saved",
+                "origin_label": "Saved",
+                "target_kind": "folder",
+                "target": fr"C:\Reports\{index}",
+                "target_display": fr"C:\Reports\{index}",
+            }
+        )
+
+    dialog = renderer_mod.CreatedTasksDialog(
+        inventory_payload={
+            "visible": True,
+            "status_kind": "loaded",
+            "status_text": "6 saved actions are available.",
+            "guidance_text": "",
+            "path": "",
+            "path_display": "",
+            "count": 6,
+            "items": items,
+        }
+    )
+    dialog.show()
+    _app().processEvents()
+    expected_height = renderer_mod._visible_row_height_for_layout(dialog.items_layout, 5, extra_padding=2)
+    _assert(
+        dialog.items_scroll.maximumHeight() == expected_height,
+        "Manage Custom Tasks should cap the loaded viewport to five visible rows before scrolling",
+    )
+    dialog.close()
+
+
 def _test_created_groups_dialog_exposes_group_management_triggers():
     _app()
     inventory_payload = {
@@ -767,6 +805,41 @@ def _test_created_groups_dialog_exposes_group_management_triggers():
         dialog.selected_group_id() == "workspace_tools",
         "group management dialog should preserve stable edit-button mapping for the selected group",
     )
+
+
+def _test_created_groups_dialog_caps_loaded_viewport_to_five_rows():
+    _app()
+    items = []
+    for index in range(1, 7):
+        items.append(
+            {
+                "id": f"group_{index}",
+                "title": f"Workspace Group {index}",
+                "aliases": [f"workspace group {index}"],
+                "member_count": index,
+            }
+        )
+
+    dialog = renderer_mod.CreatedGroupsDialog(
+        inventory_payload={
+            "visible": True,
+            "status_kind": "loaded",
+            "status_text": "6 custom groups are available.",
+            "guidance_text": "",
+            "path": "",
+            "path_display": "",
+            "count": 6,
+            "items": items,
+        }
+    )
+    dialog.show()
+    _app().processEvents()
+    expected_height = renderer_mod._visible_row_height_for_layout(dialog.items_layout, 5, extra_padding=2)
+    _assert(
+        dialog.items_scroll.maximumHeight() == expected_height,
+        "Manage Custom Groups should cap the loaded viewport to five visible rows before scrolling",
+    )
+    dialog.close()
 
 
 def _test_type_first_dialog_maps_all_supported_kinds():
@@ -908,7 +981,7 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "Task type should remain the first full field row, followed by Title, Trigger, and Aliases",
     )
     _assert(
-        7 <= dialog.form_layout.verticalSpacing() <= 9
+        6 <= dialog.form_layout.verticalSpacing() <= 8
         and 12 <= dialog.form_layout.horizontalSpacing() <= 14,
         "create dialog spacing should stay intentionally tightened without collapsing into a cramped layout",
     )
@@ -932,6 +1005,10 @@ def _test_create_dialog_surfaces_field_level_guidance():
     _assert(
         dialog.type_header_label.y() > dialog.type_header_divider.y(),
         "task dialog headers should sit below the divider line instead of sharing the same row",
+    )
+    _assert(
+        dialog.type_header.height() <= 32 and dialog.title_header.height() <= 32,
+        "task dialog field headers should stay compact so the section label feels anchored between divider bands instead of floating in extra space",
     )
     _assert(
         dialog.title_label.y() <= 18,
@@ -1163,6 +1240,10 @@ def _test_group_create_dialog_surfaces_members_and_exact_alias_guidance():
     _assert(
         dialog.name_header.findChildren(QLabel)[-1].y() > dialog.name_header.findChildren(QFrame)[0].y(),
         "group dialog section titles should sit below the divider line instead of sharing it",
+    )
+    _assert(
+        dialog.name_header.height() <= 32 and dialog.aliases_header.height() <= 32,
+        "group dialog field headers should stay compact so the section labels feel anchored instead of floating in oversized bands",
     )
     dialog.name_input.setText("Workspace Tools")
     dialog.aliases_input.setText("workspace tools, tools group")
@@ -1939,7 +2020,9 @@ def main():
         ("Created Tasks dialog exposes edit trigger", _test_created_tasks_dialog_exposes_edit_trigger_for_saved_inventory_items),
         ("Created Tasks dialog exposes delete trigger", _test_created_tasks_dialog_exposes_delete_trigger_for_saved_inventory_items),
         ("Created Tasks dialog keeps edit reachability beyond six items", _test_created_tasks_dialog_edit_reachability_extends_beyond_six_items),
+        ("Created Tasks dialog caps loaded viewport to five rows", _test_created_tasks_dialog_caps_loaded_viewport_to_five_rows),
         ("Created Groups dialog exposes group management triggers", _test_created_groups_dialog_exposes_group_management_triggers),
+        ("Created Groups dialog caps loaded viewport to five rows", _test_created_groups_dialog_caps_loaded_viewport_to_five_rows),
         ("type-first dialog maps supported kinds", _test_type_first_dialog_maps_all_supported_kinds),
         ("create dialog surfaces field-level guidance", _test_create_dialog_surfaces_field_level_guidance),
         ("create dialog supports group assignment and inline group queue", _test_create_dialog_supports_group_assignment_and_inline_group_queue),
