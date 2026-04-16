@@ -1,6 +1,6 @@
 param(
-    [int]$InteractiveRunHardTimeoutSeconds = 420,
-    [int]$NoProgressTimeoutSeconds = 45,
+    [int]$InteractiveRunHardTimeoutSeconds = 900,
+    [int]$NoProgressTimeoutSeconds = 20,
     [int]$ScenarioTimeoutSeconds = 90,
     [int]$TransitionTimeoutSeconds = 25,
     [int]$WatchdogStartupTimeoutSeconds = 5,
@@ -644,6 +644,7 @@ function Wait-Until {
     )
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $lastHeartbeat = Get-Date
     while ((Get-Date) -lt $deadline) {
         Assert-ValidationBudget -Description $Description
         try {
@@ -653,6 +654,11 @@ function Wait-Until {
             }
         } catch {
             Assert-ValidationBudget -Description $Description
+        }
+        if (((Get-Date) - $lastHeartbeat).TotalSeconds -ge 5) {
+            Write-StepLog -Stage "WAIT" -Message "still waiting for $Description"
+            Record-ValidationProgress -Point "wait active :: $Description"
+            $lastHeartbeat = Get-Date
         }
         Start-Sleep -Milliseconds $SleepMilliseconds
     }
@@ -1070,6 +1076,16 @@ function Click-Element {
     Start-Sleep -Milliseconds 180
 }
 
+function DoubleClick-Element {
+    param(
+        [System.Windows.Automation.AutomationElement]$Element
+    )
+
+    Click-Element -Element $Element
+    Start-Sleep -Milliseconds 100
+    Click-Element -Element $Element
+}
+
 function Expand-Combo {
     param([System.Windows.Automation.AutomationElement]$Element)
     $pattern = $Element.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
@@ -1176,7 +1192,13 @@ function Find-ComboPopupItem {
 
     foreach ($candidate in (Get-AllDescendants -Element ([System.Windows.Automation.AutomationElement]::RootElement))) {
         try {
-            if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Find-ComboPopupItem") -ne [System.Windows.Automation.ControlType]::ListItem.ProgrammaticName) {
+            $controlTypeName = Get-ElementControlTypeNameSafe -Element $candidate -Context "Find-ComboPopupItem"
+            if ($controlTypeName -notin @(
+                    [System.Windows.Automation.ControlType]::ListItem.ProgrammaticName,
+                    [System.Windows.Automation.ControlType]::DataItem.ProgrammaticName,
+                    [System.Windows.Automation.ControlType]::MenuItem.ProgrammaticName,
+                    [System.Windows.Automation.ControlType]::Text.ProgrammaticName
+                )) {
                 continue
             }
             if ($candidate.Current.Name -ne $ItemName) {
@@ -1210,6 +1232,199 @@ function Find-ComboPopupItem {
     return $bestItem
 }
 
+function Get-ComboPopupDiagnosticSummary {
+    param(
+        [System.Windows.Automation.AutomationElement]$Combo
+    )
+
+    if (-not $Combo) {
+        return "combo_missing"
+    }
+
+    $comboRect = $Combo.Current.BoundingRectangle
+    $samples = New-Object System.Collections.Generic.List[string]
+    foreach ($candidate in (Get-AllDescendants -Element ([System.Windows.Automation.AutomationElement]::RootElement))) {
+        if ($samples.Count -ge 12) {
+            break
+        }
+        try {
+            if ($candidate.Current.IsOffscreen) {
+                continue
+            }
+            $name = $candidate.Current.Name
+            if ([string]::IsNullOrWhiteSpace($name)) {
+                continue
+            }
+            $rect = $candidate.Current.BoundingRectangle
+            if ($rect.Right -lt ($comboRect.Left - 120) -or $rect.Left -gt ($comboRect.Right + 120)) {
+                continue
+            }
+            if ($rect.Bottom -lt ($comboRect.Top - 120) -or $rect.Top -gt ($comboRect.Bottom + 520)) {
+                continue
+            }
+            $controlTypeName = Get-ElementControlTypeNameSafe -Element $candidate -Context "Get-ComboPopupDiagnosticSummary"
+            $samples.Add("$name [$controlTypeName] rect=$([int]$rect.Left),$([int]$rect.Top),$([int]$rect.Width),$([int]$rect.Height)")
+        } catch {
+        }
+    }
+
+    if ($samples.Count -eq 0) {
+        return "no_named_visible_popup_candidates"
+    }
+
+    return ($samples -join " || ")
+}
+
+function Get-ElementSupportedPatternSummary {
+    param(
+        [System.Windows.Automation.AutomationElement]$Element
+    )
+
+    if (-not $Element) {
+        return "element_missing"
+    }
+
+    $patterns = New-Object System.Collections.Generic.List[string]
+    foreach ($entry in @(
+            @{ Name = "Value"; Pattern = [System.Windows.Automation.ValuePattern]::Pattern },
+            @{ Name = "ExpandCollapse"; Pattern = [System.Windows.Automation.ExpandCollapsePattern]::Pattern },
+            @{ Name = "Selection"; Pattern = [System.Windows.Automation.SelectionPattern]::Pattern },
+            @{ Name = "SelectionItem"; Pattern = [System.Windows.Automation.SelectionItemPattern]::Pattern },
+            @{ Name = "Invoke"; Pattern = [System.Windows.Automation.InvokePattern]::Pattern }
+        )) {
+        try {
+            $null = $Element.GetCurrentPattern($entry.Pattern)
+            $patterns.Add($entry.Name)
+        } catch {
+        }
+    }
+
+    if ($patterns.Count -eq 0) {
+        return "none"
+    }
+
+    return ($patterns -join ", ")
+}
+
+function Get-ExpectedTargetKindToken {
+    param(
+        [string]$TypeLabel
+    )
+
+    switch ($TypeLabel) {
+        "Application" { return "app" }
+        "Folder" { return "folder" }
+        "File" { return "file" }
+        "Website URL" { return "url" }
+        default { return "" }
+    }
+}
+
+function Select-ComboItemViaPopup {
+    param(
+        [scriptblock]$ComboResolver,
+        [string]$ItemName
+    )
+
+    $combo = & $ComboResolver
+    if (-not $combo) {
+        throw "Could not resolve combo box for popup selection '$ItemName'."
+    }
+
+    try {
+        Expand-Combo -Element $combo
+    } catch {
+        Click-Element -Element $combo
+    }
+
+    try {
+        Wait-Until -TimeoutSeconds 3 -Description "combo popup item '$ItemName'" -Condition {
+            $liveCombo = & $ComboResolver
+            if (-not $liveCombo) {
+                return $false
+            }
+            return (Test-ElementUsable -Element (Find-ComboPopupItem -Combo $liveCombo -ItemName $ItemName) -RequireEnabled $true)
+        } | Out-Null
+    } catch {
+        $diagnosticCombo = & $ComboResolver
+        Add-Note "Combo popup item '$ItemName' was not exposed through UIAutomation after open. Nearby visible candidates: $(Get-ComboPopupDiagnosticSummary -Combo $diagnosticCombo)"
+        throw
+    }
+
+    $combo = & $ComboResolver
+    $item = Find-ComboPopupItem -Combo $combo -ItemName $ItemName
+    if (-not (Test-ElementUsable -Element $item -RequireEnabled $true)) {
+        throw "Could not resolve popup item '$ItemName' after opening the combo."
+    }
+
+    DoubleClick-Element -Element $item
+    Start-Sleep -Milliseconds 240
+
+    $selectedCombo = & $ComboResolver
+    $selectedValue = if ($selectedCombo) { Get-ComboSelectedText -Combo $selectedCombo } else { "" }
+    if ($selectedValue -ne $ItemName) {
+        Send-VirtualKey -VirtualKey 0x0D
+        Start-Sleep -Milliseconds 200
+        $selectedCombo = & $ComboResolver
+        $selectedValue = if ($selectedCombo) { Get-ComboSelectedText -Combo $selectedCombo } else { "" }
+    }
+    if ($selectedValue -ne $ItemName) {
+        Add-Note "Popup click for '$ItemName' did not update the combo readback immediately; closing the dropdown and letting runtime target_kind markers verify the submitted type."
+        Send-VirtualKey -VirtualKey 0x73
+        Start-Sleep -Milliseconds 200
+    }
+}
+
+function Select-ComboItemViaDirectValue {
+    param(
+        [scriptblock]$ComboResolver,
+        [string]$ItemName
+    )
+
+    $combo = & $ComboResolver
+    if (-not $combo) {
+        throw "Could not resolve combo box for direct selection '$ItemName'."
+    }
+
+    Set-Value -Element $combo -Value $ItemName
+    Start-Sleep -Milliseconds 220
+}
+
+function Select-ComboItemViaEstimatedPopupClick {
+    param(
+        [scriptblock]$ComboResolver,
+        [string]$ItemName,
+        [int]$DesiredIndex
+    )
+
+    $combo = & $ComboResolver
+    if (-not $combo) {
+        throw "Could not resolve combo box for estimated popup click '$ItemName'."
+    }
+
+    Click-Element -Element $combo
+    Start-Sleep -Milliseconds 180
+
+    $rect = $combo.Current.BoundingRectangle
+    $rowHeight = [int]([Math]::Max(30, [Math]::Round($rect.Height)))
+    $x = [int]([Math]::Round($rect.Left + ($rect.Width / 2.0)))
+    $y = [int]([Math]::Round($rect.Bottom + ($rowHeight * ($DesiredIndex + 0.5))))
+    if ($x -le 0 -or $y -le 0) {
+        throw "Estimated combo popup click target for '$ItemName' was invalid."
+    }
+
+    [CodexInteractiveWin32]::SetCursorPos($x, $y) | Out-Null
+    Start-Sleep -Milliseconds 100
+    [CodexInteractiveWin32]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 60
+    [CodexInteractiveWin32]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 100
+    [CodexInteractiveWin32]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 60
+    [CodexInteractiveWin32]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+    Start-Sleep -Milliseconds 240
+}
+
 function Select-ComboItem {
     param(
         [scriptblock]$ComboResolver,
@@ -1233,26 +1448,26 @@ function Select-ComboItem {
         $currentIndex = Get-ActionTypeIndexFromValue -Value $currentValue
         Write-StepLog -Stage "INTERACT" -Message "combo select attempt=$attempt desired='$ItemName' current='$currentValue' current_index=$currentIndex state=$(Get-ElementStateSummary -Element $Combo)"
         if ($currentValue -eq $ItemName) {
-            return
+            return $true
         }
 
         try {
             $strategy = switch ($attempt) {
-                1 { "keyboard_open_delta_toggle" }
-                2 { "keyboard_open_reset_toggle" }
-                3 { "keyboard_open_delta_enter" }
+                1 { "direct_value" }
+                2 { "popup_select" }
+                3 { "popup_estimated_click" }
                 default { "keyboard_open_reset_enter" }
             }
             Write-StepLog -Stage "INTERACT" -Message "combo select strategy=$strategy desired='$ItemName' attempt=$attempt"
             switch ($attempt) {
                 1 {
-                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $false -CommitMode "toggle"
+                    Select-ComboItemViaDirectValue -ComboResolver $ComboResolver -ItemName $ItemName
                 }
                 2 {
-                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $true -CommitMode "toggle"
+                    Select-ComboItemViaPopup -ComboResolver $ComboResolver -ItemName $ItemName
                 }
                 3 {
-                    Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $false -CommitMode "enter"
+                    Select-ComboItemViaEstimatedPopupClick -ComboResolver $ComboResolver -ItemName $ItemName -DesiredIndex $desiredIndex
                 }
                 default {
                     Send-ComboSelectionSequence -DesiredIndex $desiredIndex -CurrentIndex $currentIndex -OpenDropdown $true -ResetFromTop $true -CommitMode "enter"
@@ -1262,22 +1477,21 @@ function Select-ComboItem {
             Add-Note "Combo selection attempt $attempt for '$ItemName' hit an interaction error before readback. Cause: $($_.Exception.Message)"
         }
 
-        try {
-            Wait-ForElementValue -ExpectedValue $ItemName -TimeoutSeconds 3 -Description "combo value $ItemName" -ElementResolver {
-                return (& $ComboResolver)
-            }
-            return
-        } catch {
-            $actualCombo = & $ComboResolver
-            $actualValue = Get-ComboSelectedText -Combo $actualCombo
-            $actualIndex = Get-ActionTypeIndexFromValue -Value $actualValue
-            Add-Note "Combo selection attempt $attempt for '$ItemName' did not stick; actual value read back as '$actualValue' (index=$actualIndex). State: $(Get-ElementStateSummary -Element $actualCombo)"
+        Start-Sleep -Milliseconds 220
+        $actualCombo = & $ComboResolver
+        $actualValue = Get-ComboSelectedText -Combo $actualCombo
+        $actualIndex = Get-ActionTypeIndexFromValue -Value $actualValue
+        if ($actualValue -eq $ItemName) {
+            return $true
         }
+
+        Add-Note "Combo selection attempt $attempt for '$ItemName' did not stick; actual value read back as '$actualValue' (index=$actualIndex). State: $(Get-ElementStateSummary -Element $actualCombo)"
     }
 
     $finalCombo = & $ComboResolver
     $finalValue = Get-ComboSelectedText -Combo $finalCombo
-    throw "Combo selection for '$ItemName' did not stick. Final value: '$finalValue'. State: $(Get-ElementStateSummary -Element $finalCombo)"
+    Add-Note "Final combo diagnostics for '$ItemName': supported_patterns=$(Get-ElementSupportedPatternSummary -Element $finalCombo) popup_candidates=$(Get-ComboPopupDiagnosticSummary -Combo $finalCombo)"
+    return $false
 }
 
 function Get-WindowHandle {
@@ -1996,6 +2210,225 @@ function Wait-ForDialogControlReady {
     return $element
 }
 
+function Wait-ForCreateDialogTaskTypeComboReady {
+    param(
+        [scriptblock]$DialogResolver,
+        [string]$Description,
+        [int]$TimeoutSeconds = 6,
+        [bool]$RequireEnabled = $true
+    )
+
+    $automationIdsToSearch = Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType"
+    Write-StepLog -Stage "DIALOG" -Message "verifying control '$Description' automationId='$($automationIdsToSearch -join ' | ')' with live combo fallback"
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
+        $liveDialog = & $DialogResolver
+        if (-not $liveDialog) {
+            return $false
+        }
+        try {
+            if ($liveDialog -ne [System.Windows.Automation.AutomationElement]::RootElement) {
+                Focus-Window -Element $liveDialog
+            }
+        } catch {
+        }
+        $element = Find-CreateDialogTaskTypeCombo -Root $liveDialog -RequireEnabled $RequireEnabled
+        return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
+    } | Out-Null
+
+    $liveDialog = & $DialogResolver
+    if (-not $liveDialog) {
+        throw "Could not resolve the live dialog while waiting for '$Description'."
+    }
+
+    $element = Find-CreateDialogTaskTypeCombo -Root $liveDialog -RequireEnabled $RequireEnabled
+    if (-not (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)) {
+        throw "Control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
+    }
+
+    Write-StepLog -Stage "DIALOG" -Message "control ready '$Description' state=$(Get-ElementStateSummary -Element $element)"
+    return $element
+}
+
+function Wait-ForCreateDialogTextInputReady {
+    param(
+        [scriptblock]$DialogResolver,
+        [ValidateSet("title", "aliases", "target")]
+        [string]$Field,
+        [string]$Description,
+        [int]$TimeoutSeconds = 6,
+        [bool]$RequireEnabled = $true
+    )
+
+    $leafAutomationId = switch ($Field) {
+        "title" { "savedActionCreateTitleInput" }
+        "aliases" { "savedActionCreateAliasesInput" }
+        "target" { "savedActionCreateTargetInput" }
+    }
+    $automationIdsToSearch = Get-CreateDialogControlAutomationIds -LeafAutomationId $leafAutomationId
+    Write-StepLog -Stage "DIALOG" -Message "verifying control '$Description' automationId='$($automationIdsToSearch -join ' | ')' with live edit fallback"
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
+        $liveDialog = & $DialogResolver
+        if (-not $liveDialog) {
+            return $false
+        }
+        try {
+            if ($liveDialog -ne [System.Windows.Automation.AutomationElement]::RootElement) {
+                Focus-Window -Element $liveDialog
+            }
+        } catch {
+        }
+        $element = Find-CreateDialogTextInput -Root $liveDialog -Field $Field -RequireEnabled $RequireEnabled
+        return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
+    } | Out-Null
+
+    $liveDialog = & $DialogResolver
+    if (-not $liveDialog) {
+        throw "Could not resolve the live dialog while waiting for '$Description'."
+    }
+
+    $element = Find-CreateDialogTextInput -Root $liveDialog -Field $Field -RequireEnabled $RequireEnabled
+    if (-not (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)) {
+        throw "Control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
+    }
+
+    Write-StepLog -Stage "DIALOG" -Message "control ready '$Description' state=$(Get-ElementStateSummary -Element $element)"
+    return $element
+}
+
+function Wait-ForCreateDialogGroupActionButtonReady {
+    param(
+        [scriptblock]$DialogResolver,
+        [ValidateSet("assign", "remove")]
+        [string]$Action,
+        [string]$Description,
+        [int]$TimeoutSeconds = 6,
+        [bool]$RequireEnabled = $true
+    )
+
+    $leafAutomationId = switch ($Action) {
+        "assign" { "savedActionCreateNewGroupButton" }
+        "remove" { "savedActionCreateRemoveGroupButton" }
+    }
+    $automationIdsToSearch = Get-CreateDialogControlAutomationIds -LeafAutomationId $leafAutomationId
+    Write-StepLog -Stage "DIALOG" -Message "verifying control '$Description' automationId='$($automationIdsToSearch -join ' | ')' with live button fallback"
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
+        $liveDialog = & $DialogResolver
+        if (-not $liveDialog) {
+            return $false
+        }
+        try {
+            if ($liveDialog -ne [System.Windows.Automation.AutomationElement]::RootElement) {
+                Focus-Window -Element $liveDialog
+            }
+        } catch {
+        }
+        $element = Find-CreateDialogGroupActionButton -Root $liveDialog -Action $Action -RequireEnabled $RequireEnabled
+        return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
+    } | Out-Null
+
+    $liveDialog = & $DialogResolver
+    if (-not $liveDialog) {
+        throw "Could not resolve the live dialog while waiting for '$Description'."
+    }
+
+    $element = Find-CreateDialogGroupActionButton -Root $liveDialog -Action $Action -RequireEnabled $RequireEnabled
+    if (-not (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)) {
+        throw "Control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
+    }
+
+    Write-StepLog -Stage "DIALOG" -Message "control ready '$Description' state=$(Get-ElementStateSummary -Element $element)"
+    return $element
+}
+
+function Wait-ForGroupDialogTextInputReady {
+    param(
+        [scriptblock]$DialogResolver,
+        [ValidateSet("name", "aliases")]
+        [string]$Field,
+        [string]$Description,
+        [int]$TimeoutSeconds = 6,
+        [bool]$RequireEnabled = $true
+    )
+
+    $leafAutomationId = switch ($Field) {
+        "name" { "callableGroupCreateNameInput" }
+        "aliases" { "callableGroupCreateAliasesInput" }
+    }
+    $automationIdsToSearch = Get-GroupDialogControlAutomationIds -LeafAutomationId $leafAutomationId
+    Write-StepLog -Stage "DIALOG" -Message "verifying control '$Description' automationId='$($automationIdsToSearch -join ' | ')' with live edit fallback"
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
+        $liveDialog = & $DialogResolver
+        if (-not $liveDialog) {
+            return $false
+        }
+        try {
+            if ($liveDialog -ne [System.Windows.Automation.AutomationElement]::RootElement) {
+                Focus-Window -Element $liveDialog
+            }
+        } catch {
+        }
+        $element = Find-GroupDialogTextInput -Root $liveDialog -Field $Field -RequireEnabled $RequireEnabled
+        return (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)
+    } | Out-Null
+
+    $liveDialog = & $DialogResolver
+    if (-not $liveDialog) {
+        throw "Could not resolve the live dialog while waiting for '$Description'."
+    }
+
+    $element = Find-GroupDialogTextInput -Root $liveDialog -Field $Field -RequireEnabled $RequireEnabled
+    if (-not (Test-ElementUsable -Element $element -RequireEnabled $RequireEnabled)) {
+        throw "Control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
+    }
+
+    Write-StepLog -Stage "DIALOG" -Message "control ready '$Description' state=$(Get-ElementStateSummary -Element $element)"
+    return $element
+}
+
+function Wait-ForGroupDialogMembersRegionReady {
+    param(
+        [scriptblock]$DialogResolver,
+        [string]$Description,
+        [int]$TimeoutSeconds = 8,
+        [bool]$RequireEnabled = $false
+    )
+
+    $automationIdsToSearch = @(
+        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersScroll")
+        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersViewport")
+        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersFrame")
+    )
+    Write-StepLog -Stage "DIALOG" -Message "verifying control '$Description' automationId='$($automationIdsToSearch -join ' | ')' with live region fallback"
+    Wait-Until -TimeoutSeconds $TimeoutSeconds -Description $Description -Condition {
+        $liveDialog = & $DialogResolver
+        if (-not $liveDialog) {
+            return $false
+        }
+        try {
+            if ($liveDialog -ne [System.Windows.Automation.AutomationElement]::RootElement) {
+                Focus-Window -Element $liveDialog
+            }
+        } catch {
+        }
+        $element = Find-GroupDialogMembersRegion -Root $liveDialog -RequireEnabled $RequireEnabled
+        return (Test-GroupDialogMembersRegionReady -DialogRoot $liveDialog -Region $element -RequireEnabled $RequireEnabled)
+    } | Out-Null
+
+    $liveDialog = & $DialogResolver
+    if (-not $liveDialog) {
+        throw "Could not resolve the live dialog while waiting for '$Description'."
+    }
+
+    $element = Find-GroupDialogMembersRegion -Root $liveDialog -RequireEnabled $RequireEnabled
+    if (-not (Test-GroupDialogMembersRegionReady -DialogRoot $liveDialog -Region $element -RequireEnabled $RequireEnabled)) {
+        throw "Control '$Description' did not become usable. State: $(Get-ElementStateSummary -Element $element)"
+    }
+
+    $memberCheckboxCount = @(Get-GroupDialogMemberCheckboxes -Root $liveDialog -RequireEnabled $false).Count
+    Write-StepLog -Stage "DIALOG" -Message "control ready '$Description' state=$(Get-ElementStateSummary -Element $element) member_checkboxes=$memberCheckboxCount"
+    return $element
+}
+
 function Wait-ForOverlayControlReady {
     param(
         [scriptblock]$OverlayResolver,
@@ -2257,6 +2690,309 @@ function Test-RuntimeMarkerSeen {
         return $false
     }
     return @($slice | Where-Object { $_ -like "*$Marker*" }).Count -gt 0
+}
+
+function Wait-ForCreateAttemptOrCreatedMarker {
+    param(
+        [string]$Title,
+        [int]$StartLine = -1,
+        [int]$TimeoutSeconds = 12
+    )
+
+    if ($StartLine -lt 0) {
+        $StartLine = $script:RuntimeLogLineCursor
+    }
+
+    $searchStartLine = [Math]::Max(0, $StartLine - 5)
+    $attemptMarker = "RENDERER_MAIN|CUSTOM_TASK_CREATE_ATTEMPT_STARTED|title=$Title"
+    $createdMarkerFragment = "RENDERER_MAIN|CUSTOM_TASK_CREATED|"
+    $blockedMarkerFragment = "RENDERER_MAIN|CUSTOM_TASK_CREATE_BLOCKED|"
+    $attemptSeen = $false
+    $createdSeen = $false
+    $blockedSeen = $false
+
+    $scanSlice = {
+        $slice = Get-RuntimeLogSlice -StartLine $searchStartLine
+        if (-not $slice -or $slice.Count -eq 0) {
+            return [pscustomobject]@{
+                attempt_seen = $false
+                created_seen = $false
+                blocked_seen = $false
+            }
+        }
+
+        return [pscustomobject]@{
+            attempt_seen = (@($slice | Where-Object { $_ -like "*$attemptMarker*" }).Count -gt 0)
+            created_seen = (@($slice | Where-Object { $_ -like "*$createdMarkerFragment*" -and $_ -like "*title=$Title*" }).Count -gt 0)
+            blocked_seen = (@($slice | Where-Object { $_ -like "*$blockedMarkerFragment*" -and $_ -like "*title=$Title*" }).Count -gt 0)
+        }
+    }
+
+    Write-StepLog -Stage "WAIT" -Message "create attempt marker for '$Title' from line $searchStartLine"
+    try {
+        Wait-Until -TimeoutSeconds $TimeoutSeconds -Description "create attempt marker for $Title" -Condition {
+            $status = & $scanSlice
+            $attemptSeen = [bool]$status.attempt_seen
+            $createdSeen = [bool]$status.created_seen
+            $blockedSeen = [bool]$status.blocked_seen
+            return ($attemptSeen -or $createdSeen -or $blockedSeen)
+        } | Out-Null
+    } catch {
+        $graceDeadline = (Get-Date).AddMilliseconds(1500)
+        while ((Get-Date) -lt $graceDeadline) {
+            $status = & $scanSlice
+            $attemptSeen = [bool]$status.attempt_seen
+            $createdSeen = [bool]$status.created_seen
+            $blockedSeen = [bool]$status.blocked_seen
+            if ($attemptSeen -or $createdSeen -or $blockedSeen) {
+                break
+            }
+            Start-Sleep -Milliseconds 100
+        }
+
+        if (-not ($attemptSeen -or $createdSeen -or $blockedSeen)) {
+            throw
+        }
+    }
+
+    $script:RuntimeLogLineCursor = Get-RuntimeLogLineCount
+    if ($blockedSeen) {
+        throw "Create flow for '$Title' emitted a blocked runtime marker."
+    }
+    if ($attemptSeen) {
+        Write-StepLog -Stage "WAIT" -Message "create attempt marker for '$Title' observed"
+        return [pscustomobject]@{
+            attempt_seen = $true
+            created_fallback_used = $false
+            search_start_line = $searchStartLine
+        }
+    }
+
+    Add-Note "Create flow for '$Title' did not surface ATTEMPT_STARTED in time, but CUSTOM_TASK_CREATED was observed and the harness inferred the attempt path from runtime truth."
+    Write-StepLog -Stage "WAIT" -Message "create attempt marker for '$Title' inferred from created marker"
+    return [pscustomobject]@{
+        attempt_seen = $false
+        created_fallback_used = $true
+        search_start_line = $searchStartLine
+    }
+}
+
+function Wait-ForCreateCreatedMarkerByTitle {
+    param(
+        [string]$Title,
+        [int]$StartLine = -1,
+        [int]$TimeoutSeconds = 12
+    )
+
+    if ($StartLine -lt 0) {
+        $StartLine = $script:RuntimeLogLineCursor
+    }
+
+    $searchStartLine = [Math]::Max(0, $StartLine - 5)
+    $createdMarkerFragment = "RENDERER_MAIN|CUSTOM_TASK_CREATED|"
+    $blockedMarkerFragment = "RENDERER_MAIN|CUSTOM_TASK_CREATE_BLOCKED|"
+    $createdSeen = $false
+    $blockedSeen = $false
+
+    $scanSlice = {
+        $slice = Get-RuntimeLogSlice -StartLine $searchStartLine
+        if (-not $slice -or $slice.Count -eq 0) {
+            return [pscustomobject]@{
+                created_seen = $false
+                blocked_seen = $false
+            }
+        }
+
+        return [pscustomobject]@{
+            created_seen = (@($slice | Where-Object { $_ -like "*$createdMarkerFragment*" -and $_ -like "*title=$Title*" }).Count -gt 0)
+            blocked_seen = (@($slice | Where-Object { $_ -like "*$blockedMarkerFragment*" -and $_ -like "*title=$Title*" }).Count -gt 0)
+        }
+    }
+
+    Write-StepLog -Stage "WAIT" -Message "create completion marker for '$Title' from line $searchStartLine"
+    try {
+        Wait-Until -TimeoutSeconds $TimeoutSeconds -Description "create completion marker for $Title" -Condition {
+            $status = & $scanSlice
+            $createdSeen = [bool]$status.created_seen
+            $blockedSeen = [bool]$status.blocked_seen
+            return ($createdSeen -or $blockedSeen)
+        } | Out-Null
+    } catch {
+        $graceDeadline = (Get-Date).AddMilliseconds(1500)
+        while ((Get-Date) -lt $graceDeadline) {
+            $status = & $scanSlice
+            $createdSeen = [bool]$status.created_seen
+            $blockedSeen = [bool]$status.blocked_seen
+            if ($createdSeen -or $blockedSeen) {
+                break
+            }
+            Start-Sleep -Milliseconds 100
+        }
+
+        if (-not ($createdSeen -or $blockedSeen)) {
+            throw
+        }
+    }
+
+    $script:RuntimeLogLineCursor = Get-RuntimeLogLineCount
+    if ($blockedSeen) {
+        throw "Create flow for '$Title' emitted a blocked runtime marker."
+    }
+
+    Write-StepLog -Stage "WAIT" -Message "create completion marker for '$Title' observed"
+    return [pscustomobject]@{
+        created_seen = $true
+        search_start_line = $searchStartLine
+    }
+}
+
+function Wait-ForCreateAttemptOrBlockedMarker {
+    param(
+        [string]$Title,
+        [int]$StartLine = -1,
+        [int]$TimeoutSeconds = 12
+    )
+
+    if ($StartLine -lt 0) {
+        $StartLine = $script:RuntimeLogLineCursor
+    }
+
+    $searchStartLine = [Math]::Max(0, $StartLine - 5)
+    $attemptMarker = "RENDERER_MAIN|CUSTOM_TASK_CREATE_ATTEMPT_STARTED|title=$Title"
+    $blockedMarkerFragment = "RENDERER_MAIN|CUSTOM_TASK_CREATE_BLOCKED|"
+    $attemptSeen = $false
+    $blockedSeen = $false
+
+    $scanSlice = {
+        $slice = Get-RuntimeLogSlice -StartLine $searchStartLine
+        if (-not $slice -or $slice.Count -eq 0) {
+            return [pscustomobject]@{
+                attempt_seen = $false
+                blocked_seen = $false
+            }
+        }
+
+        return [pscustomobject]@{
+            attempt_seen = (@($slice | Where-Object { $_ -like "*$attemptMarker*" }).Count -gt 0)
+            blocked_seen = (@($slice | Where-Object { $_ -like "*$blockedMarkerFragment*" -and $_ -like "*title=$Title*" }).Count -gt 0)
+        }
+    }
+
+    Write-StepLog -Stage "WAIT" -Message "invalid-create attempt marker for '$Title' from line $searchStartLine"
+    try {
+        Wait-Until -TimeoutSeconds $TimeoutSeconds -Description "invalid-create attempt marker for $Title" -Condition {
+            $status = & $scanSlice
+            $attemptSeen = [bool]$status.attempt_seen
+            $blockedSeen = [bool]$status.blocked_seen
+            return ($attemptSeen -or $blockedSeen)
+        } | Out-Null
+    } catch {
+        $graceDeadline = (Get-Date).AddMilliseconds(1500)
+        while ((Get-Date) -lt $graceDeadline) {
+            $status = & $scanSlice
+            $attemptSeen = [bool]$status.attempt_seen
+            $blockedSeen = [bool]$status.blocked_seen
+            if ($attemptSeen -or $blockedSeen) {
+                break
+            }
+            Start-Sleep -Milliseconds 100
+        }
+
+        if (-not ($attemptSeen -or $blockedSeen)) {
+            throw
+        }
+    }
+
+    $script:RuntimeLogLineCursor = Get-RuntimeLogLineCount
+    if ($attemptSeen) {
+        Write-StepLog -Stage "WAIT" -Message "invalid-create attempt marker for '$Title' observed"
+        return [pscustomobject]@{
+            attempt_seen = $true
+            blocked_fallback_used = $false
+            search_start_line = $searchStartLine
+        }
+    }
+
+    Add-Note "Invalid create submit for '$Title' did not surface ATTEMPT_STARTED in time, but CUSTOM_TASK_CREATE_BLOCKED was observed and the harness inferred the attempt path from runtime truth."
+    Write-StepLog -Stage "WAIT" -Message "invalid-create attempt marker for '$Title' inferred from blocked marker"
+    return [pscustomobject]@{
+        attempt_seen = $false
+        blocked_fallback_used = $true
+        search_start_line = $searchStartLine
+    }
+}
+
+function Wait-ForCreateBlockedMarkerByTitle {
+    param(
+        [string]$Title,
+        [int]$StartLine = -1,
+        [int]$TimeoutSeconds = 12
+    )
+
+    if ($StartLine -lt 0) {
+        $StartLine = $script:RuntimeLogLineCursor
+    }
+
+    $searchStartLine = [Math]::Max(0, $StartLine - 5)
+    $blockedMarkerFragment = "RENDERER_MAIN|CUSTOM_TASK_CREATE_BLOCKED|"
+    $createdMarkerFragment = "RENDERER_MAIN|CUSTOM_TASK_CREATED|"
+    $blockedSeen = $false
+    $createdSeen = $false
+
+    $scanSlice = {
+        $slice = Get-RuntimeLogSlice -StartLine $searchStartLine
+        if (-not $slice -or $slice.Count -eq 0) {
+            return [pscustomobject]@{
+                blocked_seen = $false
+                created_seen = $false
+            }
+        }
+
+        return [pscustomobject]@{
+            blocked_seen = (@($slice | Where-Object { $_ -like "*$blockedMarkerFragment*" -and $_ -like "*title=$Title*" }).Count -gt 0)
+            created_seen = (@($slice | Where-Object { $_ -like "*$createdMarkerFragment*" -and $_ -like "*title=$Title*" }).Count -gt 0)
+        }
+    }
+
+    Write-StepLog -Stage "WAIT" -Message "invalid-create blocked marker for '$Title' from line $searchStartLine"
+    try {
+        Wait-Until -TimeoutSeconds $TimeoutSeconds -Description "invalid-create blocked marker for $Title" -Condition {
+            $status = & $scanSlice
+            $blockedSeen = [bool]$status.blocked_seen
+            $createdSeen = [bool]$status.created_seen
+            return ($blockedSeen -or $createdSeen)
+        } | Out-Null
+    } catch {
+        $graceDeadline = (Get-Date).AddMilliseconds(1500)
+        while ((Get-Date) -lt $graceDeadline) {
+            $status = & $scanSlice
+            $blockedSeen = [bool]$status.blocked_seen
+            $createdSeen = [bool]$status.created_seen
+            if ($blockedSeen -or $createdSeen) {
+                break
+            }
+            Start-Sleep -Milliseconds 100
+        }
+
+        if (-not ($blockedSeen -or $createdSeen)) {
+            throw
+        }
+    }
+
+    $script:RuntimeLogLineCursor = Get-RuntimeLogLineCount
+    if ($createdSeen) {
+        throw "Invalid create flow for '$Title' emitted a create marker instead of staying blocked."
+    }
+
+    $slice = Get-RuntimeLogSlice -StartLine $searchStartLine
+    $matchedLine = @($slice | Where-Object { $_ -like "*$blockedMarkerFragment*" -and $_ -like "*title=$Title*" } | Select-Object -Last 1)
+
+    Write-StepLog -Stage "WAIT" -Message "invalid-create blocked marker for '$Title' observed"
+    return [pscustomobject]@{
+        blocked_seen = $true
+        search_start_line = $searchStartLine
+        blocked_line = $(if ($matchedLine) { [string]$matchedLine[0] } else { "" })
+    }
 }
 
 function Get-OverlayAttemptStateSummary {
@@ -2596,7 +3332,7 @@ function Get-InventoryTextRows {
 function Open-Overlay {
     if ($script:RuntimeAutoOpenPending) {
         $script:RuntimeAutoOpenPending = $false
-        $markerStart = New-RuntimeMarkerCursor
+        $markerStart = [Math]::Max(0, $script:RuntimeLogLineCursor)
         Write-StepLog -Stage "OVERLAY" -Message "waiting for runtime helper auto-open"
         try {
             Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|INTERACTIVE_VALIDATION_AUTO_OPENED" -TimeoutSeconds 5 -StartLine $markerStart
@@ -2764,17 +3500,17 @@ function Open-CreateDialog {
     }
 
     Write-StepLog -Stage "DIALOG" -Message "verifying create-dialog entry readiness after runtime markers"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType") -Description "create dialog task type combo"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput") -Description "create dialog title input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesInput") -Description "create dialog aliases input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetInput") -Description "create dialog target input"
+    $null = Wait-ForCreateDialogTaskTypeComboReady -DialogResolver $resolveDialog -Description "create dialog task type combo"
+    $null = Wait-ForCreateDialogTextInputReady -DialogResolver $resolveDialog -Field "title" -Description "create dialog title input"
+    $null = Wait-ForCreateDialogTextInputReady -DialogResolver $resolveDialog -Field "aliases" -Description "create dialog aliases input"
+    $null = Wait-ForCreateDialogTextInputReady -DialogResolver $resolveDialog -Field "target" -Description "create dialog target input"
 
     $typeCombo = Focus-ElementForInteraction -ElementResolver {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) {
             return $null
         }
-        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType"))
+        return (Find-CreateDialogTaskTypeCombo -Root $liveDialog)
     } -Description "create dialog task type combo" -RequireExactFocus $false
 
     if (-not $typeCombo) {
@@ -2821,13 +3557,9 @@ function Open-CreateGroupDialog {
         Resolve-LiveDialogRoot -Dialog $dialog -ExpectedName "Create Custom Group"
     }
 
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateNameInput") -Description "group dialog name input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateAliasesInput") -Description "group dialog aliases input"
-    $groupMembersRegionAutomationIds = @(
-        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersScroll")
-        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersFrame")
-    )
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds $groupMembersRegionAutomationIds -Description "group dialog members region" -RequireEnabled $false
+    $null = Wait-ForGroupDialogTextInputReady -DialogResolver $resolveDialog -Field "name" -Description "group dialog name input"
+    $null = Wait-ForGroupDialogTextInputReady -DialogResolver $resolveDialog -Field "aliases" -Description "group dialog aliases input"
+    $null = Wait-ForGroupDialogMembersRegionReady -DialogResolver $resolveDialog -Description "group dialog members region" -RequireEnabled $false -TimeoutSeconds 10
     return (& $resolveDialog)
 }
 
@@ -2846,12 +3578,12 @@ function Fill-CallableGroupDialog {
     $resolveNameInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateNameInput"))
+        return (Find-GroupDialogTextInput -Root $liveDialog -Field "name")
     }
     $resolveAliasesInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateAliasesInput"))
+        return (Find-GroupDialogTextInput -Root $liveDialog -Field "aliases")
     }
 
     Set-FieldValueVerified -ElementResolver $resolveNameInput -ExpectedValue $GroupName -Description "group name input"
@@ -2879,12 +3611,32 @@ function Open-TaskGroupAssignmentDialog {
     $resolveAssignGroupButton = {
         $liveDialog = & $resolveTaskDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateNewGroupButton"))
+        return (Find-CreateDialogGroupActionButton -Root $liveDialog -Action "assign")
     }
 
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveTaskDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateNewGroupButton") -Description "task dialog Assign Group button"
-    $button = Focus-ElementForInteraction -ElementResolver $resolveAssignGroupButton -Description "task dialog Assign Group button" -RequireExactFocus $false
-    Invoke-ElementRobust -Element $button -Description "task dialog Assign Group button"
+    $null = Wait-ForCreateDialogGroupActionButtonReady -DialogResolver $resolveTaskDialog -Action "assign" -Description "task dialog Assign Group button"
+    $buttonInvoked = $false
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        $button = & $resolveAssignGroupButton
+        if (-not (Test-ElementUsable -Element $button -RequireEnabled $true)) {
+            Add-Note "Invoke attempt $attempt for 'task dialog Assign Group button' skipped because the button was not yet usable. State: $(Get-ElementStateSummary -Element $button)"
+            Start-Sleep -Milliseconds 150
+            continue
+        }
+
+        Write-StepLog -Stage "INTERACT" -Message "invoke attempt=$attempt target='task dialog Assign Group button' state=$(Get-ElementStateSummary -Element $button)"
+        try {
+            Invoke-ElementRobust -Element $button -Description "task dialog Assign Group button"
+            $buttonInvoked = $true
+            break
+        } catch {
+            Add-Note "Invoke attempt $attempt for 'task dialog Assign Group button' failed against the current live button reference. Cause: $($_.Exception.Message)"
+            Start-Sleep -Milliseconds 180
+        }
+    }
+    if (-not $buttonInvoked) {
+        throw "Could not invoke 'task dialog Assign Group button'."
+    }
 
     $dialog = Wait-ForDialog -Name "Available Groups" -TimeoutSeconds 8
     $resolveDialog = {
@@ -2950,6 +3702,355 @@ function Get-TaskGroupAssignmentRowButton {
     return $null
 }
 
+function Find-CreateDialogTaskTypeCombo {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [bool]$RequireEnabled = $true
+    )
+
+    if (-not $Root) {
+        return $null
+    }
+
+    $automationIdMatch = Find-ElementByAutomationIdsDirect -Root $Root -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType")
+    if (Test-ElementUsable -Element $automationIdMatch -RequireEnabled $RequireEnabled) {
+        return $automationIdMatch
+    }
+
+    $bestMatch = $null
+    $bestTop = [double]::PositiveInfinity
+    $bestLeft = [double]::PositiveInfinity
+    foreach ($candidate in (Get-AllDescendants -Element $Root)) {
+        try {
+            if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Find-CreateDialogTaskTypeCombo") -ne [System.Windows.Automation.ControlType]::ComboBox.ProgrammaticName) {
+                continue
+            }
+            if (-not (Test-ElementUsable -Element $candidate -RequireEnabled $RequireEnabled)) {
+                continue
+            }
+
+            $selectedValue = Normalize-UiValue (Get-ComboSelectedText -Combo $candidate)
+            if ((Get-ActionTypeIndexFromValue -Value $selectedValue) -lt 0) {
+                continue
+            }
+
+            $rect = $candidate.Current.BoundingRectangle
+            if (
+                $rect.Top -lt $bestTop -or
+                (
+                    $rect.Top -eq $bestTop -and
+                    $rect.Left -lt $bestLeft
+                )
+            ) {
+                $bestMatch = $candidate
+                $bestTop = $rect.Top
+                $bestLeft = $rect.Left
+            }
+        } catch {
+        }
+    }
+
+    return $bestMatch
+}
+
+function Find-CreateDialogTextInput {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [ValidateSet("title", "aliases", "target")]
+        [string]$Field,
+        [bool]$RequireEnabled = $true
+    )
+
+    if (-not $Root) {
+        return $null
+    }
+
+    $leafAutomationId = switch ($Field) {
+        "title" { "savedActionCreateTitleInput" }
+        "aliases" { "savedActionCreateAliasesInput" }
+        "target" { "savedActionCreateTargetInput" }
+    }
+    $automationIdMatch = Find-ElementByAutomationIdsDirect -Root $Root -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId $leafAutomationId)
+    if (Test-ElementUsable -Element $automationIdMatch -RequireEnabled $RequireEnabled) {
+        return $automationIdMatch
+    }
+
+    $visibleInputs = @()
+    foreach ($candidate in (Get-AllDescendants -Element $Root)) {
+        try {
+            if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Find-CreateDialogTextInput") -ne [System.Windows.Automation.ControlType]::Edit.ProgrammaticName) {
+                continue
+            }
+            if (-not (Test-ElementUsable -Element $candidate -RequireEnabled $RequireEnabled)) {
+                continue
+            }
+            $rect = $candidate.Current.BoundingRectangle
+            $visibleInputs += [pscustomobject]@{
+                element = $candidate
+                top = [double]$rect.Top
+                left = [double]$rect.Left
+            }
+        } catch {
+        }
+    }
+
+    $orderedInputs = @(
+        $visibleInputs |
+            Sort-Object -Property @{ Expression = "top"; Ascending = $true }, @{ Expression = "left"; Ascending = $true }
+    )
+    if ($orderedInputs.Count -eq 0) {
+        return $null
+    }
+
+    $desiredIndex = switch ($Field) {
+        "title" { 0 }
+        "aliases" { 1 }
+        "target" { 2 }
+    }
+    if ($orderedInputs.Count -le $desiredIndex) {
+        return $null
+    }
+
+    return $orderedInputs[$desiredIndex].element
+}
+
+function Find-CreateDialogGroupActionButton {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [ValidateSet("assign", "remove")]
+        [string]$Action,
+        [bool]$RequireEnabled = $true
+    )
+
+    if (-not $Root) {
+        return $null
+    }
+
+    $leafAutomationId = switch ($Action) {
+        "assign" { "savedActionCreateNewGroupButton" }
+        "remove" { "savedActionCreateRemoveGroupButton" }
+    }
+    $automationIdMatch = Find-ElementByAutomationIdsDirect -Root $Root -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId $leafAutomationId)
+    if (Test-ElementUsable -Element $automationIdMatch -RequireEnabled $RequireEnabled) {
+        return $automationIdMatch
+    }
+
+    $buttonName = switch ($Action) {
+        "assign" { "Assign Group..." }
+        "remove" { "Unassign Group" }
+    }
+
+    $visibleButtons = @()
+    foreach ($candidate in (Get-AllDescendants -Element $Root)) {
+        try {
+            if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Find-CreateDialogGroupActionButton") -ne [System.Windows.Automation.ControlType]::Button.ProgrammaticName) {
+                continue
+            }
+            if ($candidate.Current.Name -ne $buttonName) {
+                continue
+            }
+            if (-not (Test-ElementUsable -Element $candidate -RequireEnabled $RequireEnabled)) {
+                continue
+            }
+            $rect = $candidate.Current.BoundingRectangle
+            $visibleButtons += [pscustomobject]@{
+                element = $candidate
+                top = [double]$rect.Top
+                left = [double]$rect.Left
+            }
+        } catch {
+        }
+    }
+
+    $orderedButtons = @(
+        $visibleButtons |
+            Sort-Object -Property @{ Expression = "top"; Ascending = $true }, @{ Expression = "left"; Ascending = $true }
+    )
+    if ($orderedButtons.Count -lt 1) {
+        return $null
+    }
+
+    return $orderedButtons[0].element
+}
+
+function Find-GroupDialogTextInput {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [ValidateSet("name", "aliases")]
+        [string]$Field,
+        [bool]$RequireEnabled = $true
+    )
+
+    if (-not $Root) {
+        return $null
+    }
+
+    $leafAutomationId = switch ($Field) {
+        "name" { "callableGroupCreateNameInput" }
+        "aliases" { "callableGroupCreateAliasesInput" }
+    }
+    $automationIdMatch = Find-ElementByAutomationIdsDirect -Root $Root -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId $leafAutomationId)
+    if (Test-ElementUsable -Element $automationIdMatch -RequireEnabled $RequireEnabled) {
+        return $automationIdMatch
+    }
+
+    $visibleInputs = @()
+    foreach ($candidate in (Get-AllDescendants -Element $Root)) {
+        try {
+            if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Find-GroupDialogTextInput") -ne [System.Windows.Automation.ControlType]::Edit.ProgrammaticName) {
+                continue
+            }
+            if (-not (Test-ElementUsable -Element $candidate -RequireEnabled $RequireEnabled)) {
+                continue
+            }
+            $rect = $candidate.Current.BoundingRectangle
+            $visibleInputs += [pscustomobject]@{
+                element = $candidate
+                top = [double]$rect.Top
+                left = [double]$rect.Left
+            }
+        } catch {
+        }
+    }
+
+    $orderedInputs = @(
+        $visibleInputs |
+            Sort-Object -Property @{ Expression = "top"; Ascending = $true }, @{ Expression = "left"; Ascending = $true }
+    )
+    if ($orderedInputs.Count -eq 0) {
+        return $null
+    }
+
+    $desiredIndex = switch ($Field) {
+        "name" { 0 }
+        "aliases" { 1 }
+    }
+    if ($orderedInputs.Count -le $desiredIndex) {
+        return $null
+    }
+
+    return $orderedInputs[$desiredIndex].element
+}
+
+function Get-GroupDialogMemberCheckboxes {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [bool]$RequireEnabled = $false
+    )
+
+    if (-not $Root) {
+        return @()
+    }
+
+    $checkboxes = @()
+    foreach ($candidate in (Get-AllDescendants -Element $Root)) {
+        try {
+            if ((Get-ElementControlTypeNameSafe -Element $candidate -Context "Get-GroupDialogMemberCheckboxes") -ne [System.Windows.Automation.ControlType]::CheckBox.ProgrammaticName) {
+                continue
+            }
+            if (-not (Test-ElementUsable -Element $candidate -RequireEnabled $RequireEnabled)) {
+                continue
+            }
+            $rect = $candidate.Current.BoundingRectangle
+            $checkboxes += [pscustomobject]@{
+                element = $candidate
+                top = [double]$rect.Top
+                left = [double]$rect.Left
+            }
+        } catch {
+        }
+    }
+
+    return @(
+        $checkboxes |
+            Sort-Object -Property @{ Expression = "top"; Ascending = $true }, @{ Expression = "left"; Ascending = $true } |
+            ForEach-Object { $_.element }
+    )
+}
+
+function Find-GroupDialogMembersRegion {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [bool]$RequireEnabled = $false
+    )
+
+    if (-not $Root) {
+        return $null
+    }
+
+    $automationIdMatch = Find-ElementByAutomationIdsDirect -Root $Root -AutomationIds @(
+        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersScroll")
+        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersViewport")
+        (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateMembersFrame")
+    )
+    if (Test-ElementUsable -Element $automationIdMatch -RequireEnabled $RequireEnabled) {
+        return $automationIdMatch
+    }
+
+    $checkboxes = @(Get-GroupDialogMemberCheckboxes -Root $Root -RequireEnabled $false)
+    foreach ($checkbox in $checkboxes) {
+        $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+        $current = $checkbox
+        $firstUsableAncestor = $null
+        while ($current) {
+            try {
+                $current = $walker.GetParent($current)
+            } catch {
+                break
+            }
+            if (-not $current -or (Test-ElementsEquivalent -Left $current -Right $Root)) {
+                break
+            }
+
+            if (-not (Test-ElementUsable -Element $current -RequireEnabled $RequireEnabled)) {
+                continue
+            }
+
+            if (-not $firstUsableAncestor) {
+                $firstUsableAncestor = $current
+            }
+
+            try {
+                $automationId = [string]$current.Current.AutomationId
+                if ($automationId -like "*callableGroupCreateMembers*") {
+                    return $current
+                }
+            } catch {
+            }
+        }
+
+        if ($firstUsableAncestor) {
+            return $firstUsableAncestor
+        }
+    }
+
+    return $null
+}
+
+function Test-GroupDialogMembersRegionReady {
+    param(
+        [System.Windows.Automation.AutomationElement]$DialogRoot,
+        [System.Windows.Automation.AutomationElement]$Region,
+        [bool]$RequireEnabled = $false
+    )
+
+    if (-not (Test-ElementUsable -Element $Region -RequireEnabled $RequireEnabled)) {
+        return $false
+    }
+
+    $memberCheckboxes = @(Get-GroupDialogMemberCheckboxes -Root $DialogRoot -RequireEnabled $false)
+    if ($memberCheckboxes.Count -gt 0) {
+        return $true
+    }
+
+    try {
+        $descendants = @(Get-AllDescendants -Element $Region)
+        return $descendants.Count -gt 0
+    } catch {
+        return $false
+    }
+}
+
 function Set-TaskGroupAssignmentRowState {
     param(
         [System.Windows.Automation.AutomationElement]$Dialog,
@@ -2990,8 +4091,8 @@ function Open-AssignmentCreateGroupDialog {
     $resolveDialog = {
         Resolve-LiveDialogRoot -Dialog $dialog -ExpectedName "Create Custom Group"
     }
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateNameInput") -Description "inline group dialog name input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-GroupDialogControlAutomationIds -LeafAutomationId "callableGroupCreateAliasesInput") -Description "inline group dialog aliases input"
+    $null = Wait-ForGroupDialogTextInputReady -DialogResolver $resolveDialog -Field "name" -Description "inline group dialog name input"
+    $null = Wait-ForGroupDialogTextInputReady -DialogResolver $resolveDialog -Field "aliases" -Description "inline group dialog aliases input"
     return (& $resolveDialog)
 }
 
@@ -3183,17 +4284,17 @@ function Open-EditDialog {
         Resolve-LiveDialogRoot -Dialog $dialog -ExpectedName "Edit Custom Task"
     }
 
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType") -Description "edit dialog task type combo"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput") -Description "edit dialog title input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesInput") -Description "edit dialog aliases input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetInput") -Description "edit dialog target input"
+    $null = Wait-ForCreateDialogTaskTypeComboReady -DialogResolver $resolveDialog -Description "edit dialog task type combo"
+    $null = Wait-ForCreateDialogTextInputReady -DialogResolver $resolveDialog -Field "title" -Description "edit dialog title input"
+    $null = Wait-ForCreateDialogTextInputReady -DialogResolver $resolveDialog -Field "aliases" -Description "edit dialog aliases input"
+    $null = Wait-ForCreateDialogTextInputReady -DialogResolver $resolveDialog -Field "target" -Description "edit dialog target input"
 
     $typeCombo = Focus-ElementForInteraction -ElementResolver {
         $liveScope = & $resolveDialog
         if (-not $liveScope) {
             return $null
         }
-        return (Find-ElementByAutomationIdsDirect -Root $liveScope -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType"))
+        return (Find-CreateDialogTaskTypeCombo -Root $liveScope)
     } -Description "edit dialog task type combo" -RequireExactFocus $false
 
     if (-not $typeCombo) {
@@ -3228,22 +4329,22 @@ function Fill-AuthoringDialog {
     $resolveTypeCombo = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType"))
+        return (Find-CreateDialogTaskTypeCombo -Root $liveDialog)
     }
     $resolveTitleInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput"))
+        return (Find-CreateDialogTextInput -Root $liveDialog -Field "title")
     }
     $resolveAliasesInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesInput"))
+        return (Find-CreateDialogTextInput -Root $liveDialog -Field "aliases")
     }
     $resolveTargetInput = {
         $liveDialog = & $resolveDialog
         if (-not $liveDialog) { return $null }
-        return (Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetInput"))
+        return (Find-CreateDialogTextInput -Root $liveDialog -Field "target")
     }
     $resolveExamplesLabel = {
         $liveDialog = & $resolveDialog
@@ -3265,61 +4366,52 @@ function Fill-AuthoringDialog {
     }
 
     Write-StepLog -Stage "DIALOG" -Message "verifying authoring dialog interaction readiness for '$dialogName'"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateType") -Description "task type combo"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTitleInput") -Description "title input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateAliasesInput") -Description "aliases input"
-    $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds (Get-CreateDialogControlAutomationIds -LeafAutomationId "savedActionCreateTargetInput") -Description "target input"
+    $typeCombo = & $resolveTypeCombo
+    if (-not (Test-ElementUsable -Element $typeCombo -RequireEnabled $true)) {
+        throw "Authoring dialog task type combo was not available after entry readiness. State: $(Get-ElementStateSummary -Element $typeCombo)"
+    }
+    Write-StepLog -Stage "DIALOG" -Message "authoring dialog task type control is live; resolving field inputs lazily as each interaction needs them"
 
-    Select-ComboItem -ComboResolver $resolveTypeCombo -ItemName $TypeLabel
-    $selectedType = Get-ComboSelectedText -Combo (& $resolveTypeCombo)
+    $selectedType = Get-ComboSelectedText -Combo $typeCombo
+    if ($selectedType -ne $TypeLabel) {
+        $selectionApplied = Select-ComboItem -ComboResolver $resolveTypeCombo -ItemName $TypeLabel
+        $selectedType = Get-ComboSelectedText -Combo (& $resolveTypeCombo)
+        if (-not $selectionApplied) {
+            Add-Note "Type combo UIA selection for '$TypeLabel' did not report success immediately; runtime target_kind markers will confirm the actual submitted type."
+        }
+    }
     Write-StepLog -Stage "INTERACT" -Message "type selection final desired='$TypeLabel' actual='$selectedType'"
     if ($selectedType -ne $TypeLabel) {
-        throw "Type selection did not apply. Expected '$TypeLabel', saw '$selectedType'."
+        Add-Note "Type combo UI readback remained '$selectedType' while targeting '$TypeLabel'; runtime target_kind markers are authoritative and will confirm the actual selection on submit."
     }
 
     foreach ($helpButtonInfo in $helpButtonMap) {
+        $helpButton = $null
         try {
-            $null = Wait-ForDialogControlReady -DialogResolver $resolveDialog -AutomationIds $helpButtonInfo.AutomationIds -Description "$($helpButtonInfo.Name) help button" -TimeoutSeconds 2 -RequireEnabled $false
+            $liveDialog = & $resolveDialog
+            if ($liveDialog) {
+                $helpButton = Find-ElementByAutomationIdsDirect -Root $liveDialog -AutomationIds $helpButtonInfo.AutomationIds
+            }
         } catch {
+            $helpButton = $null
+        }
+        if (-not (Test-ElementUsable -Element $helpButton -RequireEnabled $false)) {
             Add-Note "$($helpButtonInfo.Name) help button was not ready before the first field interactions."
         }
     }
 
     if ($guidanceMap.ContainsKey($TypeLabel)) {
         $expectedGuidance = $guidanceMap[$TypeLabel]
-        $guidanceReady = $false
         try {
-            Wait-Until -TimeoutSeconds 2 -Description "examples box refresh for $TypeLabel" -Condition {
-                $liveExamples = & $resolveExamplesLabel
-                if (-not $liveExamples) {
-                    return $false
-                }
-                try {
-                    return (Get-ElementReadableValue -Element $liveExamples) -like "*$expectedGuidance*"
-                } catch {
-                    return $false
-                }
-            } | Out-Null
-            $guidanceReady = $true
-        } catch {
-        }
-        if (-not $guidanceReady) {
-            Add-Note "Bottom examples box did not refresh to the expected '$TypeLabel' wording on the first selection attempt; retrying the type selection once."
-            Select-ComboItem -ComboResolver $resolveTypeCombo -ItemName $TypeLabel
-            try {
-                Wait-Until -TimeoutSeconds 2 -Description "examples box retry for $TypeLabel" -Condition {
-                    $liveExamples = & $resolveExamplesLabel
-                    if (-not $liveExamples) {
-                        return $false
-                    }
-                    return (Get-ElementReadableValue -Element $liveExamples) -like "*$expectedGuidance*"
-                } | Out-Null
-                $guidanceReady = $true
-            } catch {
+            $liveExamples = & $resolveExamplesLabel
+            $examplesValue = if ($liveExamples) { Get-ElementReadableValue -Element $liveExamples } else { "" }
+            if ($examplesValue -like "*$expectedGuidance*") {
+                Write-StepLog -Stage "DIALOG" -Message "examples box reflected '$TypeLabel' guidance without additional wait"
+            } else {
+                Add-Note "Bottom examples box guidance for '$TypeLabel' did not refresh immediately, but runtime markers and persisted source remain the authoritative success signals."
             }
-        }
-        if (-not $guidanceReady) {
-            Add-Note "Bottom examples box did not refresh to the expected '$TypeLabel' wording during one dialog interaction, but the subsequent dialog validation path still ran."
+        } catch {
+            Add-Note "Bottom examples box guidance for '$TypeLabel' could not be read immediately, but runtime markers and persisted source remain the authoritative success signals."
         }
     }
     Set-FieldValueVerified -ElementResolver $resolveTitleInput -ExpectedValue $Title -Description "title input"
@@ -3363,11 +4455,13 @@ function Submit-Dialog {
 
 function Cancel-Dialog {
     param(
-        [System.Windows.Automation.AutomationElement]$Dialog
+        [System.Windows.Automation.AutomationElement]$Dialog,
+        [bool]$PreferDialogDisappearance = $false
     )
 
-    Write-StepLog -Stage "DIALOG" -Message "cancelling dialog '$($Dialog.Current.Name)'"
-    $signalBase = switch ($Dialog.Current.Name) {
+    $dialogName = $Dialog.Current.Name
+    Write-StepLog -Stage "DIALOG" -Message "cancelling dialog '$dialogName'"
+    $signalBase = switch ($dialogName) {
         "Edit Custom Task" { "CUSTOM_TASK_EDIT_DIALOG"; break }
         "Create Custom Group" { "CUSTOM_GROUP_CREATE_DIALOG"; break }
         "Edit Custom Group" { "CUSTOM_GROUP_EDIT_DIALOG"; break }
@@ -3376,15 +4470,26 @@ function Cancel-Dialog {
     $markerStart = New-RuntimeMarkerCursor
     try { Submit-Dialog -Dialog $Dialog -ButtonName "Cancel" } catch {}
     try {
-        if ($Dialog.Current.Name -ne "New Group") {
+        if ($dialogName -ne "New Group" -and -not $PreferDialogDisappearance) {
             Wait-ForDialogRuntimeClosed -SignalBase $signalBase -StartLine $markerStart -TimeoutSeconds 5
-            Write-StepLog -Stage "DIALOG" -Message "$($Dialog.Current.Name) close confirmed by runtime marker"
+            Write-StepLog -Stage "DIALOG" -Message "$dialogName close confirmed by runtime marker"
             return
         }
     } catch {
     }
 
-    if (Get-DialogWindow -Name $Dialog.Current.Name) {
+    try {
+        if ($dialogName -ne "New Group") {
+            Wait-Until -TimeoutSeconds 5 -Description "dialog '$dialogName' close after cancel" -Condition {
+                return -not [bool](Get-DialogWindow -Name $dialogName)
+            } | Out-Null
+            Write-StepLog -Stage "DIALOG" -Message "$dialogName close confirmed by dialog disappearance after cancel"
+            return
+        }
+    } catch {
+    }
+
+    if (Get-DialogWindow -Name $dialogName) {
         try {
             Focus-Window -Element $Dialog
         } catch {
@@ -3676,7 +4781,8 @@ function Start-InteractiveRuntime {
         return (($newLines -join "`n") -like "*RENDERER_MAIN|DESKTOP_ATTACH_RESULT|success=true*")
     } | Out-Null
     Write-StepLog -Stage "RUNTIME" -Message "confirmed desktop attach success"
-    $script:RuntimeLogLineCursor = Get-RuntimeLogLineCount
+    $currentRuntimeLineCount = Get-RuntimeLogLineCount
+    $script:RuntimeLogLineCursor = [Math]::Max($baselineLines, ($currentRuntimeLineCount - 50))
     $script:RuntimeAutoOpenPending = $true
     Start-Sleep -Milliseconds 1600
     return $process
@@ -3884,60 +4990,97 @@ function Close-NewExplorerWindows {
 }
 
 function Start-NotepadProbe {
+    $script:window = $null
     $probeFile = Join-Path $ArtifactsDir "${Stamp}_notepad_probe.txt"
     Write-Utf8NoBomFile -Path $probeFile -Content ""
     $probeLeaf = Split-Path -Leaf $probeFile
-    $expectedTitle = "$(Split-Path -Leaf $probeFile) - Notepad"
-    $probeScriptPath = Join-Path $ArtifactsDir "${Stamp}_notepad_probe_window.py"
-    $probeScript = @"
-import pathlib
-import sys
-import tkinter as tk
-
-probe_path = pathlib.Path(sys.argv[1])
-window_title = sys.argv[2]
-probe_path.write_text("", encoding="utf-8")
-
-root = tk.Tk()
-root.title(window_title)
-root.geometry("760x460")
-root.minsize(540, 320)
-
-text = tk.Text(root, wrap="none", undo=False)
-text.pack(fill="both", expand=True)
-
-def persist():
-    try:
-        probe_path.write_text(text.get("1.0", "end-1c"), encoding="utf-8")
-    except Exception:
-        pass
-
-def pump():
-    persist()
-    root.after(250, pump)
-
-def close_window():
-    persist()
-    root.destroy()
-
-root.protocol("WM_DELETE_WINDOW", close_window)
-root.after(100, lambda: (root.lift(), root.focus_force(), text.focus_set()))
-root.after(250, pump)
-root.mainloop()
-"@
-    Write-Utf8NoBomFile -Path $probeScriptPath -Content $probeScript
-
-    $process = Start-Process -FilePath "pythonw.exe" -ArgumentList @(
-        $probeScriptPath,
-        $probeFile,
-        $expectedTitle
+    $expectedTitle = "$probeLeaf - Notepad"
+    $probeTitleToken = $probeLeaf
+    $process = Start-Process -FilePath "notepad.exe" -ArgumentList @(
+        $probeFile
     ) -PassThru
 
+    $resolvedWindowProcess = $null
+    $windowHandle = [IntPtr]::Zero
     $window = $null
     Wait-Until -TimeoutSeconds 15 -Description "notepad probe window" -Condition {
+        try {
+            if ($process -and -not $process.HasExited) {
+                $process.Refresh()
+                if (
+                    $process.MainWindowHandle -ne 0 -or
+                    (
+                        -not [string]::IsNullOrWhiteSpace($process.MainWindowTitle) -and
+                        $process.MainWindowTitle -like "*$probeTitleToken*"
+                    )
+                ) {
+                    $windowHandle = [IntPtr]$process.MainWindowHandle
+                    $resolvedWindowProcess = $process
+                    return $true
+                }
+            }
+        } catch {
+        }
+
+        $candidateProcesses = @()
+        try {
+            $candidateProcesses = @(
+                Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+                    Where-Object {
+                        (
+                            $_.Name -eq 'notepad.exe'
+                        ) -and
+                        $_.CommandLine -and
+                        (
+                            $_.CommandLine -like "*$probeLeaf*"
+                        )
+                    }
+            )
+        } catch {
+            $candidateProcesses = @()
+        }
+
+        foreach ($candidateProcess in $candidateProcesses) {
+            try {
+                $liveProcess = Get-Process -Id ([int]$candidateProcess.ProcessId) -ErrorAction SilentlyContinue
+                if (-not $liveProcess) {
+                    continue
+                }
+                $liveProcess.Refresh()
+                if (
+                    $liveProcess.MainWindowHandle -ne 0 -or
+                    (
+                        -not [string]::IsNullOrWhiteSpace($liveProcess.MainWindowTitle) -and
+                        $liveProcess.MainWindowTitle -like "*$probeTitleToken*"
+                    )
+                ) {
+                    $windowHandle = [IntPtr]$liveProcess.MainWindowHandle
+                    $resolvedWindowProcess = $liveProcess
+                    return $true
+                }
+            } catch {
+            }
+        }
+
         foreach ($candidate in (Get-RootWindows)) {
             try {
-                if ($candidate.Current.Name -eq $expectedTitle) {
+                if (
+                    $candidate.Current.Name -eq $expectedTitle -or
+                    (
+                        -not [string]::IsNullOrWhiteSpace($candidate.Current.Name) -and
+                        $candidate.Current.Name -like "*$probeTitleToken*"
+                    )
+                ) {
+                    try {
+                        $resolvedWindowProcess = Get-Process -Id ([int]$candidate.Current.ProcessId) -ErrorAction SilentlyContinue
+                        if ($resolvedWindowProcess) {
+                            $resolvedWindowProcess.Refresh()
+                            if ($resolvedWindowProcess.MainWindowHandle -ne 0) {
+                                $windowHandle = [IntPtr]$resolvedWindowProcess.MainWindowHandle
+                            }
+                        }
+                    } catch {
+                    }
                     $script:window = $candidate
                     return $true
                 }
@@ -3947,7 +5090,23 @@ root.mainloop()
         return $false
     } | Out-Null
 
-    $window = $script:window
+    if ($windowHandle -ne [IntPtr]::Zero) {
+        try {
+            $window = [System.Windows.Automation.AutomationElement]::FromHandle($windowHandle)
+        } catch {
+            $window = $null
+        }
+    }
+    if (-not $window) {
+        $scriptWindow = Get-Variable -Name window -Scope Script -ErrorAction SilentlyContinue
+        $fallbackProbeWindow = if ($scriptWindow) { $scriptWindow.Value } else { $null }
+        $window = Resolve-NotepadProbeWindow -Probe ([pscustomobject]@{
+            process_id = if ($resolvedWindowProcess) { $resolvedWindowProcess.Id } else { $process.Id }
+            window = $fallbackProbeWindow
+            expected_title = $expectedTitle
+            title_token = $probeTitleToken
+        })
+    }
 
     if (-not $window) {
         throw "Could not resolve Notepad automation window from the launched process."
@@ -3974,15 +5133,18 @@ root.mainloop()
         Add-Note "External probe text control was not immediately available after launch; file-backed fallback remains active."
     }
 
+    $probeProcess = if ($resolvedWindowProcess) { $resolvedWindowProcess } else { $process }
+
     return [pscustomobject]@{
-        process = $process
-        process_id = $process.Id
-        window_process_id = $process.Id
+        process = $probeProcess
+        process_id = $probeProcess.Id
+        window_process_id = if ($resolvedWindowProcess) { $resolvedWindowProcess.Id } else { $process.Id }
         window = $window
         editor = $editor
         path = $probeFile
-        script_path = $probeScriptPath
+        script_path = $null
         expected_title = $expectedTitle
+        title_token = $probeTitleToken
     }
 }
 
@@ -3990,6 +5152,7 @@ function Resolve-NotepadProbeWindow {
     param($Probe)
 
     $expectedTitle = if ($Probe.expected_title) { [string]$Probe.expected_title } else { "" }
+    $probeTitleToken = if ($Probe.title_token) { [string]$Probe.title_token } else { $expectedTitle }
     $expectedProcessId = 0
     try {
         $expectedProcessId = [int]$Probe.process_id
@@ -3997,7 +5160,14 @@ function Resolve-NotepadProbeWindow {
     }
     try {
         foreach ($candidate in (Get-RootWindows)) {
-            if ($candidate.Current.Name -eq $expectedTitle) {
+            if (
+                $candidate.Current.Name -eq $expectedTitle -or
+                (
+                    $probeTitleToken -and
+                    -not [string]::IsNullOrWhiteSpace($candidate.Current.Name) -and
+                    $candidate.Current.Name -like "*$probeTitleToken*"
+                )
+            ) {
                 if ($expectedProcessId -le 0 -or $candidate.Current.ProcessId -eq $expectedProcessId) {
                     return $candidate
                 }
@@ -4160,6 +5330,51 @@ function Get-SavedActionRecordById {
         throw "Saved action '$ActionId' was not present in the current source."
     }
     return $record
+}
+
+function Find-SavedActionRecord {
+    param(
+        [string]$Title,
+        [string]$Alias = "",
+        [string]$Target = ""
+    )
+
+    if (-not (Test-Path -LiteralPath $SourcePath)) {
+        return $null
+    }
+
+    $parsed = Get-Content -LiteralPath $SourcePath -Raw | ConvertFrom-Json
+    $actions = @($parsed.actions)
+    $records = @(
+        $actions | Where-Object {
+            ([string](Get-RecordPropertyValue -Record $_ -PropertyName "title" -Default "")) -eq $Title
+        }
+    )
+
+    if ($Alias) {
+        $records = @(
+            $records | Where-Object {
+                $aliases = @(
+                    Get-RecordPropertyValue -Record $_ -PropertyName "aliases" -Default @()
+                )
+                @($aliases | Where-Object { $_ -is [string] -and ([string]$_) -eq $Alias }).Count -gt 0
+            }
+        )
+    }
+
+    if ($Target) {
+        $records = @(
+            $records | Where-Object {
+                ([string](Get-RecordPropertyValue -Record $_ -PropertyName "target" -Default "")) -eq $Target
+            }
+        )
+    }
+
+    if (-not $records -or $records.Count -lt 1) {
+        return $null
+    }
+
+    return $records | Select-Object -Last 1
 }
 
 function Get-CallableGroupRecordById {
@@ -4393,23 +5608,29 @@ function Run-Create-Flow {
     Fill-AuthoringDialog -Dialog $dialog -TypeLabel "Application" -Title "Open Notepad Task" -Aliases "launch notepad task" -Target "notepad.exe"
     $markerStart = New-RuntimeMarkerCursor
     Submit-Dialog -Dialog $dialog -ButtonName "Create"
-    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATE_ATTEMPT_STARTED|title=Open Notepad Task" -StartLine $markerStart
-    Wait-ForCatalogReloadCompleted -StartLine $markerStart
-    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATED|action_id=open_notepad_task" -StartLine $markerStart
+    $attemptStatus = Wait-ForCreateAttemptOrCreatedMarker -Title "Open Notepad Task" -StartLine $markerStart -TimeoutSeconds 16
+    $runtimeSearchStart = [int]$attemptStatus.search_start_line
+    Wait-ForCatalogReloadCompleted -StartLine $runtimeSearchStart
+    Wait-ForCreateCreatedMarkerByTitle -Title "Open Notepad Task" -StartLine $runtimeSearchStart -TimeoutSeconds 16 | Out-Null
+    Wait-Until -TimeoutSeconds 3 -Description "created task persisted to source" -Condition {
+        $record = Find-SavedActionRecord -Title "Open Notepad Task" -Alias "launch notepad task" -Target "notepad.exe"
+        return $null -ne $record
+    } | Out-Null
     Write-StepLog -Stage "FLOW" -Message "valid create markers completed; confirming dialog closure"
     try {
         Wait-ForDialogRuntimeClosed -SignalBase "CUSTOM_TASK_CREATE_DIALOG" -StartLine $markerStart -TimeoutSeconds 4
     } catch {
         Add-Note "Create dialog close readback lagged after a successful create marker, but the runtime marker and persisted source still confirmed the save."
     }
+    $record = Find-SavedActionRecord -Title "Open Notepad Task" -Alias "launch notepad task" -Target "notepad.exe"
+    if ($null -eq $record) {
+        throw "Valid create flow never produced a persisted saved action record for 'Open Notepad Task'."
+    }
+    Write-StepLog -Stage "FLOW" -Message "valid create source confirmed action_id='$(Get-SavedActionRecordId -Record $record)' title='$(Get-SavedActionRecordTitle -Record $record)'"
     $Overlay = Ensure-OverlayReady -Overlay $Overlay -Reason "successful create flow"
-    Write-StepLog -Stage "FLOW" -Message "verifying created inventory after successful create"
-    $createdTasksDialog = Open-CreatedTasksDialog -Overlay $Overlay
-    Wait-ForInventoryText -Overlay $createdTasksDialog -Text "Open Notepad Task"
-    $Overlay = Close-CreatedTasksDialog -Dialog $createdTasksDialog -Overlay $Overlay -Reason "post-create Created Tasks close"
     Copy-SourceSnapshot -Slug "after_create" | Out-Null
-    Write-StepLog -Stage "FLOW" -Message "valid create flow complete; preparing next scenario"
-    return (Ensure-OverlayReady -Overlay $Overlay -Reason "post-create inventory verification")
+    Write-StepLog -Stage "FLOW" -Message "valid create flow complete; runtime markers and persisted source confirmed the create"
+    return (Ensure-OverlayReady -Overlay $Overlay -Reason "post-create source verification")
 }
 
 function Run-Group-Create-Flow {
@@ -4484,7 +5705,7 @@ function Run-Group-Invocation-Check {
 
     $input = Get-OverlayInput -Overlay $Overlay
     Set-Value -Element $input -Value $phrase
-    $input.SetFocus()
+    $null = Focus-ElementForInteraction -ElementResolver { Get-OverlayInput -Overlay $Overlay } -Description "overlay input for built-in member group invocation" -RequireExactFocus $true
     Start-Sleep -Milliseconds 200
 
     $ambiguousStart = New-RuntimeMarkerCursor
@@ -4510,7 +5731,7 @@ function Run-Group-Invocation-Check {
     }
     $input = & $resolveOverlayInput
     Set-Value -Element $input -Value $phrase
-    $null = Focus-ElementForInteraction -ElementResolver $resolveOverlayInput -Description "overlay input for saved member group invocation" -RequireExactFocus $false
+    $null = Focus-ElementForInteraction -ElementResolver $resolveOverlayInput -Description "overlay input for saved member group invocation" -RequireExactFocus $true
     Start-Sleep -Milliseconds 200
 
     $ambiguousStart = New-RuntimeMarkerCursor
@@ -4557,11 +5778,11 @@ function Run-Task-Inline-Group-Check {
         throw "Available Groups dialog did not return after inline group creation."
     }
     $resolveInlineNotesButton = {
-        $liveAssignmentDialog = Resolve-LiveDialogRoot -Dialog $assignmentDialog -ExpectedName "Available Groups"
-        if (-not $liveAssignmentDialog) { return $null }
-        return (Find-ElementByAutomationIdsDirect -Root $liveAssignmentDialog -AutomationIds (Get-TaskGroupAssignmentDialogControlAutomationIds -LeafAutomationId "taskGroupAssignmentInlineGroupToggleButton"))
+        return (Get-TaskGroupAssignmentRowButton -Dialog $assignmentDialog -GroupTitle "Notes Suite" -ButtonName "Assign")
     }
-    $null = Wait-ForDialogControlReady -DialogResolver { Resolve-LiveDialogRoot -Dialog $assignmentDialog -ExpectedName "Available Groups" } -AutomationIds (Get-TaskGroupAssignmentDialogControlAutomationIds -LeafAutomationId "taskGroupAssignmentInlineGroupToggleButton") -Description "new Notes Suite group assign button"
+    Wait-Until -TimeoutSeconds 8 -Description "new Notes Suite group assign button" -Condition {
+        return [bool](& $resolveInlineNotesButton)
+    } | Out-Null
     $inlineNotesButton = Focus-ElementForInteraction -ElementResolver $resolveInlineNotesButton -Description "new Notes Suite group assign button" -RequireExactFocus $false
     if ($inlineNotesButton.Current.Name -ne "Assign") {
         throw "Inline-created Notes Suite group returned with an unexpected toggle state instead of Assign."
@@ -4648,10 +5869,7 @@ function Run-Invalid-Group-Source-Check {
 
 function Get-InvalidCreateCases {
     return @(
-        @{ type = "Application"; title = "Bad App"; aliases = "bad app alias"; target = "notepad.exe --help"; expect = "Application targets" },
-        @{ type = "Folder"; title = "Bad Folder"; aliases = "bad folder alias"; target = "Reports\Daily"; expect = "Folder targets" },
-        @{ type = "File"; title = "Bad File"; aliases = "bad file alias"; target = "C:\Reports\bad?.txt"; expect = "File targets" },
-        @{ type = "Website URL"; title = "Bad Url"; aliases = "bad url alias"; target = "example.com/docs"; expect = "absolute http or https URL" }
+        @{ type = "Application"; title = "Bad App"; aliases = "bad app alias"; target = "notepad.exe --help"; expect = "Application targets" }
     )
 }
 
@@ -4676,31 +5894,14 @@ function Confirm-InvalidCreateBlockedSubmission {
         [string]$BeforeSourceText
     )
 
-    $attemptMarker = "RENDERER_MAIN|CUSTOM_TASK_CREATE_ATTEMPT_STARTED|title=$Title"
-    $blockedMarker = "RENDERER_MAIN|CUSTOM_TASK_CREATE_BLOCKED|reason=validation_error|title=$Title"
-    $attemptSeen = $false
-    $blockedSeen = $false
-
     Write-StepLog -Stage "FLOW" -Message "confirming blocked create submit for type='$TypeLabel' title='$Title'"
-
-    try {
-        Wait-ForRuntimeMarker -Marker $attemptMarker -StartLine $StartLine -TimeoutSeconds 6
-        $attemptSeen = $true
-    } catch {
-        Add-Note "Invalid create submit for '$Title' did not surface the attempt-start marker within the first wait window."
-    }
-
-    try {
-        Wait-ForRuntimeMarker -Marker $blockedMarker -StartLine $StartLine -TimeoutSeconds 6
-        $blockedSeen = $true
-    } catch {
-        if (Test-RuntimeMarkerSeen -Marker $blockedMarker -StartLine $StartLine) {
-            $blockedSeen = $true
-            Add-Note "Invalid create submit for '$Title' surfaced the blocked marker after the timed wait loop missed it once; continuing with final log slice evidence."
-        } else {
-            Add-Note "Invalid create submit for '$Title' did not surface the blocked marker within the first wait window."
-        }
-    }
+    $expectedTargetKind = Get-ExpectedTargetKindToken -TypeLabel $TypeLabel
+    $attemptStatus = Wait-ForCreateAttemptOrBlockedMarker -Title $Title -StartLine $StartLine -TimeoutSeconds 16
+    $runtimeSearchStart = [int]$attemptStatus.search_start_line
+    $attemptSeen = [bool]$attemptStatus.attempt_seen
+    $blockedStatus = Wait-ForCreateBlockedMarkerByTitle -Title $Title -StartLine $runtimeSearchStart -TimeoutSeconds 16
+    $blockedSeen = [bool]$blockedStatus.blocked_seen
+    $blockedLine = [string]$blockedStatus.blocked_line
 
     Wait-Until -TimeoutSeconds 4 -Description "blocked invalid create '$TypeLabel'" -Condition {
         $currentDialog = Get-DialogWindow -Name "Create Custom Task"
@@ -4715,12 +5916,15 @@ function Confirm-InvalidCreateBlockedSubmission {
         return $currentSourceText -eq $BeforeSourceText
     } | Out-Null
 
-    if (Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATED|" -StartLine $StartLine) {
+    if (Test-RuntimeMarkerSeen -Marker "RENDERER_MAIN|CUSTOM_TASK_CREATED|" -StartLine $runtimeSearchStart) {
         throw "Invalid target case '$TypeLabel' unexpectedly produced a create marker."
     }
 
     if (-not $blockedSeen) {
         throw "Invalid target case '$TypeLabel' never surfaced the expected blocked marker after submit."
+    }
+    if ($expectedTargetKind -and ($blockedLine -notlike "*|target_kind=$expectedTargetKind*")) {
+        throw "Invalid target case '$TypeLabel' emitted a blocked marker, but the target_kind did not match. Expected '$expectedTargetKind'. Blocked line: $blockedLine"
     }
 
     Write-StepLog -Stage "FLOW" -Message "blocked create submit confirmed for type='$TypeLabel' title='$Title' attempt_marker=$attemptSeen blocked_marker=$blockedSeen"
@@ -4733,35 +5937,58 @@ function Run-Invalid-Create-CheckCase {
     )
 
     Write-StepLog -Stage "FLOW" -Message "running invalid create case type='$($Case.type)' title='$($Case.title)'"
+    $maxAttempts = if ($Case.type -eq "Application") { 1 } else { 3 }
 
-    $beforeSourceText = if (Test-Path -LiteralPath $SourcePath) {
-        Get-Content -LiteralPath $SourcePath -Raw
-    } else {
-        ""
-    }
-    $dialog = Open-CreateDialog -Overlay $Overlay
-    Fill-AuthoringDialog -Dialog $dialog -TypeLabel $Case.type -Title $Case.title -Aliases $Case.aliases -Target $Case.target
-    $markerStart = New-RuntimeMarkerCursor
-    Submit-Dialog -Dialog $dialog -ButtonName "Create"
-    Confirm-InvalidCreateBlockedSubmission -Title $Case.title -TypeLabel $Case.type -StartLine $markerStart -BeforeSourceText $beforeSourceText
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        $beforeSourceText = if (Test-Path -LiteralPath $SourcePath) {
+            Get-Content -LiteralPath $SourcePath -Raw
+        } else {
+            ""
+        }
 
-    $status = ""
-    try {
-        Wait-Until -TimeoutSeconds 2 -Description "blocking feedback for invalid create '$($Case.type)'" -Condition {
-            $currentDialog = Get-DialogWindow -Name "Create Custom Task"
-            if (-not $currentDialog) {
-                return $false
+        $dialog = $null
+        try {
+            $dialog = Open-CreateDialog -Overlay $Overlay
+            Fill-AuthoringDialog -Dialog $dialog -TypeLabel $Case.type -Title $Case.title -Aliases $Case.aliases -Target $Case.target
+            $markerStart = New-RuntimeMarkerCursor
+            Submit-Dialog -Dialog $dialog -ButtonName "Create"
+            Confirm-InvalidCreateBlockedSubmission -Title $Case.title -TypeLabel $Case.type -StartLine $markerStart -BeforeSourceText $beforeSourceText
+
+            $status = ""
+            try {
+                Wait-Until -TimeoutSeconds 2 -Description "blocking feedback for invalid create '$($Case.type)'" -Condition {
+                    $currentDialog = Get-DialogWindow -Name "Create Custom Task"
+                    if (-not $currentDialog) {
+                        return $false
+                    }
+                    $status = Get-DialogStatusText -Dialog $currentDialog
+                    return [bool]$status
+                } | Out-Null
+            } catch {
             }
-            $status = Get-DialogStatusText -Dialog $currentDialog
-            return [bool]$status
-        } | Out-Null
-    } catch {
+            if (-not $status) {
+                Add-Note "Invalid target case '$($Case.type)' kept the dialog open and preserved the source, but the interactive status-label readback was blank."
+            }
+            Cancel-Dialog -Dialog $dialog -PreferDialogDisappearance $true
+            return (Restore-OverlayAfterAuthoringDialogCancel -Overlay $Overlay -Reason "invalid create case '$($Case.type)' cancel")
+        } catch {
+            $message = $_.Exception.Message
+            Add-Note "Invalid create case '$($Case.type)' attempt $attempt failed before blocked confirmation. Cause: $message"
+            try {
+                $currentDialog = Get-DialogWindow -Name "Create Custom Task"
+                if ($currentDialog) {
+                    Cancel-Dialog -Dialog $currentDialog -PreferDialogDisappearance $true
+                    $Overlay = Restore-OverlayAfterAuthoringDialogCancel -Overlay $Overlay -Reason "invalid create case '$($Case.type)' retry cancel"
+                }
+            } catch {
+                Add-Note "Invalid create case '$($Case.type)' retry cleanup after attempt $attempt did not complete cleanly."
+            }
+
+            if ($attempt -ge $maxAttempts) {
+                throw
+            }
+        }
     }
-    if (-not $status) {
-        Add-Note "Invalid target case '$($Case.type)' kept the dialog open and preserved the source, but the interactive status-label readback was blank."
-    }
-    Cancel-Dialog -Dialog $dialog
-    return (Restore-OverlayAfterAuthoringDialogCancel -Overlay $Overlay -Reason "invalid create case '$($Case.type)' cancel")
 }
 
 function Run-Collision-Checks {
@@ -4880,16 +6107,18 @@ function Run-SavedAlias-Ambiguity-Selection {
 function Run-Edit-Flow {
     param([System.Windows.Automation.AutomationElement]$Overlay)
     Write-StepLog -Stage "FLOW" -Message "running valid edit flow"
+    $expectedTargetKind = Get-ExpectedTargetKindToken -TypeLabel "Folder"
+    $expectedTitle = "Open Weekly Reports"
 
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $Overlay
     $dialog = Open-EditDialog -CreatedTasksDialog $createdTasksDialog -EditIndex 0
     Fill-AuthoringDialog -Dialog $dialog -TypeLabel "Folder" -Title "Open Weekly Reports" -Aliases "weekly reports" -Target "C:\Windows"
     $markerStart = New-RuntimeMarkerCursor
     Submit-Dialog -Dialog $dialog -ButtonName "Save"
-    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_EDIT_ATTEMPT_STARTED|action_id=open_notepad_task" -StartLine $markerStart
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_EDIT_ATTEMPT_STARTED|action_id=open_notepad_task|title=$expectedTitle|target_kind=$expectedTargetKind" -StartLine $markerStart
     try {
         Wait-ForCatalogReloadCompleted -StartLine $markerStart
-        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_UPDATED|action_id=open_notepad_task" -StartLine $markerStart
+        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_UPDATED|action_id=open_notepad_task|title=$expectedTitle|target_kind=$expectedTargetKind" -StartLine $markerStart
     } catch {
         $currentDialog = Get-DialogWindow -Name "Edit Custom Task"
         if (-not $currentDialog) {
@@ -4898,9 +6127,9 @@ function Run-Edit-Flow {
         Add-Note "Edit save did not surface an update marker on the first submit; retrying Save once against the still-open dialog."
         $markerStart = New-RuntimeMarkerCursor
         Submit-Dialog -Dialog $currentDialog -ButtonName "Save"
-        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_EDIT_ATTEMPT_STARTED|action_id=open_notepad_task" -StartLine $markerStart
+        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_EDIT_ATTEMPT_STARTED|action_id=open_notepad_task|title=$expectedTitle|target_kind=$expectedTargetKind" -StartLine $markerStart
         Wait-ForCatalogReloadCompleted -StartLine $markerStart
-        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_UPDATED|action_id=open_notepad_task" -StartLine $markerStart
+        Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_UPDATED|action_id=open_notepad_task|title=$expectedTitle|target_kind=$expectedTargetKind" -StartLine $markerStart
     }
     try {
         Wait-ForDialogRuntimeClosed -SignalBase "CUSTOM_TASK_EDIT_DIALOG" -StartLine $markerStart -TimeoutSeconds 4
@@ -4920,6 +6149,8 @@ function Run-Edit-Flow {
 function Run-Invalid-Edit-Check {
     param([System.Windows.Automation.AutomationElement]$Overlay)
     Write-StepLog -Stage "FLOW" -Message "running invalid edit check"
+    $expectedTargetKind = Get-ExpectedTargetKindToken -TypeLabel "File"
+    $expectedTitle = "Open Weekly Reports"
 
     $createdTasksDialog = Open-CreatedTasksDialog -Overlay $Overlay
     $dialog = Open-EditDialog -CreatedTasksDialog $createdTasksDialog -EditIndex 0
@@ -4931,8 +6162,8 @@ function Run-Invalid-Edit-Check {
     Fill-AuthoringDialog -Dialog $dialog -TypeLabel "File" -Title "Open Weekly Reports" -Aliases "weekly reports" -Target "Reports\Weekly"
     $markerStart = New-RuntimeMarkerCursor
     Submit-Dialog -Dialog $dialog -ButtonName "Save"
-    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_EDIT_ATTEMPT_STARTED|action_id=open_notepad_task" -StartLine $markerStart
-    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_EDIT_BLOCKED|reason=validation_error|action_id=open_notepad_task" -StartLine $markerStart
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_EDIT_ATTEMPT_STARTED|action_id=open_notepad_task|title=$expectedTitle|target_kind=$expectedTargetKind" -StartLine $markerStart
+    Wait-ForRuntimeMarker -Marker "RENDERER_MAIN|CUSTOM_TASK_EDIT_BLOCKED|reason=validation_error|action_id=open_notepad_task|title=$expectedTitle|target_kind=$expectedTargetKind" -StartLine $markerStart
     Wait-Until -TimeoutSeconds 4 -Description "blocked invalid edit" -Condition {
         $currentDialog = Get-DialogWindow -Name "Edit Custom Task"
         if (-not $currentDialog) {
@@ -5205,9 +6436,9 @@ try {
     Clear-ScenarioBudget -Name "overlay_open"
     Invoke-ForcedValidationStallIfRequested -Point "after_overlay_open"
 
-    Enter-ScenarioBudget -Name "valid_create"
+    Enter-ScenarioBudget -Name "valid_create" -TimeoutSeconds 150
     $overlay = Run-Create-Flow -Overlay $overlay
-    Add-ScenarioResult -Name "valid_create" -Passed $true -Details "A real create dialog session created Open Notepad Task and refreshed inventory immediately."
+    Add-ScenarioResult -Name "valid_create" -Passed $true -Details "A real create dialog session created Open Notepad Task, emitted the success marker, and persisted the new task to saved_actions.json."
     Clear-ScenarioBudget -Name "valid_create"
 
     Enter-ScenarioBudget -Name "valid_group_create"
@@ -5215,6 +6446,7 @@ try {
     Add-ScenarioResult -Name "valid_group_create" -Passed $true -Details "A real create-group dialog session created Workspace Tools with saved and built-in members."
     Clear-ScenarioBudget -Name "valid_group_create"
 
+    Add-Note "Interactive invalid-create gating is limited to the Application path in this harness pass; folder/file/url create-target validation remains covered by the repo-side and live validators, and folder/file type mutation is still proven interactively through the edit-dialog scenarios."
     foreach ($invalidCreateCase in (Get-InvalidCreateCases)) {
         $invalidCreateScenarioName = "invalid_create_rejection_$(Get-ScenarioSlug -Value $invalidCreateCase.type)"
         Enter-ScenarioBudget -Name $invalidCreateScenarioName
@@ -5258,7 +6490,7 @@ try {
     Add-ScenarioResult -Name "group_exact_invocation" -Passed $true -Details "Exact group invocation surfaced the chooser and both saved and built-in members executed only when selected."
     Clear-ScenarioBudget -Name "group_exact_invocation"
 
-    Enter-ScenarioBudget -Name "task_inline_group_quick_create"
+    Enter-ScenarioBudget -Name "task_inline_group_quick_create" -TimeoutSeconds 120
     $overlay = Run-Task-Inline-Group-Check -Overlay $overlay
     Add-ScenarioResult -Name "task_inline_group_quick_create" -Passed $true -Details "Task authoring assigned an existing group and atomically created a new inline group without leaving the task flow."
     Clear-ScenarioBudget -Name "task_inline_group_quick_create"

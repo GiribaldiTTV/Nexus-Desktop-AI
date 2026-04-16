@@ -27,6 +27,120 @@ Deliver a bounded in-product path for creating and editing saved actions without
 
 This workstream exists so users can manage non-standard custom tasks safely through the existing shared action model instead of hand-editing JSON.
 
+## Current Phase
+
+- Phase: `Validation / Hardening`
+- Substate: `Closeout Recovery`
+
+## Phase Entry Basis
+
+- the branch contains the integrated FB-036 + Idea 5 implementation truth, including callable groups and the latest UI/inventory follow-through
+- repo-side and live-style validators are already green on the branch
+- the exact latest branch truth still lacks a fresh fully green watchdog-backed interactive report
+- the historical near-green interactive report that first exposed the late inline-group seam is:
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_124233.txt`
+- the latest governed closeout recovery report is:
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_135000.txt`
+- together those reports prove the branch is in late closeout recovery rather than broad feature instability, but the governed timeout reset exposed an earlier cancel-and-overlay-restoration seam before the late inline-group seam could be re-exercised
+
+## Phase Exit Criteria
+
+- the full watchdog-backed interactive gate passes on the exact current branch truth
+- the timeout contract in this workstream doc matches the live harness defaults
+- the seam ledger is current and no active seam remains
+- only after those are true should this workstream move to `Docs / Canon Sync`, then `PR Readiness`
+
+## Validation Contract
+
+Validation layers for this workstream are intentionally separated:
+
+- repo-side validators
+  - persistence safety
+  - collision rules
+  - invocation generation
+  - fail-closed authoring behavior
+- live-style validation
+  - runtime markers
+  - catalog reload
+  - saved-actions source updates
+  - reopen behavior
+- interactive OS-level validation
+  - hotkey entry
+  - real dialog interaction
+  - real group and ambiguity flows
+  - cleanup behavior
+
+### Validation Authority Matrix
+
+- primary authority: runtime markers
+- secondary authority: persisted source snapshots
+- tertiary authority: UIAutomation usability and readback
+- optional or non-gating observations by default:
+  - help buttons
+  - examples-box refresh
+  - transient blocked-status labels
+
+UI-only observations may become gating only when the UI interaction itself is the thing under test.
+Otherwise they should be recorded as notes and must not override stronger runtime and persisted-source truth.
+
+For the current active seam:
+
+- `task_inline_group_quick_create` does not require exact focus ownership on the `Assign Group...` button as a business-proof condition
+- authoritative success is:
+  - task dialog open and ready markers
+  - assignment and/or inline group-create runtime markers
+  - persisted source showing the expected task/group relationship
+  - no blocked or corruption markers
+
+## Timeout Contract
+
+- preflight startup gate: `<= 60s`
+- seam or control-acquisition gate: `10-25s`
+- no-progress watchdog: `20s`
+- normal scenario budget: `90s`
+- exceptional scenario budget: `<= 120s` and explicitly named
+- transition budget: `25s`
+- full interactive run hard cap: `900s`
+- outer execution timeout should sit only slightly above the harness hard cap
+
+Current explicit exceptional scenario:
+
+- `task_inline_group_quick_create`: `120s`
+
+Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are not allowed during closeout recovery.
+
+## Current Active Seam
+
+- `invalid_create_rejection_application :: create-dialog close-after-cancel and overlay restoration under governed timeout budgets`
+- latest proving failure:
+  - `Scenario timeout exceeded for 'invalid_create_rejection_application' while waiting for dialog 'Create Custom Task' close after cancel.`
+- latest report:
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_135000.txt`
+
+## Stop-Loss Threshold
+
+- one active seam at a time
+- rerun the full gate immediately after the seam fix
+- stop after `2` seam fixes in one governed closeout pass
+- stop after `90 minutes` of closeout recovery work and report findings instead of continuing
+
+## Seam Ledger
+
+| Seam | Classification | Current status |
+| --- | --- | --- |
+| probe startup / notepad acquisition | `harness defect` | fixed earlier in branch-local hardening |
+| create-dialog combo acquisition | `harness defect` | fixed earlier in branch-local hardening |
+| `valid_create` examples-box dependency | `harness defect` | fixed by marker-first create success criteria |
+| runtime marker detection instability | `harness defect` | partially stabilized through created-marker inference |
+| group-dialog name input acquisition | `harness defect` | fixed earlier in branch-local hardening |
+| group-dialog members region acquisition | `harness defect` | fixed earlier in branch-local hardening |
+| overlay reopen / marker reacquisition instability | `harness defect` | fixed earlier in branch-local hardening |
+| stale UIAutomation element/property shape crashes | `harness defect` | reduced through null-safe and live-resolution helpers |
+| system-wide focus drift / offscreen focus rectangles / global click interference | `environment issue` | still present as late-run noise |
+| blank blocked-status readback with correct runtime/source truth | `environment issue` | still present as non-blocking noise |
+| `task_inline_group_quick_create :: Assign Group button usability/focus reacquisition` | `harness defect` | historical late seam from the near-green `20260416_124233` report; not yet re-exercised after the governed timeout reset surfaced an earlier seam |
+| `invalid_create_rejection_application :: create-dialog close-after-cancel and overlay restoration under governed timeout budgets` | `harness defect` | active seam after the governed `20260416_135000` rerun |
+
 ## Current Branch Truth
 
 - the branch already includes safe saved-action persistence, bounded deletion, and explicit catalog reload after writes
@@ -63,7 +177,9 @@ This workstream exists so users can manage non-standard custom tasks safely thro
 - deleting a saved task now also removes that task from any groups in the same atomic write
 - malformed or colliding saved-action sources still block authoring rather than attempting salvage
 - branch-local validation and hardening work now also includes dedicated FB-036 validators, live-style harnesses, interactive runtime helpers, durable validation reports, and exported manual-test artifacts that future slices should reuse rather than recreate blindly
-- the final integrated FB-036 + Idea 5 watchdog-enforced interactive desktop gate passed end-to-end on `2026-04-15` using `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260415_115705.txt`
+- the `2026-04-15` fully green interactive report remains important historical proof for the earlier integrated truth:
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260415_115705.txt`
+- current branch-local closeout truth still requires a fresh green interactive report on the exact latest branch state before final closeout can advance
 
 ## Scope
 
@@ -166,7 +282,7 @@ This workstream exists so users can manage non-standard custom tasks safely thro
   Introduced: during the same `2026-04-13` interactive-validation hardening pass.
   Classification: `interactive-only`.
   Reuse: continue hardening and reuse this as the default FB-036 interactive continuation gate instead of rebuilding one-off probes.
-  Time-budgeted defaults: full run `420s`, no-progress watchdog `45s`, scenario budget `90s`, transition budget `25s`, with clean abort, cleanup, and last-progress reporting required on timeout.
+  Time-budgeted defaults for governed closeout recovery: full run `900s`, no-progress watchdog `20s`, normal scenario budget `90s`, transition budget `25s`, with exceptional scenario budgets capped at `120s` and clean abort, cleanup, and last-progress reporting required on timeout.
 
 - `dev/logs/fb_036_authoring_live_validation/`
   Purpose: durable report and artifact root for the synthetic/live-style FB-036 validation harness.

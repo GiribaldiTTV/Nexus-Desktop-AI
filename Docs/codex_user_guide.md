@@ -10,6 +10,7 @@ It is downstream of:
 
 - `Docs/development_rules.md`
 - `Docs/Main.md`
+- `Docs/phase_governance.md`
 - `Docs/codex_modes.md`
 - `Docs/user_test_summary_guidance.md`
 
@@ -57,6 +58,16 @@ Examples:
 The prompt may be concise.
 Codex's investigation should still be complete enough for the task.
 
+## Required Phase Anchor
+
+For phase-sensitive work, prompts should explicitly include:
+
+- `Current approved phase: <phase name>`
+
+For governed closeout recovery, also include:
+
+- `Current active seam: <seam name>`
+
 ## What Codex Should Do Automatically
 
 Brief prompts do not waive source-of-truth reading.
@@ -74,10 +85,11 @@ Codex should still:
 
 1. load `Docs/development_rules.md`
 2. load `Docs/Main.md`
-3. load `Docs/codex_modes.md` when collaboration posture matters
-4. infer the directly relevant authority docs
-5. pull the repo evidence needed to validate live truth
-6. keep the same reasoning standard as a longer structured prompt
+3. load `Docs/phase_governance.md` when lifecycle or closeout posture matters
+4. load `Docs/codex_modes.md` when collaboration posture matters
+5. infer the directly relevant authority docs
+6. pull the repo evidence needed to validate live truth
+7. keep the same reasoning standard as a longer structured prompt
 
 If the task remains materially ambiguous after that baseline, Codex should ask one focused clarifying question rather than lowering the quality of analysis.
 
@@ -206,6 +218,19 @@ Useful add-ons:
 - `do not widen scope`
 - `use helper if needed`
 - `self-validate before handoff`
+
+### Governed Closeout Recovery
+
+Use:
+
+- `Workflow mode: governed closeout recovery on current branch`
+
+Required add-ons:
+
+- `Current approved phase: Validation / Hardening`
+- `Current active seam: [seam name]`
+- `do not widen scope`
+- `stop after the governed seam budget is exhausted`
 
 ### Review A Returned User Test Summary
 

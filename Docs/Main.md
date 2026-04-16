@@ -34,6 +34,7 @@ Use this ownership split unless a validated source conflict requires a temporary
 - incident patterns = generalized reusable lessons
 - bug tracking = backlog-first, with promoted bug docs only when warranted
 - User Test Summary = validation-contract layer owned by the relevant workstream
+- phase governance = cross-workstream execution, closeout, and stop-loss contract
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 ## Analysis-First Prompt Baseline
@@ -42,9 +43,10 @@ For system analysis, post-release review, branch-start planning, or source-of-tr
 
 1. read `Docs/Main.md`
 2. read `Docs/development_rules.md`
-3. read `Docs/codex_modes.md`
-4. add the directly relevant authority docs for the task
-5. add only the live repo evidence needed to validate current truth
+3. read `Docs/phase_governance.md`
+4. read `Docs/codex_modes.md`
+5. add the directly relevant authority docs for the task
+6. add only the live repo evidence needed to validate current truth
 
 Do not narrow the docs set before the system structure, drift, and authority boundaries are understood.
 
@@ -55,6 +57,7 @@ Do not narrow the docs set before the system structure, drift, and authority bou
 Use these for workflow posture, prompt framing, lifecycle rules, and execution scaffolding:
 
 - `Docs/development_rules.md`
+- `Docs/phase_governance.md`
 - `Docs/Main.md`
 - `Docs/codex_modes.md`
 - `Docs/orin_task_template.md`
@@ -135,6 +138,7 @@ These are reference layers, not active workstream or roadmap owners.
 ## Routing Rules
 
 - route through the layer that owns the truth you need
+- when work is phase-sensitive, route through `Docs/phase_governance.md` before choosing execution posture
 - prefer index docs for historical or high-cardinality layers
 - do not treat a local-only document as canonical just because it exists in the workspace
 - keep future post-Beta AI behavior, privacy, and execution intent in `Docs/orin_vision.md` until a later selected workstream turns part of it into execution truth

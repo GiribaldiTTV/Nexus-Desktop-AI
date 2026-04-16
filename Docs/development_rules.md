@@ -56,7 +56,15 @@ Use this layered ownership model:
 - incident patterns = generalized reusable lessons
 - bugs = backlog-first, with promoted bug docs only when warranted
 - User Test Summary = validation-contract layer owned by workstreams
+- phase governance = cross-workstream execution, closeout, and stop-loss contract
 - `Docs/Main.md` = routing authority aligned to merged truth
+
+Use `Docs/phase_governance.md` for:
+
+- named execution phases
+- phase entry and exit rules
+- interactive timeout governance
+- governed closeout stop-loss rules
 
 Use these lifecycle fields:
 
@@ -150,6 +158,8 @@ Every revision must include:
 
 Interactive validation must also be time-budgeted.
 Codex must not allow stalled validation runs, harnesses, or desktop exercises to sit indefinitely.
+
+When the branch is in governed closeout recovery, `Docs/phase_governance.md` is the controlling timeout and stop-loss authority unless the active workstream doc explicitly documents a tighter contract.
 
 When an interactive validation pass is relevant, it must use:
 

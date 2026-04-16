@@ -8,6 +8,7 @@ Treat the following files as authoritative unless a direct verified implementati
 
 - `C:\Nexus Desktop AI\Docs\development_rules.md`
 - `C:\Nexus Desktop AI\Docs\Main.md`
+- `C:\Nexus Desktop AI\Docs\phase_governance.md`
 - `C:\Nexus Desktop AI\Docs\architecture.md`
 - `C:\Nexus Desktop AI\Docs\orin_vision.md`
 - `C:\Nexus Desktop AI\Docs\feature_backlog.md`
@@ -20,7 +21,7 @@ If anything in the request conflicts with those docs, call it out explicitly bef
 ## Prompt Hygiene
 
 - Use `C:\Nexus Desktop AI\Docs\Main.md` as the routing index for selecting the correct authority baseline.
-- The default prompt baseline should usually be `development_rules.md`, `Main.md`, the directly relevant authority docs, and the evidence inputs needed to validate live truth.
+- The default prompt baseline should usually be `development_rules.md`, `Main.md`, `phase_governance.md`, the directly relevant authority docs, and the evidence inputs needed to validate live truth.
 - If a canonical workstream, rebaseline, or consolidated design doc exists for the active question, prefer that authority doc over a stack of superseded slice docs.
 - Include prior closeout docs and older slice docs only when they are still materially relevant to the specific task.
 
@@ -37,6 +38,12 @@ Branch:
 
 Task mode:
 [analysis-only / planning-only / docs-only / patch / review / release-workflow]
+
+Current approved phase:
+[Workstream Analysis / Approved Execution / Validation / Hardening / Docs / Canon Sync / PR Readiness / Release Readiness / Post-Release Canon Sync]
+
+Current active seam:
+[fill in only when the task is in governed closeout recovery]
 
 Note: task mode defines the task type. Codex collaboration posture is defined separately in `C:\Nexus Desktop AI\Docs\codex_modes.md`.
 
@@ -218,7 +225,8 @@ If an execution task is too broad for one approved pass, explain the cleaner exe
 
 1. Explain the approved execution scope.
 2. Explain the branch or workstream posture.
-3. Explain the validation plan.
+3. Explain the current approved phase and, when relevant, the current active seam.
+4. Explain the validation plan.
 
 If the task includes interactive validation, the validation plan should also state:
 

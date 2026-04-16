@@ -7,6 +7,7 @@ This document defines the collaboration posture Codex should use while handling 
 It works with:
 
 - `Docs/development_rules.md`
+- `Docs/phase_governance.md`
 - `Docs/Main.md`
 - `Docs/orin_task_template.md`
 
@@ -202,6 +203,7 @@ When that happens:
 ## Shared Rules Across Both Modes
 
 - analyze before changing anything
+- anchor phase-sensitive work to the current phase named in `Docs/phase_governance.md`
 - verify exact behavior or doc alignment before editing
 - preserve architecture boundaries
 - call out source-of-truth conflicts explicitly
@@ -243,6 +245,19 @@ Codex must also:
 - make an explicit next-step call between continue, harden, or corrective fix
 
 If that interactive path is not feasible, Codex must explain why, use the strongest available non-interactive evidence, and state that the continuation judgment is limited by the missing interactive validation.
+
+## Phase Anchoring
+
+Modes define collaboration posture.
+Phases define the current governed lifecycle state.
+
+For phase-sensitive work, prompts and execution records should explicitly state:
+
+- `Current approved phase: <phase name>`
+
+When a branch is in governed closeout recovery, prompts should also state:
+
+- `Current active seam: <seam name>`
 
 ## Live-State Readiness Sanity Check
 
