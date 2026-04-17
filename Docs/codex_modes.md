@@ -123,6 +123,7 @@ In Workflow mode, Codex should:
 - make the required changes
 - verify the changed behavior or changed docs
 - report any drift or remaining gaps honestly
+- when the approved boundary is continuous validation inside the current workstream, keep iterating until the full gate is green or a hard stop is reached
 
 ### What Codex Must Not Do
 
@@ -146,9 +147,11 @@ Workflow mode should usually return:
 - any remaining simulated-only findings or reasoning-only gaps that still matter
 - deeper branch-local validation or hardening findings when the slice changes runtime or user-visible behavior
 - any timeout or stall conditions encountered during validation, including the last confirmed meaningful progress point and whether the run aborted cleanly
+- whether closeout-grade proof came from the helper's documented default budget profile or only from exploratory overrides
 - a detailed `## User Test Summary` manual checklist when the slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or another operator-facing path
 - the updated canonical repo-level `UTS` artifact when the active workstream owns one and the slice makes that artifact relevant
 - the exported or refreshed desktop `User Test Summary.txt` copy when the slice is a relevant desktop user-facing path, or an explicit explanation of why that export was skipped
+- when meaningful desktop UI changed and closeout posture matters, a distinct summary of the live launched-process UI audit results and evidence
 - an explicit statement under `## User Test Summary` when no meaningful manual test exists and why
 - remaining drift or known gaps
 - whether the approved phase is complete
@@ -224,8 +227,8 @@ When that happens:
 - call out source-of-truth conflicts explicitly
 - backlog owns identity
 - roadmap owns sequencing
-- workstream docs own promoted-work feature-state, branch-local evidence, active seam references, and closure history
-- `Docs/phase_governance.md` owns repo-wide phase, proof, timeout, seam, and stop-loss rules
+- workstream docs own promoted-work feature-state, branch-local evidence, active seam references, artifact history, branch-local reuse notes, and closure history
+- `Docs/phase_governance.md` owns repo-wide phase, proof, timeout, seam, stop-loss, validation-helper, and desktop UI audit rules
 - User Test Summary belongs to workstream-owned validation
 - incident patterns are generalized knowledge, not case history
 
@@ -259,6 +262,11 @@ Codex must also:
 - launch and exercise the real desktop or runtime path through an interactive OS-level session when feasible
 - explicitly distinguish validator results, synthetic or headless validation results, simulated reasoning, interactive OS-level execution results, and manual user-test handoff
 - make an explicit next-step call between continue, harden, or corrective fix
+
+When meaningful desktop UI changed, Codex should also:
+
+- treat the live launched-process UI audit as a post-green closeout check rather than a per-seam screenshot requirement
+- preserve the audit manifest and key captured windows in the final evidence package when closeout or readiness is being claimed
 
 If that interactive path is not feasible, Codex must explain why, use the strongest available non-interactive evidence, and state that the continuation judgment is limited by the missing interactive validation.
 

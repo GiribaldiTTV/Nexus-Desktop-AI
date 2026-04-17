@@ -34,7 +34,7 @@ Use this ownership split unless a validated source conflict requires a temporary
 - incident patterns = generalized reusable lessons
 - bug tracking = backlog-first, with promoted bug docs only when warranted
 - User Test Summary = validation-contract layer owned by the relevant workstream
-- phase governance = repo-wide execution, proof, timeout, seam, and stop-loss contract
+- phase governance = repo-wide execution, proof, timeout, seam, stop-loss, validation-helper, and desktop UI audit contract
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 ## Analysis-First Prompt Baseline
@@ -88,6 +88,9 @@ Use these for workflow posture, prompt framing, lifecycle rules, and execution s
 - `Docs/codex_modes.md`
 - `Docs/orin_task_template.md`
 - `Docs/codex_user_guide.md`
+
+Repo-wide validation-helper rules also live in this governance layer.
+Use `Docs/phase_governance.md` for the validation helper contract, proof hierarchy, default-budget closeout rule, and desktop UI audit rule instead of recreating those rules inside a workstream doc.
 
 ### Product And Boundary Truth
 
@@ -150,6 +153,7 @@ Use this when a task depends on manual validation handoff, User Test Summary str
 - `Docs/user_test_summary_guidance.md`
 - the relevant canonical workstream doc under `Docs/workstreams/`, which also owns the active lane's canonical repo-level `UTS` artifact and any durable artifact-history or artifact-reference section for branch-local validation/support assets when that workstream has created them
 - `Docs/development_rules.md` when the task also depends on implementation-time validation depth, supporting validation artifacts, required evidence trails, hardening expectations, or the interactive OS-level continuation gate
+- `Docs/phase_governance.md` when the task also depends on the repo-wide validation helper contract, marker-first proof hierarchy, gating-vs-non-gating observation rules, default-budget closeout expectations, or the desktop UI audit rule
 
 ### Auxiliary Planning References
 
@@ -172,7 +176,7 @@ These are reference layers, not active workstream or roadmap owners.
 - do not treat a local-only document as canonical just because it exists in the workspace
 - keep future post-Beta AI behavior, privacy, and execution intent in `Docs/orin_vision.md` until a later selected workstream turns part of it into execution truth
 - do not create duplicate authority by making backlog, roadmap, and workstream docs all carry the same execution story
-- do not treat workstream docs as the owner of repo-wide phase, timeout, stop-loss, or proof-authority rules; those belong to `Docs/phase_governance.md`
+- do not treat workstream docs as the owner of repo-wide phase, timeout, stop-loss, proof-authority, validation-helper, or desktop UI audit rules; those belong to `Docs/phase_governance.md`
 - keep historical Jarvis material preserved, but mark it as historical rather than current reality
 - after a release, do not default to a standalone docs-only canon lane when a plausible next workstream can be selected from updated `main`
 - the normal post-release sequence is:
@@ -192,6 +196,8 @@ These are reference layers, not active workstream or roadmap owners.
 - keep validator results, synthetic/headless validation results, interactive OS-level execution results, simulated reasoning, and manual handoff as separate evidence layers rather than collapsing them into one summary
 - when a pass opens programs, windows, dialogs, temporary documents, helper processes, probe files, or other session-scoped artifacts, route through `Docs/development_rules.md` and require cleanup plus explicit cleanup verification before handoff unless there is an explicit reason to preserve them
 - when a task depends on interactive desktop validation, route through `Docs/development_rules.md` and require explicit time budgets, clean timeout abort behavior, cleanup, and last-progress reporting rather than relying on open-ended waits
+- when closeout depends on interactive desktop validation, also route through `Docs/phase_governance.md` and require the helper's documented default budget profile to prove green before calling the branch truly green
+- when a branch materially changes user-facing desktop UI, require the post-green live launched-process UI audit before treating closeout as complete; do not reinterpret that as a screenshot requirement for every seam iteration
 
 ## Practical Prompt Rule
 

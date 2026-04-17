@@ -25,7 +25,7 @@ If anything in the request conflicts with those docs, call it out explicitly bef
 - If a canonical workstream, rebaseline, or consolidated design doc exists for the active question, prefer that authority doc over a stack of superseded slice docs.
 - Include prior closeout docs and older slice docs only when they are still materially relevant to the specific task.
 - Treat canonical workstream docs as branch-local feature-state, evidence, validation-contract, and active-seam references.
-- Treat `phase_governance.md` as the repo-wide authority for phase names, stop-loss rules, proof ownership, timeout governance, and truth-drift enforcement.
+- Treat `phase_governance.md` as the repo-wide authority for phase names, stop-loss rules, proof ownership, timeout governance, validation-helper rules, desktop UI audit rules, and truth-drift enforcement.
 
 Concise prompts are acceptable.
 They do not reduce the required depth of analysis.

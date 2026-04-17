@@ -75,6 +75,30 @@ UI-only observations may be logged as notes, but they must not override stronger
 - the active workstream doc defines the branch-local validation contract, active seam, and any explicit tighter requirements
 - runtime markers and persisted source truth own correctness for product behavior unless the scenario is explicitly about UI interaction quality or reachability
 
+### Validation Helper Contract
+
+Interactive validation helpers should default to a reusable repo-wide contract unless a workstream explicitly documents a tighter branch-local need.
+
+That contract is:
+
+- runtime markers and runtime logs are the primary proof surface
+- persisted source or persisted state snapshots are the secondary proof surface
+- UIAutomation, readback, and other live UI inspection are tertiary proof surfaces
+- gating observations and non-gating observations must be separated explicitly
+- runtime helpers are expected when they materially improve deterministic startup, attach, or runtime-log capture
+- a watchdog or equivalent timeout-enforcement path is required for meaningful interactive closeout work
+- last-confirmed-progress logging is required for timeout or stall diagnosis
+- cleanup guarantees are required for helper processes, launched apps, probe files, and other session artifacts
+- saved-state or source snapshots should be preserved when write safety, reopen behavior, or no-write blocking behavior matters
+- windows, dialogs, overlays, and controls should be re-resolved live across close/open seams instead of reusing stale references
+- validation seams must be classified as `product defect`, `harness defect`, `environment issue`, or `canon / contract drift` before product code is changed
+
+Closeout-grade proof has one extra rule:
+
+- the default budget profile of the validation helper must itself prove green before branch closeout can be claimed
+
+Exploratory command-line overrides may still be used during hardening, but a one-off override profile is not enough to call the branch green unless that same profile becomes the documented default or the documented default also proves green.
+
 ### Seam Classification Rule
 
 Validation seams should be classified before they are fixed:
@@ -92,33 +116,67 @@ Do not treat a seam as a product defect merely because the interactive harness f
 - rerun the full governed gate immediately after that seam fix
 - if a new seam appears, log it before selecting it as the next active seam
 
+Single-seam ownership does not require a new operator prompt after every rerun.
+It means one seam is active at a time, even when a longer continuous validation pass is allowed.
+
+### Continuous Validation Loop Rule
+
+When the approved prompt or execution boundary explicitly authorizes a continuous validation pass inside `Validation / Hardening`, Codex may continue across seam iterations without waiting for a new user prompt after every rerun.
+
+That is allowed only while all of the following remain true:
+
+- the branch is still in `Validation / Hardening`
+- the same workstream boundary and closeout goal remain valid
+- the proof hierarchy, timeout contract, and helper default profile remain unchanged
+- no blocker, truth drift, or required canon-sync stop appears
+- the pass is still moving through one active seam at a time
+
+Inside that continuous loop, Codex should:
+
+- identify the first real failing seam
+- classify it before changing product code
+- fix only that seam
+- rerun the full governed gate immediately
+- continue until the full gate is green or a hard stop is reached
+
+This rule exists so governed validation can keep moving toward full green without unnecessary stop-and-report churn between every seam.
+
 ### Stop-Loss Rule
 
-For governed closeout recovery:
+For governed closeout recovery or another approved continuous validation pass:
 
-- stop after `2` seam fixes in one governed closeout pass
-- stop after `90 minutes` of closeout recovery work and produce findings instead of continuing
+- stop immediately if a blocker appears
+- stop immediately if truth drift appears
+- stop immediately if timeout inflation beyond the documented contract is required
+- stop immediately if proof ownership, gating rules, or the helper default profile must change before the next rerun
+- stop if `2` consecutive seam fixes fail to move the first-failing seam or otherwise fail to produce material end-to-end progress
+- stop if roughly `90 minutes` of validation work pass without material end-to-end progress toward green
 - when stop-loss is reached, continued execution is blocked until a decision memo or equivalent phase-state update is recorded
 
 ### Timeout Governance
 
 Interactive closeout and hardening work must use tiered hard stops.
 
-Default contract:
+Repo-wide target contract for hardened desktop interactive helpers:
 
 - preflight startup gate: `<= 60s`
-- seam or control-acquisition gate: `10-25s`
-- no-progress watchdog: `15-20s`
-- normal scenario budget: `60-90s`
-- exceptional scenario budget: `<= 120s`, only when explicitly declared in the workstream doc
-- full interactive run hard cap: `<= 15 minutes`
+- seam or control-acquisition gate: `<= 3s` once the live desktop surface is already open
+- no-progress watchdog: `<= 3s`
+- normal scenario budget: `<= 60s`
+- exceptional scenario budget: `<= 90s`, only when explicitly declared in the workstream doc
+- full interactive rerun hard cap: `<= 15 minutes`
 - outer execution timeout: only slightly above the harness hard cap
 
 Prohibited without explicit workstream-doc reconciliation:
 
-- undocumented `300s+` scenario budgets
+- undocumented `90s+` scenario budgets
 - undocumented `15m+` full-run caps
 - silent timeout inflation during closeout
+
+Additional repo-wide rule:
+
+- when hardening proves that a tighter and faster default helper profile is stable, that profile should replace the older relaxed default before closeout-grade proof is claimed
+- if a seam keeps breaching the documented `3s` or `60s` targets, treat that as validation-helper or process debt and redesign the proof path instead of silently letting the run sit longer
 
 ### Truth-Drift Enforcement Rule
 
@@ -138,12 +196,28 @@ Before a full interactive gate is used as a closeout proof surface, run or confi
 
 If preflight fails, the branch remains in `Validation / Hardening`; do not burn a full closeout run first.
 
+### Desktop UI Audit Rule
+
+When a branch materially changes user-facing desktop UI and that UI is relevant to the closeout claim:
+
+- a live launched-process UI audit is required before branch closeout is treated as complete
+- the audit should happen after the branch is green or effectively green, not during every seam iteration
+- the audit evidence should include a manifest or equivalent index plus the captured screenshots or other durable artifacts
+- the audit should check layout, readability, visibility, hierarchy, and obvious regressions against the current desktop UI direction
+
+This does not create a repo-wide rule that every validation pass must always take screenshots.
+The canonical rule is narrower:
+
+- marker-first proof for behavior
+- live launched-process UI audit when meaningful desktop UI changed and closeout depends on user-facing UI quality
+
 ### Iteration Discipline
 
 - full interactive reruns are for proof, not exploration
 - do not keep fixing seams informally without updating the seam ledger
 - after a green rerun, move to `Docs / Canon Sync` before calling PR readiness
-- after a non-green rerun, either select one new active seam inside stop-loss or stop and report
+- after a non-green rerun inside a continuous validation pass, either select the next single active seam inside stop-loss or stop at the hard-stop boundary
+- do not stop a continuous validation pass merely because one seam finished; stop only at green, truth drift, a blocker, or stop-loss
 
 ### Phase Transition Rule
 
@@ -218,6 +292,7 @@ Purpose:
 
 - prove the current branch truth
 - harden validation infrastructure when proof gaps remain
+- when explicitly approved, continue a bounded seam-by-seam validation loop until the full gate is green or a hard stop is reached
 
 Allowed:
 

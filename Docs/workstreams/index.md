@@ -13,7 +13,7 @@ Use this layer when a backlog item has been promoted and now needs:
 - a stable path before and after closure
 
 This index does not own repo-wide process rules.
-Use `Docs/phase_governance.md` for phase names, proof authority, seam governance, timeout governance, preflight rules, and stop-loss rules.
+Use `Docs/phase_governance.md` for phase names, proof authority, seam governance, timeout governance, preflight rules, stop-loss rules, the validation helper contract, and the desktop UI audit rule.
 
 ## Workstream Record Rules
 
@@ -25,12 +25,14 @@ Use `Docs/phase_governance.md` for phase names, proof authority, seam governance
 - once promoted, the canonical workstream doc becomes the durable execution and traceability record for that lane and must be updated throughout the active branch, not just at closeout
 - backlog remains the identity registry and points here through `Canonical Workstream Doc`
 - roadmap consumes this layer for sequencing but does not duplicate its full execution story
-- repo-wide phase, timeout, proof-authority, seam, and stop-loss rules live in `Docs/phase_governance.md`, not in individual workstream docs
+- repo-wide phase, timeout, proof-authority, seam, stop-loss, validation-helper, and desktop UI audit rules live in `Docs/phase_governance.md`, not in individual workstream docs
 - for active desktop workstreams, the default canonical repo-level `UTS` artifact is the `## User Test Summary` section inside the workstream doc unless that doc explicitly declares a different repo path
 - for relevant desktop slices, `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` is the required user-facing exported copy unless an explicit documented exception applies
 - response-level `## User Test Summary` text does not replace the workstream-owned repo artifact
 - when an active desktop slice can be exercised through a real desktop session, the workstream layer should capture or point to the durable evidence from that interactive OS-level validation before continuation is recommended
 - synthetic or headless validation evidence may support that continuation decision, but it does not replace the interactive OS-level gate when that gate is feasible
+- when meaningful user-facing desktop UI changed on an active workstream branch, the workstream layer should also capture or point to the final live launched-process UI audit evidence as part of closeout history
+- that UI audit expectation is a post-green closeout rule for meaningful desktop UI changes, not a rule that every seam iteration must always take screenshots
 - when Codex creates or materially extends lane-specific validators, harnesses, runtime helpers, scripts, workers, report roots, exported manual-test artifacts, or other reusable support assets on an active workstream branch, the workstream doc should keep a durable artifact-history or artifact-reference section for them
 - that artifact-history section should record the path, purpose, introduced-when or introduced-why note, classification such as `baseline`, `supporting`, `interactive-only`, or `temporary`, and how future work should reuse the artifact
 - when an active workstream enters governed closeout recovery or another late hardening phase, it should also record the current phase

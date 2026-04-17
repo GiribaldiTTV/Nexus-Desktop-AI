@@ -91,6 +91,12 @@ Codex should still:
 6. pull the repo evidence needed to validate live truth
 7. keep the same reasoning standard as a longer structured prompt
 
+For meaningful interactive desktop hardening or closeout work, that baseline also includes:
+
+- using `Docs/phase_governance.md` for the repo-wide validation helper contract and proof hierarchy
+- using `Docs/development_rules.md` for evidence, cleanup, and hardening expectations
+- planning the post-green live launched-process UI audit when meaningful user-facing desktop UI changed
+
 If the task remains materially ambiguous after that baseline, Codex should ask one focused clarifying question rather than lowering the quality of analysis.
 
 ## Startup Contract For Every Task
@@ -112,6 +118,7 @@ For tracked work, that means:
 
 Promoted workstream docs remain the place to read branch-local feature state, evidence, active seams, artifact history, and branch-local reuse notes.
 Repo-wide lifecycle rules such as phases, stop-loss, timeout governance, and proof authority come from `Docs/phase_governance.md`.
+Repo-wide validation-helper rules and the desktop UI audit rule also come from `Docs/phase_governance.md`.
 
 ## Analysis-Phase Prompting
 
@@ -246,12 +253,34 @@ Use:
 
 - `Workflow mode: governed closeout recovery on current branch`
 
+Use this bounded form when the user wants a stop-and-report recovery pass rather than a continuous run to full green.
+
 Required add-ons:
 
 - `Current approved phase: Validation / Hardening`
 - `Current active seam: [seam name]`
 - `do not widen scope`
 - `stop after the governed seam budget is exhausted`
+
+### Continuous Validation To Full Green
+
+Use:
+
+- `Workflow mode: continuous governed validation to full green on current branch`
+
+Required add-ons:
+
+- `Current approved phase: Validation / Hardening`
+- `use the documented validation timeout profile`
+- `do not widen scope`
+- `do not stop between seam iterations unless blocker, truth drift, stop-loss, or required canon sync appears`
+- `continue until the full gate is green or a hard stop is hit`
+
+Helpful add-ons:
+
+- `target no-progress 3s`
+- `target transition 3s`
+- `target normal seam 60s`
 
 ### Review A Returned User Test Summary
 

@@ -56,7 +56,7 @@ Use this layered ownership model:
 - incident patterns = generalized reusable lessons
 - bugs = backlog-first, with promoted bug docs only when warranted
 - User Test Summary = validation-contract layer owned by workstreams
-- phase governance = repo-wide execution, proof, timeout, seam, and stop-loss contract
+- phase governance = repo-wide execution, proof, timeout, seam, stop-loss, validation-helper, and desktop UI audit contract
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 Use `Docs/phase_governance.md` for:
@@ -65,6 +65,8 @@ Use `Docs/phase_governance.md` for:
 - phase entry and exit rules
 - proof authority rules
 - interactive timeout governance
+- validation helper rules
+- desktop UI audit rules
 - truth-drift enforcement
 - governed closeout stop-loss rules
 
@@ -190,12 +192,41 @@ When an interactive validation pass is relevant, it must use:
 - scenario and/or transition budgets where the flow has distinct multi-step seams
 - an outer execution timeout that sits only slightly above the interactive harness hard cap rather than extending it by many additional minutes
 
+For meaningful interactive desktop closeout work, helpers should also follow the repo-wide validation helper contract from `Docs/phase_governance.md`.
+That means:
+
+- marker-first proof by default
+- explicit separation of gating and non-gating observations
+- runtime helper support when it materially improves deterministic startup or runtime logging
+- watchdog enforcement plus last-progress logging
+- cleanup guarantees
+- saved-state or source snapshots when write safety or no-write blocking behavior matters
+- live re-resolution of windows, dialogs, overlays, and controls across close/open seams
+- seam classification before product code is changed during validation hardening
+
+When the approved boundary is a continuous `Validation / Hardening` pass on the current branch, Codex should keep iterating through seams without waiting for a new user prompt after every rerun unless:
+
+- a blocker appears
+- truth drift appears
+- stop-loss is reached
+- canon sync becomes required before the next rerun
+
+Do not claim closeout-grade green status from a helper profile that only passed under one-off command-line overrides.
+The helper's documented default profile must itself prove green before that branch can be treated as truly green.
+
 If a timeout or freeze is detected, Codex must:
 
 - abort cleanly rather than letting the run continue indefinitely
 - perform the required session cleanup
 - explicitly report the timeout or stall condition
 - explicitly report the last confirmed meaningful progress point
+
+For hardened desktop helpers, the working target is not just eventual completion.
+The working target is also responsiveness:
+
+- no-progress or transition waits should normally stay within `3s`
+- normal seam or scenario completion should normally stay within `60s`
+- if a helper keeps needing longer waits, patch the proof path or helper design rather than silently normalizing the delay
 
 If the timeout contract in the active workstream doc and the live harness behavior drift apart, the workflow is blocked until that drift is reconciled in canon before continued execution is recommended.
 
@@ -226,6 +257,9 @@ In that case:
 - manual user handoff remains an additional operator layer, not a substitute for Codex's own feasible interactive validation
 
 If Codex cannot self-run the same path reliably, it must say so explicitly and identify the remaining validation gap.
+
+When a slice materially changes user-facing desktop UI, Codex must also plan a post-green live launched-process UI audit before closeout.
+That audit is a closeout-quality check, not a screenshot requirement for every seam iteration.
 
 For runtime, UI, startup, prompt, voice, or other operator-facing implementation slices, green validators are necessary but not sufficient on their own.
 
@@ -305,6 +339,7 @@ If Codex does not export or refresh the desktop `User Test Summary.txt` copy for
 - prefer structured markers over raw output
 - preserve or cite the exact validator outputs, helper scripts or harnesses used, runtime logs reviewed, and any created fixtures, traces, or screenshots that materially support a continuation recommendation
 - when interactive OS-level validation is required and feasible, preserve or cite the exact session evidence that shows the real path was exercised, such as runtime logs, screenshots, structured markers, traces, or durable validation reports
+- when meaningful desktop UI changed and a live launched-process UI audit was required, preserve or cite the audit manifest and the key captured windows as part of the final closeout evidence
 - do not claim live-style validation without evidence or a specific explanation of what path was actually exercised
 
 ### Root Logs Governance
