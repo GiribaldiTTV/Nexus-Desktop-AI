@@ -1154,6 +1154,7 @@ def _test_create_dialog_supports_group_assignment_and_inline_group_queue():
     dialog.target_input.setText(r"C:\Reports")
     assignment_dialog = renderer_mod.TaskGroupAssignmentDialog(
         available_groups=dialog._available_groups,
+        available_members=[],
         selected_group_ids=(),
         inline_group_draft=renderer_mod.CallableGroupDraft(
             title="Reports Suite",
@@ -1163,6 +1164,14 @@ def _test_create_dialog_supports_group_assignment_and_inline_group_queue():
         inline_group_assigned=False,
         group_status_kind="loaded",
         group_status_text="",
+    )
+    _assert(
+        assignment_dialog.title_label.text() == "Manage Custom Groups",
+        "task-path group assignment should reuse the same management-family title instead of a lighter standalone surface",
+    )
+    _assert(
+        assignment_dialog.create_group_button.text() == "Create New Group",
+        "task-path group management should expose a dedicated Create New Group action in the footer",
     )
     assignment_dialog._toggle_existing_group("workspace_tools")
     dialog._selected_group_ids_state = assignment_dialog.selected_group_ids()
@@ -1337,7 +1346,7 @@ def _test_assignment_group_create_reuses_group_dialog_without_member_picker():
     _app()
     dialog = renderer_mod.CallableGroupCreateDialog(
         heading_text="Create Custom Group",
-        hint_text="Pick a group name and exact aliases below. You will return to Available Groups to assign it to this task.",
+        hint_text="Pick a group name and exact aliases below. You will return to Manage Custom Groups for this task after the group is created.",
         submit_button_text="Create",
         available_members=[],
         show_member_picker=False,
@@ -1348,12 +1357,17 @@ def _test_assignment_group_create_reuses_group_dialog_without_member_picker():
         "inline group creation should reuse the same Create Custom Group window title",
     )
     _assert(
-        dialog.members_header is None and dialog.members_scroll is None,
-        "assignment-driven group creation should hide the member picker so it matches the task-session flow",
+        dialog.members_header is not None and dialog.members_scroll is not None,
+        "assignment-driven group creation should keep the same Available Tasks section shell as the direct group dialog",
     )
     _assert(
-        "pick a group name and exact aliases below" in dialog.hint_label.text().casefold(),
-        "assignment-driven group creation should keep the same create-group surface while narrowing the scope to name and aliases",
+        dialog.task_flow_note is not None
+        and "returns you to manage custom groups for the current task" in dialog.task_flow_note.findChild(QLabel, "callableGroupCreateTaskFlowBody").text().casefold(),
+        "assignment-driven group creation should keep the same dialog family while swapping the picker contents for a task-scoped handoff note",
+    )
+    _assert(
+        dialog.members_header_label.text() == "Available Tasks",
+        "assignment-driven group creation should preserve the normal Available Tasks section heading for parity",
     )
     dialog.close()
 

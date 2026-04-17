@@ -591,7 +591,9 @@ class DialogChromeBar(QFrame):
         self.setObjectName(f"{object_prefix}ChromeBar")
         self.setProperty("chromeRole", "bar")
         self.setProperty("showTitle", bool(show_title))
+        self.setAttribute(Qt.WA_StyledBackground, True)
         self.setCursor(Qt.OpenHandCursor)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 8, 8, 0)
@@ -756,7 +758,7 @@ class QuickCreateGroupDialog(QDialog):
                 text-align: center;
                 border-radius: 8px;
                 border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(11, 26, 40, 0.52);
+                background: rgba(26, 62, 92, 0.94);
                 color: rgba(191, 212, 207, 0.94);
                 font-size: 12px;
                 font-weight: 600;
@@ -847,6 +849,7 @@ class TaskGroupAssignmentDialog(QDialog):
         self,
         *,
         available_groups: list[dict] | None = None,
+        available_members: list[dict] | None = None,
         selected_group_ids: tuple[str, ...] = (),
         inline_group_draft: CallableGroupDraft | None = None,
         inline_group_assigned: bool = False,
@@ -860,6 +863,7 @@ class TaskGroupAssignmentDialog(QDialog):
         self._dialog_signal_name = "TASK_GROUP_ASSIGNMENT_DIALOG"
         self._ready_signal_emitted = False
         self._available_groups = list(available_groups or [])
+        self._available_members = list(available_members or [])
         self._selected_group_id = next(
             (
                 str(group_id).strip()
@@ -875,10 +879,10 @@ class TaskGroupAssignmentDialog(QDialog):
         self.setModal(True)
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowTitle("Available Groups")
+        self.setWindowTitle("Manage Custom Groups")
         self.setObjectName("taskGroupAssignmentDialog")
-        self.setMinimumWidth(560)
-        self.setMaximumWidth(620)
+        self.setMinimumWidth(620)
+        self.setMaximumWidth(680)
 
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(6, 6, 6, 6)
@@ -892,10 +896,6 @@ class TaskGroupAssignmentDialog(QDialog):
         shell_layout.setContentsMargins(0, 0, 0, 0)
         shell_layout.setSpacing(0)
 
-        self.content = QWidget(self.shell)
-        self.content.setObjectName("taskGroupAssignmentContent")
-        shell_layout.addWidget(self.content)
-
         self.chrome_bar = DialogChromeBar(
             "Available Groups",
             self,
@@ -904,19 +904,23 @@ class TaskGroupAssignmentDialog(QDialog):
             show_title=False,
         )
         self.chrome_bar.close_button.setToolTip("Close Available Groups")
-        self.chrome_bar.raise_()
+        shell_layout.addWidget(self.chrome_bar)
+
+        self.content = QWidget(self.shell)
+        self.content.setObjectName("taskGroupAssignmentContent")
+        shell_layout.addWidget(self.content)
 
         layout = QVBoxLayout(self.content)
         layout.setContentsMargins(16, 6, 16, 10)
-        layout.setSpacing(6)
+        layout.setSpacing(4)
 
-        self.title_label = QLabel("Available Groups", self)
+        self.title_label = QLabel("Manage Custom Groups", self)
         self.title_label.setObjectName("taskGroupAssignmentTitle")
         self.title_label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         layout.addWidget(self.title_label)
 
         self.hint_label = QLabel(
-            "Review available callable groups, assign one to this task, or create a new callable group without leaving the current task session.",
+            "Review callable groups, assign one to this task, or create a new callable group without leaving the current task session.",
             self,
         )
         self.hint_label.setObjectName("taskGroupAssignmentHint")
@@ -942,8 +946,8 @@ class TaskGroupAssignmentDialog(QDialog):
         self.items_frame = QFrame(self)
         self.items_frame.setObjectName("taskGroupAssignmentItems")
         self.items_layout = QVBoxLayout(self.items_frame)
-        self.items_layout.setContentsMargins(0, 0, 0, 0)
-        self.items_layout.setSpacing(8)
+        self.items_layout.setContentsMargins(0, 2, 0, 0)
+        self.items_layout.setSpacing(4)
 
         self.items_scroll = QScrollArea(self)
         self.items_scroll.setObjectName("taskGroupAssignmentItemsScroll")
@@ -952,19 +956,21 @@ class TaskGroupAssignmentDialog(QDialog):
         self.items_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.items_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.items_scroll.setFocusPolicy(Qt.NoFocus)
-        self.items_scroll.setMaximumHeight(320)
+        self.items_scroll.setMaximumHeight(396)
         self.items_scroll.viewport().setObjectName("taskGroupAssignmentViewport")
         self.items_scroll.viewport().setAutoFillBackground(False)
         self.items_scroll.setWidget(self.items_frame)
         layout.addWidget(self.items_scroll)
 
-        actions_row = QHBoxLayout()
+        self.footer_frame = QFrame(self)
+        self.footer_frame.setObjectName("taskGroupAssignmentFooter")
+        actions_row = QHBoxLayout(self.footer_frame)
         actions_row.setContentsMargins(0, 4, 0, 0)
         actions_row.setSpacing(8)
 
-        self.create_group_button = QPushButton("Create New Group...", self)
+        self.create_group_button = QPushButton("Create New Group", self.footer_frame)
         self.create_group_button.setObjectName("taskGroupAssignmentCreateButton")
-        self.create_group_button.setMinimumHeight(32)
+        self.create_group_button.setMinimumHeight(26)
         self.create_group_button.setToolTip(
             "Create a new callable group, then return here to assign it to this task."
         )
@@ -972,45 +978,63 @@ class TaskGroupAssignmentDialog(QDialog):
         actions_row.addWidget(self.create_group_button, 0, Qt.AlignLeft)
         actions_row.addStretch(1)
 
-        self.done_button = QPushButton("Done", self)
+        self.done_button = QPushButton("Done", self.footer_frame)
         self.done_button.setObjectName("taskGroupAssignmentDoneButton")
-        self.done_button.setMinimumHeight(32)
+        self.done_button.setMinimumHeight(26)
         self.done_button.clicked.connect(self.accept)
         actions_row.addWidget(self.done_button)
-        layout.addLayout(actions_row)
+        layout.addWidget(self.footer_frame)
 
         self.setStyleSheet(
             """
             #taskGroupAssignmentDialog { background: transparent; }
             #taskGroupAssignmentShell {
-                border-radius: 18px;
-                border: 1px solid rgba(118, 226, 255, 0.16);
-                background: rgba(4, 16, 28, 244);
+                border-radius: 22px;
+                border: 1px solid rgba(118, 226, 255, 0.20);
+                background: rgba(4, 16, 28, 238);
             }
             #taskGroupAssignmentContent {
+                border-radius: 22px;
+                background: rgba(4, 16, 28, 238);
+            }
+            #taskGroupAssignmentChromeBar {
+                border: none;
+                border-top-left-radius: 22px;
+                border-top-right-radius: 22px;
+                background: rgba(4, 16, 28, 238);
+            }
+            #taskGroupAssignmentFooter {
+                border-top: 1px solid rgba(118, 226, 255, 0.12);
                 background: transparent;
             }
             #taskGroupAssignmentTitle {
                 color: rgba(188, 212, 203, 0.97);
-                font-size: 21px;
-                font-weight: 650;
+                font-size: 28px;
+                font-weight: 600;
+                padding: 2px 8px 4px 8px;
+                background: transparent;
             }
             #taskGroupAssignmentHint {
                 color: rgba(136, 165, 174, 0.88);
-                font-size: 10px;
+                font-size: 14px;
                 line-height: 1.45em;
+                padding: 2px 8px 6px 8px;
+                background: transparent;
             }
             #taskGroupAssignmentStatus {
                 color: rgba(255, 189, 176, 0.96);
-                font-size: 12px;
+                font-size: 13px;
+                background: transparent;
             }
             #taskGroupAssignmentSource {
                 color: rgba(126, 157, 171, 0.78);
-                font-size: 11px;
+                font-size: 13px;
+                background: transparent;
             }
             #taskGroupAssignmentGuidance {
                 color: rgba(110, 201, 164, 0.86);
-                font-size: 11px;
+                font-size: 13px;
+                background: transparent;
             }
             """
             + THEMED_TOOLTIP_QSS
@@ -1021,36 +1045,39 @@ class TaskGroupAssignmentDialog(QDialog):
             }
             #taskGroupAssignmentViewport {
                 border-radius: 18px;
-                background: rgba(8, 20, 34, 0.96);
+                background: rgba(8, 20, 34, 214);
             }
             #taskGroupAssignmentItems {
                 background: transparent;
             }
             QFrame[groupAssignRole="row"] {
-                border-radius: 16px;
-                border: 1px solid rgba(118, 226, 255, 0.12);
-                background: rgba(7, 20, 34, 0.96);
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(9, 22, 37, 224);
             }
             QFrame[groupAssignRole="actionShell"] {
-                border-radius: 12px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(10, 25, 39, 0.86);
+                border-radius: 16px;
+                border: 1px solid rgba(118, 226, 255, 0.12);
+                background: rgba(10, 28, 46, 230);
             }
             QLabel[groupAssignRole="title"] {
                 color: rgba(184, 208, 200, 0.96);
-                font-size: 10px;
+                font-size: 14px;
                 font-weight: 650;
+                background: transparent;
             }
             QLabel[groupAssignRole="meta"] {
-                color: rgba(84, 192, 181, 0.86);
-                font-size: 8px;
+                color: rgba(84, 192, 181, 0.83);
+                font-size: 11px;
                 font-weight: 600;
                 letter-spacing: 0.06em;
                 text-transform: uppercase;
+                background: transparent;
             }
             QLabel[groupAssignRole="detail"] {
                 color: rgba(163, 189, 196, 0.92);
-                font-size: 8px;
+                font-size: 12px;
+                background: transparent;
             }
             QPushButton[chromeRole="close"] {
                 min-width: 24px;
@@ -1060,32 +1087,38 @@ class TaskGroupAssignmentDialog(QDialog):
                 padding: 0 0 1px 0;
                 text-align: center;
                 border-radius: 8px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(11, 26, 40, 0.52);
+                border: 1px solid rgba(118, 226, 255, 0.18);
+                background: rgba(18, 52, 78, 228);
                 color: rgba(191, 212, 207, 0.94);
                 font-size: 12px;
                 font-weight: 600;
             }
             QPushButton[chromeRole="close"]:hover {
-                border: 1px solid rgba(102, 219, 204, 0.24);
-                background: rgba(15, 36, 52, 0.70);
+                border: 1px solid rgba(118, 226, 255, 0.34);
+                background: rgba(22, 61, 90, 238);
             }
             QPushButton[groupAssignRole="toggle"], #taskGroupAssignmentCreateButton, #taskGroupAssignmentDoneButton {
-                min-height: 30px;
-                padding: 0 12px;
-                border-radius: 11px;
+                min-height: 38px;
+                padding: 0 16px;
+                border-radius: 12px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
-                background: rgba(8, 24, 38, 220);
+                background: rgba(6, 18, 30, 196);
                 color: rgba(191, 212, 207, 0.96);
-                font-size: 10px;
-                font-weight: 600;
+                font-size: 14px;
+                font-weight: 650;
+            }
+            QPushButton[groupAssignRole="toggle"] {
+                min-width: 108px;
+                border: 1px solid rgba(118, 226, 255, 0.30);
+                background: rgba(18, 52, 78, 228);
             }
             QPushButton[groupAssignRole="toggle"][assigned="true"] {
-                border: 1px solid rgba(110, 220, 174, 0.32);
-                background: rgba(14, 45, 36, 220);
+                border: 1px solid rgba(110, 220, 174, 0.30);
+                background: rgba(13, 47, 40, 214);
             }
             QPushButton[groupAssignRole="toggle"]:hover, #taskGroupAssignmentCreateButton:hover, #taskGroupAssignmentDoneButton:hover {
                 border: 1px solid rgba(118, 226, 255, 0.34);
+                background: rgba(8, 24, 38, 220);
             }
             #taskGroupAssignmentItemsScroll QScrollBar:vertical {
                 width: 10px;
@@ -1132,14 +1165,18 @@ class TaskGroupAssignmentDialog(QDialog):
     def showEvent(self, event):
         super().showEvent(event)
         self._update_chrome_overlay_geometry()
+        self._sync_members_scroll_height()
         _schedule_window_clamp(self)
         self._emit_lifecycle_event("opened")
         QTimer.singleShot(0, self._emit_ready_signal)
+        QTimer.singleShot(0, self._sync_members_scroll_height)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_chrome_overlay_geometry()
+        self._sync_members_scroll_height()
         _schedule_window_clamp(self)
+        QTimer.singleShot(0, self._sync_items_scroll_height)
 
     def done(self, result):
         self._emit_lifecycle_event(
@@ -1149,9 +1186,31 @@ class TaskGroupAssignmentDialog(QDialog):
         super().done(result)
 
     def _update_chrome_overlay_geometry(self):
-        if hasattr(self, "chrome_bar") and hasattr(self, "shell"):
-            self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
+        if hasattr(self, "chrome_bar"):
             self.chrome_bar.raise_()
+
+    def _sync_items_scroll_height(self):
+        if not hasattr(self, "items_scroll") or not hasattr(self, "items_layout"):
+            return
+        row_frames = [
+            self.items_layout.itemAt(index).widget()
+            for index in range(self.items_layout.count())
+            if self.items_layout.itemAt(index) is not None
+            and self.items_layout.itemAt(index).widget() is not None
+            and self.items_layout.itemAt(index).widget().property("groupAssignRole") == "row"
+        ]
+        visible_rows = sum(1 for frame in row_frames if frame.isVisible())
+        if visible_rows <= 0:
+            self.items_scroll.setMaximumHeight(0)
+            self.items_scroll.setFixedHeight(0)
+            return
+        desired_height = _visible_row_height_for_layout(
+            self.items_layout,
+            min(5, visible_rows),
+            extra_padding=2,
+        )
+        self.items_scroll.setMaximumHeight(desired_height)
+        self.items_scroll.setFixedHeight(desired_height)
 
     def selected_group_ids(self) -> tuple[str, ...]:
         if not self._selected_group_id:
@@ -1193,9 +1252,9 @@ class TaskGroupAssignmentDialog(QDialog):
             self,
             dialog_title="Create Custom Group",
             heading_text="Create Custom Group",
-            hint_text="Pick a group name and exact aliases below. You will return to Available Groups to assign it to this task.",
+            hint_text="Pick a group name and exact aliases below. You will return to Manage Custom Groups for this task after the group is created.",
             submit_button_text="Create",
-            available_members=[],
+            available_members=self._available_members,
             show_member_picker=False,
             lifecycle_callback=self._lifecycle_callback,
         )
@@ -1297,7 +1356,7 @@ class TaskGroupAssignmentDialog(QDialog):
             member_noun = "member" if member_count == 1 else "members"
             row = self._make_group_row(
                 title=str(item.get("title") or "").strip() or group_id,
-                meta_text=f"Existing group | {member_count} {member_noun}",
+                meta_text=f"Custom group | {member_count} {member_noun}",
                 detail_text=(f"Aliases: {aliases}" if aliases else "Aliases: none"),
                 assigned=bool(normalized_selected and group_id.casefold() == normalized_selected),
                 on_toggle=lambda _checked=False, value=group_id: self._toggle_existing_group(value),
@@ -1311,7 +1370,7 @@ class TaskGroupAssignmentDialog(QDialog):
             inline_aliases = ", ".join(self._inline_group_draft.aliases)
             row = self._make_group_row(
                 title=self._inline_group_draft.title,
-                meta_text="New group | queued for this task",
+                meta_text="Custom group | queued for assignment",
                 detail_text=(
                     f"Aliases: {inline_aliases}"
                     if inline_aliases
@@ -1363,14 +1422,20 @@ class TaskGroupAssignmentDialog(QDialog):
         )
         self.source_label.setVisible(bool(self.source_label.text()))
         self.guidance_label.setText(
-            "Assign one to this task, or create a new group without leaving the current task session."
-            if not show_disabled_state
-            else "Repair the saved-groups source before changing task-group assignments."
+            ""
+            if not show_disabled_state and available_group_count
+            else (
+                "Create a callable group here, then assign it to this task without leaving task authoring."
+                if not show_disabled_state
+                else "Repair the saved-groups source before changing task-group assignments."
+            )
         )
         self.guidance_label.setVisible(bool(self.guidance_label.text()))
 
         self.items_layout.addStretch(1)
-        self.items_scroll.setFixedHeight(min(320, max(86, self.items_frame.sizeHint().height() + 2)))
+        self.items_layout.activate()
+        self._sync_items_scroll_height()
+        QTimer.singleShot(0, self._sync_items_scroll_height)
 
 class SavedActionCreateDialog(QDialog):
     ACTION_TYPE_OPTIONS = (
@@ -1475,6 +1540,7 @@ class SavedActionCreateDialog(QDialog):
         submit_button_text: str = "Create",
         initial_draft: SavedActionDraft | None = None,
         available_groups: list[dict] | None = None,
+        available_group_members: list[dict] | None = None,
         group_status_kind: str = "template_only",
         group_status_text: str = "",
         lifecycle_callback=None,
@@ -1493,6 +1559,7 @@ class SavedActionCreateDialog(QDialog):
         self._preserve_legacy_bare_trigger = False
         self._invocation_mode = "aliases_only"
         self._available_groups = list(available_groups or [])
+        self._available_group_members = list(available_group_members or [])
         self._group_status_kind = group_status_kind or "template_only"
         self._group_status_text = group_status_text or ""
         self._inline_group_draft: CallableGroupDraft | None = None
@@ -1519,10 +1586,6 @@ class SavedActionCreateDialog(QDialog):
         shell_layout.setContentsMargins(0, 0, 0, 0)
         shell_layout.setSpacing(0)
 
-        self.content = QWidget(self.shell)
-        self.content.setObjectName("savedActionCreateContent")
-        shell_layout.addWidget(self.content)
-
         self.chrome_bar = DialogChromeBar(
             dialog_title,
             self,
@@ -1530,22 +1593,34 @@ class SavedActionCreateDialog(QDialog):
             parent=self.shell,
             show_title=False,
         )
-        self.chrome_bar.raise_()
+        shell_layout.addWidget(self.chrome_bar)
+
+        self.content = QWidget(self.shell)
+        self.content.setObjectName("savedActionCreateContent")
+        shell_layout.addWidget(self.content)
 
         layout = QVBoxLayout(self.content)
         layout.setContentsMargins(16, 6, 16, 10)
-        layout.setSpacing(6)
+        layout.setSpacing(4)
 
         self.title_label = QLabel(heading_text, self)
         self.title_label.setObjectName("savedActionCreateTitle")
         self.title_label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         layout.addWidget(self.title_label)
 
-        self.hint_label = QLabel(hint_text, self)
+        self.hint_frame = QFrame(self)
+        self.hint_frame.setObjectName("savedActionCreateHintFrame")
+        self.hint_frame.setAttribute(Qt.WA_StyledBackground, True)
+        hint_layout = QVBoxLayout(self.hint_frame)
+        hint_layout.setContentsMargins(8, 0, 8, 0)
+        hint_layout.setSpacing(0)
+
+        self.hint_label = QLabel(hint_text, self.hint_frame)
         self.hint_label.setObjectName("savedActionCreateHint")
         self.hint_label.setWordWrap(True)
         self.hint_label.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
-        layout.addWidget(self.hint_label)
+        hint_layout.addWidget(self.hint_label)
+        layout.addWidget(self.hint_frame)
 
         form = QVBoxLayout()
         self.form_layout = form
@@ -1773,22 +1848,25 @@ class SavedActionCreateDialog(QDialog):
                 background: transparent;
             }
             #savedActionCreateShell {
-                border-radius: 20px;
-                border: 1px solid rgba(118, 226, 255, 0.16);
-                background: rgba(4, 16, 28, 244);
+                border-radius: 22px;
+                border: 1px solid rgba(118, 226, 255, 0.22);
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreateContent {
-                background: transparent;
+                border-radius: 22px;
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreateChromeBar {
                 border: none;
-                background: transparent;
+                border-top-left-radius: 22px;
+                border-top-right-radius: 22px;
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreateChromeTitle {
                 color: rgba(126, 171, 181, 0.84);
-                font-size: 11px;
+                font-size: 12px;
                 font-weight: 600;
-                letter-spacing: 0.08em;
+                letter-spacing: 0.24em;
             }
             #savedActionCreateChromeClose {
                 min-width: 24px;
@@ -1798,25 +1876,32 @@ class SavedActionCreateDialog(QDialog):
                 padding: 0 0 1px 0;
                 text-align: center;
                 border-radius: 8px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(11, 26, 40, 0.52);
+                border: 1px solid rgba(118, 226, 255, 0.18);
+                background: rgba(18, 52, 78, 228);
                 color: rgba(191, 212, 207, 0.94);
                 font-size: 12px;
                 font-weight: 600;
             }
             #savedActionCreateChromeClose:hover {
-                border: 1px solid rgba(102, 219, 204, 0.24);
-                background: rgba(15, 36, 52, 0.70);
+                border: 1px solid rgba(118, 226, 255, 0.34);
+                background: rgba(22, 61, 90, 238);
             }
             #savedActionCreateTitle {
                 color: rgba(188, 212, 203, 0.97);
-                font-size: 22px;
-                font-weight: 650;
+                font-size: 28px;
+                font-weight: 600;
+                padding: 2px 8px 4px 8px;
+                background: transparent;
+            }
+            #savedActionCreateHintFrame {
+                background: transparent;
             }
             #savedActionCreateHint {
                 color: rgba(136, 165, 174, 0.88);
-                font-size: 11px;
+                font-size: 14px;
                 line-height: 1.45em;
+                padding: 2px 8px 6px 8px;
+                background: transparent;
             }
             QToolTip {
                 border: 1px solid rgba(102, 219, 204, 0.22);
@@ -1828,41 +1913,46 @@ class SavedActionCreateDialog(QDialog):
                 line-height: 1.45em;
             }
             #savedActionCreateTargetExamplesBox {
-                border-radius: 15px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(7, 20, 34, 176);
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(8, 20, 34, 214);
             }
             #savedActionCreateTargetExamplesTitle {
                 color: rgba(84, 192, 181, 0.88);
-                font-size: 11px;
+                font-size: 14px;
                 font-weight: 600;
                 letter-spacing: 0.06em;
                 text-transform: uppercase;
+                background: transparent;
             }
             #savedActionCreateTargetExamples {
                 color: rgba(168, 193, 199, 0.93);
-                font-size: 12px;
+                font-size: 13px;
                 line-height: 1.45em;
+                background: transparent;
             }
             #savedActionCreateGroupsFrame {
-                border-radius: 15px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(7, 20, 34, 176);
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(8, 20, 34, 214);
             }
             #savedActionCreateGroupsSummary {
                 color: rgba(168, 193, 199, 0.93);
-                font-size: 12px;
+                font-size: 13px;
                 line-height: 1.45em;
                 padding: 0px;
+                background: transparent;
             }
             #savedActionCreateGroupsStatus {
                 color: rgba(255, 189, 176, 0.96);
-                font-size: 12px;
+                font-size: 13px;
+                background: transparent;
             }
             #savedActionCreateStatus {
                 min-height: 0px;
                 color: rgba(255, 189, 176, 0.96);
                 font-size: 13px;
+                background: transparent;
             }
             QLabel[createRole="label"] {
                 color: rgba(78, 176, 173, 0.76);
@@ -1874,7 +1964,15 @@ class SavedActionCreateDialog(QDialog):
                 border: none;
                 background: transparent;
             }
-            QWidget[createRole="fieldRow"], QWidget[createRole="fieldLabelHolder"], QWidget[createRole="fieldContentHolder"] {
+            QFrame[createRole="fieldRow"] {
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(8, 20, 34, 214);
+            }
+            QWidget[createRole="fieldLabelHolder"], QWidget[createRole="fieldContentHolder"] {
+                background: transparent;
+            }
+            #savedActionCreateTriggerContent, #savedActionCreateTargetContent {
                 background: transparent;
             }
             QFrame[createRole="fieldHeaderDividerLine"] {
@@ -1885,8 +1983,9 @@ class SavedActionCreateDialog(QDialog):
             }
             QLabel[createRole="fieldHeader"], QLabel[createRole="fieldHeaderHelp"] {
                 color: rgba(182, 206, 198, 0.96);
-                font-size: 14px;
+                font-size: 15px;
                 font-weight: 650;
+                background: transparent;
             }
             QLabel[createRole="fieldHeaderHelp"] {
                 padding-bottom: 1px;
@@ -1902,15 +2001,16 @@ class SavedActionCreateDialog(QDialog):
             }
             QLineEdit, QComboBox {
                 min-height: 30px;
-                border-radius: 12px;
+                border-radius: 14px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(6, 18, 30, 196);
                 color: rgba(193, 213, 208, 0.96);
                 padding: 4px 10px;
+                font-size: 14px;
             }
             QLineEdit:focus, QComboBox:focus {
                 border: 1px solid rgba(118, 226, 255, 0.42);
-                background: rgba(8, 23, 38, 216);
+                background: rgba(7, 22, 36, 220);
             }
             QComboBox::drop-down {
                 border: none;
@@ -1932,23 +2032,26 @@ class SavedActionCreateDialog(QDialog):
                 border-radius: 8px;
             }
             QPushButton {
-                min-height: 34px;
+                min-height: 38px;
                 padding: 0 16px;
-                border-radius: 11px;
+                border-radius: 12px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(6, 18, 30, 196);
                 color: rgba(191, 212, 207, 0.96);
+                font-size: 14px;
+                font-weight: 650;
             }
             QPushButton:hover {
                 border: 1px solid rgba(118, 226, 255, 0.34);
+                background: rgba(8, 24, 38, 220);
             }
             #savedActionCreateCancelButton {
-                background: rgba(7, 18, 30, 184);
+                background: rgba(6, 18, 30, 196);
             }
             #savedActionCreateSubmitButton {
                 border: 1px solid rgba(118, 226, 255, 0.34);
-                background: rgba(18, 52, 78, 230);
-                font-weight: 600;
+                background: rgba(18, 52, 78, 228);
+                font-weight: 650;
             }
             #savedActionCreateSubmitButton:hover {
                 border: 1px solid rgba(118, 226, 255, 0.52);
@@ -2001,10 +2104,8 @@ class SavedActionCreateDialog(QDialog):
         super().done(result)
 
     def _update_chrome_overlay_geometry(self):
-        if not hasattr(self, "chrome_bar") or not hasattr(self, "shell"):
-            return
-        self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
-        self.chrome_bar.raise_()
+        if hasattr(self, "chrome_bar"):
+            self.chrome_bar.raise_()
 
     def _make_form_header(
         self,
@@ -2085,7 +2186,7 @@ class SavedActionCreateDialog(QDialog):
         divider.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         layout.addWidget(divider)
 
-        row_widget = QWidget(container)
+        row_widget = QFrame(container)
         row_widget.setProperty("createRole", "fieldRow")
         row_layout = QHBoxLayout(row_widget)
         row_layout.setContentsMargins(0, 0, 0, 0)
@@ -2175,6 +2276,7 @@ class SavedActionCreateDialog(QDialog):
 
         dialog = TaskGroupAssignmentDialog(
             available_groups=self._available_groups,
+            available_members=self._available_group_members,
             selected_group_ids=self._selected_group_ids_state,
             inline_group_draft=self._inline_group_draft,
             inline_group_assigned=self._inline_group_assigned,
@@ -2288,7 +2390,7 @@ class SavedActionCreateDialog(QDialog):
         return (
             "<div style=\"margin: 0; padding: 6px 8px; "
             "border-radius: 10px; border: 1px solid rgba(102, 219, 204, 0.08); "
-            "background: rgba(10, 24, 38, 0.74);\">"
+            "background: rgba(29, 68, 99, 255);\">"
             f"<div style=\"color: rgba(84, 192, 181, 0.86); font-size: 10.5px; font-weight: 600; "
             "letter-spacing: 0.04em; text-transform: uppercase;\">"
             f"{escape(title)}</div>"
@@ -2623,10 +2725,6 @@ class CallableGroupCreateDialog(QDialog):
         shell_layout.setContentsMargins(0, 0, 0, 0)
         shell_layout.setSpacing(0)
 
-        self.content = QWidget(self.shell)
-        self.content.setObjectName("callableGroupCreateContent")
-        shell_layout.addWidget(self.content)
-
         self.chrome_bar = DialogChromeBar(
             dialog_title,
             self,
@@ -2635,22 +2733,34 @@ class CallableGroupCreateDialog(QDialog):
             show_title=False,
         )
         self.chrome_bar.close_button.setToolTip(f"Close {dialog_title}")
-        self.chrome_bar.raise_()
+        shell_layout.addWidget(self.chrome_bar)
+
+        self.content = QWidget(self.shell)
+        self.content.setObjectName("callableGroupCreateContent")
+        shell_layout.addWidget(self.content)
 
         layout = QVBoxLayout(self.content)
         layout.setContentsMargins(16, 6, 16, 10)
-        layout.setSpacing(6)
+        layout.setSpacing(4)
 
         self.title_label = QLabel(heading_text, self)
         self.title_label.setObjectName("callableGroupCreateTitle")
         self.title_label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         layout.addWidget(self.title_label)
 
-        self.hint_label = QLabel(hint_text, self)
+        self.hint_frame = QFrame(self)
+        self.hint_frame.setObjectName("callableGroupCreateHintFrame")
+        self.hint_frame.setAttribute(Qt.WA_StyledBackground, True)
+        hint_layout = QVBoxLayout(self.hint_frame)
+        hint_layout.setContentsMargins(8, 0, 8, 0)
+        hint_layout.setSpacing(0)
+
+        self.hint_label = QLabel(hint_text, self.hint_frame)
         self.hint_label.setObjectName("callableGroupCreateHint")
         self.hint_label.setWordWrap(True)
         self.hint_label.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
-        layout.addWidget(self.hint_label)
+        hint_layout.addWidget(self.hint_label)
+        layout.addWidget(self.hint_frame)
 
         form = QVBoxLayout()
         form.setContentsMargins(0, 0, 0, 0)
@@ -2712,39 +2822,38 @@ class CallableGroupCreateDialog(QDialog):
         )
         form.addWidget(self.aliases_header)
 
-        self.members_header = None
         self.members_scroll = None
         self.members_frame = None
         self.members_layout = None
-        if self._show_member_picker:
-            self.members_scroll = QScrollArea(self)
-            self.members_scroll.setObjectName("callableGroupCreateMembersScroll")
-            self.members_scroll.setFrameShape(QFrame.NoFrame)
-            self.members_scroll.setWidgetResizable(True)
-            self.members_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            self.members_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-            self.members_scroll.setFocusPolicy(Qt.NoFocus)
-            self.members_scroll.setMaximumHeight(116)
-            self.members_scroll.viewport().setObjectName("callableGroupCreateMembersViewport")
-            self.members_scroll.viewport().setAutoFillBackground(False)
-            self.members_frame = QFrame(self)
-            self.members_frame.setObjectName("callableGroupCreateMembersFrame")
-            self.members_layout = QVBoxLayout(self.members_frame)
-            self.members_layout.setContentsMargins(8, 8, 8, 8)
-            self.members_layout.setSpacing(3)
-            self.members_scroll.setWidget(self.members_frame)
-            self.members_header, self.members_header_label, self.members_help_button, self.members_header_divider = SavedActionCreateDialog._make_form_section(
-                self,
-                "Available Tasks",
-                self.members_scroll,
-                tooltip_text=(
-                    "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The built-ins and saved tasks this group can surface."
-                    "<br/><br/><b>How it affects calling</b><br/>Group aliases only show these members in the chooser.</div>"
-                ),
-                object_name="callableGroupCreateMembersHeader",
-                help_object_name="callableGroupCreateMembersHelp",
-            )
-            form.addWidget(self.members_header)
+        self.task_flow_note = None
+        self.members_scroll = QScrollArea(self)
+        self.members_scroll.setObjectName("callableGroupCreateMembersScroll")
+        self.members_scroll.setFrameShape(QFrame.NoFrame)
+        self.members_scroll.setWidgetResizable(True)
+        self.members_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.members_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.members_scroll.setFocusPolicy(Qt.NoFocus)
+        self.members_scroll.setMaximumHeight(116)
+        self.members_scroll.viewport().setObjectName("callableGroupCreateMembersViewport")
+        self.members_scroll.viewport().setAutoFillBackground(False)
+        self.members_frame = QFrame(self)
+        self.members_frame.setObjectName("callableGroupCreateMembersFrame")
+        self.members_layout = QVBoxLayout(self.members_frame)
+        self.members_layout.setContentsMargins(8, 8, 8, 8)
+        self.members_layout.setSpacing(3)
+        self.members_scroll.setWidget(self.members_frame)
+        self.members_header, self.members_header_label, self.members_help_button, self.members_header_divider = SavedActionCreateDialog._make_form_section(
+            self,
+            "Available Tasks",
+            self.members_scroll,
+            tooltip_text=(
+                "<div style=\"max-width: 250px;\"><b>What this is</b><br/>The built-ins and saved tasks this group can surface."
+                "<br/><br/><b>How it affects calling</b><br/>Group aliases only show these members in the chooser.</div>"
+            ),
+            object_name="callableGroupCreateMembersHeader",
+            help_object_name="callableGroupCreateMembersHelp",
+        )
+        form.addWidget(self.members_header)
 
         layout.addLayout(form)
 
@@ -2771,37 +2880,54 @@ class CallableGroupCreateDialog(QDialog):
             """
             #callableGroupCreateDialog { background: transparent; }
             #callableGroupCreateShell {
-                border-radius: 20px;
-                border: 1px solid rgba(118, 226, 255, 0.16);
-                background: rgba(4, 16, 28, 244);
+                border-radius: 22px;
+                border: 1px solid rgba(118, 226, 255, 0.22);
+                background: rgba(4, 16, 28, 238);
             }
-            #callableGroupCreateContent { background: transparent; }
+            #callableGroupCreateContent {
+                border-radius: 22px;
+                background: rgba(4, 16, 28, 238);
+            }
             #callableGroupCreateChromeBar {
                 border: none;
-                background: transparent;
+                border-top-left-radius: 22px;
+                border-top-right-radius: 22px;
+                background: rgba(4, 16, 28, 238);
             }
             #callableGroupCreateTitle {
                 color: rgba(188, 212, 203, 0.97);
-                font-size: 22px;
-                font-weight: 650;
+                font-size: 28px;
+                font-weight: 600;
+                padding: 2px 8px 4px 8px;
+                background: transparent;
+            }
+            #callableGroupCreateHintFrame {
+                background: transparent;
             }
             #callableGroupCreateHint {
                 color: rgba(136, 165, 174, 0.88);
-                font-size: 11px;
+                font-size: 14px;
                 line-height: 1.45em;
+                padding: 2px 8px 6px 8px;
+                background: transparent;
             }
             """
             + THEMED_TOOLTIP_QSS
             + """
             #callableGroupCreateExamplesBox {
-                border-radius: 15px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(7, 20, 34, 176);
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(8, 20, 34, 214);
+            }
+            #callableGroupCreateTaskFlowNote {
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(9, 22, 37, 224);
             }
             #callableGroupCreateMembersScroll {
-                border-radius: 15px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(7, 20, 34, 0.96);
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(8, 20, 34, 214);
             }
             #callableGroupCreateMembersViewport {
                 border-radius: 14px;
@@ -2810,27 +2936,51 @@ class CallableGroupCreateDialog(QDialog):
             #callableGroupCreateMembersFrame {
                 background: transparent;
             }
+            #callableGroupCreateAliasesContent {
+                background: transparent;
+            }
             #callableGroupCreateExamplesTitle {
                 color: rgba(84, 192, 181, 0.88);
-                font-size: 11px;
+                font-size: 14px;
                 font-weight: 600;
                 letter-spacing: 0.06em;
                 text-transform: uppercase;
+                background: transparent;
+            }
+            #callableGroupCreateTaskFlowTitle {
+                color: rgba(84, 192, 181, 0.88);
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                background: transparent;
             }
             #callableGroupCreateExamples {
                 color: rgba(168, 193, 199, 0.93);
-                font-size: 12px;
+                font-size: 13px;
                 line-height: 1.45em;
+                background: transparent;
+            }
+            #callableGroupCreateTaskFlowBody {
+                color: rgba(168, 193, 199, 0.93);
+                font-size: 13px;
+                line-height: 1.45em;
+                background: transparent;
             }
             #callableGroupCreateStatus {
                 color: rgba(255, 189, 176, 0.96);
-                font-size: 12px;
+                font-size: 13px;
             }
             QWidget[createRole="fieldHeaderDivider"] {
                 border: none;
                 background: transparent;
             }
-            QWidget[createRole="fieldRow"], QWidget[createRole="fieldLabelHolder"], QWidget[createRole="fieldContentHolder"] {
+            QFrame[createRole="fieldRow"] {
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(8, 20, 34, 214);
+            }
+            QWidget[createRole="fieldLabelHolder"], QWidget[createRole="fieldContentHolder"] {
                 background: transparent;
             }
             QFrame[createRole="fieldHeaderDividerLine"] {
@@ -2841,8 +2991,9 @@ class CallableGroupCreateDialog(QDialog):
             }
             QLabel[createRole="fieldHeader"], QLabel[createRole="fieldHeaderHelp"] {
                 color: rgba(182, 206, 198, 0.96);
-                font-size: 14px;
+                font-size: 15px;
                 font-weight: 650;
+                background: transparent;
             }
             QLabel[createRole="fieldHeaderHelp"] {
                 padding-bottom: 1px;
@@ -2854,23 +3005,26 @@ class CallableGroupCreateDialog(QDialog):
             }
             QLineEdit {
                 min-height: 30px;
-                border-radius: 12px;
+                border-radius: 14px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(6, 18, 30, 196);
                 color: rgba(193, 213, 208, 0.96);
                 padding: 4px 10px;
+                font-size: 14px;
             }
             QLineEdit:focus {
                 border: 1px solid rgba(118, 226, 255, 0.42);
-                background: rgba(8, 23, 38, 216);
+                background: rgba(7, 22, 36, 220);
             }
             QPushButton {
-                min-height: 34px;
+                min-height: 38px;
                 padding: 0 16px;
-                border-radius: 11px;
+                border-radius: 12px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
                 background: rgba(6, 18, 30, 196);
                 color: rgba(191, 212, 207, 0.96);
+                font-size: 14px;
+                font-weight: 650;
             }
             QPushButton[chromeRole="close"] {
                 min-width: 24px;
@@ -2880,8 +3034,8 @@ class CallableGroupCreateDialog(QDialog):
                 padding: 0 0 1px 0;
                 text-align: center;
                 border-radius: 8px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(11, 26, 40, 0.52);
+                border: 1px solid rgba(118, 226, 255, 0.18);
+                background: rgba(18, 52, 78, 228);
                 color: rgba(191, 212, 207, 0.94);
                 font-size: 12px;
                 font-weight: 600;
@@ -2889,14 +3043,16 @@ class CallableGroupCreateDialog(QDialog):
             QPushButton[chromeRole="close"]:hover,
             QPushButton:hover {
                 border: 1px solid rgba(118, 226, 255, 0.34);
+                background: rgba(8, 24, 38, 220);
             }
             QPushButton[chromeRole="close"]:hover {
-                background: rgba(15, 36, 52, 0.70);
+                background: rgba(22, 61, 90, 238);
             }
             QCheckBox {
                 color: rgba(182, 206, 198, 0.94);
                 spacing: 6px;
-                font-size: 11px;
+                font-size: 13px;
+                background: transparent;
             }
             QCheckBox::indicator {
                 width: 15px;
@@ -2934,6 +3090,36 @@ class CallableGroupCreateDialog(QDialog):
             }
             #callableGroupCreateMembersScroll QScrollBar::add-page:vertical,
             #callableGroupCreateMembersScroll QScrollBar::sub-page:vertical {
+                background: transparent;
+            }
+            #callableGroupCreateMemberCard {
+                border-radius: 16px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(9, 22, 37, 224);
+            }
+            #callableGroupCreateMemberTitle {
+                color: rgba(188, 212, 203, 0.97);
+                font-size: 14px;
+                font-weight: 650;
+                background: transparent;
+            }
+            #callableGroupCreateMemberMeta {
+                color: rgba(84, 192, 181, 0.88);
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                background: transparent;
+            }
+            #callableGroupCreateMemberDetail {
+                color: rgba(168, 193, 199, 0.93);
+                font-size: 12px;
+                background: transparent;
+            }
+            #callableGroupCreateMemberToggle {
+                color: rgba(188, 212, 203, 0.94);
+                font-size: 12px;
+                font-weight: 600;
                 background: transparent;
             }
             """
@@ -2976,36 +3162,164 @@ class CallableGroupCreateDialog(QDialog):
         super().done(result)
 
     def _update_chrome_overlay_geometry(self):
-        if hasattr(self, "chrome_bar") and hasattr(self, "shell"):
-            self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
+        if hasattr(self, "chrome_bar"):
             self.chrome_bar.raise_()
+
+    def _build_members_placeholder_card(self, message: str) -> QFrame:
+        card = QFrame(self.members_frame)
+        card.setObjectName("callableGroupCreateTaskFlowNote")
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(12, 12, 12, 12)
+        card_layout.setSpacing(4)
+
+        title_label = QLabel("Section guidance", card)
+        title_label.setObjectName("callableGroupCreateTaskFlowTitle")
+        card_layout.addWidget(title_label)
+
+        body_label = QLabel(message, card)
+        body_label.setObjectName("callableGroupCreateTaskFlowBody")
+        body_label.setWordWrap(True)
+        card_layout.addWidget(body_label)
+        return card
+
+    def _build_member_choice_card(
+        self,
+        *,
+        member_id: str,
+        title: str,
+        subtitle: str,
+        target_display: str,
+    ) -> tuple[QFrame, QCheckBox]:
+        card = QFrame(self.members_frame)
+        card.setObjectName("callableGroupCreateMemberCard")
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(12, 10, 12, 10)
+        card_layout.setSpacing(4)
+
+        header_row = QHBoxLayout()
+        header_row.setContentsMargins(0, 0, 0, 0)
+        header_row.setSpacing(10)
+
+        title_label = QLabel(title, card)
+        title_label.setObjectName("callableGroupCreateMemberTitle")
+        title_label.setWordWrap(True)
+        header_row.addWidget(title_label, 1)
+
+        checkbox = QCheckBox("Include", card)
+        checkbox.setObjectName("callableGroupCreateMemberToggle")
+        checkbox.setProperty("memberId", member_id)
+        header_row.addWidget(checkbox, 0, Qt.AlignRight | Qt.AlignTop)
+        card_layout.addLayout(header_row)
+
+        if subtitle:
+            subtitle_label = QLabel(subtitle, card)
+            subtitle_label.setObjectName("callableGroupCreateMemberMeta")
+            subtitle_label.setWordWrap(True)
+            card_layout.addWidget(subtitle_label)
+
+        if target_display:
+            detail_label = QLabel(target_display, card)
+            detail_label.setObjectName("callableGroupCreateMemberDetail")
+            detail_label.setWordWrap(True)
+            card_layout.addWidget(detail_label)
+
+        return card, checkbox
+
+    def _sync_members_scroll_height(self):
+        if self.members_scroll is None or self.members_layout is None:
+            return
+        member_widgets = [
+            self.members_layout.itemAt(index).widget()
+            for index in range(self.members_layout.count())
+            if self.members_layout.itemAt(index) is not None
+            and self.members_layout.itemAt(index).widget() is not None
+        ]
+        if not member_widgets:
+            self.members_scroll.setFixedHeight(0)
+            return
+
+        spacing = max(0, int(self.members_layout.spacing()))
+        margins = self.members_layout.contentsMargins()
+        total_height = margins.top() + margins.bottom() + 4
+        visible_rows = 0
+        for widget in member_widgets:
+            total_height += max(widget.sizeHint().height(), widget.minimumSizeHint().height())
+            visible_rows += 1
+            if visible_rows >= 5:
+                break
+            total_height += spacing
+
+        minimum_height = 120 if any(widget.objectName() == "callableGroupCreateTaskFlowNote" for widget in member_widgets) else 0
+        desired_height = min(max(minimum_height, total_height), 116)
+        self.members_scroll.setMaximumHeight(116)
+        self.members_scroll.setFixedHeight(desired_height)
 
     def _populate_member_choices(self):
         if self.members_layout is None or self.members_frame is None:
             return
         _clear_layout_widgets(self.members_layout)
         self._member_checkboxes = []
+        if not self._show_member_picker:
+            self.task_flow_note = self._build_members_placeholder_card(
+                "Task-path create skips member picking here. After save, this path returns you to Manage Custom Groups for the current task so you can assign the new group immediately without leaving task authoring."
+            )
+            self.members_layout.addWidget(self.task_flow_note)
+            self.members_layout.addStretch(1)
+            self.members_layout.activate()
+            self._sync_members_scroll_height()
+            QTimer.singleShot(0, self._sync_members_scroll_height)
+            return
+        if not self._available_members:
+            self.members_layout.addWidget(
+                self._build_members_placeholder_card(
+                    "No saved tasks or built-in actions are loaded from the current source yet."
+                )
+            )
+            self.members_layout.addStretch(1)
+            self.members_layout.activate()
+            self._sync_members_scroll_height()
+            QTimer.singleShot(0, self._sync_members_scroll_height)
+            return
+        added_member_rows = 0
         for item in self._available_members:
             member_id = str(item.get("id") or "").strip()
-            title = str(item.get("title") or "").strip()
+            title = str(item.get("title") or item.get("id") or "").strip()
+            if not title:
+                continue
             origin_label = str(item.get("origin_label") or "").strip() or "Member"
             target_kind = str(item.get("target_kind") or "").strip()
+            target_display = str(item.get("target_display") or "").strip()
             subtitle = f"{origin_label} | {target_kind}".strip(" |")
-            checkbox = QCheckBox(title, self.members_frame)
-            checkbox.setProperty("memberId", member_id)
+            card, checkbox = self._build_member_choice_card(
+                member_id=member_id,
+                title=title,
+                subtitle=subtitle,
+                target_display=target_display,
+            )
             if subtitle:
                 checkbox.setToolTip(
                     f"{subtitle}\nBecomes selectable when this group's alias is used."
                 )
             else:
                 checkbox.setToolTip("Becomes selectable when this group's alias is used.")
-            self.members_layout.addWidget(checkbox)
+            self.members_layout.addWidget(card)
             self._member_checkboxes.append(checkbox)
+            added_member_rows += 1
+        if added_member_rows <= 0:
+            self.members_layout.addWidget(
+                self._build_members_placeholder_card(
+                    "No saved tasks or built-in actions are loaded from the current source yet."
+                )
+            )
+            self.members_layout.addStretch(1)
+            self.members_layout.activate()
+            self._sync_members_scroll_height()
+            QTimer.singleShot(0, self._sync_members_scroll_height)
+            return
         self.members_layout.addStretch(1)
-        if hasattr(self, "members_scroll"):
-            row_estimate = 5
-        desired_height = min(116, max(92, (row_estimate * 18) + 16))
-        self.members_scroll.setFixedHeight(desired_height)
+        self.members_layout.activate()
+        self._sync_members_scroll_height()
+        QTimer.singleShot(0, self._sync_members_scroll_height)
 
     def _selected_member_ids(self) -> tuple[str, ...]:
         return tuple(
@@ -3101,7 +3415,8 @@ class CreatedTasksDialog(QDialog):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowTitle("Manage Custom Tasks")
         self.setObjectName("savedActionCreatedTasksDialog")
-        self.setMinimumWidth(660)
+        self.setMinimumWidth(620)
+        self.setMaximumWidth(680)
 
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(6, 6, 6, 6)
@@ -3115,10 +3430,6 @@ class CreatedTasksDialog(QDialog):
         shell_layout.setContentsMargins(0, 0, 0, 0)
         shell_layout.setSpacing(0)
 
-        self.content = QWidget(self.shell)
-        self.content.setObjectName("savedActionCreatedTasksContent")
-        shell_layout.addWidget(self.content)
-
         self.chrome_bar = DialogChromeBar(
             "Manage Custom Tasks",
             self,
@@ -3127,11 +3438,15 @@ class CreatedTasksDialog(QDialog):
             show_title=False,
         )
         self.chrome_bar.close_button.setToolTip("Close Manage Custom Tasks")
-        self.chrome_bar.raise_()
+        shell_layout.addWidget(self.chrome_bar)
+
+        self.content = QWidget(self.shell)
+        self.content.setObjectName("savedActionCreatedTasksContent")
+        shell_layout.addWidget(self.content)
 
         layout = QVBoxLayout(self.content)
         layout.setContentsMargins(16, 6, 16, 10)
-        layout.setSpacing(6)
+        layout.setSpacing(4)
 
         self.title_label = QLabel("Manage Custom Tasks", self)
         self.title_label.setObjectName("savedActionCreatedTasksTitle")
@@ -3202,26 +3517,29 @@ class CreatedTasksDialog(QDialog):
                 background: transparent;
             }
             #savedActionCreatedTasksShell {
-                border-radius: 20px;
-                border: 1px solid rgba(118, 226, 255, 0.14);
-                background: rgba(4, 16, 28, 244);
+                border-radius: 22px;
+                border: 1px solid rgba(118, 226, 255, 0.20);
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreatedTasksContent {
-                background: transparent;
+                border-radius: 22px;
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreatedTasksFooter {
-                border-top: 1px solid rgba(118, 226, 255, 0.08);
+                border-top: 1px solid rgba(118, 226, 255, 0.12);
                 background: transparent;
             }
             #savedActionCreatedTasksChromeBar {
                 border: none;
-                background: transparent;
+                border-top-left-radius: 22px;
+                border-top-right-radius: 22px;
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreatedTasksChromeTitle {
                 color: rgba(126, 171, 181, 0.84);
-                font-size: 11px;
+                font-size: 12px;
                 font-weight: 600;
-                letter-spacing: 0.08em;
+                letter-spacing: 0.24em;
             }
             #savedActionCreatedTasksChromeClose {
                 min-width: 24px;
@@ -3231,32 +3549,36 @@ class CreatedTasksDialog(QDialog):
                 padding: 0 0 1px 0;
                 text-align: center;
                 border-radius: 8px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(11, 26, 40, 0.52);
+                border: 1px solid rgba(118, 226, 255, 0.18);
+                background: rgba(18, 52, 78, 228);
                 color: rgba(191, 212, 207, 0.94);
                 font-size: 12px;
                 font-weight: 600;
             }
             #savedActionCreatedTasksChromeClose:hover {
-                border: 1px solid rgba(102, 219, 204, 0.24);
-                background: rgba(15, 36, 52, 0.70);
+                border: 1px solid rgba(118, 226, 255, 0.34);
+                background: rgba(22, 61, 90, 238);
             }
             #savedActionCreatedTasksTitle {
                 color: rgba(188, 212, 203, 0.97);
-                font-size: 21px;
-                font-weight: 650;
+                font-size: 28px;
+                font-weight: 600;
+                padding: 2px 8px 4px 8px;
+                background: transparent;
             }
             #savedActionCreatedTasksHint {
                 color: rgba(136, 165, 174, 0.88);
-                font-size: 10px;
+                font-size: 14px;
                 line-height: 1.45em;
+                padding: 2px 8px 6px 8px;
+                background: transparent;
             }
             """
             + THEMED_TOOLTIP_QSS
             + """
             #savedActionCreatedTasksStatus {
                 color: rgba(148, 180, 178, 0.89);
-                font-size: 12px;
+                font-size: 13px;
                 font-weight: 600;
             }
             #savedActionCreatedTasksStatus[statusKind="invalid_source"], #savedActionCreatedTasksStatus[statusKind="invalid_saved_actions"], #savedActionCreatedTasksStatus[statusKind="missing"] {
@@ -3264,11 +3586,11 @@ class CreatedTasksDialog(QDialog):
             }
             #savedActionCreatedTasksSource {
                 color: rgba(126, 157, 171, 0.78);
-                font-size: 11px;
+                font-size: 13px;
             }
             #savedActionCreatedTasksGuidance {
                 color: rgba(110, 201, 164, 0.86);
-                font-size: 11px;
+                font-size: 13px;
                 line-height: 1.4em;
             }
             #savedActionCreatedTasksItemsScroll {
@@ -3277,53 +3599,53 @@ class CreatedTasksDialog(QDialog):
             }
             #savedActionCreatedTasksViewport {
                 border-radius: 18px;
-                background: rgba(8, 20, 34, 0.96);
+                background: rgba(8, 20, 34, 214);
             }
             #savedActionCreatedTasksItems {
                 background: transparent;
             }
             QFrame[inventoryRole="itemFrame"] {
-                border-radius: 16px;
-                border: 1px solid rgba(118, 226, 255, 0.12);
-                background: rgba(7, 20, 34, 0.96);
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(9, 22, 37, 224);
             }
             QFrame[inventoryRole="actionShell"] {
-                border-radius: 14px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(10, 25, 39, 0.86);
+                border-radius: 16px;
+                border: 1px solid rgba(118, 226, 255, 0.12);
+                background: rgba(10, 28, 46, 230);
             }
             QLabel[inventoryRole="itemTitle"] {
                 color: rgba(184, 208, 200, 0.96);
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 650;
             }
             QLabel[inventoryRole="itemMeta"] {
                 color: rgba(84, 192, 181, 0.83);
-                font-size: 10px;
+                font-size: 11px;
                 font-weight: 600;
                 letter-spacing: 0.06em;
                 text-transform: uppercase;
             }
             QLabel[inventoryRole="itemTarget"] {
                 color: rgba(163, 189, 196, 0.92);
-                font-size: 10px;
+                font-size: 12px;
             }
             QPushButton[inventoryRole="editButton"], QPushButton[inventoryRole="deleteButton"], #savedActionCreatedTasksClose {
-                min-height: 30px;
-                padding: 0 11px;
-                border-radius: 11px;
+                min-height: 38px;
+                padding: 0 16px;
+                border-radius: 12px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
-                background: rgba(8, 24, 38, 220);
+                background: rgba(6, 18, 30, 196);
                 color: rgba(191, 212, 207, 0.96);
-                font-size: 10px;
-                font-weight: 600;
+                font-size: 14px;
+                font-weight: 650;
             }
             QPushButton[inventoryRole="editButton"], QPushButton[inventoryRole="deleteButton"] {
-                min-width: 84px;
+                min-width: 104px;
             }
             QPushButton[inventoryRole="editButton"] {
                 border: 1px solid rgba(118, 226, 255, 0.30);
-                background: rgba(18, 52, 78, 214);
+                background: rgba(18, 52, 78, 228);
             }
             QPushButton[inventoryRole="deleteButton"] {
                 border: 1px solid rgba(255, 138, 138, 0.26);
@@ -3332,6 +3654,7 @@ class CreatedTasksDialog(QDialog):
             }
             QPushButton[inventoryRole="editButton"]:hover, QPushButton[inventoryRole="deleteButton"]:hover, #savedActionCreatedTasksClose:hover {
                 border: 1px solid rgba(118, 226, 255, 0.36);
+                background: rgba(8, 24, 38, 220);
             }
             QPushButton[inventoryRole="deleteButton"]:hover {
                 border: 1px solid rgba(255, 166, 166, 0.42);
@@ -3400,10 +3723,8 @@ class CreatedTasksDialog(QDialog):
         super().done(result)
 
     def _update_chrome_overlay_geometry(self):
-        if not hasattr(self, "chrome_bar") or not hasattr(self, "shell"):
-            return
-        self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
-        self.chrome_bar.raise_()
+        if hasattr(self, "chrome_bar"):
+            self.chrome_bar.raise_()
 
     def _sync_items_scroll_height(self):
         if not hasattr(self, "items_scroll") or not hasattr(self, "items_layout"):
@@ -3497,8 +3818,8 @@ class CreatedGroupsDialog(QDialog):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setWindowTitle("Manage Custom Groups")
         self.setObjectName("savedActionCreatedGroupsDialog")
-        self.setMinimumWidth(560)
-        self.setMaximumWidth(620)
+        self.setMinimumWidth(660)
+        self.setMaximumWidth(760)
 
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(6, 6, 6, 6)
@@ -3512,10 +3833,6 @@ class CreatedGroupsDialog(QDialog):
         shell_layout.setContentsMargins(0, 0, 0, 0)
         shell_layout.setSpacing(0)
 
-        self.content = QWidget(self.shell)
-        self.content.setObjectName("savedActionCreatedTasksContent")
-        shell_layout.addWidget(self.content)
-
         self.chrome_bar = DialogChromeBar(
             "Manage Custom Groups",
             self,
@@ -3524,11 +3841,15 @@ class CreatedGroupsDialog(QDialog):
             show_title=False,
         )
         self.chrome_bar.close_button.setToolTip("Close Manage Custom Groups")
-        self.chrome_bar.raise_()
+        shell_layout.addWidget(self.chrome_bar)
+
+        self.content = QWidget(self.shell)
+        self.content.setObjectName("savedActionCreatedTasksContent")
+        shell_layout.addWidget(self.content)
 
         layout = QVBoxLayout(self.content)
         layout.setContentsMargins(16, 6, 16, 10)
-        layout.setSpacing(6)
+        layout.setSpacing(4)
 
         self.title_label = QLabel("Manage Custom Groups", self)
         self.title_label.setObjectName("savedActionCreatedTasksTitle")
@@ -3594,40 +3915,47 @@ class CreatedGroupsDialog(QDialog):
         layout.addWidget(self.footer_frame)
         self.setStyleSheet(
             """
-            #savedActionCreatedTasksDialog {
+            #savedActionCreatedGroupsDialog {
                 background: transparent;
             }
             #savedActionCreatedTasksShell {
-                border-radius: 20px;
-                border: 1px solid rgba(118, 226, 255, 0.14);
-                background: rgba(4, 16, 28, 244);
+                border-radius: 22px;
+                border: 1px solid rgba(118, 226, 255, 0.20);
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreatedTasksContent {
-                background: transparent;
+                border-radius: 22px;
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreatedTasksChromeBar {
                 border: none;
-                background: transparent;
+                border-top-left-radius: 22px;
+                border-top-right-radius: 22px;
+                background: rgba(4, 16, 28, 238);
             }
             #savedActionCreatedTasksFooter {
-                border-top: 1px solid rgba(118, 226, 255, 0.08);
+                border-top: 1px solid rgba(118, 226, 255, 0.12);
                 background: transparent;
             }
             #savedActionCreatedTasksTitle {
                 color: rgba(188, 212, 203, 0.97);
-                font-size: 21px;
-                font-weight: 650;
+                font-size: 28px;
+                font-weight: 600;
+                padding: 2px 8px 4px 8px;
+                background: transparent;
             }
             #savedActionCreatedTasksHint {
                 color: rgba(136, 165, 174, 0.88);
-                font-size: 10px;
+                font-size: 14px;
+                padding: 2px 8px 6px 8px;
+                background: transparent;
             }
             """
             + THEMED_TOOLTIP_QSS
             + """
             #savedActionCreatedTasksStatus {
                 color: rgba(148, 180, 178, 0.89);
-                font-size: 12px;
+                font-size: 13px;
                 font-weight: 600;
             }
             #savedActionCreatedTasksStatus[statusKind="invalid_source"], #savedActionCreatedTasksStatus[statusKind="invalid_groups"], #savedActionCreatedTasksStatus[statusKind="invalid_saved_actions"], #savedActionCreatedTasksStatus[statusKind="missing"] {
@@ -3635,11 +3963,11 @@ class CreatedGroupsDialog(QDialog):
             }
             #savedActionCreatedTasksSource {
                 color: rgba(126, 157, 171, 0.78);
-                font-size: 11px;
+                font-size: 13px;
             }
             #savedActionCreatedTasksGuidance {
                 color: rgba(110, 201, 164, 0.86);
-                font-size: 11px;
+                font-size: 13px;
             }
             #savedActionCreatedTasksItemsScroll {
                 border: none;
@@ -3647,53 +3975,53 @@ class CreatedGroupsDialog(QDialog):
             }
             #savedActionCreatedTasksViewport {
                 border-radius: 18px;
-                background: rgba(8, 20, 34, 0.96);
+                background: rgba(8, 20, 34, 214);
             }
             #savedActionCreatedTasksItems {
                 background: transparent;
             }
             QFrame[inventoryRole="itemFrame"] {
-                border-radius: 14px;
-                border: 1px solid rgba(118, 226, 255, 0.12);
-                background: rgba(7, 20, 34, 0.96);
+                border-radius: 18px;
+                border: 1px solid rgba(118, 226, 255, 0.14);
+                background: rgba(9, 22, 37, 224);
             }
             QFrame[inventoryRole="actionShell"] {
-                border-radius: 12px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(10, 25, 39, 0.86);
+                border-radius: 16px;
+                border: 1px solid rgba(118, 226, 255, 0.12);
+                background: rgba(10, 28, 46, 230);
             }
             QLabel[inventoryRole="itemTitle"] {
                 color: rgba(184, 208, 200, 0.96);
-                font-size: 10px;
+                font-size: 14px;
                 font-weight: 650;
             }
             QLabel[inventoryRole="itemMeta"] {
                 color: rgba(84, 192, 181, 0.83);
-                font-size: 8px;
+                font-size: 11px;
                 font-weight: 600;
                 letter-spacing: 0.06em;
                 text-transform: uppercase;
             }
             QLabel[inventoryRole="itemTarget"] {
                 color: rgba(163, 189, 196, 0.92);
-                font-size: 8px;
+                font-size: 12px;
             }
             QPushButton[inventoryRole="editButton"], QPushButton[inventoryRole="deleteButton"], #savedActionCreatedTasksClose {
-                min-height: 24px;
-                padding: 0 9px;
-                border-radius: 9px;
+                min-height: 38px;
+                padding: 0 16px;
+                border-radius: 12px;
                 border: 1px solid rgba(118, 226, 255, 0.18);
-                background: rgba(8, 24, 38, 220);
+                background: rgba(6, 18, 30, 196);
                 color: rgba(191, 212, 207, 0.96);
-                font-size: 8px;
-                font-weight: 600;
+                font-size: 14px;
+                font-weight: 650;
             }
             QPushButton[inventoryRole="editButton"], QPushButton[inventoryRole="deleteButton"] {
-                min-width: 70px;
+                min-width: 104px;
             }
             QPushButton[inventoryRole="editButton"] {
                 border: 1px solid rgba(118, 226, 255, 0.30);
-                background: rgba(18, 52, 78, 214);
+                background: rgba(18, 52, 78, 228);
             }
             QPushButton[inventoryRole="deleteButton"] {
                 border: 1px solid rgba(255, 138, 138, 0.26);
@@ -3708,15 +4036,15 @@ class CreatedGroupsDialog(QDialog):
                 padding: 0 0 1px 0;
                 text-align: center;
                 border-radius: 8px;
-                border: 1px solid rgba(118, 226, 255, 0.10);
-                background: rgba(11, 26, 40, 0.52);
+                border: 1px solid rgba(118, 226, 255, 0.18);
+                background: rgba(18, 52, 78, 228);
                 color: rgba(191, 212, 207, 0.94);
                 font-size: 12px;
                 font-weight: 600;
             }
             QPushButton[chromeRole="close"]:hover {
-                border: 1px solid rgba(102, 219, 204, 0.24);
-                background: rgba(15, 36, 52, 0.70);
+                border: 1px solid rgba(118, 226, 255, 0.34);
+                background: rgba(22, 61, 90, 238);
             }
             #savedActionCreatedTasksItemsScroll QScrollBar:vertical {
                 width: 10px;
@@ -3783,8 +4111,7 @@ class CreatedGroupsDialog(QDialog):
         super().done(result)
 
     def _update_chrome_overlay_geometry(self):
-        if hasattr(self, "chrome_bar") and hasattr(self, "shell"):
-            self.chrome_bar.setGeometry(6, 6, max(72, self.shell.width() - 12), self.chrome_bar.height())
+        if hasattr(self, "chrome_bar"):
             self.chrome_bar.raise_()
 
     def _sync_items_scroll_height(self):
@@ -4254,7 +4581,7 @@ class CommandOverlayPanel(QWidget):
                 line-height: 1.4em;
             }
             QPushButton[entryAction="true"] {
-                min-height: 40px;
+                min-height: 38px;
                 margin-top: 0;
                 padding: 0 14px;
                 border-radius: 12px;
@@ -5243,6 +5570,7 @@ class DesktopRuntimeWindow(QWidget):
         group_inventory = self._command_model.view_payload().get("saved_group_inventory") or {}
         return {
             "available_groups": group_inventory.get("items") or [],
+            "available_group_members": self._group_dialog_member_items(),
             "group_status_kind": group_inventory.get("status_kind", "template_only"),
             "group_status_text": group_inventory.get("status_text", ""),
         }

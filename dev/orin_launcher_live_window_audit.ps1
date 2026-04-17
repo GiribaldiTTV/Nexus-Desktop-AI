@@ -741,6 +741,51 @@ function Seed-AuditSource {
                 aliases         = @("notes task")
                 invocation_mode = "aliases_only"
                 trigger_mode    = "launch"
+            },
+            [ordered]@{
+                id              = "workspace_docs_folder"
+                title           = "Open Workspace Docs"
+                target_kind     = "folder"
+                target          = "C:\Nexus Desktop AI\Docs"
+                aliases         = @("workspace docs")
+                invocation_mode = "aliases_only"
+                trigger_mode    = "open"
+            },
+            [ordered]@{
+                id              = "open_readme_task"
+                title           = "Open Root README"
+                target_kind     = "file"
+                target          = "C:\Nexus Desktop AI\README.md"
+                aliases         = @("root readme")
+                invocation_mode = "aliases_only"
+                trigger_mode    = "open"
+            },
+            [ordered]@{
+                id              = "open_launcher_source"
+                title           = "Open Desktop Launcher"
+                target_kind     = "file"
+                target          = "C:\Nexus Desktop AI\desktop\orin_desktop_launcher.pyw"
+                aliases         = @("desktop launcher")
+                invocation_mode = "aliases_only"
+                trigger_mode    = "open"
+            },
+            [ordered]@{
+                id              = "open_issue_board"
+                title           = "Open Screenshot Folder"
+                target_kind     = "folder"
+                target          = "C:\Users\anden\OneDrive\Pictures\Screenshots"
+                aliases         = @("screenshot folder")
+                invocation_mode = "aliases_only"
+                trigger_mode    = "open"
+            },
+            [ordered]@{
+                id              = "open_saved_source"
+                title           = "Open Saved Action Source Module"
+                target_kind     = "file"
+                target          = "C:\Nexus Desktop AI\desktop\saved_action_source.py"
+                aliases         = @("saved action source")
+                invocation_mode = "aliases_only"
+                trigger_mode    = "open"
             }
         )
         groups         = @(
@@ -755,6 +800,36 @@ function Seed-AuditSource {
                 title             = "Notes Suite"
                 aliases           = @("notes suite")
                 member_action_ids = @("open_notes_task")
+            },
+            [ordered]@{
+                id                = "docs_hub"
+                title             = "Docs Hub"
+                aliases           = @("docs hub")
+                member_action_ids = @("workspace_docs_folder", "open_readme_task")
+            },
+            [ordered]@{
+                id                = "launcher_tools"
+                title             = "Launcher Tools"
+                aliases           = @("launcher tools")
+                member_action_ids = @("open_launcher_source", "open_saved_source")
+            },
+            [ordered]@{
+                id                = "planning_board"
+                title             = "Planning Board"
+                aliases           = @("planning board")
+                member_action_ids = @("open_issue_board", "weekly_reports_explorer")
+            },
+            [ordered]@{
+                id                = "review_pack"
+                title             = "Review Pack"
+                aliases           = @("review pack")
+                member_action_ids = @("open_readme_task", "open_notes_task", "open_saved_source")
+            },
+            [ordered]@{
+                id                = "workspace_launchers"
+                title             = "Workspace Launchers"
+                aliases           = @("workspace launchers")
+                member_action_ids = @("open_notepad_task", "workspace_docs_folder", "open_issue_board")
             }
         )
     }
@@ -915,6 +990,9 @@ try {
     $assignmentCreate = Get-TaskGroupAssignmentButton -Dialog $assignmentDialog -LeafId "taskGroupAssignmentCreateButton"
     if (-not $assignmentCreate) {
         $assignmentCreate = Get-FirstButtonByName -Root $assignmentDialog -Name "Create New Group..."
+    }
+    if (-not $assignmentCreate) {
+        $assignmentCreate = Get-FirstButtonByName -Root $assignmentDialog -Name "Create New Group"
     }
     Invoke-Element -Element $assignmentCreate -Description "Available Groups create"
     $inlineCreateGroupDialog = Wait-ForDialog -Name "Create Custom Group"
