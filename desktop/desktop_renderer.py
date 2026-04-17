@@ -89,6 +89,7 @@ GetParentW.argtypes = [ctypes.wintypes.HWND]
 GetParentW.restype = ctypes.wintypes.HWND
 SW_HIDE = 0
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_DIALOG_RUNTIME_LOGGER = None
 
 DWMWA_USE_IMMERSIVE_DARK_MODE = 20
 DWMWA_WINDOW_CORNER_PREFERENCE = 33
@@ -148,6 +149,16 @@ def _apply_windows_dark_title_bar(widget):
     set_int_attribute(DWMWA_CAPTION_COLOR, _windows_colorref(9, 18, 28))
     set_int_attribute(DWMWA_TEXT_COLOR, _windows_colorref(236, 247, 255))
     set_int_attribute(DWMWA_BORDER_COLOR, _windows_colorref(26, 61, 86))
+
+
+def _emit_global_runtime_marker(event: str):
+    logger = _DIALOG_RUNTIME_LOGGER
+    if not callable(logger):
+        return
+    try:
+        logger(event)
+    except Exception:
+        pass
 
 
 def _clear_layout_widgets(layout):
@@ -841,9 +852,13 @@ class TaskGroupAssignmentDialog(QDialog):
         inline_group_assigned: bool = False,
         group_status_kind: str = "loaded",
         group_status_text: str = "",
+        lifecycle_callback=None,
         parent=None,
     ):
         super().__init__(parent)
+        self._lifecycle_callback = lifecycle_callback
+        self._dialog_signal_name = "TASK_GROUP_ASSIGNMENT_DIALOG"
+        self._ready_signal_emitted = False
         self._available_groups = list(available_groups or [])
         self._selected_group_id = next(
             (
@@ -1078,15 +1093,37 @@ class TaskGroupAssignmentDialog(QDialog):
         self._update_chrome_overlay_geometry()
         self._refresh_items()
 
+    def _emit_lifecycle_event(self, stage: str, **fields):
+        if callable(self._lifecycle_callback):
+            try:
+                self._lifecycle_callback(self._dialog_signal_name, stage, dialog=self, **fields)
+            except Exception:
+                pass
+
+    def _emit_ready_signal(self):
+        if self._ready_signal_emitted or not self.isVisible():
+            return
+        self._ready_signal_emitted = True
+        self._emit_lifecycle_event("ready")
+
     def showEvent(self, event):
         super().showEvent(event)
         self._update_chrome_overlay_geometry()
         _schedule_window_clamp(self)
+        self._emit_lifecycle_event("opened")
+        QTimer.singleShot(0, self._emit_ready_signal)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_chrome_overlay_geometry()
         _schedule_window_clamp(self)
+
+    def done(self, result):
+        self._emit_lifecycle_event(
+            "closed",
+            result="accepted" if result == QDialog.Accepted else "rejected",
+        )
+        super().done(result)
 
     def _update_chrome_overlay_geometry(self):
         if hasattr(self, "chrome_bar") and hasattr(self, "shell"):
@@ -1137,11 +1174,12 @@ class TaskGroupAssignmentDialog(QDialog):
             submit_button_text="Create",
             available_members=[],
             show_member_picker=False,
+            lifecycle_callback=self._lifecycle_callback,
         )
         if dialog.exec() != QDialog.Accepted:
             return
         try:
-            self._inline_group_draft = dialog.draft()
+            self._inline_group_draft = dialog.build_draft()
         except CallableGroupDraftValidationError as exc:
             self.status_label.setText(str(exc))
             self.status_label.setVisible(True)
@@ -1379,7 +1417,9 @@ class SavedActionCreateDialog(QDialog):
         lifecycle_callback=None,
         dialog_signal_name: str = "CUSTOM_TASK_CREATE_DIALOG",
     ):
+        _emit_global_runtime_marker(f"RENDERER_MAIN|{dialog_signal_name}_PRECONSTRUCT")
         super().__init__(parent)
+        _emit_global_runtime_marker(f"RENDERER_MAIN|{dialog_signal_name}_POSTSUPER")
         self._submit_handler = submit_handler
         self._lifecycle_callback = lifecycle_callback
         self._dialog_signal_name = dialog_signal_name
@@ -1395,6 +1435,7 @@ class SavedActionCreateDialog(QDialog):
         self._inline_group_draft: CallableGroupDraft | None = None
         self._inline_group_assigned = False
         self._selected_group_ids_state: tuple[str, ...] = ()
+        self._emit_lifecycle_event("construct_start")
         self.setModal(True)
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
@@ -1451,6 +1492,8 @@ class SavedActionCreateDialog(QDialog):
         self.type_combo = QComboBox(self)
         self.type_combo.setObjectName("savedActionCreateType")
         self.type_combo.setMinimumHeight(34)
+        self.type_combo.view().setObjectName("savedActionCreateTypePopup")
+        self.type_combo.view().viewport().setObjectName("savedActionCreateTypePopupViewport")
         for label, target_kind in self.ACTION_TYPE_OPTIONS:
             self.type_combo.addItem(label, target_kind)
         self.type_combo.currentIndexChanged.connect(self._handle_target_kind_changed)
@@ -1480,6 +1523,8 @@ class SavedActionCreateDialog(QDialog):
         self.trigger_combo = QComboBox(self)
         self.trigger_combo.setObjectName("savedActionCreateTrigger")
         self.trigger_combo.setMinimumHeight(34)
+        self.trigger_combo.view().setObjectName("savedActionCreateTriggerPopup")
+        self.trigger_combo.view().viewport().setObjectName("savedActionCreateTriggerPopupViewport")
         for label, trigger_mode in self.TRIGGER_OPTIONS:
             self.trigger_combo.addItem(label, trigger_mode)
         self.trigger_combo.currentIndexChanged.connect(self._handle_trigger_selection_changed)
@@ -1657,6 +1702,7 @@ class SavedActionCreateDialog(QDialog):
 
         layout.addLayout(content_row)
         layout.addWidget(self.status_label)
+        self._emit_lifecycle_event("construct_layout_ready")
 
         self.setStyleSheet(
             """
@@ -1842,6 +1888,7 @@ class SavedActionCreateDialog(QDialog):
             }
             """
         )
+        self._emit_lifecycle_event("construct_style_ready")
 
         self._refresh_groups_ui()
         self._apply_default_trigger_mode(force=True)
@@ -1851,6 +1898,7 @@ class SavedActionCreateDialog(QDialog):
         self._refresh_examples_box()
         if initial_draft is not None:
             self.load_draft(initial_draft)
+        self._emit_lifecycle_event("construct_complete")
 
     def _emit_lifecycle_event(self, stage: str, **fields):
         if callable(self._lifecycle_callback):
@@ -2061,6 +2109,7 @@ class SavedActionCreateDialog(QDialog):
             inline_group_assigned=self._inline_group_assigned,
             group_status_kind=self._group_status_kind,
             group_status_text=self._group_status_text,
+            lifecycle_callback=self._lifecycle_callback,
             parent=self,
         )
         if dialog.exec() != QDialog.Accepted:
@@ -2168,7 +2217,7 @@ class SavedActionCreateDialog(QDialog):
         return (
             "<div style=\"margin: 0; padding: 6px 8px; "
             "border-radius: 10px; border: 1px solid rgba(102, 219, 204, 0.08); "
-            "background: rgba(11, 29, 44, 0.34);\">"
+            "background: rgba(10, 24, 38, 0.74);\">"
             f"<div style=\"color: rgba(84, 192, 181, 0.86); font-size: 10.5px; font-weight: 600; "
             "letter-spacing: 0.04em; text-transform: uppercase;\">"
             f"{escape(title)}</div>"
@@ -4420,6 +4469,7 @@ class DesktopRuntimeWindow(QWidget):
 
     def __init__(self, screen, visual_html_path: str, event_logger=None, runtime_log_path: str = ""):
         super().__init__()
+        global _DIALOG_RUNTIME_LOGGER
 
         self.screen_ref = screen
         self.visual_html_path = os.path.abspath(visual_html_path)
@@ -4446,6 +4496,7 @@ class DesktopRuntimeWindow(QWidget):
         self._callable_group_create_dialog_factory = CallableGroupCreateDialog
         self._created_groups_dialog_factory = CreatedGroupsDialog
         self._callable_group_edit_dialog_factory = CallableGroupEditDialog
+        _DIALOG_RUNTIME_LOGGER = self._log_event
         self._command_model = CommandOverlayModel()
         self._command_panel = CommandOverlayPanel()
         self._command_panel.submit_requested.connect(self.handle_local_submit_requested)
@@ -4716,6 +4767,21 @@ class DesktopRuntimeWindow(QWidget):
         signal_name = f"{signal_base}_{stage.upper()}"
         if dialog is not None:
             fields.setdefault("dialog_name", dialog.windowTitle())
+            fields.setdefault("dialog_object_name", dialog.objectName())
+            fields.setdefault("dialog_class_name", type(dialog).__name__)
+            try:
+                fields.setdefault("win_id", str(int(dialog.winId())))
+            except Exception:
+                pass
+            try:
+                focus_widget = dialog.focusWidget()
+            except Exception:
+                focus_widget = None
+            if focus_widget is not None:
+                fields.setdefault(
+                    "focus_widget",
+                    focus_widget.objectName() or type(focus_widget).__name__,
+                )
         self._emit_runtime_signal(signal_name, **fields)
 
     def _create_dialog_with_optional_lifecycle(self, factory, *args, **kwargs):
@@ -5271,6 +5337,8 @@ class DesktopRuntimeWindow(QWidget):
         if not self._command_model.visible or self._command_model.phase != "entry":
             return
 
+        self._emit_runtime_signal("OVERLAY_ENTRY_ACTION_TRIGGERED", action="create_custom_task")
+
         inventory = self._command_model.action_catalog.saved_action_inventory
         if inventory.status_kind in {"invalid_source", "invalid_saved_actions"}:
             self._set_entry_feedback("not_found", self._saved_action_authoring_block_message("creation"))
@@ -5288,15 +5356,45 @@ class DesktopRuntimeWindow(QWidget):
         self._clear_overlay_input_capture()
         self._apply_command_overlay_state()
 
+        QTimer.singleShot(0, self._open_create_custom_task_dialog)
+
+    def _open_create_custom_task_dialog(self):
+        if not self._command_model.visible or self._command_model.phase != "entry":
+            return
+
+        self._emit_runtime_signal("OVERLAY_ENTRY_DIALOG_CREATE_START", action="create_custom_task")
         dialog = self._create_dialog_with_optional_lifecycle(
             self._saved_action_create_dialog_factory,
-            self._command_panel,
+            self,
             self._handle_saved_action_create_draft_submit,
             **self._task_dialog_group_kwargs(),
             lifecycle_callback=self._handle_dialog_lifecycle_signal,
         )
+        self._emit_runtime_signal(
+            "OVERLAY_ENTRY_DIALOG_CREATED",
+            action="create_custom_task",
+            dialog_name=dialog.windowTitle(),
+            dialog_object_name=dialog.objectName() or type(dialog).__name__,
+            dialog_visible="true" if dialog.isVisible() else "false",
+            win_id=int(dialog.winId()),
+        )
         try:
-            dialog.exec()
+            self._emit_runtime_signal(
+                "OVERLAY_ENTRY_DIALOG_EXEC_START",
+                action="create_custom_task",
+                dialog_name=dialog.windowTitle(),
+                dialog_object_name=dialog.objectName() or type(dialog).__name__,
+                win_id=int(dialog.winId()),
+            )
+            result = dialog.exec()
+            self._emit_runtime_signal(
+                "OVERLAY_ENTRY_DIALOG_EXEC_RETURNED",
+                action="create_custom_task",
+                dialog_name=dialog.windowTitle(),
+                dialog_object_name=dialog.objectName() or type(dialog).__name__,
+                win_id=int(dialog.winId()),
+                result="accepted" if result == QDialog.Accepted else "rejected",
+            )
         finally:
             self._resume_overlay_capture_after_authoring_dialog()
 
@@ -5685,6 +5783,19 @@ class DesktopRuntimeWindow(QWidget):
                 self._schedule_overlay_ready_check(0)
                 return
 
+            if panel_is_active and input_has_focus and self._overlay_global_capture_suspended:
+                self._command_panel.input_line.set_local_typing_enabled(False)
+                self._overlay_local_input_engaged = False
+                self._overlay_global_capture_suspended = False
+                self._refresh_overlay_input_capture()
+                self._trace_overlay(
+                    "input_focus_acquired",
+                    manual_focus="true" if manual_focus else "false",
+                    mode="rearmed",
+                )
+                self._schedule_overlay_ready_check(0)
+                return
+
             self._command_panel.input_line.set_local_typing_enabled(False)
             self._overlay_local_input_engaged = False
             self._refresh_overlay_input_capture()
@@ -5698,6 +5809,10 @@ class DesktopRuntimeWindow(QWidget):
     def handle_command_input_focus_lost(self):
         if not self._command_model.visible:
             return
+        if self._command_model.phase == "entry" and self._overlay_local_input_engaged:
+            self._command_panel.input_line.set_local_typing_enabled(False)
+            self._overlay_local_input_engaged = False
+            self._refresh_overlay_input_capture()
         self._trace_overlay("input_focus_lost")
         self._schedule_overlay_ready_check(0)
 

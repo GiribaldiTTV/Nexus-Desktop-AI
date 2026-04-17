@@ -30,26 +30,33 @@ Repo-wide phase, timeout, proof-authority, and stop-loss rules for this workstre
 
 ## Current Phase
 
-- Phase: `Validation / Hardening`
-- Substate: `Closeout Recovery`
+- Phase: `Docs / Canon Sync`
+- Substate: `Post-Green Evidence Refresh`
 
 ## Phase Entry Basis
 
 - the branch contains the integrated FB-036 + Idea 5 implementation truth, including callable groups and the latest UI/inventory follow-through
 - repo-side and live-style validators are already green on the branch
-- the exact latest branch truth still lacks a fresh fully green watchdog-backed interactive report
-- the historical near-green interactive report that first exposed the late inline-group seam is:
-  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_124233.txt`
-- the latest governed closeout recovery report is:
-  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_135000.txt`
-- together those reports prove the branch is in late closeout recovery rather than broad feature instability, but the governed timeout reset exposed an earlier cancel-and-overlay-restoration seam before the late inline-group seam could be re-exercised
+- the exact current branch truth now has fresh fully green watchdog-backed interactive proof under the tightened default timing profile:
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260417_093651.txt`
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260417_105920.txt`
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260417_110929.txt`
+- the latest exact-branch proof is:
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260417_110929.txt`
+- the latest live launched-process UI audit is:
+  - `dev/logs/launcher_live_window_audit/20260417_110602/manifest.json`
+- together those artifacts prove:
+  - the full interactive gate is green on the exact current branch truth
+  - the tightened budget profile is now the default harness profile rather than a manual override
+  - the Create Custom Task visual regression introduced during the efficiency pass was corrected without reopening any failing interactive seam
+  - real launched-process screenshots of the overlay, task dialogs, group dialogs, and invalid-source dialogs remain aligned with the intended dark/translucent UI direction
 
 ## Phase Exit Criteria
 
-- the full watchdog-backed interactive gate passes on the exact current branch truth
 - the timeout contract in this workstream doc matches the live harness defaults
 - the seam ledger is current and no active seam remains
-- only after those are true should this workstream move to `Docs / Canon Sync`, then `PR Readiness`
+- the latest green interactive evidence and the live launched-process UI audit are both recorded here
+- only after those are true should this workstream move to `PR Readiness`
 
 ## Validation Contract
 
@@ -84,39 +91,75 @@ Validation layers for this workstream are intentionally separated:
 UI-only observations may become gating only when the UI interaction itself is the thing under test.
 Otherwise they should be recorded as notes and must not override stronger runtime and persisted-source truth.
 
-For the current active seam:
+For the current exact-branch closeout state:
 
-- `task_inline_group_quick_create` does not require exact focus ownership on the `Assign Group...` button as a business-proof condition
-- authoritative success is:
-  - task dialog open and ready markers
-  - assignment and/or inline group-create runtime markers
-  - persisted source showing the expected task/group relationship
-  - no blocked or corruption markers
+- there is no remaining active seam
+- authoritative branch-closeout proof is:
+  - the latest full interactive gate is green on the exact current branch truth
+  - persisted source snapshots remain correct across create, edit, group, ambiguity, reopen, and invalid-source paths
+  - cleanup completed without probe leakage or source corruption
+- explicitly non-gating observations for the current green state:
+  - delayed `ATTEMPT_STARTED` markers when later success or blocked markers prove the same business transition
+  - early help-button readiness
+  - examples-box refresh lag
+  - first-attempt foreground/focus noise when the target control still becomes interactable within the tightened budget
+
+Current branch-local proven interactive scenarios:
+
+- `valid_create` is currently proven and passing
+- `valid_group_create` is currently proven and passing
+- `invalid_create_rejection_application` is currently proven and passing
+- `collision_rejection` is currently proven and passing
+- `group_collision_rejection` is currently proven and passing
+- `valid_edit` is currently proven and passing
+- `invalid_edit_rejection` is currently proven and passing
+- `exact_match_execution` is currently proven and passing
+- `saved_alias_ambiguity` is currently proven and passing
+- `group_exact_invocation` is currently proven and passing
+- `task_inline_group_quick_create` is currently proven and passing
+- `reopen_persistence` is currently proven and passing
+- `large_inventory_reachability` is currently proven and passing
+- `unsafe_source_blocking` is currently proven and passing
+- `invalid_group_source_blocking` is currently proven and passing
+- `no_input_leakage` is currently proven and passing
+
+### Resolved Invalid-Create Overlay-Recovery Seam
+
+- invalid `Application` create business correctness and cancel recovery are now both proven on the exact current branch state
+- the latest green reports move through the blocked marker, no-write proof, dialog close, and overlay recovery path within the tightened default budgets
+- blocked-status UI readback remains informational only unless that exact label is the thing under test
+
+### Resolved Collision-Rejection Seam
+
+- `collision_rejection` now reaches runtime proof cleanly under the tightened default budgets
+- the latest green reports observe the create-attempt path quickly enough that the collision blocker is no longer a timing seam
+
+### Resolved Valid-Edit Popup-Selection Seam
+
+- `valid_edit` now completes under the tightened default budgets on the exact current branch state
+- the previous popup-first `Folder` selection stall is no longer able to trip the no-progress watchdog before edit proof completes
+- the latest green reports prove the edit dialog updates the action in place and refreshes inventory immediately
 
 ## Timeout Contract
 
 - preflight startup gate: `<= 60s`
-- seam or control-acquisition gate: `10-25s`
-- no-progress watchdog: `20s`
-- normal scenario budget: `90s`
-- exceptional scenario budget: `<= 120s` and explicitly named
-- transition budget: `25s`
-- full interactive run hard cap: `900s`
+- seam or control-acquisition gate: `<= 3s` for the interactive driver once the surface is already opened and marker-ready
+- no-progress watchdog default: `3s`
+- normal scenario budget default: `60s`
+- exceptional scenario budget: none currently declared
+- transition budget default: `3s`
+- full interactive run hard cap default: `1800s`
 - outer execution timeout should sit only slightly above the harness hard cap
 
-Current explicit exceptional scenario:
-
-- `task_inline_group_quick_create`: `120s`
-
-Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are not allowed during closeout recovery.
+Undocumented slower profiles are not allowed during normal continuation. If a future slice needs a relaxed profile, it must be explicit, documented, and revalidated rather than silently inherited.
 
 ## Current Active Seam
 
-- `invalid_create_rejection_application :: create-dialog close-after-cancel and overlay restoration under governed timeout budgets`
-- latest proving failure:
-  - `Scenario timeout exceeded for 'invalid_create_rejection_application' while waiting for dialog 'Create Custom Task' close after cancel.`
-- latest report:
-  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_135000.txt`
+- `none`
+- latest proving report:
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260417_110929.txt`
+- current branch status note:
+  - the full interactive gate is green on the exact current branch truth using the harness defaults `1800s / 3s / 60s / 3s`
 
 ## Stop-Loss Threshold
 
@@ -139,8 +182,13 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
 | stale UIAutomation element/property shape crashes | `harness defect` | reduced through null-safe and live-resolution helpers |
 | system-wide focus drift / offscreen focus rectangles / global click interference | `environment issue` | still present as late-run noise |
 | blank blocked-status readback with correct runtime/source truth | `environment issue` | still present as non-blocking noise |
-| `task_inline_group_quick_create :: Assign Group button usability/focus reacquisition` | `harness defect` | historical late seam from the near-green `20260416_124233` report; not yet re-exercised after the governed timeout reset surfaced an earlier seam |
-| `invalid_create_rejection_application :: create-dialog close-after-cancel and overlay restoration under governed timeout budgets` | `harness defect` | active seam after the governed `20260416_135000` rerun |
+| `task_inline_group_quick_create :: Assign Group button usability/focus reacquisition` | `harness defect` | resolved during governed hardening; the latest `20260417` green reports prove the task dialog can keep moving through group assignment without focus-churn stalls |
+| `task_inline_group_quick_create :: inline group draft handoff used the wrong dialog contract` | `product defect` | resolved by switching the inline group return path onto the callable-group draft builder; the latest `20260417` green reports and persisted-source snapshots prove the new inline group now persists atomically with the task |
+| `invalid_create_rejection_application :: stale timeout carryover into overlay recovery after close-after-cancel proof` | `harness defect` | resolved; later `20260417` green reports move through invalid-create recovery under the tightened default budgets |
+| `valid_edit :: scenario budget exhausted before or at CUSTOM_TASK_EDIT_ATTEMPT_STARTED after slow combo/type mutation and field verification` | `harness defect` | resolved; the latest green reports move through edit proof under the tightened default budgets |
+| `invalid_create_rejection_application :: overlay input recovery after Application cancel` | `harness defect` | resolved; the current green reports reopen and reacquire the overlay cleanly after invalid-create cancel |
+| `collision_rejection :: timeout before or at CUSTOM_TASK_CREATE_ATTEMPT_STARTED for Explorer Helper` | `harness defect` | resolved; the latest green reports prove the collision path under the tightened default budgets |
+| `valid_edit :: no-progress stall during popup-first Folder type selection` | `harness defect` | resolved; the latest green reports move past the popup-first type-selection path without tripping the `3s` no-progress watchdog |
 
 ## Current Branch Truth
 
@@ -180,7 +228,9 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
 - branch-local validation and hardening work now also includes dedicated FB-036 validators, live-style harnesses, interactive runtime helpers, durable validation reports, and exported manual-test artifacts that future slices should reuse rather than recreate blindly
 - the `2026-04-15` fully green interactive report remains important historical proof for the earlier integrated truth:
   - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260415_115705.txt`
-- current branch-local closeout truth still requires a fresh green interactive report on the exact latest branch state before final closeout can advance
+- the current exact-branch truth now also includes:
+  - a fresh fully green watchdog-backed interactive report using the default harness budgets on `2026-04-17`
+  - a live launched-process window audit proving the key overlay, task, group, and invalid-source windows still match the intended UI direction after the efficiency hardening
 
 ## Scope
 
@@ -283,7 +333,13 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
   Introduced: during the same `2026-04-13` interactive-validation hardening pass.
   Classification: `interactive-only`.
   Reuse: continue hardening and reuse this as the default FB-036 interactive continuation gate instead of rebuilding one-off probes.
-  Time-budgeted defaults for governed closeout recovery: full run `900s`, no-progress watchdog `20s`, normal scenario budget `90s`, transition budget `25s`, with exceptional scenario budgets capped at `120s` and clean abort, cleanup, and last-progress reporting required on timeout.
+  Current default time budgets after the efficiency hardening pass: full run `1800s`, no-progress watchdog `3s`, normal scenario budget `60s`, transition budget `3s`, with cleanup, last-progress reporting, and watchdog enforcement still required on timeout.
+
+- `dev/orin_launcher_live_window_audit.ps1`
+  Purpose: branch-local live launched-process window audit driver that captures the real overlay, task, group, and invalid-source windows from the running desktop process for post-green UI review.
+  Introduced: during the `2026-04-17` post-green audit pass.
+  Classification: `interactive-only`.
+  Reuse: use this after meaningful UI or interaction hardening changes when the branch needs real launched-process screenshots rather than synthetic widget captures.
 
 - `dev/logs/fb_036_authoring_live_validation/`
   Purpose: durable report and artifact root for the synthetic/live-style FB-036 validation harness.
@@ -296,6 +352,12 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
   Introduced: during the interactive-validation hardening pass on `2026-04-13`.
   Classification: `interactive-only`.
   Reuse: future slices should append new reports here and cite the exact report used for any continuation recommendation.
+
+- `dev/logs/launcher_live_window_audit/`
+  Purpose: durable report and artifact root for live launched-process UI audits, including the manifest and the captured real-window screenshots.
+  Introduced: during the `2026-04-17` post-green UI audit pass.
+  Classification: `interactive-only`.
+  Reuse: append new audit folders here whenever a future branch needs live window screenshots to confirm UI direction after interaction or styling changes.
 
 - `Docs/workstreams/FB-036_saved_action_authoring.md` `## User Test Summary`
   Purpose: canonical repo-level manual-validation contract for the active workstream.
@@ -334,6 +396,15 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
   - edit in place
   - delete from `Created Tasks`
   - immediate catalog reload after successful writes
+- task authoring now supports bounded single-group assignment and inline quick-create without leaving the task flow
+  - the inline group return path now uses the callable-group draft builder, so the newly created group reappears immediately in `Available Groups` and is persisted atomically with the task save
+- the interactive harness now defaults to the tightened efficiency profile that actually proved green on the exact current branch state
+  - `full run 1800s`
+  - `no-progress 3s`
+  - `scenario 60s`
+  - `transition 3s`
+- the live Create Custom Task window retains the intended darker/translucent guidance treatment after the efficiency pass
+  - the brief opaque black fill regression in the callable-surface/examples area was corrected before final closeout evidence was recorded
 - browse-assisted target picking exists only for the currently validated bounded types:
   - `Application`
   - `Folder`
@@ -430,13 +501,14 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
     - no-input-leakage proof
 - watchdog-enforced interactive proof
   - time budgets and watchdog enforcement turned interactive validation from a best-effort probe into a bounded, repeatable continuation gate
-  - the final passing interactive run on `2026-04-15` is the branch-closeout proof point for this lane
+  - the `2026-04-17` passing interactive runs are now the exact current-branch proof under the tightened default budget profile
+  - the final passing interactive run on `2026-04-15` remains important historical proof for the earlier integrated branch truth, but it is no longer the latest closeout anchor
 
 ### Validation Infrastructure And Reuse Guidance
 
 - primary interactive driver
   - `dev/orin_saved_action_authoring_interactive_validation.ps1`
-  - reuse this first for any future FB-036 regression or branch-closeout rerun
+  - reuse this first for any future FB-036 regression or governed closeout rerun
 - runtime helper
   - `dev/orin_saved_action_authoring_interactive_runtime.py`
   - use this when a future slice needs deterministic runtime startup and log capture
@@ -476,18 +548,57 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
 
 ### Remaining Non-Blocking Notes
 
-- help-button readiness is still noisy during early dialog interaction
-  - the final passing run recorded repeated notes that help buttons were not always ready before the first required field interactions
-  - this did not block the validated flow because the required inputs were still interactable
-- the bottom guidance/examples box can lag by one interaction attempt
-  - the harness occasionally needed one retry before the expected wording fully refreshed
-  - this did not invalidate the final run because the later dialog validation path still confirmed the correct model
-- status-label readback for blocked cases can be blank in UIAutomation even when the runtime and dialog state are correct
-  - the harness now treats this as a note rather than a blocker when the stronger runtime and no-write conditions are already proven
+- some early dialog help buttons still are not ready before the first required field interactions
+  - the current green runs record that noise, but the required inputs remain interactable within the tightened default budgets
+- some `ATTEMPT_STARTED` markers still lag behind stronger later markers
+  - the current green runs rely on later authoritative runtime truth such as `CUSTOM_TASK_CREATED`, `CUSTOM_TASK_CREATE_BLOCKED`, or `CUSTOM_TASK_EDIT_BLOCKED` when those markers prove the same business transition
+- first-attempt foreground/focus acquisition can still log noise for overlay input and inventory buttons
+  - the current green runs show those controls still become usable quickly enough that the `3s` no-progress watchdog is not breached
+- the bottom guidance/examples box can still lag slightly during early create interaction
+  - the live launched-process audit confirms the panel now renders correctly again after the translucency fix, and the current harness treats content-refresh lag as non-blocking when stronger runtime/source truth already exists
+- the Notepad probe still sometimes uses the file-backed fallback because the external text control is not always immediately available after launch
 - these notes are real but non-blocking
-  - they should be treated as polish or future hardening candidates, not as reasons to reopen the FB-036 core or closeout claim
+  - they should be treated as future polish or future harness hardening candidates, not as reasons to reopen FB-036 closeout
 
 ### Evidence References
+
+- latest exact-branch green interactive report
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260417_110929.txt`
+- latest exact-branch green runtime log
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_runtime.log`
+- latest exact-branch green step log
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_interactive_steps.log`
+- latest exact-branch green snapshots
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_initial_source_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_after_create_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_after_group_create_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_after_edit_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_after_task_inline_group_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_after_large_inventory_edit_saved_actions.json`
+  - `dev/logs/fb_036_authoring_interactive_validation/artifacts/20260417_110929_after_invalid_group_source_recovery_saved_actions.json`
+- supporting post-fix green interactive report
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260417_105920.txt`
+- first tightened-budget green report from the efficiency pass
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260417_093651.txt`
+- latest live launched-process UI audit manifest
+  - `dev/logs/launcher_live_window_audit/20260417_110602/manifest.json`
+- key live launched-process UI audit captures
+  - `dev/logs/launcher_live_window_audit/20260417_110602/overlay_entry.png`
+  - `dev/logs/launcher_live_window_audit/20260417_110602/create_custom_task_error.png`
+  - `dev/logs/launcher_live_window_audit/20260417_110602/edit_custom_task.png`
+  - `dev/logs/launcher_live_window_audit/20260417_110602/available_groups.png`
+  - `dev/logs/launcher_live_window_audit/20260417_110602/create_custom_group_direct.png`
+  - `dev/logs/launcher_live_window_audit/20260417_110602/manage_custom_tasks.png`
+  - `dev/logs/launcher_live_window_audit/20260417_110602/manage_custom_groups.png`
+  - `dev/logs/launcher_live_window_audit/20260417_110602/manage_custom_tasks_invalid_source.png`
+  - `dev/logs/launcher_live_window_audit/20260417_110602/manage_custom_groups_invalid_source.png`
+- historical governed seam-history reports remain relevant for the recovery trail
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_161300.txt`
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_153450.txt`
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_151450.txt`
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_145604.txt`
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_143010.txt`
+  - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260416_135000.txt`
 
 - final passing interactive report
   - `dev/logs/fb_036_authoring_interactive_validation/reports/FB036SavedActionAuthoringInteractiveValidationReport_20260415_061125.txt`
@@ -506,11 +617,11 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
 - branch checkpoints that future slices can anchor to
   - core checkpoint: `d20c1aa` on `feature/fb-036-saved-action-authoring`
   - UI checkpoint: `11c1292` on `feature/fb-036-ui-clarity-polish`
-  - hardening closeout proof: full interactive pass on `feature/fb-036-validation-hardening`
+  - historical hardening proof baseline: full interactive pass on `feature/fb-036-validation-hardening`
 
-### Final Branch State
+### Current Branch Baseline
 
-- validated behavior that future work may rely on
+- historically validated behavior that future work may still rely on
   - bounded create/edit/delete flows
   - alias-root invocation for new tasks
   - legacy compatibility preservation
@@ -520,15 +631,17 @@ Undocumented `300s+` scenario budgets and undocumented `900s+` full-run caps are
   - large-inventory edit reachability
   - fail-closed unsafe-source blocking
   - no-input-leakage proof during interactive authoring
-- validated infrastructure that future work should reuse
+- branch-local validation infrastructure that future work should reuse
   - the dedicated FB-036 validators
   - the live-style harness
   - the interactive runtime helper
   - the watchdog-enforced interactive harness
+  - the live launched-process window audit helper
   - the evidence roots and saved-action snapshot pattern
-- what this closeout means
-  - FB-036 is no longer just “feature-complete”; it is now branch-closeout provable on real desktop interaction evidence
-  - future Codex or developer work should treat this workstream record and the final `2026-04-15` interactive report as the baseline truth to extend, not as a lane that still needs first-principles rediscovery
+- current closeout status means
+  - the exact current branch state is now fully green under the default interactive harness budgets `1800s / 3s / 60s / 3s`
+  - the live launched-process window audit confirms the user-facing windows remain visually aligned after the interaction-efficiency hardening and the create-dialog translucency fix
+  - future Codex or developer work should treat this workstream record, the latest `2026-04-17` green proof package, and the live audit captures as the baseline to extend
 
 ## User Test Summary
 
