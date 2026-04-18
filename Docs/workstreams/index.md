@@ -67,7 +67,7 @@ For an active or recently closed canonical workstream, keep these durable tracea
 
 ### Active
 
-No active canonical implementation workstream is currently selected on `main`.
+- `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`
 
 ### Closed
 

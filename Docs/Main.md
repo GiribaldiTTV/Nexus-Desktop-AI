@@ -122,6 +122,7 @@ Use these for promoted work that needs a stable feature-state, branch-local vali
 
 - `Docs/workstreams/index.md`
 - `Docs/workstreams/FB-036_saved_action_authoring.md`
+- `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`
 - `Docs/workstreams/FB-035_release_context_fallback_hardening.md`
 - `Docs/workstreams/FB-034_recoverable_diagnostics.md`
 - `Docs/workstreams/FB-025_boot_desktop_milestone_taxonomy_clarification.md`

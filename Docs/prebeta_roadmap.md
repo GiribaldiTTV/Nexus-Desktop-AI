@@ -65,9 +65,21 @@ Current merged truth indicates:
 - latest public release commit: `11eb8ad`
 - no merged unreleased non-doc implementation debt currently exists on `main`
 - the latest public released implementation milestone is FB-036 saved-action authoring and callable groups in `v1.3.0-prebeta`
-- no active non-doc implementation workstream is currently selected on `main`
+- the next active non-doc implementation workstream selected on `main` is FB-041 deterministic callable-group execution layer
 
-That means `main` is again between released non-doc implementation lanes. The released FB-027 interaction baseline plus the later released FB-036 authoring-and-callable-group milestone now form part of the current shared pre-Beta baseline, and the next implementation workstream should be chosen only after fresh post-release analysis on updated `main`.
+That means the released FB-027 interaction baseline plus the later released FB-036 authoring-and-callable-group milestone remain the current shared pre-Beta baseline, and FB-041 is now the promoted next bounded execution lane above that baseline.
+
+## Current Selected Workstream
+
+### FB-041 Deterministic Callable-Group Execution Layer
+
+- status: `promoted`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `TBD`
+- release state: `active delta`
+- canonical workstream doc: `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`
+- sequencing note: promote the first bounded callable-group execution follow-through lane for deterministic stored-order execution, stop-on-failure, terminal result propagation, and runtime progression markers without reopening authoring, UI, or broader automation scope
 
 ## Most Recent Released Workstream Context
 
@@ -149,7 +161,7 @@ Current merged truth indicates:
 - the released FB-035 lane is closed
 - the recent released workstreams above remain part of the locked current baseline
 - no merged unreleased non-doc implementation debt currently exists on `main`
-- the next implementation workstream should be chosen only after fresh post-release analysis on updated `main`
+- the next implementation workstream has now been selected and promoted as FB-041 deterministic callable-group execution layer
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed
 - post-release canon repair is emergency-only when merged canon is already stale or external drift made pre-merge prevention impossible
 - the released FB-027 baseline does not authorize further saved-action authoring, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
@@ -158,10 +170,9 @@ Current merged truth indicates:
   - FB-038 for taskbar or tray quick-task UX including Create Custom Task
   - FB-039 for external trigger and plugin integration architecture
   - FB-040 for monitoring, thermals, and performance HUD surfaces
-  - FB-041 for deterministic callable-group execution layer
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
-- the next selected successor lane from current canon is FB-041 deterministic callable-group execution layer
-- FB-041 remains `Registry-only` until a later promotion pass creates its canonical workstream record, and any successor branch for that lane must stay reserved until revalidated after the current branch merges
+- FB-041 is now `Promoted`, and its canonical workstream record owns the active execution truth for that lane
+- the reserved FB-041 branch must stay aligned to updated `main` before implementation begins and must not silently widen into other deferred candidate spaces
 
 Use canonical workstream docs for execution detail.
 Use the backlog for item identity.
