@@ -619,6 +619,10 @@ def _test_created_tasks_dialog_exposes_edit_trigger_for_saved_inventory_items():
     dialog.show()
     _app().processEvents()
     _assert(
+        dialog.width() <= 1000 and dialog.height() <= 1000,
+        "management dialog should open inside the 1000x1000 safety budget before any user resize",
+    )
+    _assert(
         dialog.title_label.y() <= 18,
         "management dialog title should sit close to the true top edge instead of below a dead header band",
     )
@@ -755,7 +759,7 @@ def _test_created_tasks_dialog_caps_loaded_viewport_to_five_rows():
     )
     dialog.show()
     _app().processEvents()
-    expected_height = renderer_mod._visible_row_height_for_layout(dialog.items_layout, 5, extra_padding=2)
+    expected_height = renderer_mod._visible_row_height_for_layout(dialog.items_layout, 5, extra_padding=0)
     _assert(
         dialog.items_scroll.maximumHeight() == expected_height,
         "Manage Custom Tasks should cap the loaded viewport to five visible rows before scrolling",
@@ -841,6 +845,12 @@ def _test_created_groups_dialog_exposes_group_management_triggers():
         dialog.chrome_bar.close_button.toolTip().casefold() == "close manage custom groups",
         "group management close affordance should expose a specific tooltip",
     )
+    dialog.show()
+    _app().processEvents()
+    _assert(
+        dialog.width() <= 1000 and dialog.height() <= 1000,
+        "group management dialog should open inside the 1000x1000 safety budget before any user resize",
+    )
     edit_buttons[0].click()
     _assert(
         dialog.selected_group_id() == "workspace_tools",
@@ -875,7 +885,7 @@ def _test_created_groups_dialog_caps_loaded_viewport_to_five_rows():
     )
     dialog.show()
     _app().processEvents()
-    expected_height = renderer_mod._visible_row_height_for_layout(dialog.items_layout, 5, extra_padding=2)
+    expected_height = renderer_mod._visible_row_height_for_layout(dialog.items_layout, 5, extra_padding=0)
     _assert(
         dialog.items_scroll.maximumHeight() == expected_height,
         "Manage Custom Groups should cap the loaded viewport to five visible rows before scrolling",
@@ -1034,6 +1044,10 @@ def _test_create_dialog_surfaces_field_level_guidance():
     dialog.show()
     _app().processEvents()
     _assert(
+        dialog.width() <= 1000 and dialog.height() <= 1000,
+        "create dialog should open inside the 1000x1000 safety budget before any user resize",
+    )
+    _assert(
         dialog.type_header_label.y() > dialog.type_header_divider.y(),
         "task dialog headers should sit below the divider line instead of sharing the same row",
     )
@@ -1104,8 +1118,11 @@ def _test_create_dialog_surfaces_field_level_guidance():
         "target help icon should update with the current target-kind examples",
     )
     _assert(
-        "border-radius: 10px" in dialog.target_examples_label.text().casefold(),
-        "bottom guidance box should render the sectioned card presentation for better scanability",
+        "suggested aliases" in dialog.target_examples_label.text().casefold()
+        and "real callable phrases" in dialog.target_examples_label.text().casefold()
+        and "target format" in dialog.target_examples_label.text().casefold()
+        and "border-radius: 10px" not in dialog.target_examples_label.text().casefold(),
+        "bottom guidance box should keep the sectioned headings while dropping the older teal inner-card markup",
     )
 
     dialog.type_combo.setCurrentText("Website URL")
@@ -1262,9 +1279,8 @@ def _test_group_create_dialog_surfaces_members_and_exact_alias_guidance():
         "group authoring should theme tooltips instead of falling back to the default tooltip styling",
     )
     _assert(
-        dialog.members_scroll.maximumHeight() <= 116
-        and dialog.members_scroll.horizontalScrollBarPolicy() == Qt.ScrollBarAlwaysOff,
-        "group dialog should cap the Available Tasks list to roughly five visible rows with vertical-only scrolling",
+        dialog.members_scroll.horizontalScrollBarPolicy() == Qt.ScrollBarAlwaysOff,
+        "group dialog should keep the Available Tasks list vertical-scroll only",
     )
     _assert(
         "chromeRole=\"close\"" in dialog.styleSheet(),
@@ -1301,6 +1317,15 @@ def _test_group_create_dialog_surfaces_members_and_exact_alias_guidance():
     )
     dialog.show()
     _app().processEvents()
+    _assert(
+        dialog.width() <= 1000 and dialog.height() <= 1000,
+        "group dialog should open inside the 1000x1000 safety budget before any user resize",
+    )
+    expected_member_height = renderer_mod._visible_row_height_for_layout(dialog.members_layout, 3, extra_padding=0)
+    _assert(
+        dialog.members_scroll.maximumHeight() == expected_member_height,
+        "group dialog should cap the Available Tasks list to the visible-row budget instead of exposing the whole source by default",
+    )
     _assert(
         dialog.name_header.findChildren(QLabel)[-1].y() > dialog.name_header.findChildren(QFrame)[0].y(),
         "group dialog section titles should sit below the divider line instead of sharing it",
