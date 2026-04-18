@@ -159,11 +159,18 @@ Workflow mode should usually return:
 When the approved phase is `PR Readiness`, the output must also explicitly include:
 
 - confirmation that the merge-target canon completeness gate passed
-- the selected next workstream identity
-- the next workstream `Record State`
-- the successor branch name
-- confirmation that the successor branch was created
-- confirmation that the successor branch is reserved until revalidated after merge
+- confirmation that the Governance Drift Audit ran
+- whether governance drift was found
+- when post-merge truth will admit a next branch:
+  - the selected next workstream identity
+  - the next workstream `Record State`
+  - the successor branch name
+  - confirmation that the successor branch was created
+  - confirmation that the successor branch is reserved until revalidated after merge
+- when post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open:
+  - repo state `No Active Branch`
+  - the blocking admission item
+  - confirmation that successor lock was waived for the pass
 
 Do not report cleanup as complete unless the pass has explicitly checked for leftover apps, windows, dialogs, helper processes, probe files, or other temporary artifacts it created or opened.
 
@@ -210,11 +217,15 @@ While release debt exists, the default next move is usually:
 
 not another unrelated implementation lane.
 
+If release debt or another repo-level admission blocker means no branch may legally begin execution, report repo state as `No Active Branch` instead of inventing a next implementation phase.
+
 ### Fresh Branch Start After A Closed Workstream
 
 After a workstream is merged and closed, the next workstream should execute from updated `main` on a fresh branch.
 
 That successor branch may be created during `PR Readiness`, but it must stay reserved until the current branch merges and the successor branch is revalidated against updated `main`.
+
+If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor-lane selection and reserved successor-branch creation are waived for that PR-readiness pass.
 
 If a branch is stale, merged, or identical to `main`, call it out explicitly and stop using it as the base for next-lane planning.
 
@@ -233,6 +244,7 @@ When that happens:
 
 - analyze before changing anything
 - anchor phase-sensitive work to the current phase named in `Docs/phase_governance.md`
+- do not infer a later phase from user intent alone
 - verify exact behavior or doc alignment before editing
 - preserve architecture boundaries
 - call out source-of-truth conflicts explicitly
@@ -289,11 +301,19 @@ Phases define the current governed lifecycle state.
 
 For phase-sensitive work, prompts and execution records should explicitly state:
 
-- `Current approved phase: <phase name>`
+- `Mode: <mode name>`
+- `Phase: <exact phase name>`
+- `Workstream: <workstream id or authority record>`
+- `Branch: <branch name or No Active Branch>`
 
 When a branch is in governed closeout recovery, prompts should also state:
 
+- `Branch Class: <branch class>`
 - `Current active seam: <seam name>`
+- `Validation Contract: <summary or authority reference>`
+- `Timeout Contract: <summary or authority reference>`
+
+If `Phase` is missing or is not one of the exact canonical phase names from `Docs/phase_governance.md`, execution must stop at truth-validation or analysis.
 
 ## Live-State Readiness Sanity Check
 

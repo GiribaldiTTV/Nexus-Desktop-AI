@@ -38,17 +38,34 @@ Version:
 Branch:
 [fill in branch]
 
-Task mode:
+Mode:
 [analysis-only / planning-only / docs-only / patch / review / release-workflow]
 
-Current approved phase:
-[Workstream Analysis / Approved Execution / Validation / Hardening / Docs / Canon Sync / PR Readiness / Release Readiness / Post-Release Canon Sync]
+Workstream:
+[fill in workstream id or authority record]
+
+Phase:
+[Branch Readiness / Workstream / Hardening / Live Validation / PR Readiness / Release Readiness]
+
+Branch Class:
+[implementation / docs/governance / emergency canon repair / release packaging]
+
+Validation Contract:
+[fill in only when validation governance matters]
+
+Timeout Contract:
+[fill in only when interactive timing governance matters]
+
+Repo state:
+[Active Branch / No Active Branch]
 
 Current active seam:
 [fill in only when the task is in governed closeout recovery]
 
 Note: task mode defines the task type. Codex collaboration posture is defined separately in `C:\Nexus Desktop AI\Docs\codex_modes.md`.
-If the task is phase-sensitive and the current approved phase or active seam is missing, stop and clarify before execution.
+If the task is phase-sensitive and the exact `Phase` field is missing, stop and clarify before execution.
+If repo state is `No Active Branch`, execution is blocked and the task should resolve the blocking repair path instead of starting implementation.
+Add `Validation Contract`, `Timeout Contract`, and `Current active seam` when the governed task needs them.
 
 Default expectation:
 
@@ -124,7 +141,7 @@ Use this section when the branch matters to the task:
 
 - milestone value: [why this branch or docs program is worth completing]
 - same-branch follow-through: [dependent work that still belongs on this branch before readiness]
-- branch posture: [fresh branch from updated main / continue approved active branch / analysis only]
+- branch posture: [fresh branch from updated main / continue approved active branch / release packaging branch / emergency canon repair branch / No Active Branch]
 
 If a lane was already closed, merged, or released, the next workstream should start from updated `main` on a fresh branch.
 
@@ -234,8 +251,9 @@ If an execution task is too broad for one approved pass, explain the cleaner exe
 
 1. Explain the approved execution scope.
 2. Explain the branch or workstream posture.
-3. Explain the current approved phase and, when relevant, the current active seam.
-4. Explain the validation plan.
+3. Explain the exact current phase, branch class, and blockers.
+4. Explain the next legal phase or say explicitly that repo state is `No Active Branch`.
+5. Explain the validation plan.
 
 If the task includes interactive validation, the validation plan should also state:
 
