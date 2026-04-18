@@ -4488,7 +4488,8 @@ class CommandOverlayPanel(QWidget):
         self.confirm_request_value = self._make_confirm_value()
         confirm_layout.addWidget(self.confirm_request_value, 0, 1)
 
-        confirm_layout.addWidget(self._make_confirm_label("Resolved action"), 1, 0)
+        self.confirm_title_label = self._make_confirm_label("Resolved action")
+        confirm_layout.addWidget(self.confirm_title_label, 1, 0)
         self.confirm_title_value = self._make_confirm_value()
         confirm_layout.addWidget(self.confirm_title_value, 1, 1)
 
@@ -4712,6 +4713,23 @@ class CommandOverlayPanel(QWidget):
         label.setWordWrap(True)
         return label
 
+    def _build_confirm_surface_copy(self, selection_context: str, pending_group: dict | None = None) -> dict[str, str]:
+        normalized_selection_context = (selection_context or "").strip().casefold()
+        pending_group = pending_group or {}
+        group_title = (pending_group.get("title") or "").strip()
+        if normalized_selection_context == "group":
+            group_subject = f'"{group_title}" group' if group_title else "the full matched group"
+            return {
+                "title_label": "Selected member",
+                "hint_text": f"Review the selected member details below. Press Enter to run {group_subject} in stored order.",
+                "help_text": f"Press Enter to run {group_subject} in stored order, or Esc to return.",
+            }
+        return {
+            "title_label": "Resolved action",
+            "hint_text": "Review the resolved action origin and destination before execution.",
+            "help_text": "Press Enter to confirm or Esc to return.",
+        }
+
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
             self.submit_requested.emit()
@@ -4846,9 +4864,10 @@ class CommandOverlayPanel(QWidget):
 
         selection_context = payload.get("selection_context", "")
         pending_group = payload.get("pending_group") or {}
+        confirm_surface_copy = self._build_confirm_surface_copy(selection_context, pending_group)
 
         if phase == "confirm":
-            self.hint_label.setText("Review the resolved action origin and destination before execution.")
+            self.hint_label.setText(confirm_surface_copy["hint_text"])
         elif phase == "choose":
             if selection_context == "group" and pending_group.get("title"):
                 self.hint_label.setText(
@@ -4910,12 +4929,14 @@ class CommandOverlayPanel(QWidget):
         show_confirm = phase == "confirm" and bool(action)
         self.confirmation_frame.setVisible(show_confirm)
         if show_confirm:
+            self.confirm_title_label.setText(confirm_surface_copy["title_label"])
             self.confirm_request_value.setText(payload.get("typed_request", ""))
             self.confirm_title_value.setText(action.get("title", ""))
             self.confirm_origin_value.setText(action.get("origin_label", ""))
             self.confirm_kind_value.setText(action.get("target_kind", ""))
             self.confirm_target_value.setText(action.get("target_display") or action.get("target", ""))
             self.confirm_target_value.setToolTip(action.get("target", ""))
+            self.confirm_help_label.setText(confirm_surface_copy["help_text"])
 
 
 class DesktopRuntimeWindow(QWidget):
@@ -6352,51 +6373,132 @@ class DesktopRuntimeWindow(QWidget):
             self._last_launch_failure_count = 0
         self._reported_recoverable_launch_failures.discard(action_id)
 
-    def _classify_recoverable_launch_failed_incident(self, action_id: str, failure_count: int) -> str:
+    def _classify_recoverable_launch_failed_incident(
+        self,
+        action_id: str,
+        failure_count: int,
+        *,
+        failure_context: dict[str, str] | None = None,
+    ) -> str:
+        normalized_failure_context = self._normalize_launch_failure_context(
+            action_id,
+            failure_context,
+        )
+        context_suffix = self._format_failure_context_suffix(normalized_failure_context)
         if failure_count < 2:
             self._log_event(
-                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS2_INLINE|action_id={action_id}|count={failure_count}"
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS2_INLINE|action_id={action_id}|count={failure_count}{context_suffix}"
             )
             return "class2_inline"
 
         if action_id in self._reported_recoverable_launch_failures:
             self._log_event(
-                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS3_ALREADY_REPORTED|action_id={action_id}|count={failure_count}"
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS3_ALREADY_REPORTED|action_id={action_id}|count={failure_count}{context_suffix}"
             )
             return "class3_already_reported"
 
         self._log_event(
-            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS3_REPORT_SELECTED|action_id={action_id}|count={failure_count}"
+            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_CLASS3_REPORT_SELECTED|action_id={action_id}|count={failure_count}{context_suffix}"
         )
         return "class3_report_selected"
 
-    def _prepare_recoverable_launch_failure_report(self, action) -> str | None:
+    def _format_failure_context_suffix(self, failure_context: dict[str, str] | None) -> str:
+        if not failure_context:
+            return ""
+        suffix_parts = []
+        for key, value in failure_context.items():
+            normalized = (value or "").strip()
+            if not normalized:
+                continue
+            suffix_parts.append(f"{key}={normalized.replace('|', '/')}")
+        if not suffix_parts:
+            return ""
+        return "|" + "|".join(suffix_parts)
+
+    def _bound_execution_trace(self, execution_trace: str, *, fallback_action_id: str = "") -> str:
+        segments = [
+            segment.strip()
+            for segment in (execution_trace or "").split(">")
+            if segment and segment.strip()
+        ]
+        if not segments and fallback_action_id.strip():
+            segments = [fallback_action_id.strip()]
+        if len(segments) > 8:
+            segments = segments[-8:]
+        return ">".join(segment.replace("|", "/") for segment in segments)
+
+    def _normalize_launch_failure_context(
+        self,
+        action_id: str,
+        failure_context: dict[str, str] | None = None,
+    ) -> dict[str, str]:
+        raw_context = dict(failure_context or {})
+        execution_type = (raw_context.get("execution_type") or "single").strip().casefold()
+        normalized_error_type = (raw_context.get("error_type") or "launch_exception").strip() or "launch_exception"
+
+        if execution_type == "group":
+            failed_action_id = (raw_context.get("failed_action_id") or action_id or "").strip()
+            return {
+                "execution_type": "group",
+                "failed_action_id": failed_action_id,
+                "group_id": (raw_context.get("group_id") or "").strip(),
+                "step_index": (raw_context.get("step_index") or raw_context.get("failed_step_index") or "").strip(),
+                "error_type": normalized_error_type,
+                "execution_trace": self._bound_execution_trace(
+                    raw_context.get("execution_trace", ""),
+                    fallback_action_id=failed_action_id,
+                ),
+            }
+
+        normalized_action_id = (action_id or "").strip()
+        return {
+            "execution_type": "single",
+            "action_id": normalized_action_id,
+            "group_id": "",
+            "step_index": "",
+            "error_type": normalized_error_type,
+            "execution_trace": self._bound_execution_trace(
+                raw_context.get("execution_trace", ""),
+                fallback_action_id=normalized_action_id,
+            ),
+        }
+
+    def _prepare_recoverable_launch_failure_report(self, action, *, failure_context: dict[str, str] | None = None) -> str | None:
+        normalized_failure_context = self._normalize_launch_failure_context(
+            action.id,
+            failure_context,
+        )
         failure_count = self._record_launch_failure(action.id)
-        incident_class = self._classify_recoverable_launch_failed_incident(action.id, failure_count)
+        context_suffix = self._format_failure_context_suffix(normalized_failure_context)
+        incident_class = self._classify_recoverable_launch_failed_incident(
+            action.id,
+            failure_count,
+            failure_context=normalized_failure_context,
+        )
         if incident_class == "class2_inline":
             return None
         if incident_class == "class3_already_reported":
             return None
         if not self.runtime_log_path or not os.path.isfile(self.runtime_log_path):
             self._log_event(
-                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_SKIPPED|action_id={action.id}|reason=runtime_log_unavailable"
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_SKIPPED|action_id={action.id}|reason=runtime_log_unavailable{context_suffix}"
             )
             return None
 
         crash_dir = os.path.join(os.path.dirname(self.runtime_log_path), "crash")
         self._log_event(
-            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_BEGIN|action_id={action.id}|count={failure_count}"
+            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_BEGIN|action_id={action.id}|count={failure_count}{context_suffix}"
         )
         try:
             report_prep = prepare_manual_issue_report(ROOT_DIR, self.runtime_log_path, crash_dir)
         except SupportBundleError as exc:
             self._log_event(
-                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FAILED|action_id={action.id}|reason={exc}"
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FAILED|action_id={action.id}|reason={exc}{context_suffix}"
             )
             return None
         except Exception as exc:
             self._log_event(
-                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FAILED|action_id={action.id}|reason={exc}"
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FAILED|action_id={action.id}|reason={exc}{context_suffix}"
             )
             return None
 
@@ -6407,11 +6509,11 @@ class DesktopRuntimeWindow(QWidget):
         try:
             os.startfile(os.path.dirname(bundle_info["bundle_path"]))
             self._log_event(
-                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FOLDER_OPENED|action_id={action.id}|bundle={bundle_info['bundle_name']}"
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FOLDER_OPENED|action_id={action.id}|bundle={bundle_info['bundle_name']}{context_suffix}"
             )
         except Exception as exc:
             self._log_event(
-                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FOLDER_FAILED|action_id={action.id}|reason={exc}"
+                f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_FOLDER_FAILED|action_id={action.id}|reason={exc}{context_suffix}"
             )
 
         if issue_url:
@@ -6419,12 +6521,12 @@ class DesktopRuntimeWindow(QWidget):
                 browser_opened = webbrowser.open(issue_url, new=2)
             except Exception as exc:
                 self._log_event(
-                    f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_ISSUE_FAILED|action_id={action.id}|reason={exc}"
+                    f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_ISSUE_FAILED|action_id={action.id}|reason={exc}{context_suffix}"
                 )
 
         self._reported_recoverable_launch_failures.add(action.id)
         self._log_event(
-            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_READY|action_id={action.id}|bundle={bundle_info['bundle_name']}"
+            f"RENDERER_MAIN|COMMAND_LAUNCH_FAILED_RECOVERABLE_REPORT_READY|action_id={action.id}|bundle={bundle_info['bundle_name']}{context_suffix}"
         )
 
         if browser_opened:
@@ -6432,6 +6534,31 @@ class DesktopRuntimeWindow(QWidget):
         if issue_url:
             return "Launch failed again. Support bundle prepared; open the issue page manually and attach the bundle."
         return "Launch failed again. Support bundle prepared; review it locally before filing the report."
+
+    def _resolve_group_failure_action(self, group, failed_action_id: str):
+        normalized_failed_action_id = (failed_action_id or "").strip().casefold()
+        if not normalized_failed_action_id:
+            return None
+        for action in tuple(group.member_actions):
+            if action.id.strip().casefold() == normalized_failed_action_id:
+                return action
+        return None
+
+    def _build_group_failure_context(self, group, result) -> dict[str, str]:
+        execution_trace = tuple(result.completed_action_ids) + (
+            (result.failed_action_id,) if result.failed_action_id else ()
+        )
+        return {
+            "execution_type": "group",
+            "group_id": group.id,
+            "failed_action_id": result.failed_action_id,
+            "step_index": str(result.failed_step_index),
+            "error_type": "launch_exception",
+            "execution_trace": self._bound_execution_trace(
+                ">".join(action_id for action_id in execution_trace if action_id),
+                fallback_action_id=result.failed_action_id or "",
+            ),
+        }
 
     def handle_ambiguous_match_selected(self, index: int):
         result, payload = self._command_model.choose_match(index)
@@ -6491,21 +6618,41 @@ class DesktopRuntimeWindow(QWidget):
         if result != "execute_confirmed":
             return
 
-        action = payload
-        group = self._command_model.pending_group
-        execution_request_fields = [f"action_id={action.id}"]
-        if group is not None:
-            execution_request_fields.append(f"group_id={group.id}")
+        intent = payload
+        action = intent.action
+        execution_request_fields = [f"action_id={intent.action_id}"]
+        if intent.execution_type == "group":
+            execution_request_fields.append(f"group_id={intent.group_id}")
         self._log_event("RENDERER_MAIN|COMMAND_EXECUTION_REQUESTED|" + "|".join(execution_request_fields))
 
-        if group is not None:
+        if intent.execution_type == "group":
+            group = intent.group
+            if group is None:
+                return
+            group_label = (group.title or "").strip() or group.id
             result = self._execute_callable_group(group)
             if not result.succeeded:
+                failure_context = self._build_group_failure_context(group, result)
                 self._log_event(
                     "RENDERER_MAIN|COMMAND_GROUP_EXECUTION_FAILED|"
-                    f"group_id={group.id}|failed_action_id={result.failed_action_id}|failed_step_index={result.failed_step_index}"
+                    f"group_id={group.id}|failed_action_id={result.failed_action_id}|failed_step_index={result.failed_step_index}|"
+                    f"execution_trace={failure_context.get('execution_trace', '')}"
                 )
-                self._show_command_result("launch_failed", f"Launch failed: {result.error}")
+                failed_action = self._resolve_group_failure_action(group, result.failed_action_id)
+                recoverable_status = None
+                if failed_action is not None:
+                    recoverable_status = self._prepare_recoverable_launch_failure_report(
+                        failed_action,
+                        failure_context=failure_context,
+                    )
+                if recoverable_status:
+                    self._show_command_result("launch_failed", recoverable_status, close_delay_ms=2600)
+                else:
+                    failed_step_index = result.failed_step_index if result.failed_step_index is not None else "?"
+                    self._show_command_result(
+                        "launch_failed",
+                        f'Group "{group_label}" failed at step {failed_step_index}: {result.error}',
+                    )
                 return
 
             for completed_action_id in result.completed_action_ids:
@@ -6514,7 +6661,7 @@ class DesktopRuntimeWindow(QWidget):
                 "RENDERER_MAIN|COMMAND_GROUP_EXECUTION_COMPLETED|"
                 f"group_id={group.id}|step_count={result.step_count}"
             )
-            self._show_command_result("launch_requested", "Launch request sent.")
+            self._show_command_result("launch_requested", f'Group "{group_label}" executed in stored order.')
             return
 
         try:

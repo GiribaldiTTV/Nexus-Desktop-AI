@@ -1,12 +1,38 @@
 import os
+from dataclasses import dataclass
 
 from .shared_action_model import (
+    CommandAction,
     CommandActionCatalog,
+    CommandGroup,
     DEFAULT_COMMAND_ACTION_CATALOG,
     build_default_command_action_catalog,
     format_action_origin_label,
     reload_default_command_action_catalog,
 )
+
+
+@dataclass(frozen=True)
+class CommandExecutionIntent:
+    execution_type: str
+    action: CommandAction
+    group: CommandGroup | None = None
+
+    @property
+    def action_id(self) -> str:
+        return self.action.id
+
+    @property
+    def group_id(self) -> str:
+        return "" if self.group is None else self.group.id
+
+    @property
+    def resolved_member_action_ids(self) -> tuple[str, ...]:
+        return () if self.group is None else self.group.member_action_ids
+
+    @property
+    def resolved_member_actions(self) -> tuple[CommandAction, ...]:
+        return () if self.group is None else self.group.member_actions
 
 
 class CommandOverlayModel:
@@ -30,6 +56,28 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
         self.pending_group = None
+        self.pending_execution_intent = None
+
+    def _clear_execution_intent(self):
+        self.pending_execution_intent = None
+
+    def _consume_execution_intent(self):
+        intent = self.pending_execution_intent
+        self.pending_execution_intent = None
+        return intent
+
+    def _bind_execution_intent(self, action: CommandAction):
+        if self.pending_group is not None:
+            self.pending_execution_intent = CommandExecutionIntent(
+                execution_type="group",
+                action=action,
+                group=self.pending_group,
+            )
+            return
+        self.pending_execution_intent = CommandExecutionIntent(
+            execution_type="single",
+            action=action,
+        )
 
     def open(self, *, arm_input: bool = False):
         self.visible = True
@@ -42,6 +90,7 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
         self.pending_group = None
+        self._clear_execution_intent()
 
     def close(self):
         self.visible = False
@@ -54,6 +103,7 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
         self.pending_group = None
+        self._clear_execution_intent()
 
     def toggle(self):
         if self.visible:
@@ -70,6 +120,7 @@ class CommandOverlayModel:
         self.status_kind = "idle"
         self.status_text = ""
         self.pending_group = None
+        self._clear_execution_intent()
 
     def set_input_text(self, text: str):
         if not self.visible or self.phase != "entry":
@@ -82,6 +133,7 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
         self.pending_group = None
+        self._clear_execution_intent()
 
     def set_entry_feedback(self, status_kind: str, status_text: str):
         if not self.visible or self.phase != "entry":
@@ -93,6 +145,7 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
         self.pending_group = None
+        self._clear_execution_intent()
 
     def set_action_catalog(self, action_catalog: CommandActionCatalog):
         self.action_catalog = action_catalog
@@ -116,6 +169,7 @@ class CommandOverlayModel:
         self.status_kind = "idle"
         self.status_text = ""
         self.pending_group = None
+        self._clear_execution_intent()
 
     def escape(self):
         if not self.visible:
@@ -130,6 +184,7 @@ class CommandOverlayModel:
             self.pending_action = None
             self.pending_matches = ()
             self.pending_group = None
+            self._clear_execution_intent()
             return "choice_cancelled"
 
         if self.phase == "confirm":
@@ -141,6 +196,7 @@ class CommandOverlayModel:
             self.pending_action = None
             self.pending_matches = ()
             self.pending_group = None
+            self._clear_execution_intent()
             return "confirm_cancelled"
 
         self.close()
@@ -169,6 +225,7 @@ class CommandOverlayModel:
                 self.pending_group = matched_group
                 self.pending_matches = matched_group.member_actions
                 self.pending_action = None
+                self._clear_execution_intent()
                 self.status_kind = "ambiguous"
                 self.status_text = "Choose a member from the matched group."
                 return ("ambiguous", matched_group.member_actions)
@@ -181,11 +238,13 @@ class CommandOverlayModel:
                 self.phase = "confirm"
                 self.input_armed = False
                 self.pending_action = matches[0]
+                self._bind_execution_intent(matches[0])
                 self.status_kind = "ready"
                 self.status_text = ""
                 return ("confirm_ready", matches[0])
 
             self.pending_action = None
+            self._clear_execution_intent()
             if not matches:
                 self.status_kind = "not_found"
                 self.status_text = "No action or alias matched that request."
@@ -197,8 +256,11 @@ class CommandOverlayModel:
             self.status_text = "Press a number key or click the intended action below."
             return ("ambiguous", matches)
 
-        if self.phase == "confirm" and self.pending_action is not None:
-            return ("execute_confirmed", self.pending_action)
+        if self.phase == "confirm":
+            intent = self._consume_execution_intent()
+            if intent is not None:
+                return ("execute_confirmed", intent)
+            return ("ignored", None)
 
         return ("ignored", None)
 
@@ -213,6 +275,7 @@ class CommandOverlayModel:
         self.phase = "confirm"
         self.input_armed = False
         self.pending_action = action
+        self._bind_execution_intent(action)
         self.status_kind = "ready"
         self.status_text = ""
         return ("confirm_ready", action)
@@ -227,6 +290,7 @@ class CommandOverlayModel:
         self.pending_action = None
         self.pending_matches = ()
         self.pending_group = None
+        self._clear_execution_intent()
 
     def _serialize_action(self, action, *, index: int | None = None):
         if action is None:
