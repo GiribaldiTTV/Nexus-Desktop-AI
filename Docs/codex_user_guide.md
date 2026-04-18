@@ -238,10 +238,11 @@ Best for:
 
 Use:
 
-- `docs-only pass: repair post-release canon drift on updated main`
+- `docs-only pass: emergency repair for post-release canon drift on updated main`
 
-This is a valid standalone workstream when live truth justifies it.
-It does not need to be forced onto a hypothetical next implementation branch.
+This is an emergency-only workflow.
+Use it only when merged canon is already stale and that drift could not be prevented before merge or release.
+If a plausible next implementation workstream can be selected safely from current truth, do not treat this as the default path.
 If that docs pass changes validation or harness behavior assumptions, canon must be updated before further execution is recommended.
 
 ### Continue An Approved Branch
