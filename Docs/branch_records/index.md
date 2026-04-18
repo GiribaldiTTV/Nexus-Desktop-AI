@@ -22,6 +22,9 @@ Do not use this layer to replace:
 - branch authority records are for explicitly approved non-backlog branches only
 - active-branch-first remains the default during `pre-Beta`
 - a standalone `docs/governance` branch must not be used for routine canon completion that belongs on an active implementation or release branch
+- the `Active Branch Authority Records` list is only for branches that are still the current execution base
+- before PR merge, a non-backlog branch must either move its record into `Historical Branch Authority Records` or remove it entirely so merged truth does not leave a stale active branch owner behind
+- historical branch authority records are preserved traceability records, not live execution authority
 - each active branch authority record must carry the modern phase-state block:
   - `## Current Phase`
   - `## Phase Status`
@@ -38,8 +41,8 @@ Do not use this layer to replace:
 
 ## Active Branch Authority Records
 
-- `Docs/branch_records/codex_no_active_branch_docs_governance_refinement.md`
+- none currently
 
 ## Historical Branch Authority Records
 
-- none yet
+- `Docs/branch_records/codex_no_active_branch_docs_governance_refinement.md`

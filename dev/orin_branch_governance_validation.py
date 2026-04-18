@@ -492,6 +492,7 @@ def main() -> int:
             continue
 
         record_text = _read_text(Path(branch_record_path))
+        phase_status_section = _section(record_text, "Phase Status")
         for heading in REQUIRED_BRANCH_RECORD_HEADINGS:
             require(
                 heading in record_text,
@@ -515,6 +516,20 @@ def main() -> int:
             str(info["next_legal_phase"]) in PHASES,
             f"{branch_record_path}: Next Legal Phase '{info['next_legal_phase']}' is not in the canonical phase enum",
         )
+        if branch_record_path in active_branch_record_paths:
+            require(
+                "`Active Branch`" in phase_status_section,
+                f"{branch_record_path}: active branch record must declare `Active Branch` in Phase Status",
+            )
+        if branch_record_path in historical_branch_record_paths:
+            require(
+                "`Active Branch`" not in phase_status_section,
+                f"{branch_record_path}: historical branch record must not still declare `Active Branch` in Phase Status",
+            )
+            require(
+                "historical" in phase_status_section.lower(),
+                f"{branch_record_path}: historical branch record should make its historical merged posture explicit",
+            )
 
     if errors:
         print(f"FAIL: branch governance validation found {len(errors)} issue(s).")

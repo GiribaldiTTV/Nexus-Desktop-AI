@@ -13,12 +13,13 @@ This branch also closes the remaining governance gap for non-backlog branches by
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `PR Readiness`
 
 ## Phase Status
 
-- `Active Branch`
-- repo-level sequencing truth remains `No Active Branch` for next implementation-lane selection while FB-041 release debt remains open
+- `Merge-ready branch record`
+- historical on merged `main`
+- repo-level sequencing truth remains blocked `No Active Branch` for next implementation-lane selection while FB-041 release debt remains open
 
 ## Branch Class
 
@@ -26,7 +27,7 @@ This branch also closes the remaining governance gap for non-backlog branches by
 
 ## Blockers
 
-- `Governance Drift`
+- no active blockers
 
 ## Entry Basis
 
@@ -40,6 +41,7 @@ This branch also closes the remaining governance gap for non-backlog branches by
 - governance and operator docs agree that `No Active Branch` may be blocked or steady-state
 - standalone `docs/governance` branches remain future-capable but explicitly gated and non-default during `pre-Beta`
 - branch authority records are defined as the repo-owned equivalent authority record for approved non-backlog branches
+- this branch merges without leaving a stale active branch-authority record on `main`
 - the governance validator enforces the new rules
 
 ## Rollback Target
@@ -48,7 +50,24 @@ This branch also closes the remaining governance gap for non-backlog branches by
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Release Readiness`
+
+## Governance Drift Audit
+
+- Governance Drift Found: `Yes`
+- Drift Type:
+  - blocked-only `No Active Branch` modeling
+  - missing branch-authority-record lifecycle closure
+- Why Current Canon Failed To Prevent It:
+  - the strict governance rollout established branch authority records but did not yet define how those records stop being active after merge
+  - the earlier model also treated `No Active Branch` too narrowly as blocked-only rather than allowing a future steady-state posture
+- Required Canon Changes:
+  - distinguish blocked versus steady-state `No Active Branch`
+  - add branch-class admission rules for future-capable standalone `docs/governance` work
+  - add merge-closure rules for non-backlog branch authority records
+  - extend the governance validator to enforce the new branch-record expectations
+- Whether The Drift Blocks Merge: `No after this branch; this branch resolves the remaining drift it exposed`
+- Whether User Confirmation Is Required: `No for the current approved governance pass`
 
 ## Scope
 

@@ -119,6 +119,13 @@ This path is for explicitly approved non-backlog branch classes such as:
 
 It must not be used to avoid carrying supporting canon sync on an already-active implementation branch.
 
+While the branch is active, that branch authority record is the branch-local phase owner.
+Before PR merge, merged truth must no longer treat that record as an active branch owner by inertia.
+The branch must either:
+
+- move the record into the historical branch-record list with merge-safe phase-status wording, or
+- remove the record entirely if no durable historical value remains
+
 ### Repo-Level Admission Gate
 
 Before any next implementation branch may enter `Branch Readiness`, all of the following must be true on updated `main`:
@@ -245,6 +252,7 @@ When this gate applies, the branch must already contain the required release-fac
 - `Docs/closeout_index.md`
 - the new or updated closeout or rebaseline file when current baseline routing changed
 - `Docs/Main.md` routing updates when the current baseline pointer changed
+- `Docs/branch_records/index.md` plus any relevant branch authority record when the branch is an approved non-backlog branch that would otherwise remain incorrectly active after merge
 
 If any required merge-target canon update is missing, the branch remains blocked in `PR Readiness`.
 
@@ -730,6 +738,7 @@ Required evidence:
 - merge-target canon completeness gate passed
 - successor lane lock gate passed, or successor lock explicitly waived because post-merge truth resolves to `No Active Branch` due to `Release Debt` or another repo-level admission blocker
 - Governance Drift Audit completed
+- approved non-backlog branches merge with historical or removed branch-authority truth rather than lingering as active branch owners on `main`
 - no active seam
 - no unresolved blocker that should have been repaired on the current branch before merge
 
