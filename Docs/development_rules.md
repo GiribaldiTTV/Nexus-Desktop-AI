@@ -44,7 +44,8 @@ Before recommending the next move after a merge, release, or major lane transiti
 - whether docs and canon reflect live repo truth
 
 If prompt framing is stale, report the real state first and plan from that state.
-If no legal branch may execute, report `No Active Branch` and the blocking repair path instead of inventing a later phase.
+If repo truth resolves to blocked `No Active Branch`, report the blocking repair path instead of inventing a later phase.
+If repo truth resolves to steady-state `No Active Branch`, say so explicitly and do not invent a next implementation branch by inertia.
 
 ## Source-Of-Truth Ownership Model
 
@@ -58,6 +59,7 @@ Use this layered ownership model:
 - bugs = backlog-first, with promoted bug docs only when warranted
 - User Test Summary = validation-contract layer owned by workstreams
 - phase governance = repo-wide execution, exact phase enum, blockers, branch classes, proof, timeout, seam, stop-loss, validation-helper, Governance Drift Audit, phase resolver, and desktop UI audit contract
+- branch authority records = repo-owned phase owners for approved non-backlog `docs/governance`, `emergency canon repair`, and `release packaging` branches
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 Use `Docs/phase_governance.md` for:
@@ -155,7 +157,7 @@ Stay inside the active grouped lane until one of these is true:
 
 After a lane is closed or merged:
 
-- the next workstream must execute from updated `main` on a fresh branch
+- the next implementation workstream must execute from updated `main` on a fresh branch
 - the successor branch may be created during `PR Readiness`, but it remains reserved and may not be used for execution until the current branch merges and the successor branch is revalidated against updated `main`
 
 If a branch becomes:
@@ -166,13 +168,22 @@ If a branch becomes:
 
 Codex must call that out explicitly and recommend a fresh branch from updated `main`.
 
-Before any next branch may enter `Branch Readiness`, the repo-level admission gate from `Docs/phase_governance.md` must pass.
+Before any next implementation branch may enter `Branch Readiness`, the repo-level admission gate from `Docs/phase_governance.md` must pass.
 
 If the admission gate fails:
 
 - repo state becomes `No Active Branch`
 - no next implementation branch may begin
 - the next safe move is blocker repair, not next-lane execution
+
+Explicitly approved non-implementation branches may still begin from `No Active Branch` only when:
+
+- their branch class is `docs/governance`, `release packaging`, or `emergency canon repair`
+- their branch-class admission rules from `Docs/phase_governance.md` pass
+- their branch authority record is explicit
+
+Active-branch-first remains the normal rule.
+Do not use a standalone `docs/governance` branch to carry routine canon work that belongs on an already-active implementation or release branch.
 
 For active promoted work, the canonical workstream doc is the single authoritative owner of:
 
@@ -186,6 +197,8 @@ For active promoted work, the canonical workstream doc is the single authoritati
 - `Next Legal Phase`
 
 Backlog, roadmap, and prompt text may reference phase state, but they must not override the workstream doc.
+
+For approved non-backlog branches, the single authoritative owner is the branch authority record under `Docs/branch_records/`.
 
 ## Canon Freshness Rules
 
@@ -206,6 +219,10 @@ That means:
   - when that waiver applies, the branch must instead record `No Active Branch` plus the blocking admission item explicitly in merged current-state canon
 - post-release canon repair is emergency-only:
   - use it only when canon drift already exists on updated `main` and could not be prevented before merge or release
+- standalone `docs/governance` branches are future-capable but tightly gated:
+  - they may begin from `No Active Branch` when the branch-class admission rules pass
+  - they remain non-default during `pre-Beta`
+  - they must not be used to avoid active-branch canon duties or required release-debt follow-through
 - do not default to a standalone docs-only post-release branch for routine canon completion
 - do not use canon sync as an excuse for broad unrelated documentation churn
 

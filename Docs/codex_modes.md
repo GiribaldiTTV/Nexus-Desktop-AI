@@ -217,11 +217,15 @@ While release debt exists, the default next move is usually:
 
 not another unrelated implementation lane.
 
-If release debt or another repo-level admission blocker means no branch may legally begin execution, report repo state as `No Active Branch` instead of inventing a next implementation phase.
+That default blocks the next implementation lane by default.
+It does not, by itself, forbid an explicitly approved `docs/governance`, `release packaging`, or `emergency canon repair` branch when `Docs/phase_governance.md` says that branch class may begin from `No Active Branch`.
+
+If release debt or another repo-level admission blocker means no next implementation branch may legally begin execution, report repo state as `No Active Branch` instead of inventing a next implementation phase.
+If repo truth is a steady-state `No Active Branch`, say so explicitly instead of pretending a new implementation branch should open automatically.
 
 ### Fresh Branch Start After A Closed Workstream
 
-After a workstream is merged and closed, the next workstream should execute from updated `main` on a fresh branch.
+After a workstream is merged and closed, the next implementation workstream should execute from updated `main` on a fresh branch.
 
 That successor branch may be created during `PR Readiness`, but it must stay reserved until the current branch merges and the successor branch is revalidated against updated `main`.
 
@@ -239,6 +243,9 @@ When that happens:
 - if the lane is already closed, do not treat post-release canon repair as a normal next-branch step
 - require merge-target canon completeness before PR so merged `main` does not become stale in the first place
 - use a standalone post-release canon pass only as an emergency exception when canon drift already exists on updated `main` and could not be prevented before merge or release
+
+This emergency path is distinct from a planned `docs/governance` branch opened from a clean `No Active Branch` steady state.
+Do not collapse those two cases into one label.
 
 ## Shared Rules Across Both Modes
 

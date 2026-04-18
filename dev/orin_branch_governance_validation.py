@@ -94,6 +94,37 @@ SUCCESSOR_LOCK_WAIVER_PHRASE = (
     "or another repo-level admission blocker remains open"
 )
 
+NO_ACTIVE_BRANCH_STEADY_STATE_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+NO_ACTIVE_BRANCH_STEADY_STATE_PHRASE = "steady-state `No Active Branch`"
+
+DOCS_GOVERNANCE_ADMISSION_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+BRANCH_RECORD_INDEX = Path("Docs/branch_records/index.md")
+
+REQUIRED_BRANCH_RECORD_HEADINGS = (
+    "## Current Phase",
+    "## Phase Status",
+    "## Branch Class",
+    "## Blockers",
+    "## Entry Basis",
+    "## Exit Criteria",
+    "## Rollback Target",
+    "## Next Legal Phase",
+)
+
 
 def _read_text(relative_path: Path) -> str:
     return (ROOT_DIR / relative_path).read_text(encoding="utf-8")
@@ -198,6 +229,11 @@ def _collect_closed_index_paths(text: str) -> set[str]:
     return set(re.findall(r"Docs/workstreams/[A-Za-z0-9._-]+\.md", closed_section))
 
 
+def _collect_branch_record_paths(text: str, heading_prefix: str) -> set[str]:
+    section = _subsection(text, heading_prefix)
+    return set(re.findall(r"Docs/branch_records/[A-Za-z0-9._-]+\.md", section))
+
+
 def _roadmap_section_for_id(text: str, workstream_id: str) -> str:
     match = re.search(rf"(?ms)^### {re.escape(workstream_id)}.*?(?=^### |\Z)", text)
     return match.group(0).strip() if match else ""
@@ -272,6 +308,20 @@ def main() -> int:
                 f"{relative_path}: successor-lock waiver for post-merge `No Active Branch` "
                 "state due to `Release Debt` or another admission blocker is missing"
             ),
+        )
+
+    for relative_path in NO_ACTIVE_BRANCH_STEADY_STATE_DOCS:
+        text = _read_text(relative_path)
+        require(
+            NO_ACTIVE_BRANCH_STEADY_STATE_PHRASE in text,
+            f"{relative_path}: blocked-versus-steady-state `No Active Branch` handling is missing",
+        )
+
+    for relative_path in DOCS_GOVERNANCE_ADMISSION_DOCS:
+        text = _read_text(relative_path)
+        require(
+            "docs/governance" in text,
+            f"{relative_path}: docs/governance branch-admission guidance is missing",
         )
 
     promoted_entries = [
@@ -422,6 +472,49 @@ def main() -> int:
         "python dev/orin_branch_governance_validation.py" in governance_text,
         "Docs/phase_governance.md: Governance Validator section does not cite python dev/orin_branch_governance_validation.py",
     )
+
+    branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
+    require(
+        "Docs/branch_records/" in branch_record_index_text,
+        "Docs/branch_records/index.md: expected branch-record paths in the index",
+    )
+
+    active_branch_record_paths = _collect_branch_record_paths(branch_record_index_text, "Active Branch Authority Records")
+    historical_branch_record_paths = _collect_branch_record_paths(branch_record_index_text, "Historical Branch Authority Records")
+
+    for branch_record_path in active_branch_record_paths | historical_branch_record_paths:
+        record_path = ROOT_DIR / Path(branch_record_path)
+        require(
+            record_path.is_file(),
+            f"{branch_record_path}: branch authority record listed in Docs/branch_records/index.md does not exist",
+        )
+        if not record_path.is_file():
+            continue
+
+        record_text = _read_text(Path(branch_record_path))
+        for heading in REQUIRED_BRANCH_RECORD_HEADINGS:
+            require(
+                heading in record_text,
+                f"{branch_record_path}: required heading '{heading}' is missing",
+            )
+
+        info = _parse_workstream_doc(record_text)
+        require(
+            str(info["current_phase"]) in PHASES,
+            f"{branch_record_path}: Current Phase '{info['current_phase']}' is not in the canonical phase enum",
+        )
+        require(
+            str(info["branch_class"]) in BRANCH_CLASSES,
+            f"{branch_record_path}: Branch Class '{info['branch_class']}' is not in the canonical branch-class enum",
+        )
+        require(
+            str(info["rollback_target"]) in PHASES,
+            f"{branch_record_path}: Rollback Target '{info['rollback_target']}' is not in the canonical phase enum",
+        )
+        require(
+            str(info["next_legal_phase"]) in PHASES,
+            f"{branch_record_path}: Next Legal Phase '{info['next_legal_phase']}' is not in the canonical phase enum",
+        )
 
     if errors:
         print(f"FAIL: branch governance validation found {len(errors)} issue(s).")

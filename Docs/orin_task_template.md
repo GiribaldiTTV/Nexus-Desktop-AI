@@ -64,7 +64,9 @@ Current active seam:
 
 Note: task mode defines the task type. Codex collaboration posture is defined separately in `C:\Nexus Desktop AI\Docs\codex_modes.md`.
 If the task is phase-sensitive and the exact `Phase` field is missing, stop and clarify before execution.
-If repo state is `No Active Branch`, execution is blocked and the task should resolve the blocking repair path instead of starting implementation.
+If repo state is blocked `No Active Branch`, implementation is blocked and the task should resolve the blocking repair path instead of starting implementation.
+If repo state is steady-state `No Active Branch`, do not start implementation by inertia.
+An explicitly approved `docs/governance`, `release packaging`, or `emergency canon repair` branch may still proceed only when the branch-class admission rules from `C:\Nexus Desktop AI\Docs\phase_governance.md` allow it.
 Add `Validation Contract`, `Timeout Contract`, and `Current active seam` when the governed task needs them.
 
 Default expectation:
@@ -141,7 +143,7 @@ Use this section when the branch matters to the task:
 
 - milestone value: [why this branch or docs program is worth completing]
 - same-branch follow-through: [dependent work that still belongs on this branch before readiness]
-- branch posture: [fresh branch from updated main / continue approved active branch / release packaging branch / emergency canon repair branch / No Active Branch]
+- branch posture: [fresh branch from updated main / continue approved active branch / docs/governance branch from No Active Branch / release packaging branch / emergency canon repair branch / No Active Branch]
 
 If a lane was already closed, merged, or released, the next workstream should start from updated `main` on a fresh branch.
 
@@ -395,4 +397,4 @@ K. `## User Test Summary` manual checklist when manual validation is relevant
 - Do not reopen closed version behavior without explicit approval.
 - Do not smuggle in policy or authority changes outside the approved task.
 - Do not modify backlog status or add backlog items unless the task explicitly authorizes backlog updates.
-- Do not force a docs-only canon repair onto a hypothetical implementation branch when live truth justifies standalone docs work.
+- Do not force a docs-only canon repair onto a hypothetical implementation branch when live truth and `C:\Nexus Desktop AI\Docs\phase_governance.md` justify an explicitly approved standalone docs/governance branch.

@@ -35,6 +35,7 @@ Use this ownership split unless a validated source conflict requires a temporary
 - bug tracking = backlog-first, with promoted bug docs only when warranted
 - User Test Summary = validation-contract layer owned by the relevant workstream
 - phase governance = repo-wide execution, proof, timeout, seam, stop-loss, validation-helper, and desktop UI audit contract
+- branch authority records = repo-owned phase owners for approved non-backlog `docs/governance`, `emergency canon repair`, and `release packaging` branches
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 ## Analysis-First Prompt Baseline
@@ -62,10 +63,12 @@ Before planning, patching, reviewing, or recommending the next move, Codex must 
 6. determine the tracked item's `Record State` when one exists
 7. validate current branch truth and whether the branch is the correct execution base
 8. if the item is `Promoted` or `Closed`, load the canonical workstream doc and treat it as the durable lane-specific execution and traceability record
-9. choose the reuse baseline in this order:
+9. if the task does not map to a promoted backlog workstream but does map to an approved non-backlog branch, load the relevant branch authority record under `Docs/branch_records/`
+10. choose the reuse baseline in this order:
    - the relevant canonical workstream doc for branch-local traceability, artifact reuse, seam history, and "what worked" notes
+   - the relevant branch authority record for approved non-backlog branch truth
    - `Docs/incident_patterns.md` only for generalized cross-branch lessons
-10. state the next safe move before narrowing scope for execution
+11. state the next safe move before narrowing scope for execution
 
 The startup assessment should make these items explicit:
 
@@ -76,7 +79,8 @@ The startup assessment should make these items explicit:
 - `Reuse Baseline`
 - `Next Safe Move`
 
-If no legal branch may execute, `Next Safe Move` must report `No Active Branch` plus the blocking repair path instead of inventing a later phase.
+If repo truth resolves to blocked `No Active Branch`, `Next Safe Move` must report the blocking repair path instead of inventing a later phase.
+If repo truth resolves to steady-state `No Active Branch`, `Next Safe Move` may truthfully say that no branch should open yet or may name an explicitly approved non-implementation branch class whose admission rules pass.
 
 ## Routing Layers
 
@@ -131,6 +135,13 @@ Use these for promoted work that needs a stable feature-state, branch-local vali
 - `Docs/workstreams/FB-033_startup_snapshot_harness_follow_through.md`
 - `Docs/workstreams/FB-028_history_state_relocation.md`
 
+### Branch Authority Records
+
+Use these for approved branches that do not map to a promoted backlog workstream but still need a durable repo-owned phase authority record:
+
+- `Docs/branch_records/index.md`
+- the relevant active branch authority record under `Docs/branch_records/`
+
 ### Rebaselines And Closeouts
 
 Use these for closeout policy, historical closeout lookup, and the modern Nexus-era baseline summary:
@@ -183,7 +194,8 @@ These are reference layers, not active workstream or roadmap owners.
 - do not create duplicate authority by making backlog, roadmap, and workstream docs all carry the same execution story
 - do not treat workstream docs as the owner of repo-wide phase, timeout, stop-loss, proof-authority, validation-helper, or desktop UI audit rules; those belong to `Docs/phase_governance.md`
 - keep historical Jarvis material preserved, but mark it as historical rather than current reality
-- after a release, do not default to a standalone docs-only canon lane when a plausible next workstream can be selected from updated `main`
+- during the normal active-branch-first `pre-Beta` flow, do not default to a standalone docs-only canon lane when a plausible active implementation or release branch should carry the truth updates
+- a planned standalone `docs/governance` branch is future-capable from `No Active Branch`, but only when the branch-class admission rules pass and the branch is genuinely governance, policy, docs, or triage work rather than delayed implementation follow-through
 - the normal governed branch lifecycle is:
   1. `Branch Readiness`
   2. `Workstream`
@@ -192,8 +204,9 @@ These are reference layers, not active workstream or roadmap owners.
   5. `PR Readiness`
   6. `Release Readiness`
 - `Post-Release Canon Repair` is not a normal phase; it is an emergency-only exception path after merged or released truth already exists
-- before any branch may enter `Branch Readiness`, the repo-level admission gate from `Docs/phase_governance.md` must pass on updated `main`
-- if the admission gate fails, report `No Active Branch` and the blocking repair path
+- before any next implementation branch may enter `Branch Readiness`, the repo-level admission gate from `Docs/phase_governance.md` must pass on updated `main`
+- if repo truth resolves to blocked `No Active Branch`, report the blocking repair path
+- if repo truth resolves to steady-state `No Active Branch`, do not invent a next implementation branch by inertia
 - the normal `PR Readiness` sequence for a branch that changes release-facing canon is:
   1. validate current branch truth
   2. complete the merge-target canon updates on that same branch

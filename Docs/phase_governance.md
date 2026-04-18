@@ -55,7 +55,12 @@ These are not normal phases:
 - `No Active Branch`
 - `Post-Release Canon Repair`
 
-`No Active Branch` is a repo-level blocked state.
+`No Active Branch` is a repo-level state, not a normal phase.
+It may be:
+
+- a blocked state when an admission gate or another required repair path is still open
+- a steady-state resting posture when no implementation lane is currently selected and no branch should open by inertia
+
 `Post-Release Canon Repair` is an emergency-only exception path after merged or released truth already exists.
 
 ## Cross-Phase Rules
@@ -91,9 +96,32 @@ For active promoted work, the canonical workstream doc must own:
 
 If any of those are missing for active promoted work, the branch is blocked by `Workstream Phase Authority Missing`.
 
+### Branch Authority Record Rule
+
+When an approved branch does not map to a promoted backlog workstream, it must use a repo-owned branch authority record under `Docs/branch_records/`.
+
+That branch authority record becomes the single authoritative owner of:
+
+- `Current Phase`
+- `Phase Status`
+- `Branch Class`
+- `Blockers`
+- `Entry Basis`
+- `Exit Criteria`
+- `Rollback Target`
+- `Next Legal Phase`
+
+This path is for explicitly approved non-backlog branch classes such as:
+
+- `docs/governance`
+- `emergency canon repair`
+- `release packaging`
+
+It must not be used to avoid carrying supporting canon sync on an already-active implementation branch.
+
 ### Repo-Level Admission Gate
 
-Before any next branch may enter `Branch Readiness`, all of the following must be true on updated `main`:
+Before any next implementation branch may enter `Branch Readiness`, all of the following must be true on updated `main`:
 
 - `main` is aligned with `origin/main`
 - merged canon is internally consistent
@@ -105,8 +133,12 @@ Before any next branch may enter `Branch Readiness`, all of the following must b
 If any of those fail:
 
 - repo state becomes `No Active Branch`
-- branch execution is blocked
+- next implementation branch execution is blocked
 - the next safe move is blocker repair, not a later phase
+
+This gate controls next-lane implementation admission.
+It does not, by itself, authorize or prohibit a narrower non-implementation branch class.
+Those branch classes must still satisfy their own admission rules below.
 
 ### Blocker Catalog
 
@@ -157,6 +189,37 @@ Phases may be waived only when:
 - the waiver does not weaken merge-target canon completeness, successor lock, or release-debt protections
 
 Silent phase skipping is prohibited.
+
+### Branch-Class Admission Rule
+
+Branch admission is class-sensitive.
+
+`implementation`
+
+- the full repo-level admission gate must pass before the branch may enter `Branch Readiness`
+- the active promoted workstream doc is the default authority record
+
+`docs/governance`
+
+- may begin from updated `main` while repo sequencing truth is `No Active Branch` only when:
+  - no active implementation branch exists
+  - the branch purpose is genuine governance, docs, roadmap, backlog, triage, policy, or prompt-scaffolding maintenance
+  - the work is not routine canon completion that belongs on an already-active implementation or release branch
+  - the branch is not being used to hide merged canon drift, release debt, or required implementation follow-through
+  - the reason it cannot or should not ride on an active implementation branch is explicit in the branch authority record
+- during `pre-Beta`, active-branch-first remains the default and standalone `docs/governance` branches are non-default
+- in later Beta, public, or project steady-state operation, this branch class may legitimately begin from `No Active Branch` when the same admission rules still hold
+- if `Release Debt` remains open, the branch must leave that blocker explicit and must not claim the debt is cleared unless that is the approved scope
+
+`release packaging`
+
+- may begin from updated `main` when merged-unreleased implementation, release notes, tagging, or another release-facing packaging task is explicitly opened
+- the branch must not widen into implementation work
+
+`emergency canon repair`
+
+- may begin only when merged or released truth is already stale and the drift escaped the earlier gates
+- the branch must stay tightly limited to repairing that escaped canon drift
 
 ### Merge-Target Canon Completeness Gate
 
@@ -306,13 +369,20 @@ That validator should verify at minimum:
 
 A governance or current-state canon branch is not complete until that validator is green.
 
+When branch authority records are active, the validator should also verify:
+
+- `Docs/branch_records/index.md` exists and routes to the active branch authority records
+- active branch authority records carry the required phase-state block
+- `No Active Branch` blocked-versus-steady-state handling stays consistent across the governance and operator docs
+- standalone `docs/governance` branches remain explicit, gated, and non-default during `pre-Beta`
+
 ### Phase Resolver Contract
 
 Before any answer about current phase or next move, run this resolver:
 
 1. validate live repo truth
-2. determine whether there is an active executable branch or `No Active Branch`
-3. identify the active workstream authority record
+2. determine whether there is an active executable branch, a blocked `No Active Branch`, or a steady-state `No Active Branch`
+3. identify the active workstream authority record or branch authority record
 4. detect blockers first
 5. read the exact `Current Phase`
 6. validate entry basis and exit criteria against live truth
@@ -329,6 +399,7 @@ Required output for any “what phase are we in?” or “what’s next?” answ
 - `Plan To Reach That Phase`
 
 If a blocker exists, do not recommend a later phase or next-lane execution.
+If repo truth is a steady-state `No Active Branch`, do not invent an implementation branch by inertia; either report that no branch should open yet or name the explicitly approved non-implementation branch class that may legally begin.
 
 ## Proof Authority Matrix
 
@@ -502,7 +573,7 @@ Purpose:
 
 - validate branch base
 - declare branch class
-- set up or confirm the promoted workstream authority record
+- set up or confirm the promoted workstream authority record or branch authority record
 - align branch-start canon
 - lock execution, validation, and timeout boundaries
 
@@ -511,7 +582,7 @@ Allowed:
 - source-of-truth audit
 - branch-base validation
 - branch-start canon sync
-- workstream promotion or authority setup
+- workstream promotion, branch-record setup, or authority setup
 - execution-boundary definition
 
 Forbidden:
@@ -700,20 +771,34 @@ Exit:
 
 ## Repo-Level State: No Active Branch
 
-`No Active Branch` is the repo-level state when no branch may legally begin execution.
+`No Active Branch` is the repo-level state when no implementation lane is currently selected.
 
 Use it when:
 
 - the repo-level admission gate is failing
 - merged canon drift remains unresolved
 - release debt remains unresolved
-- the only available branch is stale, merged, or identical to `main`
+- the only available implementation branch is stale, merged, or identical to `main`
+- no branch should open yet by inertia even though repo truth is otherwise stable
 
-When `No Active Branch` is active:
+`No Active Branch` may be:
+
+- blocked:
+  - a blocker or repair path must be cleared before the next implementation lane may begin
+- steady-state:
+  - no implementation branch is currently selected, and it is valid for the next safe move to be no branch at all until a new approved need exists
+
+When `No Active Branch` is blocked:
 
 - do not recommend a later branch phase
 - do not start next-lane implementation
 - report the blocker and the exact repair path instead
+
+When `No Active Branch` is steady-state:
+
+- do not start the next implementation branch by inertia
+- it is valid for `Next Safe Move` to say explicitly that no branch should open yet
+- an explicitly approved `docs/governance`, `release packaging`, or `emergency canon repair` branch may still enter `Branch Readiness` if its branch-class admission rules pass
 
 ## Exception Path: Post-Release Canon Repair
 

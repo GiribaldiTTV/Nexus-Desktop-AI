@@ -141,10 +141,11 @@ For tracked work, that means:
 4. read `Docs/codex_modes.md`
 5. check `Docs/feature_backlog.md` for `Record State`
 6. load the canonical workstream doc when the item is `Promoted` or `Closed`
-7. validate current branch truth before trusting prompt framing
-8. use the canonical workstream doc first for branch-local reuse, artifact history, and "what worked" notes
-9. use `Docs/incident_patterns.md` only for generalized cross-branch patterns
-10. state the next safe move before narrowing scope
+7. if the task is an approved non-backlog branch, load the branch authority record under `Docs/branch_records/`
+8. validate current branch truth before trusting prompt framing
+9. use the canonical workstream doc first for branch-local reuse, artifact history, and "what worked" notes, or use the branch authority record when no promoted workstream owns the branch
+10. use `Docs/incident_patterns.md` only for generalized cross-branch patterns
+11. state the next safe move before narrowing scope
 
 Promoted workstream docs remain the place to read branch-local feature state, evidence, active seams, artifact history, and branch-local reuse notes.
 Repo-wide lifecycle rules such as phases, stop-loss, timeout governance, and proof authority come from `Docs/phase_governance.md`.
@@ -251,6 +252,29 @@ Use it only when merged canon is already stale and that drift could not be preve
 If a plausible next implementation workstream can be selected safely from current truth, do not treat this as the default path.
 If that docs pass changes validation or harness behavior assumptions, canon must be updated before further execution is recommended.
 
+This is not the same thing as a planned `docs/governance` branch from `No Active Branch`.
+Use the emergency repair recipe only for escaped canon drift.
+
+### Planned Docs/Governance Branch From No Active Branch
+
+Use:
+
+- `Analyze and Report: may a docs/governance branch begin from No Active Branch`
+
+or:
+
+- `Workflow mode: execute the approved docs/governance branch from No Active Branch`
+
+Use this only when:
+
+- no active implementation branch exists
+- the branch purpose is genuinely governance, docs, policy, roadmap, backlog, or triage work
+- the branch is not being used to avoid canon sync that belongs on an active implementation or release branch
+- the branch-class admission rules from `Docs/phase_governance.md` pass
+
+During `pre-Beta`, this path remains non-default and explicitly justified.
+In later Beta, public, or steady-state repo operation, it may become a normal maintenance path.
+
 ### Continue An Approved Branch
 
 Use:
@@ -336,11 +360,12 @@ Examples:
 
 ## Fresh-Branch Rule
 
-After a workstream is closed, released, merged, or otherwise no longer the right execution base, the next workstream should start from updated `main` on a fresh branch.
+After a workstream is closed, released, merged, or otherwise no longer the right execution base, the next implementation workstream should start from updated `main` on a fresh branch.
 
 Prompting should reflect that reality.
 
 Do not ask Codex to keep planning from an old lane branch when live repo truth shows that branch is stale, merged, or identical to `main`.
+If repo truth is a steady-state `No Active Branch`, it is also valid for the truthful next move to be no branch at all until a new approved need exists.
 
 ## When To Use A Longer Prompt
 

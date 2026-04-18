@@ -74,6 +74,10 @@ Examples:
 
 When those facts change, the repo may legitimately need a docs-only canon repair or rebaseline if no safe next implementation lane should be selected yet.
 
+That does not make standalone docs/governance branches the default.
+The normal active-branch-first rule still applies while an implementation or release branch is open.
+Use a standalone docs/governance branch only when repo truth is genuinely `No Active Branch`, the branch purpose is really governance or docs maintenance, and `Docs/phase_governance.md` says the branch class may begin.
+
 ## Current Policy
 
 - preserve historical closeouts
@@ -81,3 +85,4 @@ When those facts change, the repo may legitimately need a docs-only canon repair
 - use canonical workstream records for workstream-level detail
 - do not let this guidance doc become a live current-state owner
 - create new closeouts or rebaselines only when they materially improve future planning clarity
+- keep emergency post-release canon repair distinct from a planned standalone docs/governance branch opened from `No Active Branch`
