@@ -140,6 +140,16 @@ Target Version: TBD
 Summary: Track future runtime monitoring and HUD surfaces for GPU / CPU thermals and performance, including possible plugin-fed telemetry inputs.
 Why it matters: Monitoring overlays are a separate runtime and status surface and should not be bolted onto the saved-action system without an explicit product boundary.
 
+### [ID: FB-041] Deterministic callable-group execution layer
+
+Status: Selected for successor-lane preparation
+Record State: Registry-only
+Priority: High
+Release Stage: pre-Beta
+Target Version: TBD
+Summary: Track the first bounded callable-group follow-through execution layer for deterministic linear member execution in stored order with stop-on-failure, terminal success or failure propagation, and runtime progression markers.
+Why it matters: Released FB-036 made callable groups a bounded authoring and exact-invocation surface, but it intentionally deferred scheduling, branching, nested groups, retries, parallelism, shell UX, and built-in catalog expansion. This lane isolates the first execution follow-through seam without reusing FB-037 through FB-040 or reopening the FB-036 foundation by inertia.
+
 ## Closed Canonical Workstreams
 
 ### [ID: FB-036] Limited saved-action authoring and type-first custom task UX

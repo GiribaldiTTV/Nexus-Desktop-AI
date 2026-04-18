@@ -156,6 +156,15 @@ Workflow mode should usually return:
 - remaining drift or known gaps
 - whether the approved phase is complete
 
+When the approved phase is `PR Readiness`, the output must also explicitly include:
+
+- confirmation that the merge-target canon completeness gate passed
+- the selected next workstream identity
+- the next workstream `Record State`
+- the successor branch name
+- confirmation that the successor branch was created
+- confirmation that the successor branch is reserved until revalidated after merge
+
 Do not report cleanup as complete unless the pass has explicitly checked for leftover apps, windows, dialogs, helper processes, probe files, or other temporary artifacts it created or opened.
 
 Do not report an interactive validation pass as complete or trustworthy if it exceeded its time budgets or sat stalled without a clean abort path.
@@ -203,7 +212,9 @@ not another unrelated implementation lane.
 
 ### Fresh Branch Start After A Closed Workstream
 
-After a workstream is merged and closed, the next workstream should start from updated `main` on a fresh branch.
+After a workstream is merged and closed, the next workstream should execute from updated `main` on a fresh branch.
+
+That successor branch may be created during `PR Readiness`, but it must stay reserved until the current branch merges and the successor branch is revalidated against updated `main`.
 
 If a branch is stale, merged, or identical to `main`, call it out explicitly and stop using it as the base for next-lane planning.
 
@@ -214,9 +225,9 @@ Release-dependent truth sometimes changes after the code lane is already closed.
 When that happens:
 
 - carry the canon sync on the active lane when that lane is still open
-- if the lane is already closed, normally validate updated `main`, select the next plausible workstream, create its fresh branch, and perform the post-release canon sync at the start of that branch before implementation begins
-- do not default to a standalone docs-only post-release canon pass when a plausible next implementation lane can already be selected safely
-- use a standalone docs-only canon pass only as an explicit exception when no plausible safe next implementation lane can yet be selected, or when current canon drift makes branch selection itself untrustworthy
+- if the lane is already closed, do not treat post-release canon repair as a normal next-branch step
+- require merge-target canon completeness before PR so merged `main` does not become stale in the first place
+- use a standalone post-release canon pass only as an emergency exception when canon drift already exists on updated `main` and could not be prevented before merge or release
 
 ## Shared Rules Across Both Modes
 

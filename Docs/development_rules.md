@@ -124,7 +124,8 @@ Stay inside the active grouped lane until one of these is true:
 
 After a lane is closed:
 
-- the next workstream must start from updated `main` on a fresh branch
+- the next workstream must execute from updated `main` on a fresh branch
+- the successor branch may be created during `PR Readiness`, but it remains reserved and may not be used for execution until the current branch merges and the successor branch is revalidated against updated `main`
 
 If a branch becomes:
 
@@ -141,10 +142,17 @@ Supporting canon must stay aligned with live truth.
 That means:
 
 - directly supporting canon may be updated on the active implementation branch when that branch changes the truth
-- after a release, Codex should normally validate updated `main`, select the next plausible workstream, create a fresh compliant branch for that workstream, and perform any required post-release canon sync at the start of that branch before implementation begins
-- do not default to a standalone docs-only post-release branch when a plausible next workstream can already be selected safely from current truth
-- standalone docs-only canon reconstruction is exception-only when no plausible safe next implementation lane can be selected yet, or when current canon drift is misleading enough that branch selection itself would be untrustworthy
-- if a plausible next workstream exists, Codex must block standalone post-release docs execution and require fresh-branch selection first
+- no PR-ready without canon-ready:
+  - a branch is not PR-ready if merging it would leave `main` canon-stale
+- when a branch closes a workstream, changes released milestone posture, changes the current rebaseline, changes closeout-index routing, changes backlog or roadmap release posture, changes workstream-index release posture, or changes `Docs/Main.md` baseline routing, the required release-facing canon updates must already be on that branch before PR creation is allowed
+- no PR-ready without successor branch created:
+  - the next workstream must be selected from canon
+  - that workstream must have canon-valid `Record State`
+  - a fresh successor branch must already be created using an approved naming family such as `feature/<lane>`, `fix/<issue>`, or `docs/<lane>`
+  - that successor branch must remain reserved until the current branch merges and the successor branch is revalidated against updated `main`
+- post-release canon sync is emergency-only:
+  - use it only when canon drift already exists on updated `main` and could not be prevented before merge or release
+- do not default to a standalone docs-only post-release branch for routine canon completion
 - do not use canon sync as an excuse for broad unrelated documentation churn
 
 Local docs overlays are reference material only until revalidated against updated `origin/main`.

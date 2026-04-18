@@ -150,15 +150,18 @@ Current merged truth indicates:
 - the recent released workstreams above remain part of the locked current baseline
 - no merged unreleased non-doc implementation debt currently exists on `main`
 - the next implementation workstream should be chosen only after fresh post-release analysis on updated `main`
-- if post-release canon drift is found and a plausible next workstream can already be selected safely, the repair should normally happen at the start of that next workstream branch rather than as a standalone docs-only lane
-- standalone docs-only post-release repair is exception-only when no plausible next workstream can yet be selected safely from current truth
+- if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed
+- post-release canon repair is emergency-only when merged canon is already stale or external drift made pre-merge prevention impossible
 - the released FB-027 baseline does not authorize further saved-action authoring, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
 - future candidate spaces now explicitly recorded in the backlog include:
   - FB-037 for curated built-in system actions and Nexus settings expansion
   - FB-038 for taskbar or tray quick-task UX including Create Custom Task
   - FB-039 for external trigger and plugin integration architecture
   - FB-040 for monitoring, thermals, and performance HUD surfaces
+  - FB-041 for deterministic callable-group execution layer
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
+- the next selected successor lane from current canon is FB-041 deterministic callable-group execution layer
+- FB-041 remains `Registry-only` until a later promotion pass creates its canonical workstream record, and any successor branch for that lane must stay reserved until revalidated after the current branch merges
 
 Use canonical workstream docs for execution detail.
 Use the backlog for item identity.

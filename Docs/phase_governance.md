@@ -58,6 +58,52 @@ Phase-sensitive work is blocked until the following are explicit and mutually co
 
 If the live harness behavior and documented timeout contract drift, execution is blocked until they are reconciled.
 
+### Merge-Target Canon Completeness Gate
+
+Rule:
+
+- a branch is not `PR Readiness`-complete if merging it would leave `main` canon-stale
+
+This gate is mandatory when a branch would:
+
+- close a workstream
+- become the latest released implementation milestone
+- change the current rebaseline or closeout baseline
+- change the current closeout-index pointer
+- change backlog, roadmap, or workstream-index release posture
+- change `Docs/Main.md` routing for the current baseline
+
+When this gate applies, the branch must already contain the required release-facing canon updates before PR creation is allowed:
+
+- canonical workstream record closure or equivalent release-state update
+- `Docs/feature_backlog.md`
+- `Docs/prebeta_roadmap.md`
+- `Docs/workstreams/index.md`
+- `Docs/closeout_index.md`
+- the new or updated closeout or rebaseline file
+- `Docs/Main.md` routing updates when the current baseline pointer changed
+
+If any required merge-target canon update is missing, the branch remains blocked in `Docs / Canon Sync` or `PR Readiness`.
+
+### Successor Lane Lock Gate
+
+Rule:
+
+- a branch is not `PR Readiness`-complete unless the next workstream is selected, canon-valid, and a fresh successor branch is created
+
+This gate requires all of the following before PR creation is allowed:
+
+- the next workstream identity is selected from current canon
+- that workstream has canon-valid `Record State`
+- a fresh successor branch is created using an approved naming family such as:
+  - `feature/<lane>`
+  - `fix/<issue>`
+  - `docs/<lane>`
+- the successor branch is explicitly treated as reserved
+- execution on the successor branch must not begin until the current branch merges and the successor branch is revalidated against updated `main`
+
+If the next workstream is not selected, its record state is not canon-valid, or the successor branch has not been created, the current branch is not PR-ready.
+
 ### Proof Authority Matrix
 
 When multiple evidence layers exist, use this authority order unless a workstream explicitly documents a tighter requirement:
@@ -224,9 +270,9 @@ The canonical rule is narrower:
 - `Workstream Analysis` -> `Approved Execution` only after the execution boundary is explicit
 - `Approved Execution` -> `Validation / Hardening` when branch truth must be proven or hardened
 - `Validation / Hardening` -> `Docs / Canon Sync` only after branch-local proof is sufficient for closeout
-- `Docs / Canon Sync` -> `PR Readiness` only after the docs reflect the proven branch truth and no active seam remains
+- `Docs / Canon Sync` -> `PR Readiness` only after the docs reflect the proven branch truth, the merge-target canon completeness gate passes, the successor lane lock gate passes, and no active seam remains
 - `PR Readiness` -> `Release Readiness` only when the branch is a legitimate merge or release candidate
-- `Release Readiness` -> `Post-Release Canon Sync` only after merged or released truth exists that canon must absorb
+- `Release Readiness` -> `Post-Release Canon Sync` only as an emergency repair path after merged or released truth already exists and canon drift escaped the earlier gates
 
 ## Phase Definitions
 
@@ -347,23 +393,31 @@ Exit:
 
 Purpose:
 
-- determine whether the branch is ready to become a merge candidate
+- determine whether the branch is ready to become a merge candidate without leaving merged canon stale and with the next lane already locked
 
 Allowed:
 
 - readiness review
 - PR material preparation
 - final drift checks
+- next-workstream confirmation
+- successor-branch creation
 
 Forbidden:
 
 - assuming readiness because the worktree is clean
 - skipping active validation blockers
+- allowing a branch to enter PR creation while merge-target canon updates are still missing
+- allowing a branch to enter PR creation while the next workstream identity or successor branch is still unresolved
 
 Required evidence:
 
 - branch-local proof complete
 - closeout truth current
+- merge-target canon completeness gate passed
+- next workstream identity selected from canon
+- next workstream record state is canon-valid
+- successor branch created and marked reserved until post-merge revalidation
 - no active seam
 
 Exit:
@@ -401,7 +455,7 @@ Exit:
 
 Purpose:
 
-- repair or align canon after a release when live merged truth requires it
+- perform emergency canon repair after a release only when merged truth is already live and canon drift escaped the earlier gates
 
 Allowed:
 
@@ -409,6 +463,8 @@ Allowed:
 
 Forbidden:
 
+- treating post-release canon sync as a normal part of the standard merge lifecycle
+- using post-release canon sync instead of the merge-target canon completeness gate
 - turning post-release sync into a new implementation lane by accident
 
 Required evidence:
@@ -416,6 +472,7 @@ Required evidence:
 - updated `main`
 - latest release truth
 - explicit canon drift
+- explicit reason the drift could not be prevented before merge or release
 
 Exit:
 

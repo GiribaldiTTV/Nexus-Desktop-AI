@@ -180,13 +180,15 @@ These are reference layers, not active workstream or roadmap owners.
 - do not treat workstream docs as the owner of repo-wide phase, timeout, stop-loss, proof-authority, validation-helper, or desktop UI audit rules; those belong to `Docs/phase_governance.md`
 - keep historical Jarvis material preserved, but mark it as historical rather than current reality
 - after a release, do not default to a standalone docs-only canon lane when a plausible next workstream can be selected from updated `main`
-- the normal post-release sequence is:
-  1. validate live repo truth on updated `main`
-  2. select the next workstream
-  3. create a fresh compliant branch for that workstream
-  4. perform required post-release canon sync at the start of that branch
-  5. then continue lane work
-- a standalone docs-only post-release repair is an explicit exception path only when no plausible next workstream can yet be selected safely
+- the normal pre-PR sequence for a branch that changes release-facing canon is:
+  1. validate current branch truth
+  2. complete the merge-target canon updates on that same branch
+  3. select the next workstream from current canon
+  4. confirm the next workstream has canon-valid record state
+  5. create the fresh successor branch
+  6. keep that successor branch reserved until it is revalidated after merge
+  7. only then allow the current branch to enter PR creation
+- a standalone post-release canon repair is an emergency-only exception path when merged canon is already stale or when external drift made pre-merge prevention impossible
 - when a slice changes user-visible behavior or another operator-facing path, do not treat `## User Test Summary` as a recap slot; route through `Docs/user_test_summary_guidance.md` and require a real manual checklist unless no meaningful manual test exists
 - when an active desktop workstream has a canonical repo-level `UTS` artifact, do not stop at response text; update that workstream-owned artifact as well unless an explicit exception from `Docs/user_test_summary_guidance.md` applies
 - for relevant desktop user-facing slices, also export or refresh `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` unless an explicit exception from `Docs/user_test_summary_guidance.md` applies
