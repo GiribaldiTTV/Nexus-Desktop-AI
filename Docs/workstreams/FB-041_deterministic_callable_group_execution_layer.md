@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Completed on branch (pending merge)`
+- `Merged unreleased on main`
 
 ## Release Stage
 
@@ -23,7 +23,9 @@
 
 ## Canonical Branch
 
-- `feature/fb-041-deterministic-callable-group-execution`
+- `No Active Branch`
+- historical implementation branch:
+  - `feature/fb-041-deterministic-callable-group-execution`
 
 ## Purpose / Why It Matters
 
@@ -33,29 +35,51 @@ This workstream exists so callable groups can move from exact invocation only in
 
 ## Current Phase
 
-- Phase: `Completed`
-- Substate: `Exact-branch closeout evidence captured; ready for merge-facing closeout flow`
+- Phase: `Release Readiness`
 
-## Phase Entry Basis
+## Phase Status
 
-- merged `main` included the governance-hardening merge from PR `#56`
-- merged `main` included `FB-041` in backlog as the selected successor lane
-- merged `main` included the promoted canonical workstream record before implementation started
-- the implementation branch was recreated from updated `main` so no stale pre-promotion execution state was reused
-- product work in this lane then stayed bounded to deterministic callable-group execution plus the two explicitly documented UI clarification exceptions
+- `No Active Branch`
+- `FB-041` is the merged-unreleased release-debt owner on updated `main`
+- merged-canon repair and release-debt handling remain outstanding before the repo may legally begin next-lane execution
 
-## Phase Exit Criteria
+## Branch Class
 
-- deterministic callable-group execution is implemented and bounded to stored-order, stop-on-failure follow-through
-- dispatch routing, execution intent binding, failure-path parity, and failure payload normalization are complete
-- the confirm-surface clarification exception and the result status-text clarification exception are both complete without widening into broader UI redesign
-- repo-side validation is green on the exact branch truth
-- interactive launched-process success and failure validation is green on the exact branch truth
-- live confirm and result surface audit evidence is captured on the exact branch truth
+- `release packaging`
+
+## Blockers
+
+- `Merged Canon Drift`
+- `Current-State Claim Drift`
+- `Release Debt`
+
+## Entry Basis
+
+- merged `main` includes the FB-041 implementation merge from PR `#58`
+- latest public prerelease remains `v1.3.0-prebeta`, so FB-041 is merged unreleased implementation debt above the latest public baseline
+- merged canon still carries stale active or pre-implementation FB-041 claims in backlog, roadmap, and workstream indexing layers
+- no next implementation branch may legally begin until those blockers are repaired and release-debt handling is explicit
+
+## Exit Criteria
+
+- merged current-state canon reflects FB-041 as merged-unreleased truth rather than pre-implementation truth
+- backlog, roadmap, workstreams index, and this workstream doc agree on the same merged-unreleased posture
+- release packaging inputs are explicit and no unresolved blocker remains
+- if a real correctness, canon, regression, or governance issue appears during release review, the repo reopens to the failed earlier phase instead of starting next-lane execution
+
+## Rollback Target
+
+- `PR Readiness`
+
+## Next Legal Phase
+
+- `Release Readiness` on a release packaging or emergency canon repair branch once the current blockers are cleared
 
 ## Current Branch Truth
 
-- the current shared baseline remains the released FB-027 interaction floor plus the released FB-036 authoring-and-callable-group milestone
+- the latest public shared baseline remains the released FB-027 interaction floor plus the released FB-036 authoring-and-callable-group milestone in `v1.3.0-prebeta`
+- `main` now also contains merged unreleased FB-041 callable-group execution follow-through above that public baseline
+- repo state is currently `No Active Branch` for next-lane execution until merged canon is repaired and release-debt handling is complete
 - exact group invocation still enters through the released chooser and confirm flow, but group follow-through now executes the full stored-order callable group after confirm
 - deterministic callable-group execution now emits bounded runtime markers for:
   - group start
@@ -65,6 +89,26 @@ This workstream exists so callable groups can move from exact invocation only in
 - dispatch now consumes immutable execution intent captured at confirm time rather than ambient overlay group state
 - group failures now reuse the existing recoverable launch-failure classification pipeline with structured group-aware payloads
 - single-action dispatch, confirm text, result text, and failure behavior remain unchanged except where the documented confirm/result group-only clarification exceptions apply
+
+## Governance Drift Audit
+
+- Governance Drift Found: `Yes`
+- Drift Type:
+  - merge-target canon completeness failure
+  - stale current-state claim ownership
+  - stale prompt scaffolding and operator examples
+- Why Current Canon Failed To Prevent It:
+  - merged truth advanced without all release-facing canon surfaces being updated together
+  - active prompt scaffolds still taught the older phase model
+  - current-state claims still lived in guidance and sequencing layers that were not reconciled after merge
+- Required Canon Changes:
+  - adopt the strict six-phase governance model
+  - add the repo-level admission gate and `No Active Branch` state
+  - add the governance validator
+  - strengthen current-state claim containment
+  - update prompt scaffolds to the exact prompt contract
+- Whether The Drift Blocks Merge: `The code is already merged; the drift now blocks next-lane execution and truthful release-debt handling`
+- Whether User Confirmation Is Required: `No for the current approved governance pass`
 
 ## Scope
 

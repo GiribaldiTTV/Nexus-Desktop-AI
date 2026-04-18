@@ -53,7 +53,7 @@ Examples:
 - `Analyze for drift: post-release canon on updated main`
 - `Workflow mode: execute the approved canon phase on current branch`
 - `docs-only pass: align README to the merged source-of-truth model`
-- `use latest User Test Summary as authoritative and continue`
+- `digest latest User Test Summary, reevaluate blockers and phase, then continue only if the next legal phase allows it`
 
 The prompt may be concise.
 Codex's investigation should still be complete enough for the task.
@@ -62,11 +62,17 @@ Codex's investigation should still be complete enough for the task.
 
 For phase-sensitive work, prompts should explicitly include:
 
-- `Current approved phase: <phase name>`
+- `Mode: <mode name>`
+- `Phase: <exact phase name>`
+- `Workstream: <workstream id or authority record>`
+- `Branch: <branch name or No Active Branch>`
 
 For governed closeout recovery, also include:
 
+- `Branch Class: <branch class>`
 - `Current active seam: <seam name>`
+- `Validation Contract: <summary or authority reference>` when validation governance matters
+- `Timeout Contract: <summary or authority reference>` when interactive/manual timing governance matters
 
 ## What Codex Should Do Automatically
 
@@ -166,7 +172,7 @@ Helpful cues:
 Helpful add-ons:
 
 - `analysis only`
-- `use latest User Test Summary as authoritative`
+- `digest latest User Test Summary before recommending the next legal phase`
 - `use origin/main as authoritative truth`
 - `do not patch`
 
@@ -282,7 +288,7 @@ Use this bounded form when the user wants a stop-and-report recovery pass rather
 
 Required add-ons:
 
-- `Current approved phase: Validation / Hardening`
+- `Phase: Hardening`
 - `Current active seam: [seam name]`
 - `do not widen scope`
 - `stop after the governed seam budget is exhausted`
@@ -295,7 +301,7 @@ Use:
 
 Required add-ons:
 
-- `Current approved phase: Validation / Hardening`
+- `Phase: Hardening`
 - `use the documented validation timeout profile`
 - `do not widen scope`
 - `do not stop between seam iterations unless blocker, truth drift, stop-loss, or required canon sync appears`
@@ -315,7 +321,7 @@ Use:
 
 or:
 
-- `use latest User Test Summary as authoritative and continue`
+- `digest latest User Test Summary to files-of-truth standards, reevaluate blockers and phase, and continue only if the next legal phase allows it`
 
 ### Ask For A Prompt
 
@@ -355,7 +361,7 @@ The key distinction is prompt length, not analysis depth.
 - use one cue plus one anchor by default
 - add control language only when it materially protects truth or scope
 - use `Analyze for drift` before merge, release, or major canon carry-forward decisions
-- use `use latest User Test Summary as authoritative` when returned validation evidence should control the next move
+- use evidence-digestion language when returned validation evidence should control the next move, rather than implying that phase advancement is automatic
 - route through `Docs/Main.md` whenever authority is unclear
 - treat local unmerged overlays as reference material until revalidated against updated `origin/main`
 

@@ -10,8 +10,9 @@ It exists so:
 - validation truth
 - closeout truth
 - prompt routing
+- next-phase recommendations
 
-all use the same phase names and the same control rules.
+all use the same phase names, blocker rules, and transition rules.
 
 This is the canonical cross-workstream governance layer.
 It does not replace:
@@ -20,43 +21,142 @@ It does not replace:
 - canonical workstream docs as branch-local feature-state, evidence, and closure records
 - release or rebaseline docs as milestone summaries
 
-## Required Prompt Anchors
+## Exact Prompt Contract
 
-For phase-sensitive work, prompts should explicitly include:
+For phase-sensitive execution, prompts must include:
 
-- `Current approved phase: <phase name>`
+- `Mode: <mode name>`
+- `Phase: <exact canonical phase name>`
+- `Workstream: <workstream id or equivalent authority record>`
+- `Branch: <branch name or No Active Branch>`
 
-When the branch is in closeout recovery, prompts should also include:
+Add these fields when relevant:
 
-- `Current active seam: <seam name>`
+- `Branch Class: <implementation / docs/governance / emergency canon repair / release packaging>`
+- `Active Seam: <seam name>`
+- `Validation Contract: <summary or authority reference>`
+- `Timeout Contract: <summary or authority reference>`
+
+If `Phase` is missing or is not one of the exact canonical phase names below, execution is blocked and only truth-validation or analysis may continue.
+
+## Canonical Phase Enum
+
+The only normal branch phases are:
+
+- `Branch Readiness`
+- `Workstream`
+- `Hardening`
+- `Live Validation`
+- `PR Readiness`
+- `Release Readiness`
+
+These are not normal phases:
+
+- `No Active Branch`
+- `Post-Release Canon Repair`
+
+`No Active Branch` is a repo-level blocked state.
+`Post-Release Canon Repair` is an emergency-only exception path after merged or released truth already exists.
 
 ## Cross-Phase Rules
 
 - repo canon is the detailed authority
-- prompt and instruction layers should mirror the same phase names in compressed form
-- workstream docs must record the current phase when promoted work is active
-- a branch must not be treated as PR-ready or release-ready while its active workstream still sits in `Validation / Hardening`
-- if the validation contract, timeout contract, harness behavior, or active seam changes materially during closeout recovery, canon must be updated before continued execution is recommended
+- prompt and instruction layers should mirror the same exact phase names rather than aliases
+- active promoted workstream docs are the single authoritative phase owners for their lane
+- backlog, roadmap, and prompts may reference phase state but must not override the workstream doc
+- a phase must never be inferred from user intent alone
+- if the validation contract, timeout contract, harness behavior, active seam, or blocker set changes materially during late-phase work, canon must be updated before continued execution is recommended
+- auxiliary guidance docs should be timeless by default and must not quietly become current-state owners
 
 ## Canonical Governance Rules
 
 ### Source-Of-Truth Enforcement
 
-- `Docs/phase_governance.md` is the repo-wide authority for phase names, proof governance, timeout governance, seam governance, and stop-loss rules
+- `Docs/phase_governance.md` is the repo-wide authority for exact phase names, blocker rules, proof governance, timeout governance, seam governance, stop-loss rules, branch classes, the Governance Drift Audit, and the phase resolver contract
 - workstream docs must consume this model rather than redefining repo-wide process rules locally
-- workstream docs may record branch-local validation contracts, tighter time budgets, active seams, and evidence references, but those narrower contracts must be explicit
+- workstream docs may record branch-local validation contracts, tighter time budgets, active seams, artifact references, and explicit waivers, but those narrower contracts must be explicit
+
+### Single Phase Authority Rule
+
+For active promoted work, the canonical workstream doc must own:
+
+- `Current Phase`
+- `Phase Status`
+- `Branch Class`
+- `Blockers`
+- `Entry Basis`
+- `Exit Criteria`
+- `Rollback Target`
+- `Next Legal Phase`
+
+If any of those are missing for active promoted work, the branch is blocked by `Workstream Phase Authority Missing`.
+
+### Repo-Level Admission Gate
+
+Before any next branch may enter `Branch Readiness`, all of the following must be true on updated `main`:
+
+- `main` is aligned with `origin/main`
+- merged canon is internally consistent
+- no emergency canon repair is outstanding
+- no unresolved governance-drift blocker exists
+- no unresolved release-debt blocker exists
+- no current branch is being treated as executable if it is stale, merged, or identical to `main`
+
+If any of those fail:
+
+- repo state becomes `No Active Branch`
+- branch execution is blocked
+- the next safe move is blocker repair, not a later phase
+
+### Blocker Catalog
+
+The default named blockers are:
+
+- `Prompt Phase Missing`
+- `Prompt Phase Mismatch`
+- `Workstream Phase Authority Missing`
+- `Branch Base Invalid`
+- `Merged Canon Drift`
+- `Phase Exit Unmet`
+- `Successor Lock Missing`
+- `Release Debt`
+- `Governance Drift`
+- `Current-State Claim Drift`
+- `Phase Waiver Missing`
+
+Blockers stop progression immediately and must be reported before any later-phase recommendation.
 
 ### Blocker Rule
 
 Phase-sensitive work is blocked until the following are explicit and mutually consistent:
 
-- current approved phase
+- exact current phase
 - active workstream or equivalent authority record
+- branch class when branch-sensitive execution is in scope
 - validation contract when validation is in scope
 - timeout contract when interactive validation is in scope
-- current active seam when the branch is in governed closeout recovery
+- current active seam when the branch is in governed recovery
+- current blocker set
 
-If the live harness behavior and documented timeout contract drift, execution is blocked until they are reconciled.
+If live behavior and the documented timeout contract drift, execution is blocked until they are reconciled.
+
+### Branch Class And Phase Waiver Rule
+
+Every active branch must declare a `Branch Class`:
+
+- `implementation`
+- `docs/governance`
+- `emergency canon repair`
+- `release packaging`
+
+The same six normal phases apply to all branch classes.
+Phases may be waived only when:
+
+- the waiver is explicit in the active workstream or branch authority record
+- the reason is recorded
+- the waiver does not weaken merge-target canon completeness, successor lock, or release-debt protections
+
+Silent phase skipping is prohibited.
 
 ### Merge-Target Canon Completeness Gate
 
@@ -67,7 +167,7 @@ Rule:
 This gate is mandatory when a branch would:
 
 - close a workstream
-- become the latest released implementation milestone
+- become the latest released or merged-unreleased implementation milestone
 - change the current rebaseline or closeout baseline
 - change the current closeout-index pointer
 - change backlog, roadmap, or workstream-index release posture
@@ -80,10 +180,10 @@ When this gate applies, the branch must already contain the required release-fac
 - `Docs/prebeta_roadmap.md`
 - `Docs/workstreams/index.md`
 - `Docs/closeout_index.md`
-- the new or updated closeout or rebaseline file
+- the new or updated closeout or rebaseline file when current baseline routing changed
 - `Docs/Main.md` routing updates when the current baseline pointer changed
 
-If any required merge-target canon update is missing, the branch remains blocked in `Docs / Canon Sync` or `PR Readiness`.
+If any required merge-target canon update is missing, the branch remains blocked in `PR Readiness`.
 
 ### Successor Lane Lock Gate
 
@@ -102,9 +202,125 @@ This gate requires all of the following before PR creation is allowed:
 - the successor branch is explicitly treated as reserved
 - execution on the successor branch must not begin until the current branch merges and the successor branch is revalidated against updated `main`
 
-If the next workstream is not selected, its record state is not canon-valid, or the successor branch has not been created, the current branch is not PR-ready.
+If the next workstream is not selected, its record state is not canon-valid, or the successor branch has not been created, the branch is blocked by `Successor Lock Missing`.
 
-### Proof Authority Matrix
+### Governance Drift Audit
+
+Inside `PR Readiness`, the branch must run a formal Governance Drift Audit before it may advance to `Release Readiness`.
+
+The audit must explicitly answer:
+
+- `Governance Drift Found: Yes/No`
+- `Drift Type`
+- `Why Current Canon Failed To Prevent It`
+- `Required Canon Changes`
+- `Whether The Drift Blocks Merge`
+- `Whether User Confirmation Is Required`
+
+The audit must explicitly check whether the branch exposed:
+
+- a missing blocker
+- a weak phase entry or exit rule
+- a weak source-of-truth ownership rule
+- stale prompt scaffolding or stale operator examples
+- a missing validator requirement
+
+If governance drift is found and unresolved, the branch is blocked by `Governance Drift`.
+
+### Governance Drift Escalation Rule
+
+If governance drift is discovered in any earlier phase:
+
+- stop normal progression immediately
+- classify it as `Governance Drift`
+- either fix it inside the approved governance or docs boundary, or
+- produce the exact required canon delta and wait for user confirmation
+
+Do not defer known governance weaknesses silently to a later branch.
+
+### Manual Evidence And Review Digestion Rule
+
+Returned evidence such as:
+
+- `UTS`
+- screenshots
+- interactive reports
+- PR review comments
+- release review findings
+
+may satisfy exit criteria, but must never auto-advance phase by implication.
+
+Required sequence:
+
+1. digest the evidence
+2. update the authority record
+3. reevaluate blockers
+4. only then advance phase
+
+### Current-State Claim Containment
+
+Time-sensitive current-state claims must live only in designated current-state owners, or be part of the merge-target canon update set.
+
+Allowed current-state owners:
+
+- backlog
+- roadmap
+- active workstream doc
+- workstreams index
+- closeout index
+- current rebaseline or closeout file
+- `Docs/Main.md` routing
+
+Auxiliary guidance docs should be timeless by default.
+If they contain live-current claims, they must either:
+
+- be updated as part of canon sync, or
+- stop owning current-state truth
+
+### Governance Validator
+
+Repo-wide governance changes should be checked with the machine-readable governance validator:
+
+- `python dev/orin_branch_governance_validation.py`
+
+That validator should verify at minimum:
+
+- the exact phase enum only
+- active prompt scaffolds no longer teach deprecated phase names or stale prompt contracts
+- active promoted workstreams carry the required phase-state block
+- phase values and branch-class values are valid
+- backlog, roadmap, workstreams index, and active workstream docs agree on active or merged-unreleased posture
+- stale merge-era wording does not remain in active current-state owners
+- Governance Drift Audit output exists before `Release Readiness`
+- unresolved blockers prevent phase advancement
+
+A governance or current-state canon branch is not complete until that validator is green.
+
+### Phase Resolver Contract
+
+Before any answer about current phase or next move, run this resolver:
+
+1. validate live repo truth
+2. determine whether there is an active executable branch or `No Active Branch`
+3. identify the active workstream authority record
+4. detect blockers first
+5. read the exact `Current Phase`
+6. validate entry basis and exit criteria against live truth
+7. return only the next legal phase, or no phase if blocked
+
+Required output for any “what phase are we in?” or “what’s next?” answer:
+
+- `Current Phase`
+- `Phase Status`
+- `Branch Class`
+- `Blockers`
+- `Governance Drift Found`
+- `Next Legal Phase`
+- `Plan To Reach That Phase`
+
+If a blocker exists, do not recommend a later phase or next-lane execution.
+
+## Proof Authority Matrix
 
 When multiple evidence layers exist, use this authority order unless a workstream explicitly documents a tighter requirement:
 
@@ -115,13 +331,13 @@ When multiple evidence layers exist, use this authority order unless a workstrea
 
 UI-only observations may be logged as notes, but they must not override stronger runtime and persisted-source proof unless the UI interaction itself is the thing being validated.
 
-### Proof Ownership Rule
+## Proof Ownership Rule
 
 - repo-wide phase governance defines the allowed proof model
 - the active workstream doc defines the branch-local validation contract, active seam, and any explicit tighter requirements
 - runtime markers and persisted source truth own correctness for product behavior unless the scenario is explicitly about UI interaction quality or reachability
 
-### Validation Helper Contract
+## Validation Helper Contract
 
 Interactive validation helpers should default to a reusable repo-wide contract unless a workstream explicitly documents a tighter branch-local need.
 
@@ -145,7 +361,7 @@ Closeout-grade proof has one extra rule:
 
 Exploratory command-line overrides may still be used during hardening, but a one-off override profile is not enough to call the branch green unless that same profile becomes the documented default or the documented default also proves green.
 
-### Seam Classification Rule
+## Seam Classification Rule
 
 Validation seams should be classified before they are fixed:
 
@@ -156,22 +372,22 @@ Validation seams should be classified before they are fixed:
 
 Do not treat a seam as a product defect merely because the interactive harness failed first.
 
-### Single-Seam Iteration Rule
+## Single-Seam Iteration Rule
 
-- only one active seam may be fixed at a time during governed closeout recovery
+- only one active seam may be fixed at a time during governed recovery
 - rerun the full governed gate immediately after that seam fix
 - if a new seam appears, log it before selecting it as the next active seam
 
 Single-seam ownership does not require a new operator prompt after every rerun.
 It means one seam is active at a time, even when a longer continuous validation pass is allowed.
 
-### Continuous Validation Loop Rule
+## Continuous Validation Loop Rule
 
-When the approved prompt or execution boundary explicitly authorizes a continuous validation pass inside `Validation / Hardening`, Codex may continue across seam iterations without waiting for a new user prompt after every rerun.
+When the approved prompt or execution boundary explicitly authorizes a continuous validation pass inside `Hardening`, Codex may continue across seam iterations without waiting for a new user prompt after every rerun.
 
 That is allowed only while all of the following remain true:
 
-- the branch is still in `Validation / Hardening`
+- the branch is still in `Hardening`
 - the same workstream boundary and closeout goal remain valid
 - the proof hierarchy, timeout contract, and helper default profile remain unchanged
 - no blocker, truth drift, or required canon-sync stop appears
@@ -185,11 +401,9 @@ Inside that continuous loop, Codex should:
 - rerun the full governed gate immediately
 - continue until the full gate is green or a hard stop is reached
 
-This rule exists so governed validation can keep moving toward full green without unnecessary stop-and-report churn between every seam.
+## Stop-Loss Rule
 
-### Stop-Loss Rule
-
-For governed closeout recovery or another approved continuous validation pass:
+For governed recovery or another approved continuous validation pass:
 
 - stop immediately if a blocker appears
 - stop immediately if truth drift appears
@@ -199,9 +413,9 @@ For governed closeout recovery or another approved continuous validation pass:
 - stop if roughly `90 minutes` of validation work pass without material end-to-end progress toward green
 - when stop-loss is reached, continued execution is blocked until a decision memo or equivalent phase-state update is recorded
 
-### Timeout Governance
+## Timeout Governance
 
-Interactive closeout and hardening work must use tiered hard stops.
+Interactive hardening and live-validation work must use tiered hard stops.
 
 Repo-wide target contract for hardened desktop interactive helpers:
 
@@ -224,13 +438,13 @@ Additional repo-wide rule:
 - when hardening proves that a tighter and faster default helper profile is stable, that profile should replace the older relaxed default before closeout-grade proof is claimed
 - if a seam keeps breaching the documented `3s` or `60s` targets, treat that as validation-helper or process debt and redesign the proof path instead of silently letting the run sit longer
 
-### Truth-Drift Enforcement Rule
+## Truth-Drift Enforcement Rule
 
 - if validation or harness behavior changes materially, canon must be updated before continued execution is recommended
 - if a workstream changes which evidence layer is authoritative for success, that change must be written into the active workstream doc before the next seam-fix iteration
-- if a workstream doc, harness defaults, and live execution evidence disagree, the workflow remains in `Validation / Hardening` until the drift is reconciled
+- if a workstream doc, harness defaults, and live execution evidence disagree, the workflow remains in `Hardening` or `Live Validation` until the drift is reconciled
 
-### Preflight Requirement
+## Preflight Requirement
 
 Before a full interactive gate is used as a closeout proof surface, run or confirm a preflight that proves:
 
@@ -240,9 +454,10 @@ Before a full interactive gate is used as a closeout proof surface, run or confi
 - the cleanup path works
 - no stale helper processes, probe windows, or leftover session artifacts are still active from an earlier failed run
 
-If preflight fails, the branch remains in `Validation / Hardening`; do not burn a full closeout run first.
+If preflight fails, the branch remains in `Hardening`.
+Do not burn a full closeout run first.
 
-### Desktop UI Audit Rule
+## Desktop UI Audit Rule
 
 When a branch materially changes user-facing desktop UI and that UI is relevant to the closeout claim:
 
@@ -257,70 +472,76 @@ The canonical rule is narrower:
 - marker-first proof for behavior
 - live launched-process UI audit when meaningful desktop UI changed and closeout depends on user-facing UI quality
 
-### Iteration Discipline
+## Phase Transition Rule
 
-- full interactive reruns are for proof, not exploration
-- do not keep fixing seams informally without updating the seam ledger
-- after a green rerun, move to `Docs / Canon Sync` before calling PR readiness
-- after a non-green rerun inside a continuous validation pass, either select the next single active seam inside stop-loss or stop at the hard-stop boundary
-- do not stop a continuous validation pass merely because one seam finished; stop only at green, truth drift, a blocker, or stop-loss
+- `Branch Readiness` -> `Workstream` only after branch base, branch class, authority record, and execution boundary are explicit
+- `Workstream` -> `Hardening` when the changed branch truth must be pressure-tested or stabilized before closeout
+- `Hardening` -> `Live Validation` only after repo-side hardening proof is sufficient for interactive or manual closeout work
+- `Live Validation` -> `PR Readiness` only after branch-local proof is sufficient for closeout and returned evidence has been digested into the authority record
+- `PR Readiness` -> `Release Readiness` only after merge-target canon completeness passes, successor lock passes, the Governance Drift Audit passes, and no unresolved blocker remains
+- `Release Readiness` -> `Post-Release Canon Repair` only as an emergency repair path after merged or released truth already exists and canon drift escaped the earlier gates
 
-### Phase Transition Rule
-
-- `Workstream Analysis` -> `Approved Execution` only after the execution boundary is explicit
-- `Approved Execution` -> `Validation / Hardening` when branch truth must be proven or hardened
-- `Validation / Hardening` -> `Docs / Canon Sync` only after branch-local proof is sufficient for closeout
-- `Docs / Canon Sync` -> `PR Readiness` only after the docs reflect the proven branch truth, the merge-target canon completeness gate passes, the successor lane lock gate passes, and no active seam remains
-- `PR Readiness` -> `Release Readiness` only when the branch is a legitimate merge or release candidate
-- `Release Readiness` -> `Post-Release Canon Sync` only as an emergency repair path after merged or released truth already exists and canon drift escaped the earlier gates
+Later phases must not paper over missing earlier-phase requirements.
+If a later phase discovers an earlier-phase defect, reopen the branch to the failed earlier phase.
 
 ## Phase Definitions
 
-### Workstream Analysis
+### Branch Readiness
 
 Purpose:
 
-- determine current truth
-- identify drift
-- choose the correct next move
+- validate branch base
+- declare branch class
+- set up or confirm the promoted workstream authority record
+- align branch-start canon
+- lock execution, validation, and timeout boundaries
 
 Allowed:
 
-- broad repo analysis
-- source-of-truth audits
-- branch and release validation
-- non-mutating exploration
+- source-of-truth audit
+- branch-base validation
+- branch-start canon sync
+- workstream promotion or authority setup
+- execution-boundary definition
 
 Forbidden:
 
 - implementation
-- silent scope narrowing before analysis completes
+- PR material preparation
+- release packaging
 
 Required evidence:
 
-- current branch truth
-- relevant authority docs
-- live repo or log evidence where truth could have changed
+- updated `main` truth
+- correct execution base
+- explicit branch class
+- explicit phase block in the authority record
 
 Exit:
 
-- one recommended next move or approved execution boundary
+- branch base is valid
+- active workstream authority exists
+- exact phase state is recorded
+- branch-start canon is coherent
+- execution boundary is explicit
 
-### Approved Execution
+### Workstream
 
 Purpose:
 
-- carry an approved change through implementation and verification
+- execute the approved bounded implementation or bounded governance/docs work
+- run normal repo-side regression validation inside that boundary
 
 Allowed:
 
 - bounded code or docs changes
-- validation inside the approved scope
+- direct verification inside the approved scope
 
 Forbidden:
 
 - silent scope expansion
-- free-form lane redesign
+- hidden hardening or closure claims
+- PR or release packaging
 
 Required evidence:
 
@@ -329,16 +550,16 @@ Required evidence:
 
 Exit:
 
-- implementation slice is complete
-- branch either remains in execution, moves to validation/hardening, or returns to analysis
+- approved scope is implemented
+- direct verification is complete
+- no unresolved same-slice correctness gaps remain
 
-### Validation / Hardening
+### Hardening
 
 Purpose:
 
-- prove the current branch truth
-- harden validation infrastructure when proof gaps remain
-- when explicitly approved, continue a bounded seam-by-seam validation loop until the full gate is green or a hard stop is reached
+- pressure-test the current branch truth
+- stabilize defects, seams, validators, or harnesses before closeout
 
 Allowed:
 
@@ -346,48 +567,58 @@ Allowed:
 - harness work
 - runtime helper work
 - small supporting evidence infrastructure
+- bounded corrective fixes
 
 Forbidden:
 
 - unrelated feature work
-- treating green repo-side validation as automatic closeout
+- new lane selection
+- release packaging
 
 Required evidence:
 
 - validator results
-- live/runtime results when relevant
-- interactive results when feasible
-- explicit distinction between product defects, harness defects, and environment issues
+- runtime results when relevant
+- explicit distinction between product defects, harness defects, environment issues, and canon or contract drift
 
 Exit:
 
-- branch-local proof is sufficient for closeout
-- or the pass stops with a bounded active seam and findings
+- branch-local hardening gate is green
+- no unresolved first-failing seam remains
+- no truth-drift contradiction remains
 
-### Docs / Canon Sync
+### Live Validation
 
 Purpose:
 
-- align source-of-truth docs to the proven current branch truth
+- prove the user-facing or operator-facing branch truth through interactive, manual, or launched-process evidence
+- digest that evidence into canon
 
 Allowed:
 
-- workstream evidence refresh
-- manual validation artifact refresh
-- canon alignment inside the approved scope
+- interactive validation
+- manual validation digestion
+- UI audit when relevant
+- validation-only support changes if the branch reopens to `Hardening` first
 
 Forbidden:
 
-- speculative governance or roadmap churn
-- advancing closeout truth without proof
+- new implementation
+- PR packaging
+- behavior widening without reopening earlier phase
 
 Required evidence:
 
-- passing proof artifacts or explicitly bounded limitation notes
+- required interactive or manual evidence
+- required UI audit evidence when applicable
+- evidence digestion into the authority record
 
 Exit:
 
-- docs reflect current proven truth
+- required interactive or manual evidence is green
+- required UI audit exists when applicable
+- returned evidence is digested into canon
+- no unresolved validation contradiction remains
 
 ### PR Readiness
 
@@ -398,60 +629,83 @@ Purpose:
 Allowed:
 
 - readiness review
-- PR material preparation
+- merge-target canon sync
 - final drift checks
 - next-workstream confirmation
 - successor-branch creation
+- Governance Drift Audit
+- PR material preparation
 
 Forbidden:
 
-- assuming readiness because the worktree is clean
-- skipping active validation blockers
-- allowing a branch to enter PR creation while merge-target canon updates are still missing
-- allowing a branch to enter PR creation while the next workstream identity or successor branch is still unresolved
+- implementation
+- hardening
+- release tagging
+- skipping governance drift review
 
 Required evidence:
 
 - branch-local proof complete
-- closeout truth current
 - merge-target canon completeness gate passed
-- next workstream identity selected from canon
-- next workstream record state is canon-valid
-- successor branch created and marked reserved until post-merge revalidation
+- successor lane lock gate passed
+- Governance Drift Audit completed
 - no active seam
+- no unresolved blocker
 
 Exit:
 
 - ready for PR creation
-- or returned to validation/hardening with explicit blockers
+- or returned to the failed earlier phase with explicit blockers
 
 ### Release Readiness
 
 Purpose:
 
-- determine whether merged truth is ready for release packaging
+- determine whether merged or merge-ready truth is ready for release packaging
 
 Allowed:
 
 - release review
 - release notes prep
-- version/tag recommendations
+- version or tag recommendations
+- final release-candidate verification
 
 Forbidden:
 
-- treating branch-local success as released truth
+- implementation
+- canon-sync mutation
+- hidden fix work
+- hidden next-lane planning
 
 Required evidence:
 
-- merged or merge-ready truth
+- merged or legitimately merge-ready truth
 - release-context verification
+- no unresolved blocker
 
 Exit:
 
 - ready for release packaging
-- or returned to analysis/docs sync for unresolved release debt
+- or returned to the failed earlier phase with explicit blockers
 
-### Post-Release Canon Sync
+## Repo-Level State: No Active Branch
+
+`No Active Branch` is the repo-level state when no branch may legally begin execution.
+
+Use it when:
+
+- the repo-level admission gate is failing
+- merged canon drift remains unresolved
+- release debt remains unresolved
+- the only available branch is stale, merged, or identical to `main`
+
+When `No Active Branch` is active:
+
+- do not recommend a later branch phase
+- do not start next-lane implementation
+- report the blocker and the exact repair path instead
+
+## Exception Path: Post-Release Canon Repair
 
 Purpose:
 
@@ -463,9 +717,9 @@ Allowed:
 
 Forbidden:
 
-- treating post-release canon sync as a normal part of the standard merge lifecycle
-- using post-release canon sync instead of the merge-target canon completeness gate
-- turning post-release sync into a new implementation lane by accident
+- treating post-release canon repair as a normal part of the standard lifecycle
+- using post-release repair instead of the merge-target canon completeness gate
+- turning the repair path into a new implementation lane by accident
 
 Required evidence:
 

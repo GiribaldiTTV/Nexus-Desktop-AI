@@ -159,6 +159,8 @@ Workflow mode should usually return:
 When the approved phase is `PR Readiness`, the output must also explicitly include:
 
 - confirmation that the merge-target canon completeness gate passed
+- confirmation that the Governance Drift Audit ran
+- whether governance drift was found
 - the selected next workstream identity
 - the next workstream `Record State`
 - the successor branch name
@@ -210,6 +212,8 @@ While release debt exists, the default next move is usually:
 
 not another unrelated implementation lane.
 
+If release debt or another repo-level admission blocker means no branch may legally begin execution, report repo state as `No Active Branch` instead of inventing a next implementation phase.
+
 ### Fresh Branch Start After A Closed Workstream
 
 After a workstream is merged and closed, the next workstream should execute from updated `main` on a fresh branch.
@@ -233,6 +237,7 @@ When that happens:
 
 - analyze before changing anything
 - anchor phase-sensitive work to the current phase named in `Docs/phase_governance.md`
+- do not infer a later phase from user intent alone
 - verify exact behavior or doc alignment before editing
 - preserve architecture boundaries
 - call out source-of-truth conflicts explicitly
@@ -289,11 +294,19 @@ Phases define the current governed lifecycle state.
 
 For phase-sensitive work, prompts and execution records should explicitly state:
 
-- `Current approved phase: <phase name>`
+- `Mode: <mode name>`
+- `Phase: <exact phase name>`
+- `Workstream: <workstream id or authority record>`
+- `Branch: <branch name or No Active Branch>`
 
 When a branch is in governed closeout recovery, prompts should also state:
 
+- `Branch Class: <branch class>`
 - `Current active seam: <seam name>`
+- `Validation Contract: <summary or authority reference>`
+- `Timeout Contract: <summary or authority reference>`
+
+If `Phase` is missing or is not one of the exact canonical phase names from `Docs/phase_governance.md`, execution must stop at truth-validation or analysis.
 
 ## Live-State Readiness Sanity Check
 

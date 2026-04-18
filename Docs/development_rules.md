@@ -44,6 +44,7 @@ Before recommending the next move after a merge, release, or major lane transiti
 - whether docs and canon reflect live repo truth
 
 If prompt framing is stale, report the real state first and plan from that state.
+If no legal branch may execute, report `No Active Branch` and the blocking repair path instead of inventing a later phase.
 
 ## Source-Of-Truth Ownership Model
 
@@ -56,13 +57,15 @@ Use this layered ownership model:
 - incident patterns = generalized reusable lessons
 - bugs = backlog-first, with promoted bug docs only when warranted
 - User Test Summary = validation-contract layer owned by workstreams
-- phase governance = repo-wide execution, proof, timeout, seam, stop-loss, validation-helper, and desktop UI audit contract
+- phase governance = repo-wide execution, exact phase enum, blockers, branch classes, proof, timeout, seam, stop-loss, validation-helper, Governance Drift Audit, phase resolver, and desktop UI audit contract
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 Use `Docs/phase_governance.md` for:
 
 - named execution phases
+- blocker rules and branch classes
 - phase entry and exit rules
+- rollback and next-legal-phase rules
 - proof authority rules
 - interactive timeout governance
 - validation helper rules
@@ -107,6 +110,34 @@ That startup pass must make explicit:
 - the reuse baseline
 - the next safe move
 
+## Exact Prompt Contract And Phase Resolver
+
+Every phase-sensitive execution prompt must include:
+
+- `Mode`
+- `Phase`
+- `Workstream`
+- `Branch`
+
+Add these when relevant:
+
+- `Branch Class`
+- `Active Seam`
+- `Validation Contract`
+- `Timeout Contract`
+
+If `Phase` is missing or is not one of the exact canonical phase names from `Docs/phase_governance.md`, execution is blocked and only truth-validation or analysis may continue.
+
+Before answering “what phase are we in?” or “what’s next?”, run the phase resolver from `Docs/phase_governance.md` and return:
+
+- `Current Phase`
+- `Phase Status`
+- `Branch Class`
+- `Blockers`
+- `Governance Drift Found`
+- `Next Legal Phase`
+- `Plan To Reach That Phase`
+
 ## Branch And Lane Governance
 
 PR-readiness is not the default checkpoint after a clean slice.
@@ -122,7 +153,7 @@ Stay inside the active grouped lane until one of these is true:
 - the next work crosses subsystem boundaries
 - the user explicitly stops
 
-After a lane is closed:
+After a lane is closed or merged:
 
 - the next workstream must execute from updated `main` on a fresh branch
 - the successor branch may be created during `PR Readiness`, but it remains reserved and may not be used for execution until the current branch merges and the successor branch is revalidated against updated `main`
@@ -134,6 +165,27 @@ If a branch becomes:
 - identical to `main`
 
 Codex must call that out explicitly and recommend a fresh branch from updated `main`.
+
+Before any next branch may enter `Branch Readiness`, the repo-level admission gate from `Docs/phase_governance.md` must pass.
+
+If the admission gate fails:
+
+- repo state becomes `No Active Branch`
+- no next implementation branch may begin
+- the next safe move is blocker repair, not next-lane execution
+
+For active promoted work, the canonical workstream doc is the single authoritative owner of:
+
+- `Current Phase`
+- `Phase Status`
+- `Branch Class`
+- `Blockers`
+- `Entry Basis`
+- `Exit Criteria`
+- `Rollback Target`
+- `Next Legal Phase`
+
+Backlog, roadmap, and prompt text may reference phase state, but they must not override the workstream doc.
 
 ## Canon Freshness Rules
 
@@ -150,12 +202,60 @@ That means:
   - that workstream must have canon-valid `Record State`
   - a fresh successor branch must already be created using an approved naming family such as `feature/<lane>`, `fix/<issue>`, or `docs/<lane>`
   - that successor branch must remain reserved until the current branch merges and the successor branch is revalidated against updated `main`
-- post-release canon sync is emergency-only:
+- post-release canon repair is emergency-only:
   - use it only when canon drift already exists on updated `main` and could not be prevented before merge or release
 - do not default to a standalone docs-only post-release branch for routine canon completion
 - do not use canon sync as an excuse for broad unrelated documentation churn
 
 Local docs overlays are reference material only until revalidated against updated `origin/main`.
+
+Time-sensitive current-state claims must live only in designated current-state owners, or be part of the merge-target canon update set.
+
+Allowed current-state owners are:
+
+- backlog
+- roadmap
+- active workstream doc
+- workstreams index
+- closeout index
+- current rebaseline or closeout file
+- `Docs/Main.md` routing
+
+Auxiliary guidance docs should be timeless by default.
+If they carry live-current claims, they must either be updated as part of canon sync or stop owning current-state truth.
+
+## Governance Drift Rule
+
+If a branch exposes a governance weakness such as:
+
+- a missing blocker
+- a weak phase entry or exit rule
+- a weak source-of-truth ownership rule
+- stale prompt scaffolding or stale examples
+- a missing validator requirement
+
+that weakness must be classified as `Governance Drift`.
+
+If governance drift is discovered:
+
+- stop normal progression immediately
+- either fix it inside the approved governance or docs boundary, or
+- produce the exact required canon delta and wait for user confirmation
+
+Do not defer known governance weaknesses silently to a later branch.
+
+When a branch changes:
+
+- repo-wide phase governance
+- current-state owners
+- prompt scaffolds
+- active promoted workstream phase-state records
+
+it must also run:
+
+- `python dev/orin_branch_governance_validation.py`
+
+and keep that validator green before calling the branch ready.
 
 ## Change Discipline
 
@@ -212,7 +312,7 @@ That means:
 - live re-resolution of windows, dialogs, overlays, and controls across close/open seams
 - seam classification before product code is changed during validation hardening
 
-When the approved boundary is a continuous `Validation / Hardening` pass on the current branch, Codex should keep iterating through seams without waiting for a new user prompt after every rerun unless:
+When the approved boundary is a continuous `Hardening` pass on the current branch, Codex should keep iterating through seams without waiting for a new user prompt after every rerun unless:
 
 - a blocker appears
 - truth drift appears
@@ -340,6 +440,15 @@ If Codex does not update the canonical repo-level `UTS` artifact, it must say ex
 
 If Codex does not export or refresh the desktop `User Test Summary.txt` copy for a relevant desktop slice, it must also say explicitly why.
 
+Returned evidence such as `UTS`, screenshots, interactive reports, PR review comments, or release-review findings may satisfy exit criteria, but they must never auto-advance phase by implication.
+
+Required sequence:
+
+1. digest the evidence
+2. update the authority record
+3. reevaluate blockers
+4. only then advance phase
+
 ## Runtime Evidence And Logging
 
 - logs are the source of truth for runtime behavior
@@ -397,6 +506,9 @@ For every post-merge, post-release, or next-lane review, classify prior recommen
 - discard
 
 Never treat prior suggestions as automatic scope.
+
+For every `PR Readiness` pass, also run the formal Governance Drift Audit from `Docs/phase_governance.md`.
+If that audit finds required canon strengthening, do not silently merge past it.
 
 Use `Docs/Main.md` as the routing index for the merged canon.
 

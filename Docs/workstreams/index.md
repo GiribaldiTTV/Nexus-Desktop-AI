@@ -35,13 +35,16 @@ Use `Docs/phase_governance.md` for phase names, proof authority, seam governance
 - that UI audit expectation is a post-green closeout rule for meaningful desktop UI changes, not a rule that every seam iteration must always take screenshots
 - when Codex creates or materially extends lane-specific validators, harnesses, runtime helpers, scripts, workers, report roots, exported manual-test artifacts, or other reusable support assets on an active workstream branch, the workstream doc should keep a durable artifact-history or artifact-reference section for them
 - that artifact-history section should record the path, purpose, introduced-when or introduced-why note, classification such as `baseline`, `supporting`, `interactive-only`, or `temporary`, and how future work should reuse the artifact
-- when an active workstream enters governed closeout recovery or another late hardening phase, it should also record the current phase
-- when an active workstream enters governed closeout recovery or another late hardening phase, it should also record the phase exit criteria
-- when an active workstream enters governed closeout recovery or another late hardening phase, it should also record the validation contract
-- when an active workstream enters governed closeout recovery or another late hardening phase, it should also record the timeout contract
-- when an active workstream enters governed closeout recovery or another late hardening phase, it should also record the current active seam
-- when an active workstream enters governed closeout recovery or another late hardening phase, it should also record the seam ledger
-- when an active workstream enters governed closeout recovery or another late hardening phase, it should also record the stop-loss threshold
+- active promoted workstreams must carry the modern phase-state block:
+  - `## Current Phase`
+  - `## Phase Status`
+  - `## Branch Class`
+  - `## Blockers`
+  - `## Entry Basis`
+  - `## Exit Criteria`
+  - `## Rollback Target`
+  - `## Next Legal Phase`
+- that phase-state block is mandatory for active promoted work and may be omitted from preserved closed historical workstreams unless they are reopened or needed for current-truth repair
 - branch-local "what worked", reuse guidance, and future-branch carry-forward notes belong in the canonical workstream doc first
 - only generalized cross-branch lessons should be distilled into `Docs/incident_patterns.md`
 - closed workstream docs remain historical lane truth and must not be treated as active execution authority by inertia
@@ -56,7 +59,7 @@ For an active or recently closed canonical workstream, keep these durable tracea
 - current branch truth or equivalent promoted-lane truth
 - scope and non-goals
 - executed slices or equivalent progress log
-- current phase and phase-specific validation, seam, timeout, or stop-loss state when phase-sensitive work is active
+- current phase, phase status, branch class, blockers, phase-specific validation, seam, timeout, or stop-loss state when phase-sensitive work is active
 - durable validation or proof references that materially justify continuation or closeout
 - artifact history or artifact references for lane-specific validators, harnesses, helpers, reports, or manual-test exports that future work should reuse
 - branch-local reuse notes or "what worked" guidance when a future branch would otherwise need to rediscover the same lesson
@@ -66,6 +69,12 @@ For an active or recently closed canonical workstream, keep these durable tracea
 ## Current Canonical Workstream Records
 
 ### Active
+
+Active here means the current promoted truth owner.
+That may be:
+
+- an executable branch owner, or
+- a merged-unreleased release-debt owner while repo state is `No Active Branch`
 
 - `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`
 

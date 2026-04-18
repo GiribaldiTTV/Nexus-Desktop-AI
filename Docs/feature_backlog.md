@@ -28,14 +28,14 @@ Historical note:
 
 ### [ID: FB-041] Deterministic callable-group execution layer
 
-Status: Promoted for pre-implementation setup
+Status: Merged unreleased on `main`
 Record State: Promoted
 Priority: High
 Release Stage: pre-Beta
 Target Version: TBD
 Canonical Workstream Doc: Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md
-Summary: Promote the first bounded callable-group follow-through execution layer for deterministic linear member execution in stored order with stop-on-failure, terminal success or failure propagation, and runtime progression markers.
-Why it matters: Released FB-036 intentionally deferred callable-group execution follow-through. This lane isolates that first execution seam without reopening authoring or UI scope and without overlapping FB-037 through FB-040.
+Summary: Land the first bounded callable-group follow-through execution layer for deterministic linear member execution in stored order with stop-on-failure, terminal success or failure propagation, and runtime progression markers.
+Why it matters: Released FB-036 intentionally deferred callable-group execution follow-through. FB-041 is now merged unreleased implementation debt on `main`, so it remains the promoted current-truth owner until merged canon is repaired and release-debt handling is complete.
 
 ## Registry Items
 

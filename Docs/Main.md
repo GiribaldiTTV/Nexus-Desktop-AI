@@ -76,6 +76,8 @@ The startup assessment should make these items explicit:
 - `Reuse Baseline`
 - `Next Safe Move`
 
+If no legal branch may execute, `Next Safe Move` must report `No Active Branch` plus the blocking repair path instead of inventing a later phase.
+
 ## Routing Layers
 
 ### Governance And Prompting
@@ -90,7 +92,7 @@ Use these for workflow posture, prompt framing, lifecycle rules, and execution s
 - `Docs/codex_user_guide.md`
 
 Repo-wide validation-helper rules also live in this governance layer.
-Use `Docs/phase_governance.md` for the validation helper contract, proof hierarchy, default-budget closeout rule, and desktop UI audit rule instead of recreating those rules inside a workstream doc.
+Use `Docs/phase_governance.md` for the exact phase enum, blocker rules, branch classes, phase resolver, validation helper contract, proof hierarchy, default-budget closeout rule, and desktop UI audit rule instead of recreating those rules inside a workstream doc.
 
 ### Product And Boundary Truth
 
@@ -174,6 +176,7 @@ These are reference layers, not active workstream or roadmap owners.
 
 - route through the layer that owns the truth you need
 - when work is phase-sensitive, route through `Docs/phase_governance.md` before choosing execution posture
+- require the exact prompt contract from `Docs/phase_governance.md` before phase-sensitive execution
 - prefer index docs for historical or high-cardinality layers
 - do not treat a local-only document as canonical just because it exists in the workspace
 - keep future post-Beta AI behavior, privacy, and execution intent in `Docs/orin_vision.md` until a later selected workstream turns part of it into execution truth
@@ -181,15 +184,27 @@ These are reference layers, not active workstream or roadmap owners.
 - do not treat workstream docs as the owner of repo-wide phase, timeout, stop-loss, proof-authority, validation-helper, or desktop UI audit rules; those belong to `Docs/phase_governance.md`
 - keep historical Jarvis material preserved, but mark it as historical rather than current reality
 - after a release, do not default to a standalone docs-only canon lane when a plausible next workstream can be selected from updated `main`
-- the normal pre-PR sequence for a branch that changes release-facing canon is:
+- the normal governed branch lifecycle is:
+  1. `Branch Readiness`
+  2. `Workstream`
+  3. `Hardening`
+  4. `Live Validation`
+  5. `PR Readiness`
+  6. `Release Readiness`
+- `Post-Release Canon Repair` is not a normal phase; it is an emergency-only exception path after merged or released truth already exists
+- before any branch may enter `Branch Readiness`, the repo-level admission gate from `Docs/phase_governance.md` must pass on updated `main`
+- if the admission gate fails, report `No Active Branch` and the blocking repair path
+- the normal `PR Readiness` sequence for a branch that changes release-facing canon is:
   1. validate current branch truth
   2. complete the merge-target canon updates on that same branch
-  3. select the next workstream from current canon
-  4. confirm the next workstream has canon-valid record state
-  5. create the fresh successor branch
-  6. keep that successor branch reserved until it is revalidated after merge
-  7. only then allow the current branch to enter PR creation
+  3. run the Governance Drift Audit
+  4. select the next workstream from current canon
+  5. confirm the next workstream has canon-valid record state
+  6. create the fresh successor branch
+  7. keep that successor branch reserved until it is revalidated after merge
+  8. only then allow the current branch to enter PR creation
 - a standalone post-release canon repair is an emergency-only exception path when merged canon is already stale or when external drift made pre-merge prevention impossible
+- returned `UTS`, screenshot, interactive, PR-review, or release-review evidence must be digested into the authority record before phase advancement is recommended
 - when a slice changes user-visible behavior or another operator-facing path, do not treat `## User Test Summary` as a recap slot; route through `Docs/user_test_summary_guidance.md` and require a real manual checklist unless no meaningful manual test exists
 - when an active desktop workstream has a canonical repo-level `UTS` artifact, do not stop at response text; update that workstream-owned artifact as well unless an explicit exception from `Docs/user_test_summary_guidance.md` applies
 - for relevant desktop user-facing slices, also export or refresh `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` unless an explicit exception from `Docs/user_test_summary_guidance.md` applies

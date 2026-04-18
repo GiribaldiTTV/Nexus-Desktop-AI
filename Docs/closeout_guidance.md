@@ -30,13 +30,14 @@ They do not replace:
 
 ## Current Nexus Posture
 
-The historical Jarvis line already has preserved closeouts through `v2.2.1`.
+This guide is policy only.
+It is not the owner of live current-baseline truth.
 
-The modern Nexus pre-Beta line now resumes epoch-summary coverage through:
+For the current Nexus-era baseline, always use:
 
-- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.8-prebeta.md`
+- `Docs/closeout_index.md`
 
-That rebaseline is the current modern carry-forward baseline.
+For the current epoch summary itself, route to the file referenced there.
 
 ## When To Use A Closeout
 
@@ -76,7 +77,7 @@ When those facts change, the repo may legitimately need a docs-only canon repair
 ## Current Policy
 
 - preserve historical closeouts
-- route historical lookup through `Docs/closeout_index.md`
+- route historical lookup and current-baseline lookup through `Docs/closeout_index.md`
 - use canonical workstream records for workstream-level detail
-- use the modern Nexus rebaseline for epoch truth through `v1.2.8-prebeta`
+- do not let this guidance doc become a live current-state owner
 - create new closeouts or rebaselines only when they materially improve future planning clarity
