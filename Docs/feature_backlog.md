@@ -26,16 +26,7 @@ Historical note:
 
 ## Promoted Canonical Workstreams
 
-### [ID: FB-041] Deterministic callable-group execution layer
-
-Status: Merged unreleased on `main`
-Record State: Promoted
-Priority: High
-Release Stage: pre-Beta
-Target Version: TBD
-Canonical Workstream Doc: Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md
-Summary: Land the first bounded callable-group follow-through execution layer for deterministic linear member execution in stored order with stop-on-failure, terminal success or failure propagation, and runtime progression markers.
-Why it matters: Released FB-036 intentionally deferred callable-group execution follow-through. FB-041 is now merged unreleased implementation debt on `main`, so it remains the promoted current-truth owner until release-debt handling is complete.
+- none currently
 
 ## Registry Items
 
@@ -150,6 +141,17 @@ Summary: Track future runtime monitoring and HUD surfaces for GPU / CPU thermals
 Why it matters: Monitoring overlays are a separate runtime and status surface and should not be bolted onto the saved-action system without an explicit product boundary.
 
 ## Closed Canonical Workstreams
+
+### [ID: FB-041] Deterministic callable-group execution layer
+
+Status: Released (v1.3.1-prebeta)
+Record State: Closed
+Priority: High
+Release Stage: pre-Beta
+Target Version: v1.3.1-prebeta
+Canonical Workstream Doc: Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md
+Summary: Released the first bounded callable-group follow-through execution layer for deterministic linear member execution in stored order with stop-on-failure, terminal success or failure propagation, and runtime progression markers.
+Why it matters: FB-041 closes the released FB-036 callable-group execution follow-through by supporting full stored-order group execution without reopening authoring, changing single-action behavior, or widening into scheduling, branching, retries, nested groups, or parallelism.
 
 ### [ID: FB-036] Limited saved-action authoring and type-first custom task UX
 
