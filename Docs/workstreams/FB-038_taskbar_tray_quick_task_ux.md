@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Branch Readiness`
+- `Workstream`
 
 ## Release Stage
 
@@ -33,13 +33,15 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 ## Current Phase
 
-- Phase: `Branch Readiness`
+- Phase: `Workstream`
 
 ## Phase Status
 
 - `Active Branch`
 - current branch: `feature/fb-038-taskbar-tray-quick-task-ux`
+- Branch Readiness is complete and durably checkpointed in commit `766ff67`
 - no FB-038 product or runtime implementation has started
+- first Workstream pass is source-map and seam selection only
 - FB-037 is released and closed in `v1.4.0-prebeta`
 - FB-037 release publication exists at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.4.0-prebeta`
 - no FB-037 release-debt blocker remains
@@ -57,24 +59,24 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 - local `main` and `origin/main` are aligned at the FB-037 release-packaging merge baseline
 - current branch is `feature/fb-038-taskbar-tray-quick-task-ux`
-- current branch is based on updated `main` and carries only Branch Readiness governance/canon repair plus this FB-038 admission setup
+- current branch is based on updated `main`
+- Branch Readiness governance/canon repair plus FB-038 admission setup is durable in commit `766ff67`
 - FB-037 is `Released (v1.4.0-prebeta)` and `Closed`
 - the `v1.4.0-prebeta` Git tag exists locally and remotely
 - the GitHub prerelease for `v1.4.0-prebeta` exists, is published, and is marked prerelease
-- FB-038 was selected in canon before this admission and is now promoted for Branch Readiness only
-- no FB-038 implementation work is authorized until this authority record exits cleanly to Workstream
+- FB-038 was selected in canon before this admission and is now promoted
+- Branch Readiness exit criteria are satisfied
+- no FB-038 implementation work is authorized until the first Workstream pass selects and bounds a seam
 
 ## Exit Criteria
 
-- branch base remains valid against updated `main`
-- FB-038 remains promoted exactly once in backlog and workstream index canon
-- this canonical workstream doc owns the active phase block
-- branch objective, target end-state, expected seam families, risk classes, validation contract, User Test Summary strategy, and later-phase needs are explicit
-- the first Workstream pass is defined without starting product/runtime implementation during Branch Readiness
-- no stale FB-037 release-debt or active release-branch truth remains
-- no product/runtime code changes are included in Branch Readiness
-- `python dev/orin_branch_governance_validation.py` passes
-- `git diff --check` passes
+- source-map and seam-selection pass is complete
+- the first implementation seam is explicitly selected, bounded, and validated before implementation begins
+- no implementation starts without exact non-includes and validation targets
+- approved Workstream scope remains within FB-038 and does not reopen released FB-027, FB-036, FB-041, or FB-037 behavior by inertia
+- direct verification is complete for each selected Workstream seam
+- User Test Summary obligations are updated when a user-visible seam lands
+- no unresolved same-slice correctness gap remains
 
 ## Rollback Target
 
@@ -82,7 +84,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 ## Next Legal Phase
 
-- `Workstream`
+- `Hardening`
 
 ## Bounded Objective
 
@@ -129,7 +131,7 @@ It must:
 ## Explicit Non-Goals
 
 - no product/runtime implementation during Branch Readiness
-- no Workstream entry until this authority record is durably established
+- no implementation before the first Workstream pass selects and bounds a seam
 - no broad UI redesign
 - no Action Studio behavior
 - no saved-action schema change
@@ -154,17 +156,17 @@ It must:
 
 ## Validation Contract
 
-Branch Readiness validation must prove:
+Branch Readiness validation proved:
 
 - FB-038 is promoted exactly once
 - this canonical workstream doc exists and owns active phase authority
-- backlog, roadmap, workstream index, and this workstream doc agree on `Branch Readiness`
+- backlog, roadmap, workstream index, and this workstream doc agreed on `Branch Readiness`
 - FB-037 remains released and closed in `v1.4.0-prebeta`
 - no product/runtime code changed during Branch Readiness
 - `python dev/orin_branch_governance_validation.py` passes
 - `git diff --check` passes
 
-Future Workstream validation must preserve:
+Workstream validation must preserve:
 
 - released FB-027 typed-first interaction baseline
 - released FB-036 saved-action authoring, collision, and source-safety behavior
@@ -209,6 +211,17 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
 - created this canonical workstream record
 - recorded Branch Readiness phase authority, scope, non-goals, reuse baseline, validation contract, User Test Summary strategy, and later-phase plan
 - preserved FB-037 released truth and cleared release-debt posture
+- validated Branch Readiness with `python dev/orin_branch_governance_validation.py`
+- validated whitespace with `git diff --check`
+- committed Branch Readiness admission in `766ff67`
+- transitioned phase authority from `Branch Readiness` to `Workstream`
+- no product/runtime implementation was started during the transition
+
+## Workstream Progress
+
+- Workstream is open for source-map and seam selection.
+- No implementation seam has been selected yet.
+- No product/runtime implementation has started.
 
 ## User Test Summary
 

@@ -32,13 +32,13 @@ Historical note:
 
 ### [ID: FB-038] Taskbar / tray quick-task UX and Create Custom Task surface
 
-Status: Branch Readiness
+Status: Workstream
 Record State: Promoted
 Priority: Medium
 Release Stage: pre-Beta
 Target Version: TBD
 Canonical Workstream Doc: Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md
-Minimal Scope: Branch Readiness admission and planning for the shell-facing quick-task entry surface, initially limited to defining the smallest safe taskbar/tray or Create Custom Task UX seam above the released interaction, authoring, callable-group execution, and built-in catalog baselines; branch `feature/fb-038-taskbar-tray-quick-task-ux` is admitted for Branch Readiness only, and no implementation is authorized until this authority record exits cleanly to Workstream.
+Minimal Scope: Workstream analysis and seam selection for the shell-facing quick-task entry surface, initially limited to defining the smallest safe taskbar/tray or Create Custom Task UX seam above the released interaction, authoring, callable-group execution, and built-in catalog baselines; branch `feature/fb-038-taskbar-tray-quick-task-ux` is admitted to Workstream, but no implementation is authorized until the first Workstream pass selects and bounds a seam.
 Summary: Track future taskbar or tray quick-access UX, including a Create Custom Task affordance, as a deliberate shell-facing entry surface into the shared action model.
 Why it matters: Taskbar and tray interaction affect entry, discoverability, and user trust, so they should be planned as an explicit UX lane instead of piggybacking on overlay or authoring work.
 
