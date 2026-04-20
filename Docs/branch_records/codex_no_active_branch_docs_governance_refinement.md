@@ -19,7 +19,7 @@ This branch also closes the remaining governance gap for non-backlog branches by
 
 - `Merge-ready branch record`
 - historical on merged `main`
-- repo-level sequencing truth remains blocked `No Active Branch` for next implementation-lane selection while FB-041 release debt remains open
+- at this branch's merge time, repo-level sequencing truth was blocked `No Active Branch` for next implementation-lane selection until later FB-041 release packaging cleared the release debt in `v1.3.1-prebeta`
 
 ## Branch Class
 
@@ -79,5 +79,5 @@ This branch also closes the remaining governance gap for non-backlog branches by
 
 - no product or runtime code changes
 - no next implementation workstream selection
-- no FB-041 release-debt clearance
+- this branch did not execute FB-041 release packaging; that happened later through `v1.3.1-prebeta`
 - no release packaging work

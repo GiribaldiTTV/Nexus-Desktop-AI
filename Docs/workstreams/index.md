@@ -71,15 +71,13 @@ For an active or recently closed canonical workstream, keep these durable tracea
 ### Active
 
 Active here means the current promoted truth owner.
-That may be:
+That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-- an executable branch owner, or
-- a merged-unreleased release-debt owner while repo state is `No Active Branch`
-
-- `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`
+- none currently
 
 ### Closed
 
+- `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`
 - `Docs/workstreams/FB-036_saved_action_authoring.md`
 - `Docs/workstreams/FB-027_interaction_system_baseline.md`
 - `Docs/workstreams/FB-035_release_context_fallback_hardening.md`

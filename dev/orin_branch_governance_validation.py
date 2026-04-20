@@ -324,15 +324,75 @@ def main() -> int:
             f"{relative_path}: docs/governance branch-admission guidance is missing",
         )
 
-    promoted_entries = [
-        entry
-        for entry in _parse_backlog_sections(backlog_text)
-        if entry.get("record_state") == "Promoted"
-    ]
-    require(bool(promoted_entries), "Docs/feature_backlog.md: expected at least one promoted workstream")
-
     active_index_paths = _collect_active_index_paths(index_text)
     closed_index_paths = _collect_closed_index_paths(index_text)
+
+    backlog_entries = _parse_backlog_sections(backlog_text)
+    promoted_entries = [
+        entry
+        for entry in backlog_entries
+        if entry.get("record_state") == "Promoted"
+    ]
+    if not promoted_entries:
+        require(
+            not active_index_paths,
+            "Docs/workstreams/index.md: Active list must be empty when no backlog workstream is Promoted",
+        )
+
+    fb041_entries = [entry for entry in backlog_entries if entry.get("id") == "FB-041"]
+    require(bool(fb041_entries), "Docs/feature_backlog.md: FB-041 backlog entry is missing")
+    if fb041_entries:
+        fb041_entry = fb041_entries[0]
+        fb041_path = fb041_entry["canonical_path"]
+        require(
+            fb041_entry["record_state"] == "Closed",
+            "Docs/feature_backlog.md: FB-041 must be Closed after v1.3.1-prebeta release",
+        )
+        require(
+            _normalize_status(fb041_entry["status"]) == "released",
+            "Docs/feature_backlog.md: FB-041 must be Released after v1.3.1-prebeta release",
+        )
+        require(
+            fb041_path in closed_index_paths,
+            "Docs/workstreams/index.md: FB-041 must be listed under Closed after v1.3.1-prebeta release",
+        )
+        require(
+            fb041_path not in active_index_paths,
+            "Docs/workstreams/index.md: FB-041 must not remain under Active after v1.3.1-prebeta release",
+        )
+
+        if fb041_path:
+            fb041_doc_path = Path(fb041_path)
+            require(
+                (ROOT_DIR / fb041_doc_path).is_file(),
+                f"{fb041_path}: FB-041 workstream doc does not exist",
+            )
+            if (ROOT_DIR / fb041_doc_path).is_file():
+                fb041_text = _read_text(fb041_doc_path)
+                fb041_info = _parse_workstream_doc(fb041_text)
+                require(
+                    fb041_info["record_state"] == "Closed",
+                    f"{fb041_path}: Record State must be Closed after v1.3.1-prebeta release",
+                )
+                require(
+                    _normalize_status(str(fb041_info["status"])) == "released",
+                    f"{fb041_path}: Status must be Released after v1.3.1-prebeta release",
+                )
+
+        fb041_roadmap_section = _roadmap_section_for_id(roadmap_text, "FB-041")
+        require(
+            bool(fb041_roadmap_section),
+            "Docs/prebeta_roadmap.md: FB-041 release section is missing",
+        )
+        if fb041_roadmap_section:
+            require(
+                fb041_path in fb041_roadmap_section,
+                "Docs/prebeta_roadmap.md: FB-041 release section must cite the canonical workstream doc",
+            )
+            require(
+                "release state: `released`" in fb041_roadmap_section,
+                "Docs/prebeta_roadmap.md: FB-041 release state must be `released`",
+            )
 
     for entry in promoted_entries:
         workstream_id = entry["id"]

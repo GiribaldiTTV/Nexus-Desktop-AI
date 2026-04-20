@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `Merged unreleased on main`
+- `Released (v1.3.1-prebeta)`
 
 ## Release Stage
 
@@ -19,13 +19,15 @@
 
 ## Target Version
 
-- `TBD`
+- `v1.3.1-prebeta`
 
 ## Canonical Branch
 
 - `No Active Branch`
 - historical implementation branch:
   - `feature/fb-041-deterministic-callable-group-execution`
+- release packaging branch:
+  - `codex/fb-041-release-debt-packaging`
 
 ## Purpose / Why It Matters
 
@@ -33,50 +35,17 @@ Promote the first bounded callable-group follow-through execution layer above th
 
 This workstream exists so callable groups can move from exact invocation only into deterministic runtime follow-through without reopening FB-036 authoring foundations, widening into automation design, or overlapping the separate future lanes already tracked in FB-037 through FB-040.
 
-## Current Phase
+## Current Release-Truth Note
 
-- Phase: `Release Readiness`
-
-## Phase Status
-
-- `No Active Branch`
-- `FB-041` is the merged-unreleased release-debt owner on updated `main`
-- merged current-state canon is aligned by the governance correction pass; release-debt handling remains outstanding before the repo may legally begin next-lane execution
-
-## Branch Class
-
-- `release packaging`
-
-## Blockers
-
-- `Release Debt`
-
-## Entry Basis
-
-- merged `main` includes the FB-041 implementation merge from PR `#58`
-- latest public prerelease remains `v1.3.0-prebeta`, so FB-041 is merged unreleased implementation debt above the latest public baseline
-- merged current-state canon now reflects FB-041 as the merged-unreleased release-debt owner across backlog, roadmap, and workstream indexing layers
-- no next implementation branch may legally begin until release-debt handling is explicit
-
-## Exit Criteria
-
-- backlog, roadmap, workstreams index, and this workstream doc agree on the same merged-unreleased posture
-- release packaging inputs are explicit and no unresolved blocker remains
-- if a real correctness, canon, regression, or governance issue appears during release review, the repo reopens to the failed earlier phase instead of starting next-lane execution
-
-## Rollback Target
-
-- `PR Readiness`
-
-## Next Legal Phase
-
-- `Release Readiness` on a release packaging or emergency canon repair branch once release-debt handling is explicitly opened
+- FB-041 is released in `v1.3.1-prebeta`
+- the FB-041 release-debt blocker is cleared by the public prerelease
+- this closed workstream record is historical lane truth, not active execution authority
+- no next implementation branch is selected by this release record
+- any future implementation lane must enter through strict `Branch Readiness` from updated `main`
 
 ## Current Branch Truth
 
-- the latest public shared baseline remains the released FB-027 interaction floor plus the released FB-036 authoring-and-callable-group milestone in `v1.3.0-prebeta`
-- `main` now also contains merged unreleased FB-041 callable-group execution follow-through above that public baseline
-- repo state is currently `No Active Branch` for next-lane execution until release-debt handling is complete
+- the latest public shared baseline is the released FB-027 interaction floor plus the released FB-036 authoring-and-callable-group milestone and the released FB-041 deterministic callable-group execution milestone in `v1.3.1-prebeta`
 - exact group invocation still enters through the released chooser and confirm flow, but group follow-through now executes the full stored-order callable group after confirm
 - deterministic callable-group execution now emits bounded runtime markers for:
   - group start
@@ -86,6 +55,40 @@ This workstream exists so callable groups can move from exact invocation only in
 - dispatch now consumes immutable execution intent captured at confirm time rather than ambient overlay group state
 - group failures now reuse the existing recoverable launch-failure classification pipeline with structured group-aware payloads
 - single-action dispatch, confirm text, result text, and failure behavior remain unchanged except where the documented confirm/result group-only clarification exceptions apply
+
+## Release Definition
+
+The public prerelease for this lane is `v1.3.1-prebeta`.
+
+That release means:
+
+- saved callable groups are officially supported for full stored-order member execution after confirm instead of stopping at exact single-member invocation behavior
+- group execution is officially supported as deterministic and stop-on-failure, with bounded runtime progression markers for group start, per-step progression, and terminal completion or failure
+- group failures stay aligned to the existing recoverable launch-failure classification path rather than introducing a separate failure system
+- group confirm and result copy accurately describe full stored-order group execution while single-action behavior remains unchanged
+
+## Release Artifacts
+
+- tag:
+  - `v1.3.1-prebeta`
+- high-level release notes:
+  - deterministic callable-group execution is now supported after confirm
+  - callable-group execution follows persisted stored order and stops on first failure
+  - group failures reuse the existing recoverable launch-failure classification path with group-aware context
+  - group confirm and result status text now accurately describe full stored-order group execution
+  - single-action confirm, dispatch, result, and failure behavior remain unchanged
+- supporting release artifacts:
+  - `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.3.1-prebeta.md`
+  - FB-041 workstream record converted to historical released-lane truth
+  - existing FB-041 validator and interactive evidence references retained as release-supporting proof
+
+## Release Closeout
+
+- released in public prerelease `v1.3.1-prebeta`
+- release-debt state cleared for FB-041
+- backlog, roadmap, workstreams index, closeout index, and Nexus-era rebaseline now treat FB-041 as closed released truth
+- no next implementation lane is selected by this closeout
+- future work must enter through the strict branch-governance admission flow
 
 ## Governance Drift Audit
 
@@ -104,8 +107,8 @@ This workstream exists so callable groups can move from exact invocation only in
   - add the governance validator
   - strengthen current-state claim containment
   - update prompt scaffolds to the exact prompt contract
-- Whether The Drift Blocks Merge: `This governance branch resolves the drift; after merge the remaining blocker is release debt, which still blocks next-lane execution`
-- Whether User Confirmation Is Required: `No for the current approved governance pass`
+- Whether The Drift Blocks Merge: `No; the governance drift was resolved before release, and the FB-041 release-debt blocker is cleared by v1.3.1-prebeta`
+- Whether User Confirmation Is Required: `No; this is historical release evidence for the completed governance pass`
 
 ## Scope
 
@@ -137,7 +140,7 @@ Exception:
 
 - `Docs/workstreams/FB-036_saved_action_authoring.md`
 - `Docs/workstreams/FB-027_interaction_system_baseline.md`
-- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.3.0-prebeta.md`
+- `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.3.1-prebeta.md`
 - `desktop/interaction_overlay_model.py`
 - `desktop/shared_action_model.py`
 
