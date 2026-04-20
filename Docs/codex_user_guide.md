@@ -74,6 +74,11 @@ For governed closeout recovery, also include:
 - `Validation Contract: <summary or authority reference>` when validation governance matters
 - `Timeout Contract: <summary or authority reference>` when interactive/manual timing governance matters
 
+For bounded multi-seam Workstream execution, also include:
+
+- `Seam Sequence: <ordered seam list>`
+- `Per-Seam Gate: validate, record evidence, and report continue-or-stop before the next seam`
+
 ## What Codex Should Do Automatically
 
 Brief prompts do not waive source-of-truth reading.
@@ -101,6 +106,9 @@ For meaningful interactive desktop hardening or closeout work, that baseline als
 
 - using `Docs/phase_governance.md` for the repo-wide validation helper contract and proof hierarchy
 - using `Docs/development_rules.md` for evidence, cleanup, and hardening expectations
+- reusing existing live-validation helpers before creating new scripts, or recording why reuse is unsafe
+- treating one-off live-validation probes as temporary ignored artifacts that must be deleted or promoted into documented reusable tooling before closeout-grade proof
+- requiring visible helper progress and a no-progress supervisor; if no tighter helper-specific watchdog is active, `10s` without meaningful progress must abort the run, clean up, and report the last confirmed progress point
 - planning the post-green live launched-process UI audit when meaningful user-facing desktop UI changed
 
 ## Codex Client Screenshot Delivery
@@ -207,6 +215,7 @@ Useful execution add-ons:
 Execution-phase discipline such as:
 
 - bounded patching
+- bounded multi-seam workflow
 - minimal isolated change
 - smallest coherent execution slice
 - narrow fix pass
@@ -214,6 +223,21 @@ Execution-phase discipline such as:
 belongs here, after analysis and scope selection are already complete.
 
 ## Prompt Recipes
+
+### Active-Branch Governance Or Canon Update
+
+Use:
+
+- `Workflow mode on current branch: docs-only governance or canon refinement`
+
+Use this when:
+
+- the active branch owns the affected truth
+- the change is directly required to keep that branch truthful, executable, phase-correct, readiness-correct, validation-correct, closeout-correct, or release-correct
+- the prompt names the exact canonical phase and current branch class
+- the update can stay docs-only and inside the active branch's approved scope, validation rules, and stop conditions
+
+Do not use this recipe for unrelated governance cleanup, broad docs churn, product/runtime changes, or work that would contaminate or confuse the active implementation or release branch.
 
 ### Deep Analysis Of The Next Move
 
@@ -271,6 +295,7 @@ Use this only when:
 - the branch purpose is genuinely governance, docs, policy, roadmap, backlog, or triage work
 - the branch is not being used to avoid canon sync that belongs on an active implementation or release branch
 - the branch-class admission rules from `Docs/phase_governance.md` pass
+- the work is repo-wide governance not coupled to one active branch, emergency canon repair, cross-branch truth repair, or governance work that would contaminate or confuse an active implementation or release branch
 
 During `pre-Beta`, this path remains non-default and explicitly justified.
 In later Beta, public, or steady-state repo operation, it may become a normal maintenance path.
@@ -286,6 +311,31 @@ Examples:
 
 - `continue on current branch: finish the approved validator follow-through`
 - `Workflow mode on current branch: execute Phase 2 of canon reconstruction`
+
+### Bounded Multi-Seam Workstream Execution
+
+Use:
+
+- `Workflow mode on current branch: execute bounded multi-seam Workstream sequence`
+
+Required add-ons:
+
+- `Phase: Workstream`
+- `Seam Sequence: [ordered seam list]`
+- `validate after each seam`
+- `report continue-or-stop after each seam`
+- `stop on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, or branch-truth inconsistency`
+
+Use this when:
+
+- the seams are in the same workstream, same phase, same branch class, same risk class, and same subsystem family or tightly coupled chain
+- the operator wants Codex to keep moving through a coherent seam sequence without a new prompt after every seam
+- per-seam validation and evidence recording remain mandatory
+
+Do not use this recipe for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem changes, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation.
+
+When the sequence completes, the normal next phase is `Hardening`.
+Do not prompt Codex to treat Workstream completion as direct `PR Readiness`.
 
 ### Run A Narrow Fix Pass
 
@@ -327,6 +377,7 @@ Required add-ons:
 
 - `Phase: Hardening`
 - `use the documented validation timeout profile`
+- `reuse existing validation helpers first`
 - `do not widen scope`
 - `do not stop between seam iterations unless blocker, truth drift, stop-loss, or required canon sync appears`
 - `continue until the full gate is green or a hard stop is hit`
@@ -334,6 +385,7 @@ Required add-ons:
 Helpful add-ons:
 
 - `target no-progress 3s`
+- `fallback maximum no-progress 10s when no tighter helper watchdog exists`
 - `target transition 3s`
 - `target normal seam 60s`
 
@@ -364,6 +416,10 @@ After a workstream is closed, released, merged, or otherwise no longer the right
 
 Prompting should reflect that reality.
 
+PR Readiness selects and minimally scopes the next workstream in canon, but it must also prove no branch exists yet for that next workstream.
+Use machine-checkable markers: `Next Workstream: Selected` and `Minimal Scope:` in the backlog entry, plus `## Selected Next Workstream` and `Branch: Not created` in the roadmap.
+Create the fresh branch only during the next `Branch Readiness` pass after the current branch merges and updated `main` is revalidated.
+
 Do not ask Codex to keep planning from an old lane branch when live repo truth shows that branch is stale, merged, or identical to `main`.
 If repo truth is a steady-state `No Active Branch`, it is also valid for the truthful next move to be no branch at all until a new approved need exists.
 
@@ -387,6 +443,7 @@ The key distinction is prompt length, not analysis depth.
 - add control language only when it materially protects truth or scope
 - use `Analyze for drift` before merge, release, or major canon carry-forward decisions
 - use evidence-digestion language when returned validation evidence should control the next move, rather than implying that phase advancement is automatic
+- in `PR Readiness`, require five hard blocker checks before accepting `PR READY: YES`: `stale-canon`, `post-merge`, `next-workstream`, `dirty`, and `docs-sync`
 - route through `Docs/Main.md` whenever authority is unclear
 - treat local unmerged overlays as reference material until revalidated against updated `origin/main`
 

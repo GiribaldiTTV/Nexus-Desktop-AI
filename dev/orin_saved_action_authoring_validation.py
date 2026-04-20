@@ -936,6 +936,140 @@ def _test_edit_rejects_builtin_collisions_without_writing():
         )
 
 
+def _test_notepad_builtin_collisions_are_rejected_before_write():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+
+        try:
+            create_saved_action_from_draft(
+                SavedActionDraft(
+                    title="Notepad",
+                    target_kind="app",
+                    target="calc.exe",
+                    aliases=("Open Notepad", "Launch Notepad"),
+                ),
+                source_path,
+            )
+        except SavedActionDraftValidationError:
+            pass
+        else:
+            raise AssertionError("Notepad built-in collisions should be rejected before write")
+
+        _assert(
+            not source_path.exists(),
+            "rejecting a Notepad built-in collision should not create or modify the saved-action source file",
+        )
+
+
+def _test_edit_rejects_notepad_builtin_collisions_without_writing():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        _write_json(
+            source_path,
+            {
+                "schema_version": 1,
+                "actions": [
+                    {
+                        "id": "open_reports",
+                        "title": "Open Reports",
+                        "target_kind": "folder",
+                        "target": r"C:\Reports",
+                        "aliases": ["show reports"],
+                    }
+                ],
+            },
+        )
+        original_text = source_path.read_text(encoding="utf-8")
+
+        try:
+            update_saved_action_from_draft(
+                "open_reports",
+                SavedActionDraft(
+                    title="Notepad",
+                    target_kind="app",
+                    target="calc.exe",
+                    aliases=("Open Notepad", "Launch Notepad"),
+                ),
+                source_path,
+            )
+        except SavedActionDraftValidationError:
+            pass
+        else:
+            raise AssertionError("editing into a Notepad built-in collision should be rejected")
+
+        _assert(
+            source_path.read_text(encoding="utf-8") == original_text,
+            "rejecting a Notepad built-in collision during edit should leave the source untouched",
+        )
+
+
+def _test_paint_builtin_collisions_are_rejected_before_write():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+
+        try:
+            create_saved_action_from_draft(
+                SavedActionDraft(
+                    title="Paint",
+                    target_kind="app",
+                    target="notepad.exe",
+                    aliases=("Open Paint", "Launch Paint"),
+                ),
+                source_path,
+            )
+        except SavedActionDraftValidationError:
+            pass
+        else:
+            raise AssertionError("Paint built-in collisions should be rejected before write")
+
+        _assert(
+            not source_path.exists(),
+            "rejecting a Paint built-in collision should not create or modify the saved-action source file",
+        )
+
+
+def _test_edit_rejects_paint_builtin_collisions_without_writing():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_actions.json"
+        _write_json(
+            source_path,
+            {
+                "schema_version": 1,
+                "actions": [
+                    {
+                        "id": "open_reports",
+                        "title": "Open Reports",
+                        "target_kind": "folder",
+                        "target": r"C:\Reports",
+                        "aliases": ["show reports"],
+                    }
+                ],
+            },
+        )
+        original_text = source_path.read_text(encoding="utf-8")
+
+        try:
+            update_saved_action_from_draft(
+                "open_reports",
+                SavedActionDraft(
+                    title="Paint",
+                    target_kind="app",
+                    target="notepad.exe",
+                    aliases=("Open Paint", "Launch Paint"),
+                ),
+                source_path,
+            )
+        except SavedActionDraftValidationError:
+            pass
+        else:
+            raise AssertionError("editing into a Paint built-in collision should be rejected")
+
+        _assert(
+            source_path.read_text(encoding="utf-8") == original_text,
+            "rejecting a Paint built-in collision during edit should leave the source untouched",
+        )
+
+
 def _test_edit_allows_other_saved_action_collisions_without_self_collision():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "saved_actions.json"
@@ -1482,6 +1616,10 @@ def main():
         ("delete removes existing record and reloads catalog", _test_delete_removes_existing_record_and_reloads_catalog),
         ("delete rejects missing record without write", _test_delete_rejects_missing_record_without_writing),
         ("edit rejects built-in collisions without write", _test_edit_rejects_builtin_collisions_without_writing),
+        ("Notepad built-in collisions rejected before write", _test_notepad_builtin_collisions_are_rejected_before_write),
+        ("edit rejects Notepad built-in collisions without write", _test_edit_rejects_notepad_builtin_collisions_without_writing),
+        ("Paint built-in collisions rejected before write", _test_paint_builtin_collisions_are_rejected_before_write),
+        ("edit rejects Paint built-in collisions without write", _test_edit_rejects_paint_builtin_collisions_without_writing),
         ("edit allows other saved-action overlaps without self-collision", _test_edit_allows_other_saved_action_collisions_without_self_collision),
         ("invalid edit input is rejected before write", _test_invalid_edit_input_is_rejected_before_write),
         ("invalid non-url edit targets rejected before write", _test_invalid_non_url_edit_targets_are_rejected_before_write),

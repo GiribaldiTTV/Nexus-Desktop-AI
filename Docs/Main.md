@@ -127,6 +127,7 @@ Rules:
 Use these for promoted work that needs a stable feature-state, branch-local validation/evidence record, active seam trail, durable artifact/reuse history, and closure history:
 
 - `Docs/workstreams/index.md`
+- `Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md`
 - `Docs/workstreams/FB-036_saved_action_authoring.md`
 - `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`
 - `Docs/workstreams/FB-035_release_context_fallback_hardening.md`
@@ -194,8 +195,11 @@ These are reference layers, not active workstream or roadmap owners.
 - do not create duplicate authority by making backlog, roadmap, and workstream docs all carry the same execution story
 - do not treat workstream docs as the owner of repo-wide phase, timeout, stop-loss, proof-authority, validation-helper, or desktop UI audit rules; those belong to `Docs/phase_governance.md`
 - keep historical Jarvis material preserved, but mark it as historical rather than current reality
-- during the normal active-branch-first `pre-Beta` flow, do not default to a standalone docs-only canon lane when a plausible active implementation or release branch should carry the truth updates
-- a planned standalone `docs/governance` branch is future-capable from `No Active Branch`, but only when the branch-class admission rules pass and the branch is genuinely governance, policy, docs, or triage work rather than delayed implementation follow-through
+- during the normal active-branch-first `pre-Beta` flow, governance and canon updates should ride on the active current branch when they are directly required to keep that branch truthful, executable, phase-correct, readiness-correct, validation-correct, closeout-correct, or release-correct
+- active-branch governance or canon updates must stay inside the current branch's approved phase, branch class, and scope; they must not weaken validation, stop conditions, phase authority, or become unrelated documentation churn
+- do not default to a standalone docs-only canon lane when a plausible active implementation or release branch should carry the truth updates
+- a planned standalone `docs/governance` branch is an exception path, not the preferred default; it is future-capable from `No Active Branch`, but only when the branch-class admission rules pass and the branch is genuinely governance, policy, docs, or triage work rather than delayed implementation follow-through
+- standalone governance or docs-style branches are reserved for repo-wide governance work not tightly coupled to one active branch, emergency canon repair, cross-branch truth repair that cannot safely live on one active branch, or governance work that would contaminate or confuse an active implementation or release branch
 - the normal governed branch lifecycle is:
   1. `Branch Readiness`
   2. `Workstream`
@@ -203,25 +207,35 @@ These are reference layers, not active workstream or roadmap owners.
   4. `Live Validation`
   5. `PR Readiness`
   6. `Release Readiness`
+- `Branch Readiness` must plan the whole branch at phase level before Workstream begins, including objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam or seam sequence
+- during `Workstream`, `bounded multi-seam workflow` is the primary model for coherent same-risk seam chains; execute one active seam at a time, validate it, record evidence, and report `continue` or `stop` before the next seam
+- single-seam fallback is required for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem changes, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation
+- `Workstream` completion does not imply PR readiness; the normal next legal phase is `Hardening`, followed by `Live Validation` and then `PR Readiness`
 - `Post-Release Canon Repair` is not a normal phase; it is an emergency-only exception path after merged or released truth already exists
 - before any next implementation branch may enter `Branch Readiness`, the repo-level admission gate from `Docs/phase_governance.md` must pass on updated `main`
 - if repo truth resolves to blocked `No Active Branch`, report the blocking repair path
 - if repo truth resolves to steady-state `No Active Branch`, do not invent a next implementation branch by inertia
 - the normal `PR Readiness` sequence for a branch that changes release-facing canon is:
+  0. clear the hard PR Readiness blockers: `stale-canon`, `post-merge`, `dirty`, `docs-sync`, and `next-workstream`
   1. validate current branch truth
   2. complete the merge-target canon updates on that same branch
   3. run the Governance Drift Audit
-  4. if post-merge truth will admit a next branch, select the next workstream from current canon
-  5. if post-merge truth will admit a next branch, confirm the next workstream has canon-valid record state
-  6. if post-merge truth will admit a next branch, create the fresh successor branch
-  7. if post-merge truth will admit a next branch, keep that successor branch reserved until it is revalidated after merge
-  8. If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor-lane selection and reserved successor-branch creation are waived for that PR-readiness pass.
-  9. when that waiver applies, record the blocked repo state explicitly
-  10. only then allow the current branch to enter PR creation
+  4. clear the stale-canon blocker by proving current-state canon and merge-target canon reflect the branch's true state
+  5. select the next workstream from current canon
+  6. confirm the next workstream is recorded in backlog and roadmap
+  7. confirm the next workstream has canon-valid record state and minimal scope
+  8. confirm no branch exists yet for that next workstream
+  9. defer successor branch creation to `Branch Readiness` after merge and updated-`main` revalidation
+  10. encode the machine-checkable selected-next markers: `Next Workstream: Selected` and `Minimal Scope:` in backlog, plus `## Selected Next Workstream` with `Branch: Not created` in roadmap
+  11. If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor branch creation remains deferred; next-workstream selection is still required unless the user explicitly approves a no-next-workstream steady-state outcome in canon.
+  12. commit all required docs, canon, validator, and branch-truth changes so the worktree is clean and truth is durable in commit history
+  13. run the normal branch governance validator and the PR-readiness gate mode
+  14. only then allow the current branch to report `PR READY: YES` and enter PR creation
 - a standalone post-release canon repair is an emergency-only exception path when merged canon is already stale or when external drift made pre-merge prevention impossible
 - returned `UTS`, screenshot, interactive, PR-review, or release-review evidence must be digested into the authority record before phase advancement is recommended
 - when a slice changes user-visible behavior or another operator-facing path, do not treat `## User Test Summary` as a recap slot; route through `Docs/user_test_summary_guidance.md` and require a real manual checklist unless no meaningful manual test exists
 - when an active desktop workstream has a canonical repo-level `UTS` artifact, do not stop at response text; update that workstream-owned artifact as well unless an explicit exception from `Docs/user_test_summary_guidance.md` applies
+- during bounded multi-seam Workstream execution, update the canonical workstream `UTS` incrementally as user-visible seams land, then refresh the desktop export when the Workstream seam chain is complete and the branch is user-facing
 - for relevant desktop user-facing slices, also export or refresh `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` unless an explicit exception from `Docs/user_test_summary_guidance.md` applies
 - do not confuse the canonical workstream-owned repo artifact with the required desktop convenience export or with response-level handoff text
 - when a user-visible implementation slice is already validator-green, do not assume that alone is enough to continue; route through `Docs/development_rules.md` and require an explicit hardening or continuation judgment
@@ -230,6 +244,8 @@ These are reference layers, not active workstream or roadmap owners.
 - keep validator results, synthetic/headless validation results, interactive OS-level execution results, simulated reasoning, and manual handoff as separate evidence layers rather than collapsing them into one summary
 - when a pass opens programs, windows, dialogs, temporary documents, helper processes, probe files, or other session-scoped artifacts, route through `Docs/development_rules.md` and require cleanup plus explicit cleanup verification before handoff unless there is an explicit reason to preserve them
 - when a task depends on interactive desktop validation, route through `Docs/development_rules.md` and require explicit time budgets, clean timeout abort behavior, cleanup, and last-progress reporting rather than relying on open-ended waits
+- when a task depends on Live Validation or another interactive desktop helper, route through `Docs/phase_governance.md` and require reuse-first selection from existing helpers before creating new scripts; temporary one-off probes must stay ignored, temporary, and non-closeout-grade unless promoted into documented reusable tooling
+- when a live validation helper has no tighter watchdog, require a `10s` maximum no-progress supervisor with visible progress, clean abort, cleanup, and last confirmed progress reporting
 - when closeout depends on interactive desktop validation, also route through `Docs/phase_governance.md` and require the helper's documented default budget profile to prove green before calling the branch truly green
 - when a branch materially changes user-facing desktop UI, require the post-green live launched-process UI audit before treating closeout as complete; do not reinterpret that as a screenshot requirement for every seam iteration
 - when the user also wants those audit screenshots to render inside the Codex client, use the screenshot-delivery guidance in `Docs/codex_user_guide.md`, which now defaults to small inline PNG preview images backed by preserved original files on disk, rather than assuming local-file image embeds will work

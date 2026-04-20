@@ -57,6 +57,10 @@ def _builtin_ids():
     return tuple(action.id for action in DEFAULT_COMMAND_ACTIONS)
 
 
+def _ids(actions):
+    return tuple(action.id for action in actions)
+
+
 def _test_default_source_bootstraps_template_without_actions():
     with tempfile.TemporaryDirectory() as temp_dir:
         with _with_local_app_data(temp_dir):
@@ -215,6 +219,174 @@ def _test_valid_url_saved_actions_extend_the_effective_catalog():
         )
 
 
+def _test_saved_action_phrase_collision_overrides_builtin_resolution():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_task_manager_override.json"
+        _write_json(
+            source_path,
+            {
+                "schema_version": 1,
+                "actions": [
+                    {
+                        "id": "personal_task_manager",
+                        "title": "Task Manager",
+                        "target_kind": "app",
+                        "target": "notepad.exe",
+                        "aliases": ["open task manager", "launch task manager"],
+                    }
+                ],
+            },
+        )
+
+        saved_actions = load_saved_command_actions(source_path)
+        catalog = build_default_command_action_catalog(source_path)
+
+        _assert(
+            len(saved_actions) == 1 and saved_actions[0].id == "personal_task_manager",
+            "a saved action with a built-in phrase collision should remain loadable",
+        )
+        _assert(
+            catalog.saved_action_inventory.status_kind == "loaded",
+            "built-in phrase overrides should remain visible as loaded saved actions",
+        )
+        for phrase in ("task manager", "open task manager", "launch task manager"):
+            resolved = catalog.resolve_actions(phrase)
+            _assert(
+                _ids(resolved) == ("personal_task_manager",),
+                f"saved action should resolve instead of the built-in for {phrase!r}",
+            )
+            _assert(
+                resolved[0].origin == "saved",
+                "built-in phrase overrides should preserve saved origin metadata",
+            )
+
+
+def _test_calculator_saved_action_phrase_collision_overrides_builtin_resolution():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_calculator_override.json"
+        _write_json(
+            source_path,
+            {
+                "schema_version": 1,
+                "actions": [
+                    {
+                        "id": "personal_calculator",
+                        "title": "Calculator",
+                        "target_kind": "app",
+                        "target": "notepad.exe",
+                        "aliases": ["open calculator", "launch calculator"],
+                    }
+                ],
+            },
+        )
+
+        saved_actions = load_saved_command_actions(source_path)
+        catalog = build_default_command_action_catalog(source_path)
+
+        _assert(
+            len(saved_actions) == 1 and saved_actions[0].id == "personal_calculator",
+            "a saved Calculator action with a built-in phrase collision should remain loadable",
+        )
+        _assert(
+            catalog.saved_action_inventory.status_kind == "loaded",
+            "Calculator built-in phrase overrides should remain visible as loaded saved actions",
+        )
+        for phrase in ("calculator", "open calculator", "launch calculator"):
+            resolved = catalog.resolve_actions(phrase)
+            _assert(
+                _ids(resolved) == ("personal_calculator",),
+                f"saved Calculator action should resolve instead of the built-in for {phrase!r}",
+            )
+            _assert(
+                resolved[0].origin == "saved",
+                "Calculator built-in phrase overrides should preserve saved origin metadata",
+            )
+
+
+def _test_notepad_saved_action_phrase_collision_overrides_builtin_resolution():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_notepad_override.json"
+        _write_json(
+            source_path,
+            {
+                "schema_version": 1,
+                "actions": [
+                    {
+                        "id": "personal_notepad",
+                        "title": "Notepad",
+                        "target_kind": "app",
+                        "target": "calc.exe",
+                        "aliases": ["open notepad", "launch notepad"],
+                    }
+                ],
+            },
+        )
+
+        saved_actions = load_saved_command_actions(source_path)
+        catalog = build_default_command_action_catalog(source_path)
+
+        _assert(
+            len(saved_actions) == 1 and saved_actions[0].id == "personal_notepad",
+            "a saved Notepad action with a built-in phrase collision should remain loadable",
+        )
+        _assert(
+            catalog.saved_action_inventory.status_kind == "loaded",
+            "Notepad built-in phrase overrides should remain visible as loaded saved actions",
+        )
+        for phrase in ("notepad", "open notepad", "launch notepad"):
+            resolved = catalog.resolve_actions(phrase)
+            _assert(
+                _ids(resolved) == ("personal_notepad",),
+                f"saved Notepad action should resolve instead of the built-in for {phrase!r}",
+            )
+            _assert(
+                resolved[0].origin == "saved",
+                "Notepad built-in phrase overrides should preserve saved origin metadata",
+            )
+
+
+def _test_paint_saved_action_phrase_collision_overrides_builtin_resolution():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = Path(temp_dir) / "saved_paint_override.json"
+        _write_json(
+            source_path,
+            {
+                "schema_version": 1,
+                "actions": [
+                    {
+                        "id": "personal_paint",
+                        "title": "Paint",
+                        "target_kind": "app",
+                        "target": "notepad.exe",
+                        "aliases": ["open paint", "launch paint"],
+                    }
+                ],
+            },
+        )
+
+        saved_actions = load_saved_command_actions(source_path)
+        catalog = build_default_command_action_catalog(source_path)
+
+        _assert(
+            len(saved_actions) == 1 and saved_actions[0].id == "personal_paint",
+            "a saved Paint action with a built-in phrase collision should remain loadable",
+        )
+        _assert(
+            catalog.saved_action_inventory.status_kind == "loaded",
+            "Paint built-in phrase overrides should remain visible as loaded saved actions",
+        )
+        for phrase in ("paint", "open paint", "launch paint"):
+            resolved = catalog.resolve_actions(phrase)
+            _assert(
+                _ids(resolved) == ("personal_paint",),
+                f"saved Paint action should resolve instead of the built-in for {phrase!r}",
+            )
+            _assert(
+                resolved[0].origin == "saved",
+                "Paint built-in phrase overrides should preserve saved origin metadata",
+            )
+
+
 def _test_unsupported_target_kind_fails_closed():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "unsupported_target_kind.json"
@@ -341,7 +513,7 @@ def _test_duplicate_saved_ids_fail_closed():
         )
 
 
-def _test_duplicate_saved_phrases_fail_closed():
+def _test_duplicate_saved_phrases_resolve_as_ambiguity():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "duplicate_phrases.json"
         _write_json(
@@ -367,13 +539,20 @@ def _test_duplicate_saved_phrases_fail_closed():
             },
         )
 
+        saved_actions = load_saved_command_actions(source_path)
+        catalog = build_default_command_action_catalog(source_path)
+
         _assert(
-            load_saved_command_actions(source_path) == (),
-            "duplicate saved-action titles or aliases should fail closed to no saved actions",
+            _ids(saved_actions) == ("open_reports", "open_reports_archive"),
+            "saved-vs-saved exact phrase overlaps should remain loadable ambiguity candidates",
+        )
+        _assert(
+            _ids(catalog.resolve_actions("show reports")) == ("open_reports", "open_reports_archive"),
+            "saved-vs-saved exact phrase overlaps should resolve as an explicit ambiguity set",
         )
 
 
-def _test_builtin_collisions_fail_closed():
+def _test_builtin_id_collisions_fail_closed():
     with tempfile.TemporaryDirectory() as temp_dir:
         source_path = Path(temp_dir) / "builtin_collision.json"
         _write_json(
@@ -394,11 +573,11 @@ def _test_builtin_collisions_fail_closed():
 
         _assert(
             load_saved_command_actions(source_path) == (),
-            "collisions against built-in ids or phrases should fail closed to no saved actions",
+            "collisions against built-in ids should fail closed to no saved actions",
         )
         _assert(
             build_default_command_action_catalog(source_path).saved_action_inventory.status_kind == "invalid_saved_actions",
-            "built-in collisions should remain visible as invalid saved-action entries",
+            "built-in id collisions should remain visible as invalid saved-action entries",
         )
 
 
@@ -409,12 +588,16 @@ def main():
         ("empty and invalid source fallback", _test_empty_or_invalid_custom_sources_fail_closed),
         ("valid saved actions extend catalog", _test_valid_saved_actions_extend_the_effective_catalog),
         ("valid url saved actions extend catalog", _test_valid_url_saved_actions_extend_the_effective_catalog),
+        ("saved action phrase collision overrides built-in resolution", _test_saved_action_phrase_collision_overrides_builtin_resolution),
+        ("Calculator saved action phrase collision overrides built-in resolution", _test_calculator_saved_action_phrase_collision_overrides_builtin_resolution),
+        ("Notepad saved action phrase collision overrides built-in resolution", _test_notepad_saved_action_phrase_collision_overrides_builtin_resolution),
+        ("Paint saved action phrase collision overrides built-in resolution", _test_paint_saved_action_phrase_collision_overrides_builtin_resolution),
         ("unsupported target kind fails closed", _test_unsupported_target_kind_fails_closed),
         ("invalid url targets fail closed", _test_invalid_url_targets_fail_closed),
         ("invalid non-url targets fail closed", _test_invalid_non_url_targets_fail_closed),
         ("duplicate saved ids fail closed", _test_duplicate_saved_ids_fail_closed),
-        ("duplicate saved phrases fail closed", _test_duplicate_saved_phrases_fail_closed),
-        ("built-in collisions fail closed", _test_builtin_collisions_fail_closed),
+        ("duplicate saved phrases resolve as ambiguity", _test_duplicate_saved_phrases_resolve_as_ambiguity),
+        ("built-in id collisions fail closed", _test_builtin_id_collisions_fail_closed),
     ]
 
     for name, fn in tests:

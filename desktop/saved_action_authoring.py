@@ -14,6 +14,7 @@ from .shared_action_model import (
     CommandGroup,
     DEFAULT_COMMAND_ACTIONS,
     SUPPORTED_ACTION_TARGET_KINDS,
+    build_saved_action_callable_phrases,
     build_default_command_action_catalog,
     coerce_saved_command_action_record,
     coerce_saved_command_actions_from_records,
@@ -427,6 +428,34 @@ def _available_actions_for_state(
     return (*DEFAULT_COMMAND_ACTIONS, *(saved_actions or state.existing_actions))
 
 
+def _normalized_action_phrases(action: CommandAction) -> set[str]:
+    return {
+        normalized
+        for normalized in (
+            normalize_command_text(phrase)
+            for phrase in build_saved_action_callable_phrases(
+                action.title,
+                action.aliases,
+                invocation_mode=action.invocation_mode,
+                trigger_mode=action.trigger_mode,
+                custom_triggers=action.custom_triggers,
+            )
+        )
+        if normalized
+    }
+
+
+def _reject_builtin_phrase_collision_for_authoring(action: CommandAction):
+    built_in_phrases: set[str] = set()
+    for built_in_action in DEFAULT_COMMAND_ACTIONS:
+        built_in_phrases.update(_normalized_action_phrases(built_in_action))
+
+    if _normalized_action_phrases(action) & built_in_phrases:
+        raise SavedActionDraftValidationError(
+            "Saved action title, alias, or trigger phrase collides with an existing built-in action."
+        )
+
+
 def _load_saved_action_authoring_state(
     source_path: str | Path | None = None,
 ) -> SavedActionAuthoringState:
@@ -581,6 +610,7 @@ def _build_saved_action_record_for_create(
         record["custom_triggers"] = list(custom_triggers)
 
     try:
+        _reject_builtin_phrase_collision_for_authoring(coerce_saved_command_action_record(record))
         coerce_saved_command_actions_from_records((*state.existing_records, record))
     except ValueError as exc:
         raise SavedActionDraftValidationError(str(exc)) from exc
@@ -852,6 +882,7 @@ def update_saved_action_from_draft(
     updated_records = list(deepcopy(state.existing_records))
     updated_records[index] = record
     try:
+        _reject_builtin_phrase_collision_for_authoring(coerce_saved_command_action_record(record))
         updated_actions = coerce_saved_command_actions_from_records(updated_records)
     except ValueError as exc:
         raise SavedActionDraftValidationError(str(exc)) from exc

@@ -56,6 +56,9 @@ Validation Contract:
 Timeout Contract:
 [fill in only when interactive timing governance matters]
 
+Seam Sequence:
+[fill in when a Workstream pass may execute more than one seam]
+
 Repo state:
 [Active Branch / No Active Branch]
 
@@ -67,7 +70,11 @@ If the task is phase-sensitive and the exact `Phase` field is missing, stop and 
 If repo state is blocked `No Active Branch`, implementation is blocked and the task should resolve the blocking repair path instead of starting implementation.
 If repo state is steady-state `No Active Branch`, do not start implementation by inertia.
 An explicitly approved `docs/governance`, `release packaging`, or `emergency canon repair` branch may still proceed only when the branch-class admission rules from `C:\Nexus Desktop AI\Docs\phase_governance.md` allow it.
+If a governance or canon update is directly required to keep the active current branch truthful, executable, phase-correct, readiness-correct, validation-correct, closeout-correct, or release-correct, keep that docs-only update on the active branch inside the current phase and branch class.
+Use a separate governance or docs-style branch only for repo-wide uncoupled governance work, emergency canon repair, cross-branch truth repair, or governance work that would contaminate or confuse an active implementation or release branch.
 Add `Validation Contract`, `Timeout Contract`, and `Current active seam` when the governed task needs them.
+Add `Seam Sequence` when the Workstream prompt may use bounded multi-seam workflow.
+If `Seam Sequence` is present, Codex must execute one active seam at a time, validate after each seam, and report a continue-or-stop decision before starting the next seam.
 
 Default expectation:
 
@@ -144,6 +151,7 @@ Use this section when the branch matters to the task:
 - milestone value: [why this branch or docs program is worth completing]
 - same-branch follow-through: [dependent work that still belongs on this branch before readiness]
 - branch posture: [fresh branch from updated main / continue approved active branch / docs/governance branch from No Active Branch / release packaging branch / emergency canon repair branch / No Active Branch]
+- branch-level plan: [objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam or seam sequence]
 
 If a lane was already closed, merged, or released, the next workstream should start from updated `main` on a fresh branch.
 
@@ -204,6 +212,9 @@ After analysis is complete and execution scope is approved, follow these discipl
 - verify exact failure path or behavior before changing logic
 - no blind iteration
 - one coherent approved subproblem per revision
+- use bounded multi-seam workflow as the primary Workstream model when the approved seams are same-workstream, same-phase, same-risk, and same-subsystem-family or tightly coupled
+- execute exactly one active seam at a time and validate, record, and decide continue-or-stop before the next seam
+- use single-seam fallback for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem work, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation
 - preserve architecture boundaries
 - keep source-of-truth docs aligned with actual implemented state
 - production behavior must remain unchanged unless explicitly in scope
@@ -255,22 +266,29 @@ If an execution task is too broad for one approved pass, explain the cleaner exe
 2. Explain the branch or workstream posture.
 3. Explain the exact current phase, branch class, and blockers.
 4. Explain the next legal phase or say explicitly that repo state is `No Active Branch`.
-5. Explain the validation plan.
+5. If in `Branch Readiness`, explain the whole-branch execution plan before Workstream admission.
+6. If in `Workstream`, explain whether bounded multi-seam workflow is safe; if it is, list the seam sequence, per-seam gates, and stop conditions.
+7. If in `PR Readiness`, explicitly plan the stale-canon check, post-merge-state handling, next-workstream selection/canon/minimal-scope/no-branch-exists check, required `Next Workstream: Selected`, `Minimal Scope:`, `## Selected Next Workstream`, and `Branch: Not created` markers, dirty-branch/durable-commit check, docs-sync/drift-audit check, normal governance validator, and PR-readiness gate mode.
+8. Explain the validation plan.
 
 If the task includes interactive validation, the validation plan should also state:
 
+- existing helper or harness that will be reused first, or the exact reason reuse is unsafe
+- whether any temporary one-off probe is being used and how it will be deleted or promoted before closeout-grade proof
 - full-run hard timeout
 - no-progress timeout
 - scenario timeout when relevant
 - transition timeout when relevant
+- visible progress markers or step-log updates that prove the run is not stalled
 - how timeout or freeze will be reported and cleaned up
 
 ### During Execution
 
 1. Perform only the approved execution work.
-2. Verify the result directly.
-3. Clean up session-scoped side effects from the pass unless there is an explicit reason to preserve them.
-4. Report what changed, what was verified, and what was cleaned up or intentionally left in place.
+2. For bounded multi-seam workflow, perform exactly one seam, verify it, record evidence, and decide `continue` or `stop` before starting the next seam.
+3. Stop the workflow immediately on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, or branch-truth inconsistency.
+4. Clean up session-scoped side effects from the pass unless there is an explicit reason to preserve them.
+5. Report what changed, what was verified, the per-seam continue-or-stop decisions, and what was cleaned up or intentionally left in place.
 
 ## Verification Requirements
 
@@ -286,10 +304,12 @@ If applicable, also verify:
 - failure path
 - artifact cleanup
 - session cleanup and teardown
+- existing-helper reuse or documented justification for any temporary probe
 - cleanup verification, including that no test-opened app window, helper process, or temporary probe file was left behind
 - no regressions in locked behavior
 - no drift outside the allowed surfaces
 - interactive validation time budgets and timeout behavior when the pass depends on a real desktop or harness run
+- no-progress supervision, using the tighter helper-specific watchdog when present or a `10s` maximum no-progress interval when no tighter watchdog exists
 
 Session cleanup and teardown includes, when relevant:
 
@@ -306,6 +326,7 @@ If an interactive run times out or freezes, the output must also state:
 - which time budget tripped
 - the last confirmed meaningful progress point
 - what cleanup was performed before handoff
+- whether the issue is classified as product defect, harness defect, environment issue, or canon / contract drift
 
 If the slice changes user-visible behavior, runtime interaction, UX flow, prompts, startup behavior, voice behavior, or another manual operator-facing path, the final output must include a `## User Test Summary` section as a concrete manual checklist.
 
@@ -324,6 +345,9 @@ If no meaningful manual test exists, the output must still include `## User Test
 If a canonical repo-level `UTS` artifact exists for the active desktop workstream, the execution pass must update that artifact as well rather than stopping at response text.
 
 By default, that artifact is the `## User Test Summary` section in the relevant canonical workstream doc unless that doc explicitly declares a different repo path.
+
+For bounded multi-seam Workstream execution, update the canonical workstream `UTS` incrementally as user-visible seams land.
+When the Workstream seam chain is complete, refresh the desktop export if the branch is user-facing.
 
 If the artifact is not updated, the final output must explain why the update was skipped.
 
@@ -397,4 +421,5 @@ K. `## User Test Summary` manual checklist when manual validation is relevant
 - Do not reopen closed version behavior without explicit approval.
 - Do not smuggle in policy or authority changes outside the approved task.
 - Do not modify backlog status or add backlog items unless the task explicitly authorizes backlog updates.
+- Do not force tightly coupled governance or canon updates onto a separate docs/governance branch when the active branch owns the affected truth and the update can stay inside its current phase, branch class, validation rules, and stop conditions.
 - Do not force a docs-only canon repair onto a hypothetical implementation branch when live truth and `C:\Nexus Desktop AI\Docs\phase_governance.md` justify an explicitly approved standalone docs/governance branch.

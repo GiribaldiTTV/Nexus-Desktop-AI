@@ -148,6 +148,9 @@ Default checkpoint:
 
 - branch-level lane evaluation
 
+Branch Readiness must establish the branch-level execution plan before Workstream begins.
+That plan must name the branch objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase needs, and the first Workstream seam or initial seam sequence.
+
 Stay inside the active grouped lane until one of these is true:
 
 - the milestone threshold is satisfied
@@ -158,7 +161,8 @@ Stay inside the active grouped lane until one of these is true:
 After a lane is closed or merged:
 
 - the next implementation workstream must execute from updated `main` on a fresh branch
-- the successor branch may be created during `PR Readiness`, but it remains reserved and may not be used for execution until the current branch merges and the successor branch is revalidated against updated `main`
+- the next workstream must be selected, canon-defined, minimally scoped, and explicitly not branched during `PR Readiness`
+- the successor branch is created only during `Branch Readiness` after the current branch merges and updated `main` is revalidated
 
 If a branch becomes:
 
@@ -182,8 +186,10 @@ Explicitly approved non-implementation branches may still begin from `No Active 
 - their branch-class admission rules from `Docs/phase_governance.md` pass
 - their branch authority record is explicit
 
-Active-branch-first remains the normal rule.
-Do not use a standalone `docs/governance` branch to carry routine canon work that belongs on an already-active implementation or release branch.
+Active-branch-first remains the normal rule for tightly coupled canon and governance work.
+When a governance or canon update is directly required to keep the active branch truthful, executable, phase-correct, readiness-correct, validation-correct, closeout-correct, or release-correct, carry that update on the active branch inside its current phase and branch class.
+That allowance does not permit unrelated governance churn, product scope expansion, validation weakening, stop-condition weakening, or phase-authority bypass.
+Do not use a standalone `docs/governance` branch to carry routine canon or governance work that belongs on an already-active implementation or release branch.
 
 For active promoted work, the canonical workstream doc is the single authoritative owner of:
 
@@ -206,23 +212,41 @@ Supporting canon must stay aligned with live truth.
 
 That means:
 
-- directly supporting canon may be updated on the active implementation branch when that branch changes the truth
+- PR Readiness hard blocker shorthand is `stale-canon`, `post-merge`, `dirty`, `docs-sync`, and `next-workstream`
+- directly supporting canon and tightly coupled governance may be updated on the active implementation or release branch when that branch changes or depends on the truth
 - no PR-ready without canon-ready:
   - a branch is not PR-ready if merging it would leave `main` canon-stale
+- no PR-ready with stale canon:
+  - current-state canon and merge-target canon must already reflect the branch's true state and the state that will be true after merge
 - when a branch closes a workstream, changes released milestone posture, changes the current rebaseline, changes closeout-index routing, changes backlog or roadmap release posture, changes workstream-index release posture, or changes `Docs/Main.md` baseline routing, the required release-facing canon updates must already be on that branch before PR creation is allowed
-- no PR-ready without successor branch created:
-  - If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor-lane selection and reserved successor-branch creation are waived for that PR-readiness pass.
+- no PR-ready with `Next Workstream Undefined`:
+  - If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor branch creation remains deferred; next-workstream selection is still required unless the user explicitly approves a no-next-workstream steady-state outcome in canon.
   - the next workstream must be selected from canon
+  - that workstream must be recorded in `Docs/feature_backlog.md` and `Docs/prebeta_roadmap.md`
   - that workstream must have canon-valid `Record State`
-  - a fresh successor branch must already be created using an approved naming family such as `feature/<lane>`, `fix/<issue>`, or `docs/<lane>`
-  - that successor branch must remain reserved until the current branch merges and the successor branch is revalidated against updated `main`
-  - when that waiver applies, the branch must instead record `No Active Branch` plus the blocking admission item explicitly in merged current-state canon
+  - that workstream must have minimal scope defined before PR green
+  - no branch may exist yet for that next workstream
+  - the selected backlog entry must include `Next Workstream: Selected` and `Minimal Scope:`
+  - `Docs/prebeta_roadmap.md` must include `## Selected Next Workstream` with the same workstream id, `Record State`, `Minimal Scope:`, and branch status such as `Branch: Not created`
+  - successor branch creation is deferred to `Branch Readiness` after the current branch merges and updated `main` is revalidated
+  - when release debt or another admission blocker applies, the branch must also record `No Active Branch` plus the blocking admission item explicitly in merged current-state canon
+- no PR-ready with unresolved post-merge planning:
+  - if post-merge truth needs `No Active Branch` handling, release-debt handling, next-workstream planning, next-workstream canon sync, minimal scope, or branch-creation deferral, that handling must already be complete inside PR Readiness
+- no PR-ready with a dirty branch:
+  - the worktree must be clean before `PR READY: YES`
+  - required docs changes must be committed
+  - required canon state must not exist only in the working tree
+  - branch truth must be durable in commit history
+- no PR-ready without docs-sync and drift-audit completion:
+  - docs sync, Governance Drift Audit, validator alignment, and required post-merge wording must be complete and mutually consistent
+  - run the branch governance validator and its PR-readiness gate mode before reporting `PR READY: YES`
 - post-release canon repair is emergency-only:
   - use it only when canon drift already exists on updated `main` and could not be prevented before merge or release
 - standalone `docs/governance` branches are future-capable but tightly gated:
   - they may begin from `No Active Branch` when the branch-class admission rules pass
   - they remain non-default during `pre-Beta`
   - they must not be used to avoid active-branch canon duties or required release-debt follow-through
+- standalone governance or docs-style branches are reserved for repo-wide governance work not tightly coupled to one active branch, emergency canon repair, cross-branch truth repair that cannot safely live on one active branch, or governance work that would contaminate or confuse an active implementation or release branch
 - do not default to a standalone docs-only post-release branch for routine canon completion
 - do not use canon sync as an excuse for broad unrelated documentation churn
 
@@ -258,7 +282,8 @@ that weakness must be classified as `Governance Drift`.
 If governance drift is discovered:
 
 - stop normal progression immediately
-- either fix it inside the approved governance or docs boundary, or
+- if the drift is directly coupled to the active branch's truth, phase, readiness, validation, closeout, or release state, fix it inside the approved docs or governance boundary on that active branch after the boundary is explicit
+- otherwise, either fix it inside an approved standalone governance or docs boundary, or
 - produce the exact required canon delta and wait for user confirmation
 
 Do not defer known governance weaknesses silently to a later branch.
@@ -282,7 +307,25 @@ and keep that validator green before calling the branch ready.
 - minimal isolated changes means the minimal coherent change set needed to close that approved subproblem
 - grouped workstreams are allowed during `pre-Beta` when they remain coherent by subsystem and end-state
 - a grouped branch may carry multiple validated slices when they all belong to the same milestone
+- `bounded multi-seam workflow` is the primary Workstream execution model for coherent same-risk seam chains
 - unrelated ideas must still be split out even if they look convenient to batch
+
+Bounded multi-seam workflow means:
+
+- multiple seams may execute in sequence within one approved Workstream pass
+- each seam still has one active owner, exact boundary, explicit non-includes, validation gate, and continue-or-stop decision
+- every seam must remain in the same workstream, same phase, same branch class, same risk class, and same subsystem family or tightly coupled chain
+
+Stop the workflow immediately if validation fails, regression appears, scope drifts, risk class changes, governance drift appears, manual validation becomes blocking, or branch truth no longer matches the authority record.
+
+Use single-seam fallback for:
+
+- bug fixes
+- hotfixes
+- unclear or high-risk seams
+- cross-subsystem changes
+- settings, protocol, launcher-policy, or UI-model changes
+- any pass where validation cannot support safe continuation
 
 Use the smallest safe slice for:
 
@@ -312,6 +355,10 @@ Codex must not allow stalled validation runs, harnesses, or desktop exercises to
 
 When the branch is in governed closeout recovery, `Docs/phase_governance.md` is the controlling timeout and stop-loss authority unless the active workstream doc explicitly documents a tighter contract.
 
+Interactive validation is reuse-first.
+Before creating a new live-validation helper, Codex must inspect the existing repo helper surface and use, parameterize, extend, or extract shared support from existing helpers when that is safe.
+Temporary one-off probes may be used only under ignored evidence roots, may not become closeout-grade proof by inertia, and must be deleted after the pass unless deliberately promoted into documented reusable tooling.
+
 When an interactive validation pass is relevant, it must use:
 
 - a full-run hard timeout
@@ -331,6 +378,10 @@ That means:
 - live re-resolution of windows, dialogs, overlays, and controls across close/open seams
 - seam classification before product code is changed during validation hardening
 
+If no tighter helper-specific watchdog is active, `10s` without meaningful progress is the maximum allowed no-progress interval for live validation.
+Meaningful progress means a new runtime marker, step-log entry, scenario transition, UI readback, screenshot/proof artifact, process-state observation, cleanup confirmation, or explicit last-progress update.
+If that interval is exceeded, Codex must abort the run, clean up session state, report the last confirmed progress point, and classify the stall before patching anything.
+
 When the approved boundary is a continuous `Hardening` pass on the current branch, Codex should keep iterating through seams without waiting for a new user prompt after every rerun unless:
 
 - a blocker appears
@@ -347,6 +398,7 @@ If a timeout or freeze is detected, Codex must:
 - perform the required session cleanup
 - explicitly report the timeout or stall condition
 - explicitly report the last confirmed meaningful progress point
+- route helper or harness repair back through `Hardening` unless the authority record explicitly allows validation-only support edits in the current phase
 
 For hardened desktop helpers, the working target is not just eventual completion.
 The working target is also responsiveness:
@@ -435,6 +487,16 @@ If no meaningful manual test exists for the change, Codex must say so explicitly
 For active desktop workstreams, the default canonical repo-level `UTS` artifact is the `## User Test Summary` section in the relevant canonical workstream doc unless that doc explicitly declares a different repo path.
 
 When that artifact exists and supporting docs are in scope on the active branch, Codex must update it as part of the same slice by default.
+
+For bounded multi-seam Workstream execution, User Test Summary handling is incremental plus final:
+
+- update the canonical workstream `## User Test Summary` as user-visible or operator-facing seams land
+- when the Workstream seam chain is complete, refresh the desktop export if the branch is user-facing
+- digest returned user evidence in `Live Validation` before recommending phase advancement
+- route returned evidence back to `Workstream` for in-scope user-facing branch work, to `Hardening` for defects or validation gaps, or to backlog/defer handling for new feature requests
+
+Completing a User Test Summary update does not move the branch directly from `Workstream` to `PR Readiness`.
+The normal next phase after Workstream completion remains `Hardening`.
 
 Response-only `## User Test Summary` output does not satisfy the workstream-owned validation layer when the canonical repo artifact remains stale.
 

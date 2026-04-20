@@ -122,6 +122,206 @@ def _test_builtin_catalog_integrity():
             _assert(normalize_command_text(alias), f"{action.id} aliases should normalize to non-empty phrases")
 
 
+def _test_task_manager_builtin_catalog_entry():
+    matches = tuple(action for action in DEFAULT_COMMAND_ACTIONS if action.id == "open_task_manager")
+
+    _assert(len(matches) == 1, "the Task Manager built-in should exist exactly once")
+    action = matches[0]
+    _assert(action.title == "Open Task Manager", "the Task Manager built-in should keep the intended title")
+    _assert(action.target_kind == "app", "the Task Manager built-in should use the existing app target kind")
+    _assert(action.target == "taskmgr.exe", "the Task Manager built-in should launch taskmgr.exe")
+    _assert(action.origin == "built_in", "the Task Manager built-in should preserve built-in origin metadata")
+    _assert(
+        action.aliases == ("open task manager", "task manager", "launch task manager"),
+        "the Task Manager built-in should expose the approved exact aliases",
+    )
+
+    catalog = CommandActionCatalog()
+    for phrase in ("open task manager", "task manager", "launch task manager"):
+        _assert(
+            _ids(catalog.resolve_actions(phrase)) == ("open_task_manager",),
+            f"{phrase!r} should resolve to the Task Manager built-in",
+        )
+
+
+def _test_calculator_builtin_catalog_entry():
+    matches = tuple(action for action in DEFAULT_COMMAND_ACTIONS if action.id == "open_calculator")
+
+    _assert(len(matches) == 1, "the Calculator built-in should exist exactly once")
+    action = matches[0]
+    _assert(action.title == "Open Calculator", "the Calculator built-in should keep the intended title")
+    _assert(action.target_kind == "app", "the Calculator built-in should use the existing app target kind")
+    _assert(action.target == "calc.exe", "the Calculator built-in should launch calc.exe")
+    _assert(action.origin == "built_in", "the Calculator built-in should preserve built-in origin metadata")
+    _assert(
+        action.aliases == ("open calculator", "calculator", "launch calculator"),
+        "the Calculator built-in should expose the approved exact aliases",
+    )
+
+    catalog = CommandActionCatalog()
+    for phrase in ("open calculator", "calculator", "launch calculator"):
+        _assert(
+            _ids(catalog.resolve_actions(phrase)) == ("open_calculator",),
+            f"{phrase!r} should resolve to the Calculator built-in",
+        )
+
+
+def _test_notepad_builtin_catalog_entry():
+    matches = tuple(action for action in DEFAULT_COMMAND_ACTIONS if action.id == "open_notepad")
+
+    _assert(len(matches) == 1, "the Notepad built-in should exist exactly once")
+    action = matches[0]
+    _assert(action.title == "Open Notepad", "the Notepad built-in should keep the intended title")
+    _assert(action.target_kind == "app", "the Notepad built-in should use the existing app target kind")
+    _assert(action.target == "notepad.exe", "the Notepad built-in should launch notepad.exe")
+    _assert(action.origin == "built_in", "the Notepad built-in should preserve built-in origin metadata")
+    _assert(
+        action.aliases == ("open notepad", "notepad", "launch notepad"),
+        "the Notepad built-in should expose the approved exact aliases",
+    )
+
+    catalog = CommandActionCatalog()
+    for phrase in ("open notepad", "notepad", "launch notepad"):
+        _assert(
+            _ids(catalog.resolve_actions(phrase)) == ("open_notepad",),
+            f"{phrase!r} should resolve to the Notepad built-in",
+        )
+
+
+def _test_paint_builtin_catalog_entry():
+    matches = tuple(action for action in DEFAULT_COMMAND_ACTIONS if action.id == "open_paint")
+
+    _assert(len(matches) == 1, "the Paint built-in should exist exactly once")
+    action = matches[0]
+    _assert(action.title == "Open Paint", "the Paint built-in should keep the intended title")
+    _assert(action.target_kind == "app", "the Paint built-in should use the existing app target kind")
+    _assert(action.target == "mspaint.exe", "the Paint built-in should launch mspaint.exe")
+    _assert(action.origin == "built_in", "the Paint built-in should preserve built-in origin metadata")
+    _assert(
+        action.aliases == ("open paint", "paint", "launch paint"),
+        "the Paint built-in should expose the approved exact aliases",
+    )
+
+    catalog = CommandActionCatalog()
+    for phrase in ("open paint", "paint", "launch paint"):
+        _assert(
+            _ids(catalog.resolve_actions(phrase)) == ("open_paint",),
+            f"{phrase!r} should resolve to the Paint built-in",
+        )
+
+
+def _test_saved_actions_override_builtin_phrase_collisions():
+    saved_action = CommandAction(
+        id="personal_task_manager",
+        title="Task Manager",
+        target_kind="app",
+        target="notepad.exe",
+        aliases=("open task manager", "launch task manager"),
+        origin="saved",
+    )
+    catalog = CommandActionCatalog((*DEFAULT_COMMAND_ACTIONS, saved_action))
+
+    for phrase in ("task manager", "open task manager", "launch task manager"):
+        resolved = catalog.resolve_actions(phrase)
+        _assert(
+            _ids(resolved) == ("personal_task_manager",),
+            f"saved actions should override built-in phrase collisions for {phrase!r}",
+        )
+        _assert(
+            resolved[0].origin == "saved",
+            "saved-action phrase collisions should resolve to saved origin metadata",
+        )
+
+    _assert(
+        _ids(catalog.resolve_actions("open file explorer")) == ("open_windows_explorer",),
+        "built-ins should remain the fallback when no saved action matches the phrase",
+    )
+
+
+def _test_saved_actions_override_calculator_builtin_phrase_collisions():
+    saved_action = CommandAction(
+        id="personal_calculator",
+        title="Calculator",
+        target_kind="app",
+        target="notepad.exe",
+        aliases=("open calculator", "launch calculator"),
+        origin="saved",
+    )
+    catalog = CommandActionCatalog((*DEFAULT_COMMAND_ACTIONS, saved_action))
+
+    for phrase in ("calculator", "open calculator", "launch calculator"):
+        resolved = catalog.resolve_actions(phrase)
+        _assert(
+            _ids(resolved) == ("personal_calculator",),
+            f"saved actions should override Calculator built-in phrase collisions for {phrase!r}",
+        )
+        _assert(
+            resolved[0].origin == "saved",
+            "Calculator phrase collisions should resolve to saved origin metadata",
+        )
+
+    _assert(
+        _ids(catalog.resolve_actions("open file explorer")) == ("open_windows_explorer",),
+        "built-ins should remain the fallback after the Calculator saved-action override check",
+    )
+
+
+def _test_saved_actions_override_notepad_builtin_phrase_collisions():
+    saved_action = CommandAction(
+        id="personal_notepad",
+        title="Notepad",
+        target_kind="app",
+        target="calc.exe",
+        aliases=("open notepad", "launch notepad"),
+        origin="saved",
+    )
+    catalog = CommandActionCatalog((*DEFAULT_COMMAND_ACTIONS, saved_action))
+
+    for phrase in ("notepad", "open notepad", "launch notepad"):
+        resolved = catalog.resolve_actions(phrase)
+        _assert(
+            _ids(resolved) == ("personal_notepad",),
+            f"saved actions should override Notepad built-in phrase collisions for {phrase!r}",
+        )
+        _assert(
+            resolved[0].origin == "saved",
+            "Notepad phrase collisions should resolve to saved origin metadata",
+        )
+
+    _assert(
+        _ids(catalog.resolve_actions("open file explorer")) == ("open_windows_explorer",),
+        "built-ins should remain the fallback after the Notepad saved-action override check",
+    )
+
+
+def _test_saved_actions_override_paint_builtin_phrase_collisions():
+    saved_action = CommandAction(
+        id="personal_paint",
+        title="Paint",
+        target_kind="app",
+        target="notepad.exe",
+        aliases=("open paint", "launch paint"),
+        origin="saved",
+    )
+    catalog = CommandActionCatalog((*DEFAULT_COMMAND_ACTIONS, saved_action))
+
+    for phrase in ("paint", "open paint", "launch paint"):
+        resolved = catalog.resolve_actions(phrase)
+        _assert(
+            _ids(resolved) == ("personal_paint",),
+            f"saved actions should override Paint built-in phrase collisions for {phrase!r}",
+        )
+        _assert(
+            resolved[0].origin == "saved",
+            "Paint phrase collisions should resolve to saved origin metadata",
+        )
+
+    _assert(
+        _ids(catalog.resolve_actions("open file explorer")) == ("open_windows_explorer",),
+        "built-ins should remain the fallback after the Paint saved-action override check",
+    )
+
+
 def _test_url_target_support_is_first_class():
     _assert("url" in SUPPORTED_ACTION_TARGET_KINDS, "url targets should be a supported action target kind")
 
@@ -200,6 +400,14 @@ def main():
         ("exact match contract", _test_exact_match_contract_on_custom_catalog),
         ("ambiguous match contract", _test_ambiguous_match_contract_on_custom_catalog),
         ("built-in catalog integrity", _test_builtin_catalog_integrity),
+        ("task manager built-in catalog entry", _test_task_manager_builtin_catalog_entry),
+        ("calculator built-in catalog entry", _test_calculator_builtin_catalog_entry),
+        ("notepad built-in catalog entry", _test_notepad_builtin_catalog_entry),
+        ("paint built-in catalog entry", _test_paint_builtin_catalog_entry),
+        ("saved actions override built-in phrase collisions", _test_saved_actions_override_builtin_phrase_collisions),
+        ("saved actions override Calculator built-in phrase collisions", _test_saved_actions_override_calculator_builtin_phrase_collisions),
+        ("saved actions override Notepad built-in phrase collisions", _test_saved_actions_override_notepad_builtin_phrase_collisions),
+        ("saved actions override Paint built-in phrase collisions", _test_saved_actions_override_paint_builtin_phrase_collisions),
         ("url target support", _test_url_target_support_is_first_class),
         ("url launch path", _test_url_launch_uses_system_handler_without_path_normalization),
         ("default catalog wrapper", _test_default_catalog_wrapper_preserves_builtin_catalog),

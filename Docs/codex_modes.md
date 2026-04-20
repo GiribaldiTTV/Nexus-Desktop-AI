@@ -123,6 +123,7 @@ In Workflow mode, Codex should:
 - make the required changes
 - verify the changed behavior or changed docs
 - report any drift or remaining gaps honestly
+- when the approved Workstream boundary contains a coherent same-risk seam chain, use bounded multi-seam workflow as the primary model while executing one active seam at a time
 - when the approved boundary is continuous validation inside the current workstream, keep iterating until the full gate is green or a hard stop is reached
 
 ### What Codex Must Not Do
@@ -143,6 +144,7 @@ Workflow mode should usually return:
 - a distinct summary of validator results
 - a distinct summary of synthetic or headless validation results and the supporting validation artifacts created or used
 - a distinct summary of interactive OS-level execution results when that path is feasible
+- the existing helper, harness, or shared support reused for interactive validation, or the explicit reason a temporary probe or new helper was necessary
 - session cleanup performed and explicitly verified, including what was closed, stopped, restored, or deleted after the pass
 - any remaining simulated-only findings or reasoning-only gaps that still matter
 - deeper branch-local validation or hardening findings when the slice changes runtime or user-visible behavior
@@ -161,20 +163,28 @@ When the approved phase is `PR Readiness`, the output must also explicitly inclu
 - confirmation that the merge-target canon completeness gate passed
 - confirmation that the Governance Drift Audit ran
 - whether governance drift was found
-- when post-merge truth will admit a next branch:
+- confirmation that stale-canon, post-merge-state, next-workstream, dirty-branch, and docs-sync/drift-audit blockers are clear
+- confirmation that branch truth is committed and durable, not only present in the working tree
+- confirmation that the normal governance validator and the PR-readiness gate mode passed
+- for the selected next workstream:
   - the selected next workstream identity
   - the next workstream `Record State`
-  - the successor branch name
-  - confirmation that the successor branch was created
-  - confirmation that the successor branch is reserved until revalidated after merge
+  - the minimal scope recorded in canon
+  - confirmation that backlog includes `Next Workstream: Selected` and `Minimal Scope:` and roadmap includes `## Selected Next Workstream`
+  - confirmation that no branch exists yet for that next workstream
+  - confirmation that successor branch creation is deferred to `Branch Readiness` after merge and updated-`main` revalidation
 - when post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open:
   - repo state `No Active Branch`
   - the blocking admission item
-  - confirmation that successor lock was waived for the pass
+  - confirmation that branch creation remains deferred and no next implementation branch may execute by inertia
 
 Do not report cleanup as complete unless the pass has explicitly checked for leftover apps, windows, dialogs, helper processes, probe files, or other temporary artifacts it created or opened.
 
 Do not report an interactive validation pass as complete or trustworthy if it exceeded its time budgets or sat stalled without a clean abort path.
+
+Do not create a new live-validation script by default.
+For Live Validation, Codex should reuse existing helpers first, then parameterize or extend them, then extract shared support if several helpers need the same watchdog or cleanup behavior.
+Temporary one-off probes are allowed only as ignored exploratory artifacts and must be deleted or promoted into documented reusable tooling before closeout-grade proof is claimed.
 
 ## Workstream And Branch Governance
 
@@ -187,6 +197,23 @@ That means:
 - one branch may host multiple validated slices for one milestone
 - grouped workstreams should not become grab-bags of unrelated ideas
 - lane evaluation should stay milestone-driven rather than slice-driven
+
+### Bounded Multi-Seam Workflow
+
+For coherent Workstream implementation, bounded multi-seam workflow is the primary execution model.
+
+That means:
+
+- Branch Readiness should plan the branch objective, target end-state, expected seam families, risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam sequence
+- Workstream may execute multiple planned seams in one pass only when they share the same workstream, phase, branch class, risk class, and subsystem family or tightly coupled chain
+- each seam is still analyzed, bounded, implemented, validated, recorded, and judged before the next seam starts
+- the output must report the per-seam validation result and `continue` or `stop` decision
+- a risk-class change, validation failure, scope drift, governance drift, unresolved manual-validation blocker, or branch-truth contradiction stops the workflow
+
+Single-seam fallback is required for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem work, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation.
+
+Completing Workstream seams does not make the branch PR-ready by itself.
+The normal next legal phase is `Hardening`, then `Live Validation`, then `PR Readiness`.
 
 ### Milestone Gate
 
@@ -227,9 +254,11 @@ If repo truth is a steady-state `No Active Branch`, say so explicitly instead of
 
 After a workstream is merged and closed, the next implementation workstream should execute from updated `main` on a fresh branch.
 
-That successor branch may be created during `PR Readiness`, but it must stay reserved until the current branch merges and the successor branch is revalidated against updated `main`.
+During `PR Readiness`, the next workstream must be selected, canon-defined, minimally scoped, and explicitly not branched yet.
 
-If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor-lane selection and reserved successor-branch creation are waived for that PR-readiness pass.
+That successor branch is created only during `Branch Readiness` after the current branch merges and updated `main` is revalidated.
+
+If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor branch creation remains deferred; next-workstream selection is still required unless the user explicitly approves a no-next-workstream steady-state outcome in canon.
 
 If a branch is stale, merged, or identical to `main`, call it out explicitly and stop using it as the base for next-lane planning.
 
@@ -261,6 +290,9 @@ Do not collapse those two cases into one label.
 - `Docs/phase_governance.md` owns repo-wide phase, proof, timeout, seam, stop-loss, validation-helper, and desktop UI audit rules
 - User Test Summary belongs to workstream-owned validation
 - incident patterns are generalized knowledge, not case history
+- governance and canon updates should ride on the active current branch when they are directly required to keep that branch truthful, executable, phase-correct, readiness-correct, validation-correct, closeout-correct, or release-correct
+- standalone governance or docs-style branches are exception paths for repo-wide governance work not tightly coupled to one active branch, emergency canon repair, cross-branch truth repair, or governance work that would contaminate or confuse an active implementation or release branch
+- active-branch governance updates must not weaken validation, stop conditions, phase authority, branch-class authority, or scope control
 
 For desktop workstreams, response-level `## User Test Summary` output and the canonical repo-level `UTS` artifact are related but not interchangeable:
 
@@ -288,6 +320,7 @@ Codex must also:
 - add or create the smallest reliable validation infrastructure when meaningful blind spots remain
 - preserve an evidence trail of the validators, harnesses, helper scripts, fixtures, runtime logs, traces, screenshots, or other validation artifacts actually used
 - clean up test-session side effects such as temporary files, launched apps, helper processes, probe documents, or altered local state unless there is an intentional reason to preserve them
+- enforce visible progress and a no-progress supervisor for live validation; if no tighter helper-specific watchdog is active, `10s` without meaningful progress must stop the run and report the last confirmed progress point
 - use synthetic or headless validators and harnesses as supporting proof rather than the final gate when a real desktop session is feasible
 - launch and exercise the real desktop or runtime path through an interactive OS-level session when feasible
 - explicitly distinguish validator results, synthetic or headless validation results, simulated reasoning, interactive OS-level execution results, and manual user-test handoff

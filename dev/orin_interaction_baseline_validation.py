@@ -17,6 +17,7 @@ from desktop.interaction_overlay_model import CommandOverlayModel
 from desktop.shared_action_model import (
     CommandAction,
     CommandActionCatalog,
+    DEFAULT_COMMAND_ACTIONS,
     SavedActionInventoryState,
     build_default_command_action_catalog,
 )
@@ -317,6 +318,418 @@ def _test_url_saved_action_confirm_result_flow():
         renderer_mod.launch_command_action = original_launch
 
 
+def _test_task_manager_builtin_confirm_result_flow():
+    window = _make_window()
+    launches = []
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda action: launches.append(
+        (action.id, action.target_kind, action.target)
+    )
+    try:
+        window.open_command_overlay()
+        _type_request(window, "task manager")
+        window.handle_overlay_submit_requested()
+
+        _assert(window._command_model.phase == "confirm", "the Task Manager built-in should reach confirm")
+        pending_action = window._command_panel.last_payload.get("pending_action") or {}
+        _assert(
+            pending_action.get("id") == "open_task_manager",
+            "Task Manager confirm should bind the new built-in action",
+        )
+        _assert(
+            pending_action.get("origin") == "built_in" and pending_action.get("origin_label") == "Built-in",
+            "Task Manager confirm should preserve built-in origin detail",
+        )
+        _assert(
+            pending_action.get("target_kind") == "app" and pending_action.get("target") == "taskmgr.exe",
+            "Task Manager confirm should preserve the existing app launch target",
+        )
+
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            launches == [("open_task_manager", "app", "taskmgr.exe")],
+            "Task Manager confirm submit should use the existing launch path exactly once",
+        )
+        _assert(window._command_model.phase == "result", "Task Manager launch should enter result phase")
+        _assert(
+            window._command_model.status_kind == "launch_requested",
+            "Task Manager launch should preserve the existing launch_requested result behavior",
+        )
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_calculator_builtin_confirm_result_flow():
+    window = _make_window()
+    launches = []
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda action: launches.append(
+        (action.id, action.target_kind, action.target)
+    )
+    try:
+        window.open_command_overlay()
+        _type_request(window, "calculator")
+        window.handle_overlay_submit_requested()
+
+        _assert(window._command_model.phase == "confirm", "the Calculator built-in should reach confirm")
+        pending_action = window._command_panel.last_payload.get("pending_action") or {}
+        _assert(
+            pending_action.get("id") == "open_calculator",
+            "Calculator confirm should bind the new built-in action",
+        )
+        _assert(
+            pending_action.get("origin") == "built_in" and pending_action.get("origin_label") == "Built-in",
+            "Calculator confirm should preserve built-in origin detail",
+        )
+        _assert(
+            pending_action.get("target_kind") == "app" and pending_action.get("target") == "calc.exe",
+            "Calculator confirm should preserve the existing app launch target",
+        )
+
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            launches == [("open_calculator", "app", "calc.exe")],
+            "Calculator confirm submit should use the existing launch path exactly once",
+        )
+        _assert(window._command_model.phase == "result", "Calculator launch should enter result phase")
+        _assert(
+            window._command_model.status_kind == "launch_requested",
+            "Calculator launch should preserve the existing launch_requested result behavior",
+        )
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_notepad_builtin_confirm_result_flow():
+    window = _make_window()
+    launches = []
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda action: launches.append(
+        (action.id, action.target_kind, action.target)
+    )
+    try:
+        window.open_command_overlay()
+        _type_request(window, "notepad")
+        window.handle_overlay_submit_requested()
+
+        _assert(window._command_model.phase == "confirm", "the Notepad built-in should reach confirm")
+        pending_action = window._command_panel.last_payload.get("pending_action") or {}
+        _assert(
+            pending_action.get("id") == "open_notepad",
+            "Notepad confirm should bind the new built-in action",
+        )
+        _assert(
+            pending_action.get("origin") == "built_in" and pending_action.get("origin_label") == "Built-in",
+            "Notepad confirm should preserve built-in origin detail",
+        )
+        _assert(
+            pending_action.get("target_kind") == "app" and pending_action.get("target") == "notepad.exe",
+            "Notepad confirm should preserve the existing app launch target",
+        )
+
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            launches == [("open_notepad", "app", "notepad.exe")],
+            "Notepad confirm submit should use the existing launch path exactly once",
+        )
+        _assert(window._command_model.phase == "result", "Notepad launch should enter result phase")
+        _assert(
+            window._command_model.status_kind == "launch_requested",
+            "Notepad launch should preserve the existing launch_requested result behavior",
+        )
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_paint_builtin_confirm_result_flow():
+    window = _make_window()
+    launches = []
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda action: launches.append(
+        (action.id, action.target_kind, action.target)
+    )
+    try:
+        window.open_command_overlay()
+        _type_request(window, "paint")
+        window.handle_overlay_submit_requested()
+
+        _assert(window._command_model.phase == "confirm", "the Paint built-in should reach confirm")
+        pending_action = window._command_panel.last_payload.get("pending_action") or {}
+        _assert(
+            pending_action.get("id") == "open_paint",
+            "Paint confirm should bind the new built-in action",
+        )
+        _assert(
+            pending_action.get("origin") == "built_in" and pending_action.get("origin_label") == "Built-in",
+            "Paint confirm should preserve built-in origin detail",
+        )
+        _assert(
+            pending_action.get("target_kind") == "app" and pending_action.get("target") == "mspaint.exe",
+            "Paint confirm should preserve the existing app launch target",
+        )
+
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            launches == [("open_paint", "app", "mspaint.exe")],
+            "Paint confirm submit should use the existing launch path exactly once",
+        )
+        _assert(window._command_model.phase == "result", "Paint launch should enter result phase")
+        _assert(
+            window._command_model.status_kind == "launch_requested",
+            "Paint launch should preserve the existing launch_requested result behavior",
+        )
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_saved_action_phrase_collision_wins_in_confirm_flow():
+    saved_action = CommandAction(
+        id="personal_task_manager",
+        title="Task Manager",
+        target_kind="url",
+        target="https://example.com/task-manager",
+        aliases=("open task manager", "launch task manager"),
+        origin="saved",
+    )
+    action_catalog = CommandActionCatalog(
+        (*DEFAULT_COMMAND_ACTIONS, saved_action),
+        saved_action_inventory=SavedActionInventoryState(
+            visible=True,
+            status_kind="loaded",
+            status_text="1 saved action loaded from the current source.",
+            guidance_text='Use "Open Saved Actions File" or "Open Saved Actions Folder" to inspect the source.',
+            path=r"C:\Users\Test\AppData\Local\Nexus Desktop AI\saved_actions.json",
+            actions=(saved_action,),
+        ),
+    )
+    window = _make_window(action_catalog=action_catalog)
+    launches = []
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda action: launches.append(
+        (action.id, action.origin, action.target_kind, action.target)
+    )
+    try:
+        window.open_command_overlay()
+        _type_request(window, "task manager")
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            window._command_model.phase == "confirm",
+            "a saved action colliding with a built-in phrase should reach confirm without ambiguity",
+        )
+        pending_action = window._command_panel.last_payload.get("pending_action") or {}
+        _assert(
+            pending_action.get("id") == "personal_task_manager",
+            "saved action should resolve instead of the Task Manager built-in",
+        )
+        _assert(
+            pending_action.get("origin") == "saved" and pending_action.get("origin_label") == "Saved",
+            "saved phrase override should preserve saved origin detail in confirm",
+        )
+
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            launches == [(
+                "personal_task_manager",
+                "saved",
+                "url",
+                "https://example.com/task-manager",
+            )],
+            "saved phrase override should execute the saved action through the existing confirm flow",
+        )
+        _assert(window._command_model.phase == "result", "saved phrase override should enter result phase")
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_calculator_saved_action_phrase_collision_wins_in_confirm_flow():
+    saved_action = CommandAction(
+        id="personal_calculator",
+        title="Calculator",
+        target_kind="url",
+        target="https://example.com/calculator",
+        aliases=("open calculator", "launch calculator"),
+        origin="saved",
+    )
+    action_catalog = CommandActionCatalog(
+        (*DEFAULT_COMMAND_ACTIONS, saved_action),
+        saved_action_inventory=SavedActionInventoryState(
+            visible=True,
+            status_kind="loaded",
+            status_text="1 saved action loaded from the current source.",
+            guidance_text='Use "Open Saved Actions File" or "Open Saved Actions Folder" to inspect the source.',
+            path=r"C:\Users\Test\AppData\Local\Nexus Desktop AI\saved_actions.json",
+            actions=(saved_action,),
+        ),
+    )
+    window = _make_window(action_catalog=action_catalog)
+    launches = []
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda action: launches.append(
+        (action.id, action.origin, action.target_kind, action.target)
+    )
+    try:
+        window.open_command_overlay()
+        _type_request(window, "calculator")
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            window._command_model.phase == "confirm",
+            "a saved Calculator action colliding with a built-in phrase should reach confirm without ambiguity",
+        )
+        pending_action = window._command_panel.last_payload.get("pending_action") or {}
+        _assert(
+            pending_action.get("id") == "personal_calculator",
+            "saved Calculator action should resolve instead of the Calculator built-in",
+        )
+        _assert(
+            pending_action.get("origin") == "saved" and pending_action.get("origin_label") == "Saved",
+            "Calculator saved phrase override should preserve saved origin detail in confirm",
+        )
+
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            launches == [(
+                "personal_calculator",
+                "saved",
+                "url",
+                "https://example.com/calculator",
+            )],
+            "Calculator saved phrase override should execute the saved action through the existing confirm flow",
+        )
+        _assert(window._command_model.phase == "result", "Calculator saved phrase override should enter result phase")
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_notepad_saved_action_phrase_collision_wins_in_confirm_flow():
+    saved_action = CommandAction(
+        id="personal_notepad",
+        title="Notepad",
+        target_kind="url",
+        target="https://example.com/notepad",
+        aliases=("open notepad", "launch notepad"),
+        origin="saved",
+    )
+    action_catalog = CommandActionCatalog(
+        (*DEFAULT_COMMAND_ACTIONS, saved_action),
+        saved_action_inventory=SavedActionInventoryState(
+            visible=True,
+            status_kind="loaded",
+            status_text="1 saved action loaded from the current source.",
+            guidance_text='Use "Open Saved Actions File" or "Open Saved Actions Folder" to inspect the source.',
+            path=r"C:\Users\Test\AppData\Local\Nexus Desktop AI\saved_actions.json",
+            actions=(saved_action,),
+        ),
+    )
+    window = _make_window(action_catalog=action_catalog)
+    launches = []
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda action: launches.append(
+        (action.id, action.origin, action.target_kind, action.target)
+    )
+    try:
+        window.open_command_overlay()
+        _type_request(window, "notepad")
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            window._command_model.phase == "confirm",
+            "a saved Notepad action colliding with a built-in phrase should reach confirm without ambiguity",
+        )
+        pending_action = window._command_panel.last_payload.get("pending_action") or {}
+        _assert(
+            pending_action.get("id") == "personal_notepad",
+            "saved Notepad action should resolve instead of the Notepad built-in",
+        )
+        _assert(
+            pending_action.get("origin") == "saved" and pending_action.get("origin_label") == "Saved",
+            "Notepad saved phrase override should preserve saved origin detail in confirm",
+        )
+
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            launches == [(
+                "personal_notepad",
+                "saved",
+                "url",
+                "https://example.com/notepad",
+            )],
+            "Notepad saved phrase override should execute the saved action through the existing confirm flow",
+        )
+        _assert(window._command_model.phase == "result", "Notepad saved phrase override should enter result phase")
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
+def _test_paint_saved_action_phrase_collision_wins_in_confirm_flow():
+    saved_action = CommandAction(
+        id="personal_paint",
+        title="Paint",
+        target_kind="url",
+        target="https://example.com/paint",
+        aliases=("open paint", "launch paint"),
+        origin="saved",
+    )
+    action_catalog = CommandActionCatalog(
+        (*DEFAULT_COMMAND_ACTIONS, saved_action),
+        saved_action_inventory=SavedActionInventoryState(
+            visible=True,
+            status_kind="loaded",
+            status_text="1 saved action loaded from the current source.",
+            guidance_text='Use "Open Saved Actions File" or "Open Saved Actions Folder" to inspect the source.',
+            path=r"C:\Users\Test\AppData\Local\Nexus Desktop AI\saved_actions.json",
+            actions=(saved_action,),
+        ),
+    )
+    window = _make_window(action_catalog=action_catalog)
+    launches = []
+    original_launch = renderer_mod.launch_command_action
+    renderer_mod.launch_command_action = lambda action: launches.append(
+        (action.id, action.origin, action.target_kind, action.target)
+    )
+    try:
+        window.open_command_overlay()
+        _type_request(window, "paint")
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            window._command_model.phase == "confirm",
+            "a saved Paint action colliding with a built-in phrase should reach confirm without ambiguity",
+        )
+        pending_action = window._command_panel.last_payload.get("pending_action") or {}
+        _assert(
+            pending_action.get("id") == "personal_paint",
+            "saved Paint action should resolve instead of the Paint built-in",
+        )
+        _assert(
+            pending_action.get("origin") == "saved" and pending_action.get("origin_label") == "Saved",
+            "Paint saved phrase override should preserve saved origin detail in confirm",
+        )
+
+        window.handle_overlay_submit_requested()
+
+        _assert(
+            launches == [(
+                "personal_paint",
+                "saved",
+                "url",
+                "https://example.com/paint",
+            )],
+            "Paint saved phrase override should execute the saved action through the existing confirm flow",
+        )
+        _assert(window._command_model.phase == "result", "Paint saved phrase override should enter result phase")
+    finally:
+        renderer_mod.launch_command_action = original_launch
+
+
 def _test_trigger_generated_saved_action_phrases_stay_exact_and_bounded():
     action_catalog = CommandActionCatalog(
         (
@@ -455,6 +868,14 @@ def main():
         ("choose-confirm-result baseline flow", _test_typed_first_choose_confirm_result_flow),
         ("result close and reopen is clean", _test_result_close_and_reopen_is_clean),
         ("url saved action confirm-result flow", _test_url_saved_action_confirm_result_flow),
+        ("task manager built-in confirm-result flow", _test_task_manager_builtin_confirm_result_flow),
+        ("calculator built-in confirm-result flow", _test_calculator_builtin_confirm_result_flow),
+        ("notepad built-in confirm-result flow", _test_notepad_builtin_confirm_result_flow),
+        ("paint built-in confirm-result flow", _test_paint_builtin_confirm_result_flow),
+        ("saved action phrase collision wins in confirm flow", _test_saved_action_phrase_collision_wins_in_confirm_flow),
+        ("calculator saved action phrase collision wins in confirm flow", _test_calculator_saved_action_phrase_collision_wins_in_confirm_flow),
+        ("notepad saved action phrase collision wins in confirm flow", _test_notepad_saved_action_phrase_collision_wins_in_confirm_flow),
+        ("paint saved action phrase collision wins in confirm flow", _test_paint_saved_action_phrase_collision_wins_in_confirm_flow),
         ("trigger-generated saved action phrases stay exact and bounded", _test_trigger_generated_saved_action_phrases_stay_exact_and_bounded),
         ("entry payload surfaces saved-action inventory guidance", _test_entry_payload_surfaces_saved_action_inventory_guidance),
         ("catalog reload seam surfaces new saved actions", _test_catalog_reload_seam_surfaces_new_saved_actions_without_phase_change),

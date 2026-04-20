@@ -15,6 +15,22 @@ Use:
 Add material here only when the lesson has generalized beyond one lane.
 Branch-local "what worked" notes should stay in the canonical workstream doc first and only be distilled here once the pattern is broad enough to help future branches outside that lane.
 
+## Pattern: PR Readiness Green Must Require Durable Process Truth
+
+- symptom:
+  PR Readiness can appear green while required canon sync, post-merge state handling, or docs changes still exist only in the working tree
+- layer:
+  branch governance and merge-target canon
+- root-cause pattern:
+  validation proves branch behavior, but process blockers are not named strongly enough as pre-merge gates
+- fix pattern:
+  require PR Readiness to clear stale canon, post-merge-state handling, next-workstream selection with minimal scope and no branch created yet, dirty branch / durable commit state, and docs-sync / Governance Drift Audit blockers before reporting `PR READY: YES`
+- validation pattern:
+  run the normal branch governance validator plus the PR-readiness gate mode; the gate must fail while the worktree is dirty, while required post-merge truth is not encoded, or while the next workstream is undefined, unscoped, or already branched
+- source references:
+  - `Docs/phase_governance.md`
+  - `dev/orin_branch_governance_validation.py`
+
 ## Pattern: Released-Canon Fallback Must Not Use The Highest Planned Prerelease
 
 - symptom:

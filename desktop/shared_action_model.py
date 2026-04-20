@@ -66,6 +66,34 @@ DEFAULT_COMMAND_ACTIONS = (
         aliases=("open windows explorer", "open file explorer", "windows explorer"),
     ),
     CommandAction(
+        id="open_task_manager",
+        title="Open Task Manager",
+        target_kind="app",
+        target="taskmgr.exe",
+        aliases=("open task manager", "task manager", "launch task manager"),
+    ),
+    CommandAction(
+        id="open_calculator",
+        title="Open Calculator",
+        target_kind="app",
+        target="calc.exe",
+        aliases=("open calculator", "calculator", "launch calculator"),
+    ),
+    CommandAction(
+        id="open_notepad",
+        title="Open Notepad",
+        target_kind="app",
+        target="notepad.exe",
+        aliases=("open notepad", "notepad", "launch notepad"),
+    ),
+    CommandAction(
+        id="open_paint",
+        title="Open Paint",
+        target_kind="app",
+        target="mspaint.exe",
+        aliases=("open paint", "paint", "launch paint"),
+    ),
+    CommandAction(
         id="open_saved_actions_file",
         title="Open Saved Actions File",
         target_kind="file",
@@ -456,14 +484,6 @@ def _build_default_command_groups() -> tuple[CommandGroup, ...]:
 DEFAULT_COMMAND_GROUPS = _build_default_command_groups()
 
 
-LEGACY_SAVED_ACTIONS_ACCESS_ACTION_PHRASES = frozenset(
-    normalized_phrase
-    for action in DEFAULT_COMMAND_ACTIONS
-    if action.id in LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS
-    for normalized_phrase in _normalized_action_phrases(action)
-)
-
-
 def _require_saved_action_string(record: dict, field_name: str) -> str:
     value = record.get(field_name)
     if not isinstance(value, str):
@@ -701,33 +721,20 @@ def _build_saved_group_access_guidance() -> str:
 
 def _load_saved_command_actions_from_records(records: Iterable[object]) -> tuple[CommandAction, ...]:
     built_in_ids = {action.id.casefold() for action in DEFAULT_COMMAND_ACTIONS}
-    built_in_phrases: set[str] = set()
-    for action in DEFAULT_COMMAND_ACTIONS:
-        built_in_phrases.update(_normalized_action_phrases(action))
 
     seen_saved_ids: set[str] = set()
     saved_actions: list[CommandAction] = []
     for record in records:
         action = _command_action_from_saved_record(record)
         normalized_id = action.id.casefold()
-        normalized_phrases = _normalized_action_phrases(action)
         if normalized_id in seen_saved_ids:
             raise ValueError("Saved action id collides with another saved action.")
 
-        built_in_phrase_collisions = normalized_phrases & built_in_phrases
-        if normalized_id in built_in_ids or built_in_phrase_collisions:
+        if normalized_id in built_in_ids:
             # Preserve backward compatibility for users who already added these
             # same file/folder helpers manually before they became built-ins.
-            incompatible_id_collision = (
-                normalized_id in built_in_ids
-                and normalized_id not in LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS
-            )
-            incompatible_phrase_collision = bool(
-                built_in_phrase_collisions
-                - LEGACY_SAVED_ACTIONS_ACCESS_ACTION_PHRASES
-            )
-            if incompatible_id_collision or incompatible_phrase_collision:
-                raise ValueError("Saved action title, alias, or trigger phrase collides with an existing action.")
+            if normalized_id not in LEGACY_SAVED_ACTIONS_ACCESS_ACTION_IDS:
+                raise ValueError("Saved action id collides with an existing action.")
             continue
 
         seen_saved_ids.add(normalized_id)
@@ -1087,15 +1094,15 @@ def resolve_command_actions(text: str, actions=DEFAULT_COMMAND_ACTIONS):
 
     matches = []
     for action in actions:
-        candidates = build_saved_action_callable_phrases(
-            action.title,
-            action.aliases,
-            invocation_mode=action.invocation_mode,
-            trigger_mode=action.trigger_mode,
-            custom_triggers=action.custom_triggers,
-        )
-        if any(normalize_command_text(candidate) == normalized for candidate in candidates):
+        if normalized in _normalized_action_phrases(action):
             matches.append(action)
+    saved_matches = [
+        action
+        for action in matches
+        if (action.origin or "").strip().casefold() == "saved"
+    ]
+    if saved_matches:
+        return saved_matches
     return matches
 
 

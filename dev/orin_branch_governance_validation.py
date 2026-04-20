@@ -1,4 +1,5 @@
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -112,7 +113,113 @@ DOCS_GOVERNANCE_ADMISSION_DOCS = (
     Path("Docs/codex_user_guide.md"),
 )
 
+MULTI_SEAM_CONTRACT_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+MULTI_SEAM_CONTRACT_PHRASE = "bounded multi-seam workflow"
+
+MULTI_SEAM_PROMPT_DOCS = (
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+MULTI_SEAM_PROMPT_PHRASES = (
+    "Seam Sequence",
+    "continue-or-stop",
+)
+
+WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+WORKSTREAM_TO_PR_DEFAULT_GUARD_PHRASES = (
+    "There is no default direct `Workstream` -> `PR Readiness` transition.",
+    "The normal next legal phase is `Hardening`, then `Live Validation`, then `PR Readiness`.",
+    "Do not prompt Codex to treat Workstream completion as direct `PR Readiness`.",
+)
+
+LIVE_VALIDATION_REUSE_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+LIVE_VALIDATION_REUSE_PHRASES = (
+    "reuse",
+    "existing",
+    "one-off",
+)
+
+LIVE_VALIDATION_STALL_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+LIVE_VALIDATION_STALL_PHRASES = (
+    "10s",
+    "no-progress",
+    "last confirmed",
+)
+
+LIVE_VALIDATION_HELPER_CONTRACTS = {
+    Path("dev/orin_launcher_live_window_audit.ps1"): (
+        "NoProgressTimeoutSeconds",
+        "Fb037Validation",
+        "Write-AuditStep",
+        "Last confirmed progress",
+        "step_log",
+        "failure_message",
+        "cleanup_notes",
+    ),
+}
+
+PR_READINESS_BLOCKER_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+PR_READINESS_BLOCKER_PHRASES = (
+    "stale-canon",
+    "post-merge",
+    "dirty",
+    "docs-sync",
+    "next-workstream",
+)
+
 BRANCH_RECORD_INDEX = Path("Docs/branch_records/index.md")
+
+NEXT_WORKSTREAM_SELECTION_MARKER = "Next Workstream: Selected"
+NEXT_WORKSTREAM_MINIMAL_SCOPE_LABEL = "Minimal Scope:"
+NEXT_WORKSTREAM_BRANCH_NOT_CREATED_PHRASES = (
+    "Branch: Not created",
+    "Branch: Deferred to Branch Readiness",
+    "No branch created",
+    "not branched",
+)
+
+VALID_NEXT_WORKSTREAM_RECORD_STATES = (
+    "Registry-only",
+    "Promoted",
+)
 
 REQUIRED_BRANCH_RECORD_HEADINGS = (
     "## Current Phase",
@@ -229,6 +336,11 @@ def _collect_closed_index_paths(text: str) -> set[str]:
     return set(re.findall(r"Docs/workstreams/[A-Za-z0-9._-]+\.md", closed_section))
 
 
+def _collect_release_debt_index_paths(text: str) -> set[str]:
+    release_debt_section = _subsection(text, "Merged / Release Debt Owners")
+    return set(re.findall(r"Docs/workstreams/[A-Za-z0-9._-]+\.md", release_debt_section))
+
+
 def _collect_branch_record_paths(text: str, heading_prefix: str) -> set[str]:
     section = _subsection(text, heading_prefix)
     return set(re.findall(r"Docs/branch_records/[A-Za-z0-9._-]+\.md", section))
@@ -243,7 +355,163 @@ def _phase_index(phase_name: str) -> int:
     return PHASES.index(phase_name)
 
 
+def _git_status_porcelain() -> str:
+    completed = subprocess.run(
+        ("git", "status", "--porcelain"),
+        cwd=ROOT_DIR,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return f"__GIT_STATUS_ERROR__ {completed.stderr.strip()}"
+    return completed.stdout.strip()
+
+
+def _git_branch_names() -> tuple[list[str], str]:
+    names: list[str] = []
+    errors: list[str] = []
+    for args in (
+        ("git", "branch", "--format=%(refname:short)"),
+        ("git", "branch", "-r", "--format=%(refname:short)"),
+    ):
+        completed = subprocess.run(
+            args,
+            cwd=ROOT_DIR,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if completed.returncode != 0:
+            errors.append(completed.stderr.strip())
+            continue
+        names.extend(line.strip() for line in completed.stdout.splitlines() if line.strip())
+    return sorted(set(names)), "; ".join(error for error in errors if error)
+
+
+def _selected_next_workstream_entries(backlog_entries: list[dict[str, str]]) -> list[dict[str, str]]:
+    return [
+        entry
+        for entry in backlog_entries
+        if re.search(rf"^{re.escape(NEXT_WORKSTREAM_SELECTION_MARKER)}\s*$", entry["block"], flags=re.M)
+    ]
+
+
+def _next_workstream_roadmap_section(roadmap_text: str) -> str:
+    return _section(roadmap_text, "Selected Next Workstream")
+
+
+def _branch_names_for_workstream(branch_names: list[str], workstream_id: str) -> list[str]:
+    canonical = workstream_id.casefold()
+    compact = canonical.replace("-", "")
+    return [
+        branch_name
+        for branch_name in branch_names
+        if canonical in branch_name.casefold() or compact in branch_name.casefold().replace("-", "")
+    ]
+
+
+def _run_next_workstream_gate(require, backlog_entries: list[dict[str, str]], roadmap_text: str) -> None:
+    selected_entries = _selected_next_workstream_entries(backlog_entries)
+    require(
+        len(selected_entries) == 1,
+        (
+            "PR readiness gate: Next Workstream Undefined blocker is active; exactly one backlog "
+            f"entry must declare '{NEXT_WORKSTREAM_SELECTION_MARKER}' before PR READY: YES"
+        ),
+    )
+    if len(selected_entries) != 1:
+        return
+
+    selected = selected_entries[0]
+    selected_id = selected["id"]
+    selected_record_state = selected["record_state"]
+    selected_block = selected["block"]
+    selected_scope = _extract_colon_value(selected_block, "Minimal Scope")
+    roadmap_section = _next_workstream_roadmap_section(roadmap_text)
+
+    require(
+        selected_record_state in VALID_NEXT_WORKSTREAM_RECORD_STATES,
+        (
+            "PR readiness gate: Next Workstream Undefined blocker is active; "
+            f"{selected_id} has invalid Record State '{selected_record_state}'"
+        ),
+    )
+    require(
+        bool(selected_scope),
+        (
+            "PR readiness gate: Next Workstream Undefined blocker is active; "
+            f"{selected_id} must define '{NEXT_WORKSTREAM_MINIMAL_SCOPE_LABEL}' in Docs/feature_backlog.md"
+        ),
+    )
+    require(
+        bool(roadmap_section),
+        (
+            "PR readiness gate: Next Workstream Undefined blocker is active; "
+            "Docs/prebeta_roadmap.md must contain a 'Selected Next Workstream' section"
+        ),
+    )
+    if roadmap_section:
+        require(
+            selected_id in roadmap_section,
+            (
+                "PR readiness gate: Next Workstream Undefined blocker is active; "
+                f"Docs/prebeta_roadmap.md selected-next section does not name {selected_id}"
+            ),
+        )
+        require(
+            selected_record_state in roadmap_section,
+            (
+                "PR readiness gate: Next Workstream Undefined blocker is active; "
+                f"Docs/prebeta_roadmap.md selected-next section does not record {selected_id} Record State"
+            ),
+        )
+        require(
+            NEXT_WORKSTREAM_MINIMAL_SCOPE_LABEL.casefold() in roadmap_section.casefold(),
+            (
+                "PR readiness gate: Next Workstream Undefined blocker is active; "
+                "Docs/prebeta_roadmap.md selected-next section must define Minimal Scope"
+            ),
+        )
+        require(
+            any(phrase.casefold() in roadmap_section.casefold() for phrase in NEXT_WORKSTREAM_BRANCH_NOT_CREATED_PHRASES),
+            (
+                "PR readiness gate: Successor Lock Missing blocker is active; "
+                "Docs/prebeta_roadmap.md must record that no branch exists yet for the selected next workstream"
+            ),
+        )
+
+    branch_names, branch_error = _git_branch_names()
+    require(
+        not branch_error,
+        f"PR readiness gate: could not inspect branch names for selected next workstream: {branch_error}",
+    )
+    matching_branches = _branch_names_for_workstream(branch_names, selected_id)
+    require(
+        not matching_branches,
+        (
+            "PR readiness gate: Successor Lock Missing blocker is active; "
+            f"{selected_id} already has branch(es): {', '.join(matching_branches)}"
+        ),
+    )
+
+
+def _run_pr_readiness_gate(require, backlog_entries: list[dict[str, str]], roadmap_text: str) -> None:
+    status_output = _git_status_porcelain()
+    require(
+        not status_output,
+        (
+            "PR readiness gate: Dirty Branch blocker is active; worktree must be clean "
+            "and required branch truth must be durable in commit history before PR READY: YES"
+        ),
+    )
+    _run_next_workstream_gate(require, backlog_entries, roadmap_text)
+
+
 def main() -> int:
+    pr_readiness_gate = "--pr-readiness-gate" in sys.argv[1:]
     errors: list[str] = []
     checks = 0
 
@@ -324,10 +592,70 @@ def main() -> int:
             f"{relative_path}: docs/governance branch-admission guidance is missing",
         )
 
+    for relative_path in MULTI_SEAM_CONTRACT_DOCS:
+        text = _read_text(relative_path)
+        require(
+            MULTI_SEAM_CONTRACT_PHRASE in text,
+            f"{relative_path}: canonical bounded multi-seam workflow contract is missing",
+        )
+
+    for relative_path in MULTI_SEAM_PROMPT_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in MULTI_SEAM_PROMPT_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: multi-seam prompt scaffold is missing '{required_phrase}'",
+            )
+
+    for relative_path, guard_phrase in zip(WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS, WORKSTREAM_TO_PR_DEFAULT_GUARD_PHRASES):
+        text = _read_text(relative_path)
+        require(
+            guard_phrase in text,
+            f"{relative_path}: direct Workstream-to-PR default guard is missing",
+        )
+
+    for relative_path in LIVE_VALIDATION_REUSE_DOCS:
+        text = _read_text(relative_path)
+        lower_text = text.casefold()
+        for required_phrase in LIVE_VALIDATION_REUSE_PHRASES:
+            require(
+                required_phrase in lower_text,
+                f"{relative_path}: Live Validation reuse-first helper guidance is missing '{required_phrase}'",
+            )
+
+    for relative_path in LIVE_VALIDATION_STALL_DOCS:
+        text = _read_text(relative_path)
+        lower_text = text.casefold()
+        for required_phrase in LIVE_VALIDATION_STALL_PHRASES:
+            require(
+                required_phrase in lower_text,
+                f"{relative_path}: Live Validation no-progress/stall guidance is missing '{required_phrase}'",
+            )
+
+    for relative_path, required_phrases in LIVE_VALIDATION_HELPER_CONTRACTS.items():
+        text = _read_text(relative_path)
+        for required_phrase in required_phrases:
+            require(
+                required_phrase in text,
+                f"{relative_path}: reusable Live Validation helper is missing '{required_phrase}'",
+            )
+
+    for relative_path in PR_READINESS_BLOCKER_DOCS:
+        text = _read_text(relative_path).casefold()
+        for required_phrase in PR_READINESS_BLOCKER_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: PR Readiness blocker guidance is missing '{required_phrase}'",
+            )
+
     active_index_paths = _collect_active_index_paths(index_text)
     closed_index_paths = _collect_closed_index_paths(index_text)
+    release_debt_index_paths = _collect_release_debt_index_paths(index_text)
 
     backlog_entries = _parse_backlog_sections(backlog_text)
+    if pr_readiness_gate:
+        _run_pr_readiness_gate(require, backlog_entries, roadmap_text)
+
     promoted_entries = [
         entry
         for entry in backlog_entries
@@ -478,6 +806,21 @@ def main() -> int:
                 f"{canonical_path}: Governance Drift Audit is missing 'Governance Drift Found:'",
             )
 
+        if current_phase == "PR Readiness":
+            post_merge_state = _section(workstream_text, "Post-Merge State")
+            require(
+                bool(post_merge_state),
+                f"{canonical_path}: PR Readiness requires a Post-Merge State section",
+            )
+            require(
+                ("No Active Branch" in post_merge_state)
+                or ("successor" in post_merge_state.casefold()),
+                (
+                    f"{canonical_path}: PR Readiness Post-Merge State must encode either "
+                    "No Active Branch handling or successor-branch handling"
+                ),
+            )
+
         phase_status_section = _section(workstream_text, "Phase Status")
         if (
             _normalize_status(str(workstream_info["status"])) == "merged unreleased"
@@ -499,10 +842,27 @@ def main() -> int:
                 ),
             )
 
-        require(
-            canonical_path in active_index_paths,
-            f"Docs/workstreams/index.md: promoted workstream {canonical_path} is missing from the Active list",
-        )
+        normalized_workstream_status = _normalize_status(str(workstream_info["status"]))
+        if normalized_workstream_status == "merged unreleased":
+            require(
+                canonical_path in release_debt_index_paths,
+                (
+                    f"Docs/workstreams/index.md: promoted merged-unreleased workstream "
+                    f"{canonical_path} is missing from the Merged / Release Debt Owners list"
+                ),
+            )
+            require(
+                canonical_path not in active_index_paths,
+                (
+                    f"Docs/workstreams/index.md: promoted merged-unreleased workstream "
+                    f"{canonical_path} must not remain under Active"
+                ),
+            )
+        else:
+            require(
+                canonical_path in active_index_paths,
+                f"Docs/workstreams/index.md: promoted workstream {canonical_path} is missing from the Active list",
+            )
         require(
             canonical_path not in closed_index_paths,
             f"Docs/workstreams/index.md: promoted workstream {canonical_path} is incorrectly listed under Closed",
