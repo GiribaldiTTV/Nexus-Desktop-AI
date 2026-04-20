@@ -79,6 +79,13 @@ For bounded multi-seam Workstream execution, also include:
 - `Seam Sequence: <ordered seam list>`
 - `Per-Seam Gate: validate, record evidence, and report continue-or-stop before the next seam`
 
+For Release Readiness, also include:
+
+- `Release Target: <version or identifier>` for release-bearing branches
+- `Release Scope: <bounded release scope>` for release-bearing branches
+- `Release Artifacts: <tag, notes, rebaseline, or other release artifacts>` for release-bearing branches
+- `Release Branch: No` only for non-release `docs/governance` or explicitly canon-only / repo-wide source-of-truth update branches
+
 ## What Codex Should Do Automatically
 
 Brief prompts do not waive source-of-truth reading.
@@ -336,6 +343,27 @@ Do not use this recipe for bug fixes, hotfixes, unclear or high-risk seams, cros
 
 When the sequence completes, the normal next phase is `Hardening`.
 Do not prompt Codex to treat Workstream completion as direct `PR Readiness`.
+
+### Release Readiness Target Gate
+
+Use:
+
+- `Workflow mode on current branch: execute Release Readiness target validation`
+
+Required add-ons for release-bearing branches:
+
+- `Phase: Release Readiness`
+- `Release Target: [version or release identifier]`
+- `Release Scope: [bounded release scope]`
+- `Release Artifacts: [tag, notes, rebaseline, or other release artifacts]`
+
+Required add-on for non-release branches:
+
+- `Release Branch: No`
+
+Use `Release Branch: No` only when the branch is a `docs/governance` branch or an explicitly canon-only / repo-wide source-of-truth update branch.
+Do not use `Release Branch: No` for `implementation` or `release packaging` branches.
+If a release-bearing branch lacks `Release Target:`, `Release Scope:`, or `Release Artifacts:`, Release Readiness is blocked by `Release Target Undefined`.
 
 ### Run A Narrow Fix Pass
 

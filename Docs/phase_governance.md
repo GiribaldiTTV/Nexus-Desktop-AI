@@ -166,6 +166,7 @@ The default named blockers are:
 - `Dirty Branch`
 - `Docs Sync Incomplete`
 - `Release Debt`
+- `Release Target Undefined`
 - `Governance Drift`
 - `Current-State Claim Drift`
 - `Phase Waiver Missing`
@@ -325,6 +326,35 @@ Hard blockers:
 The PR-readiness validator gate must be run in its PR-specific mode before reporting `PR READY: YES`.
 If the normal governance validator passes but the PR-specific gate reports dirty worktree or unresolved PR blockers, the result is not PR-ready.
 
+### Release Readiness Target Gate
+
+Release Readiness must not report green while any release target blocker remains unresolved.
+
+Hard blocker:
+
+- `Release Target Undefined`:
+  Release Readiness fails for a release-bearing branch unless the active branch authority record or active workstream authority record explicitly identifies all required release-bearing markers:
+  - `Release Target:`
+  - `Release Scope:`
+  - `Release Artifacts:`
+
+A branch is release-bearing when:
+
+- its branch class is `release packaging`
+- or it creates, prepares, validates, tags, publishes, or transitions release-facing artifacts or release-state canon
+
+The only non-release waiver is:
+
+- the active authority record explicitly declares `Release Branch: No`
+- the branch is a `docs/governance` branch or an explicitly canon-only / repo-wide source-of-truth update branch
+- the branch does not create, prepare, validate, tag, publish, or transition release-facing artifacts or release-state canon
+
+The non-release waiver is not available to `implementation` or `release packaging` branches.
+It does not waive `Release Debt`, merge-target canon completeness, post-merge truth, successor lock, validation, or dirty-branch requirements.
+
+If release target markers are missing on a release-bearing branch, the branch is blocked by `Release Target Undefined`.
+If `Release Branch: No` appears on a branch outside the narrow non-release branch classes, the branch is blocked by `Phase Waiver Missing`.
+
 ### Governance Drift Audit
 
 Inside `PR Readiness`, the branch must run a formal Governance Drift Audit before it may advance to `Release Readiness`.
@@ -414,6 +444,8 @@ That validator should verify at minimum:
 - backlog, roadmap, workstreams index, and active workstream docs agree on active or merged-unreleased posture
 - stale merge-era wording does not remain in active current-state owners
 - Governance Drift Audit output exists before `Release Readiness`
+- release-bearing branches carry `Release Target:`, `Release Scope:`, and `Release Artifacts:` markers before Release Readiness can report green
+- non-release waiver records use `Release Branch: No` only for `docs/governance` or explicitly canon-only / repo-wide source-of-truth update branches
 - unresolved blockers prevent phase advancement
 - active-branch governance and canon updates remain the primary path when tightly coupled to the active branch's truth, phase, readiness, validation, closeout, or release state
 - standalone governance or docs-style branches remain exception paths for repo-wide uncoupled governance work, emergency canon repair, cross-branch truth repair, or contamination-risk cases
@@ -908,6 +940,8 @@ Forbidden:
 Required evidence:
 
 - merged or legitimately merge-ready truth
+- explicit `Release Target:`, `Release Scope:`, and `Release Artifacts:` markers for release-bearing branches
+- or explicit `Release Branch: No` only for narrowly allowed non-release governance/canon branches
 - release-context verification
 - no unresolved blocker
 

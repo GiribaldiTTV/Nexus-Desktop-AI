@@ -31,6 +31,22 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
   - `Docs/phase_governance.md`
   - `dev/orin_branch_governance_validation.py`
 
+## Pattern: Release Readiness Green Must Require Explicit Release Target
+
+- symptom:
+  Release Readiness can appear green while the branch has not yet named the release version, bounded release scope, or release artifacts it is supposed to package
+- layer:
+  branch governance and release-facing canon
+- root-cause pattern:
+  release-debt truth is present, but release-bearing branch records lack machine-checkable markers that prove the release target is explicit before green status
+- fix pattern:
+  require release-bearing branches to declare `Release Target:`, `Release Scope:`, and `Release Artifacts:`; allow `Release Branch: No` only for `docs/governance` or explicitly canon-only / repo-wide source-of-truth branches
+- validation pattern:
+  run the branch governance validator; it must fail release-packaging branch records that omit release target markers or branch records that use the non-release waiver outside the narrow governance/canon-only exception
+- source references:
+  - `Docs/phase_governance.md`
+  - `dev/orin_branch_governance_validation.py`
+
 ## Pattern: Released-Canon Fallback Must Not Use The Highest Planned Prerelease
 
 - symptom:

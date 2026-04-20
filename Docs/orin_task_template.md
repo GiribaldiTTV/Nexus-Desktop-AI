@@ -50,6 +50,18 @@ Phase:
 Branch Class:
 [implementation / docs/governance / emergency canon repair / release packaging]
 
+Release Branch:
+[Yes / No / not applicable]
+
+Release Target:
+[required for release-bearing branches]
+
+Release Scope:
+[required for release-bearing branches]
+
+Release Artifacts:
+[required for release-bearing branches]
+
 Validation Contract:
 [fill in only when validation governance matters]
 
@@ -75,6 +87,9 @@ Use a separate governance or docs-style branch only for repo-wide uncoupled gove
 Add `Validation Contract`, `Timeout Contract`, and `Current active seam` when the governed task needs them.
 Add `Seam Sequence` when the Workstream prompt may use bounded multi-seam workflow.
 If `Seam Sequence` is present, Codex must execute one active seam at a time, validate after each seam, and report a continue-or-stop decision before starting the next seam.
+For `Release Readiness`, a release-bearing branch must include `Release Target:`, `Release Scope:`, and `Release Artifacts:` before green status is allowed.
+Use `Release Branch: No` only for `docs/governance` branches or explicitly canon-only / repo-wide source-of-truth update branches.
+Do not use `Release Branch: No` for `implementation` or `release packaging` branches.
 
 Default expectation:
 
@@ -269,7 +284,8 @@ If an execution task is too broad for one approved pass, explain the cleaner exe
 5. If in `Branch Readiness`, explain the whole-branch execution plan before Workstream admission.
 6. If in `Workstream`, explain whether bounded multi-seam workflow is safe; if it is, list the seam sequence, per-seam gates, and stop conditions.
 7. If in `PR Readiness`, explicitly plan the stale-canon check, post-merge-state handling, next-workstream selection/canon/minimal-scope/no-branch-exists check, required `Next Workstream: Selected`, `Minimal Scope:`, `## Selected Next Workstream`, and `Branch: Not created` markers, dirty-branch/durable-commit check, docs-sync/drift-audit check, normal governance validator, and PR-readiness gate mode.
-8. Explain the validation plan.
+8. If in `Release Readiness`, explicitly plan the `Release Target Undefined` check, required `Release Target:`, `Release Scope:`, and `Release Artifacts:` markers for release-bearing branches, or the narrow `Release Branch: No` waiver for allowed non-release governance/canon branches.
+9. Explain the validation plan.
 
 If the task includes interactive validation, the validation plan should also state:
 

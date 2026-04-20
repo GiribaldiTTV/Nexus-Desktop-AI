@@ -240,6 +240,13 @@ That means:
 - no PR-ready without docs-sync and drift-audit completion:
   - docs sync, Governance Drift Audit, validator alignment, and required post-merge wording must be complete and mutually consistent
   - run the branch governance validator and its PR-readiness gate mode before reporting `PR READY: YES`
+- no Release Readiness green with `Release Target Undefined`:
+  - a release-bearing branch must explicitly declare `Release Target:`, `Release Scope:`, and `Release Artifacts:` before Release Readiness can report green
+  - release-bearing includes `release packaging` branches and any branch that creates, prepares, validates, tags, publishes, or transitions release-facing artifacts or release-state canon
+  - the only non-release waiver is `Release Branch: No`
+  - `Release Branch: No` is limited to `docs/governance` branches or explicitly canon-only / repo-wide source-of-truth update branches
+  - the non-release waiver is not available to `implementation` or `release packaging` branches
+  - the waiver does not clear `Release Debt`, weaken post-merge truth rules, weaken validation, or permit premature successor branch creation
 - post-release canon repair is emergency-only:
   - use it only when canon drift already exists on updated `main` and could not be prevented before merge or release
 - standalone `docs/governance` branches are future-capable but tightly gated:

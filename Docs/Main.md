@@ -231,6 +231,13 @@ These are reference layers, not active workstream or roadmap owners.
   12. commit all required docs, canon, validator, and branch-truth changes so the worktree is clean and truth is durable in commit history
   13. run the normal branch governance validator and the PR-readiness gate mode
   14. only then allow the current branch to report `PR READY: YES` and enter PR creation
+- the normal `Release Readiness` sequence for a release-bearing branch must clear `Release Target Undefined` before reporting green:
+  1. confirm whether the branch is release-bearing or explicitly non-release
+  2. for release-bearing branches, require machine-checkable `Release Target:`, `Release Scope:`, and `Release Artifacts:` markers in the active authority record
+  3. for non-release branches, require `Release Branch: No`
+  4. allow `Release Branch: No` only for `docs/governance` branches or explicitly canon-only / repo-wide source-of-truth update branches
+  5. never use the non-release waiver for `implementation` or `release packaging` branches
+  6. never let the waiver clear `Release Debt`, weaken post-merge truth, weaken validation, or permit premature next-workstream branch creation
 - a standalone post-release canon repair is an emergency-only exception path when merged canon is already stale or when external drift made pre-merge prevention impossible
 - returned `UTS`, screenshot, interactive, PR-review, or release-review evidence must be digested into the authority record before phase advancement is recommended
 - when a slice changes user-visible behavior or another operator-facing path, do not treat `## User Test Summary` as a recap slot; route through `Docs/user_test_summary_guidance.md` and require a real manual checklist unless no meaningful manual test exists

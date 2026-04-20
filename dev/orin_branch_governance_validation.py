@@ -205,6 +205,36 @@ PR_READINESS_BLOCKER_PHRASES = (
     "next-workstream",
 )
 
+RELEASE_READINESS_TARGET_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+RELEASE_READINESS_TARGET_PHRASES = (
+    "Release Target Undefined",
+    "Release Target:",
+    "Release Scope:",
+    "Release Artifacts:",
+    "Release Branch: No",
+)
+
+REQUIRED_RELEASE_BEARING_MARKERS = (
+    "Release Target:",
+    "Release Scope:",
+    "Release Artifacts:",
+)
+
+NON_RELEASE_BRANCH_MARKER = "Release Branch: No"
+RELEASE_BEARING_BRANCH_CLASSES = ("release packaging",)
+NON_RELEASE_WAIVER_BRANCH_CLASSES = (
+    "docs/governance",
+    "emergency canon repair",
+)
+
 BRANCH_RECORD_INDEX = Path("Docs/branch_records/index.md")
 
 NEXT_WORKSTREAM_SELECTION_MARKER = "Next Workstream: Selected"
@@ -648,6 +678,14 @@ def main() -> int:
                 f"{relative_path}: PR Readiness blocker guidance is missing '{required_phrase}'",
             )
 
+    for relative_path in RELEASE_READINESS_TARGET_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in RELEASE_READINESS_TARGET_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: Release Readiness target gate guidance is missing '{required_phrase}'",
+            )
+
     active_index_paths = _collect_active_index_paths(index_text)
     closed_index_paths = _collect_closed_index_paths(index_text)
     release_debt_index_paths = _collect_release_debt_index_paths(index_text)
@@ -928,6 +966,29 @@ def main() -> int:
             str(info["branch_class"]) in BRANCH_CLASSES,
             f"{branch_record_path}: Branch Class '{info['branch_class']}' is not in the canonical branch-class enum",
         )
+        branch_class = str(info["branch_class"])
+        has_non_release_marker = NON_RELEASE_BRANCH_MARKER in record_text
+        if branch_class in RELEASE_BEARING_BRANCH_CLASSES:
+            for required_marker in REQUIRED_RELEASE_BEARING_MARKERS:
+                require(
+                    required_marker in record_text,
+                    f"{branch_record_path}: release-bearing branch record is missing '{required_marker}'",
+                )
+            require(
+                not has_non_release_marker,
+                (
+                    f"{branch_record_path}: release-bearing branch class '{branch_class}' "
+                    f"must not use '{NON_RELEASE_BRANCH_MARKER}'"
+                ),
+            )
+        if has_non_release_marker:
+            require(
+                branch_class in NON_RELEASE_WAIVER_BRANCH_CLASSES,
+                (
+                    f"{branch_record_path}: '{NON_RELEASE_BRANCH_MARKER}' is only allowed for "
+                    "docs/governance or explicitly canon-only / repo-wide source-of-truth update branches"
+                ),
+            )
         require(
             str(info["rollback_target"]) in PHASES,
             f"{branch_record_path}: Rollback Target '{info['rollback_target']}' is not in the canonical phase enum",

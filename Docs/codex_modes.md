@@ -178,6 +178,20 @@ When the approved phase is `PR Readiness`, the output must also explicitly inclu
   - the blocking admission item
   - confirmation that branch creation remains deferred and no next implementation branch may execute by inertia
 
+When the approved phase is `Release Readiness`, the output must also explicitly include:
+
+- whether the branch is release-bearing
+- confirmation that `Release Target Undefined` is clear
+- for release-bearing branches:
+  - `Release Target:`
+  - `Release Scope:`
+  - `Release Artifacts:`
+- for explicitly non-release branches:
+  - `Release Branch: No`
+  - confirmation that the branch is a `docs/governance` branch or an explicitly canon-only / repo-wide source-of-truth update branch
+- confirmation that the non-release waiver is not being used for an `implementation` or `release packaging` branch
+- confirmation that `Release Debt`, post-merge truth, validation, and successor branch deferral remain governed by their normal blockers
+
 Do not report cleanup as complete unless the pass has explicitly checked for leftover apps, windows, dialogs, helper processes, probe files, or other temporary artifacts it created or opened.
 
 Do not report an interactive validation pass as complete or trustworthy if it exceeded its time budgets or sat stalled without a clean abort path.
