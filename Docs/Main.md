@@ -127,6 +127,7 @@ Rules:
 Use these for promoted work that needs a stable feature-state, branch-local validation/evidence record, active seam trail, durable artifact/reuse history, and closure history:
 
 - `Docs/workstreams/index.md`
+- `Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md`
 - `Docs/workstreams/FB-036_saved_action_authoring.md`
 - `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`
 - `Docs/workstreams/FB-035_release_context_fallback_hardening.md`

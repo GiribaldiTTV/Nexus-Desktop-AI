@@ -26,7 +26,16 @@ Historical note:
 
 ## Promoted Canonical Workstreams
 
-- none currently
+### [ID: FB-037] Curated built-in system actions and Nexus settings expansion
+
+Status: Branch Readiness
+Record State: Promoted
+Priority: High
+Release Stage: pre-Beta
+Target Version: TBD
+Canonical Workstream Doc: Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md
+Summary: Admit the curated built-in system actions and Nexus settings expansion lane for bounded planning and later implementation under the shared action model.
+Why it matters: Standard product actions should feel native and inspectable under the shared action model instead of being pushed into user-defined saved actions as ad hoc customization. Common Windows and Nexus-owned actions should ship as first-class built-ins, while saved actions remain the seam for personal or non-standard tasks.
 
 ## Registry Items
 
@@ -99,16 +108,6 @@ Release Stage: pre-Beta
 Target Version: TBD
 Summary: Track the broader Nexus-era vision and source-of-truth migration above the current phase-one canon foundation rebuild.
 Why it matters: The repo still needs deeper identity and wording normalization after the foundation layer is rebuilt.
-
-### [ID: FB-037] Curated built-in system actions and Nexus settings expansion
-
-Status: Deferred
-Record State: Registry-only
-Priority: High
-Release Stage: pre-Beta
-Target Version: TBD
-Summary: Track future curated built-in actions for standard Windows, system, vendor-utility, and Nexus-owned surfaces such as Sound settings, graphics settings, NVIDIA / AMD utilities, and Nexus settings.
-Why it matters: Standard product actions should feel native and inspectable under the shared action model instead of being pushed into user-defined saved actions as ad hoc customization. Common Windows and Nexus-owned actions should ship as first-class built-ins, while saved actions remain the seam for personal or non-standard tasks.
 
 ### [ID: FB-038] Taskbar / tray quick-task UX and Create Custom Task surface
 

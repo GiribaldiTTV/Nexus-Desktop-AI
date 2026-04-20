@@ -73,7 +73,7 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-- none currently
+- `Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md`
 
 ### Closed
 

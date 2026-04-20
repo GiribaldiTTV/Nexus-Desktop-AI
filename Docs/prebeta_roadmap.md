@@ -65,9 +65,21 @@ Current merged truth indicates:
 - latest public release commit: `f743281`
 - no merged unreleased non-doc implementation debt currently exists on `main`
 - the latest public released implementation milestone is FB-041 deterministic callable-group execution layer in `v1.3.1-prebeta`
-- no next implementation branch is currently selected
+- the active implementation workstream is FB-037 in `Branch Readiness`
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, and the released FB-041 deterministic callable-group execution milestone are now part of the current public shared pre-Beta baseline.
+
+## Current Active Workstream
+
+### FB-037 Curated Built-In System Actions And Nexus Settings Expansion
+
+- status: `Branch Readiness`
+- lane type: `implementation`
+- release floor: `minor prerelease`
+- target version: `TBD`
+- release state: `active delta`
+- canonical workstream doc: `Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md`
+- sequencing note: admitted for Branch Readiness only; implementation must not begin until the workstream doc, boundary, validation contract, and phase exit criteria allow transition into `Workstream`
 
 ## Most Recent Released Workstream Context
 
@@ -162,17 +174,16 @@ Current merged truth indicates:
 - the released FB-035 lane is closed
 - the recent released workstreams above remain part of the locked current baseline
 - no merged unreleased non-doc implementation debt currently exists on `main`
-- repo state has no active implementation branch selected after the FB-041 release
+- FB-037 is the active implementation workstream in `Branch Readiness`
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed
 - post-release canon repair is emergency-only when merged canon is already stale or external drift made pre-merge prevention impossible
 - the released FB-027 baseline does not authorize further saved-action authoring, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
-- future candidate spaces now explicitly recorded in the backlog include:
-  - FB-037 for curated built-in system actions and Nexus settings expansion
+- remaining future candidate spaces now explicitly recorded in the backlog include:
   - FB-038 for taskbar or tray quick-task UX including Create Custom Task
   - FB-039 for external trigger and plugin integration architecture
   - FB-040 for monitoring, thermals, and performance HUD surfaces
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
-- the next implementation workstream must be selected deliberately through `Branch Readiness` from updated `main`; FB-041 release does not imply automatic continuation into any candidate lane
+- FB-037 Branch Readiness does not imply automatic continuation into any remaining candidate lane
 
 Use canonical workstream docs for execution detail.
 Use the backlog for item identity.
