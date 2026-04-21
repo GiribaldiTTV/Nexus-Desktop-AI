@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Workstream`
+- `Hardening`
 
 ## Release Stage
 
@@ -33,15 +33,15 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `Hardening`
 
 ## Phase Status
 
 - `Active Branch`
 - current branch: `feature/fb-038-taskbar-tray-quick-task-ux`
 - Branch Readiness is complete and durably checkpointed in commit `766ff67`
-- first Workstream source-map and seam selection selected `Minimal Tray Overlay Entry`
-- Seam 1 implementation is limited to tray entry into the existing command overlay path
+- Workstream seam chain and helper governance are complete and durably checkpointed in commit `ef05ab2`
+- Hardening is admitted for branch-wide pressure testing; Hardening execution has not started in the transition pass
 - FB-037 is released and closed in `v1.4.0-prebeta`
 - FB-037 release publication exists at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.4.0-prebeta`
 - no FB-037 release-debt blocker remains
@@ -61,32 +61,31 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 - current branch is `feature/fb-038-taskbar-tray-quick-task-ux`
 - current branch is based on updated `main`
 - Branch Readiness governance/canon repair plus FB-038 admission setup is durable in commit `766ff67`
+- Workstream seam chain completion, Workstream evidence finalization, User Test Summary finalization, and helper-governance registry integration are durable in commit `ef05ab2`
 - FB-037 is `Released (v1.4.0-prebeta)` and `Closed`
 - the `v1.4.0-prebeta` Git tag exists locally and remotely
 - the GitHub prerelease for `v1.4.0-prebeta` exists, is published, and is marked prerelease
 - FB-038 was selected in canon before this admission and is now promoted
 - Branch Readiness exit criteria are satisfied
-- the first Workstream pass selected and bounded `Minimal Tray Overlay Entry` as the first implementation seam
+- Workstream exit criteria are satisfied: all approved seams are complete and green, the workstream-owned User Test Summary is current, evidence references exist, and no same-slice correctness gap remains
 
 ## Exit Criteria
 
-- source-map and seam-selection pass is complete
-- the first implementation seam is explicitly selected, bounded, and validated before implementation begins
-- no implementation starts without exact non-includes and validation targets
-- approved Workstream scope remains within FB-038 and does not reopen released FB-027, FB-036, FB-041, or FB-037 behavior by inertia
-- direct verification is complete for each selected Workstream seam
-- User Test Summary obligations are updated when a user-visible seam lands
-- no unresolved same-slice correctness gap remains
+- branch-wide pressure testing is complete for the tray overlay entry, tray Create Custom Task dialog-open/no-write path, tray-origin create completion, catalog reload, and exact-match re-resolution behavior
+- helper default profiles and workstream-scoped helper obligations are pressure-tested enough to decide whether consolidation, promotion, or continued workstream-scoped status is appropriate before PR Readiness
+- no regression appears in released FB-027 interaction behavior, FB-036 authoring/source safety, FB-041 callable-group behavior, or FB-037 built-in catalog and saved-action override behavior
+- no stale evidence, no unresolved helper-governance contradiction, and no branch-truth drift remains
+- Hardening validation is green enough to proceed to Live Validation
 
 ## Rollback Target
 
-- `Branch Readiness`
+- `Workstream`
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Live Validation`
 
-The approved Workstream seam chain is complete. The next safe move is a separate Workstream-to-Hardening phase-transition durability pass; do not begin Hardening pressure testing inside the Seam 4 finalization pass.
+Hardening was admitted after validating Workstream closure, evidence references, User Test Summary alignment, helper registry compliance, and clean durable branch truth. The next safe move is a separate Hardening execution pass; do not perform Hardening pressure testing inside the phase-transition admission pass.
 
 ## Bounded Objective
 
@@ -275,7 +274,7 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
     - `dev/logs/fb_038_tray_live_validation/20260420_155022`
   - classification: `manual/live activation evidence complete`
   - continuation decision: Seam 1 is fully validated for user-visible shell activation; Seam 2 selection may begin in a separate Workstream seam-selection pass
-- Seam 2 active:
+- Seam 2 complete:
   `Tray Create Custom Task Entry, Dialog-Open Only`
 - Seam 2 implementation added a tray menu `Create Custom Task` affordance that routes through the existing overlay entry path and existing `handle_create_custom_task_requested()` authoring surface.
 - Seam 2 added runtime proof markers for tray-origin authoring entry:
