@@ -19,7 +19,7 @@
 
 ## Target Version
 
-- `v1.5.0-prebeta`
+- `v1.4.1-prebeta`
 
 ## Canonical Branch
 
@@ -33,16 +33,17 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 ## Current Phase
 
-- Phase: `Release Readiness`
+- Phase: `PR Readiness`
 
 ## Phase Status
 
-- `No Active Branch`
-- current active implementation branch: none
+- `Active Branch`
+- current active implementation/repair branch: `feature/fb-038-taskbar-tray-quick-task-ux`
 - legal repair surface for this governance repair: `feature/fb-038-taskbar-tray-quick-task-ux`
 - protected-main rule: `main` is read-only for Codex work; no editing, staging, committing, generation, refresh, or direct repair on `main`
 - FB-038 has been squash-merged to `main`
-- FB-038 is now the merged-unreleased release-debt owner until release packaging clears `v1.5.0-prebeta`
+- FB-038 is now the merged-unreleased release-debt owner until release packaging clears `v1.4.1-prebeta`
+- PR Readiness re-entry is active on the still-available prior branch to correct inherited release-target truth before a follow-up PR/squash merge
 - Branch Readiness is complete and durably checkpointed in commit `766ff67`
 - Workstream seam chain and helper governance are complete and durably checkpointed in commit `ef05ab2`
 - Hardening execution pass completed on 2026-04-21; branch-wide validator and helper sweep is green
@@ -67,7 +68,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 ## Blockers
 
-- `Release Debt`
+- None.
 
 ## Entry Basis
 
@@ -115,7 +116,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 Live Validation was previously admitted after validating Workstream closure, Hardening GREEN evidence, User Test Summary alignment, helper registry compliance, and clean branch truth. Returned User Test Summary evidence first routed to bounded tray discoverability Hardening and then to bounded window initialization Hardening.
 
-Fresh post-Hardening Live Validation produced a returned User Test Summary failure: desktop shortcut launch briefly showed a black placeholder window before Core Visualization. H3/H4 Hardening re-entry is now green. Fresh post-H4 Live Validation technical/live evidence is green and a new User Test Summary handoff was exported. The UTS result was resolved by operator-confirmed waiver artifact on 2026-04-21, so `User Test Summary Results Pending` is cleared. PR Readiness completed and FB-038 was squash-merged to `main`. FB-038 is now merged-unreleased release debt; Release Readiness may be rerun only after this repaired release-debt truth is durable.
+Fresh post-Hardening Live Validation produced a returned User Test Summary failure: desktop shortcut launch briefly showed a black placeholder window before Core Visualization. H3/H4 Hardening re-entry is now green. Fresh post-H4 Live Validation technical/live evidence is green and a new User Test Summary handoff was exported. The UTS result was resolved by operator-confirmed waiver artifact on 2026-04-21, so `User Test Summary Results Pending` is cleared. PR Readiness completed and FB-038 was squash-merged to `main`. FB-038 is now merged-unreleased release debt; PR Readiness re-entry is correcting the inherited release target before Release Readiness may be rerun from durable merged truth.
 
 ## Governance Drift Audit
 
@@ -158,10 +159,12 @@ Fresh post-Hardening Live Validation produced a returned User Test Summary failu
 
 Merged-Unreleased Release-Debt Owner: FB-038
 Repo State: No Active Branch
-Release Target: v1.5.0-prebeta
+Release Target: v1.4.1-prebeta
+Release Floor: patch prerelease
+Version Rationale: FB-038 is tray UX, startup sequencing fix, and governance repair follow-through; it does not open a new feature lane or capability expansion beyond the completed tray/task UX milestone.
 Release Scope: FB-038 tray/task UX milestone only: tray identity/discoverability, tray Open Command Overlay, tray Create Custom Task dialog-open/no-write route, tray-origin create completion through existing FB-036 authoring, catalog reload, exact-match resolution, confirm/result execution, and startup first-visible Core Visualization repair.
-Release Artifacts: tag `v1.5.0-prebeta`; release title `Nexus Desktop AI v1.5.0-prebeta - Tray Quick-Task UX`; release notes summarizing FB-038 user-facing tray/task UX, validation evidence, and retained FB-038 evidence helpers.
-Post-Release Truth: after release, FB-038 moves to `Closed` / `Released (v1.5.0-prebeta)`, release debt clears, roadmap latest public prerelease advances to `v1.5.0-prebeta`, and repo-level admission may reconsider FB-039 Branch Readiness from updated `main`.
+Release Artifacts: tag `v1.4.1-prebeta`; release title `Nexus Desktop AI v1.4.1-prebeta - Tray Quick-Task UX`; release notes summarizing FB-038 user-facing tray/task UX, validation evidence, and retained FB-038 evidence helpers.
+Post-Release Truth: after release, FB-038 moves to `Closed` / `Released (v1.4.1-prebeta)`, release debt clears, roadmap latest public prerelease advances to `v1.4.1-prebeta`, and repo-level admission may reconsider FB-039 Branch Readiness from updated `main`.
 Selected Next Workstream: FB-039 External trigger and plugin integration architecture.
 Next-Branch Creation Gate: FB-039 remains selected-only and `Branch: Not created` until FB-038 release debt is cleared and updated `main` passes the repo-level admission gate.
 

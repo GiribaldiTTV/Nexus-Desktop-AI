@@ -82,6 +82,8 @@ For bounded multi-seam Workstream execution, also include:
 For Release Readiness, also include:
 
 - `Release Target: <version or identifier>` for release-bearing branches
+- `Release Floor: <patch prerelease / minor prerelease / no release>` for release-bearing branches
+- `Version Rationale: <why the target follows the floor>` for release-bearing branches
 - `Release Scope: <bounded release scope>` for release-bearing branches
 - `Release Artifacts: <tag, notes, rebaseline, or other release artifacts>` for release-bearing branches
 - `Release Branch: No` only for preserved historical records
@@ -361,6 +363,8 @@ Required add-ons for release-bearing branches:
 
 - `Phase: Release Readiness`
 - `Release Target: [version or release identifier]`
+- `Release Floor: [patch prerelease / minor prerelease / no release]`
+- `Version Rationale: [why this is patch/minor/no release]`
 - `Release Scope: [bounded release scope]`
 - `Release Artifacts: [tag, notes, rebaseline, or other release artifacts]`
 - `No file changes`
@@ -371,9 +375,10 @@ Required add-on for non-release branches:
 
 Use `Release Branch: No` only for preserved historical records.
 Do not use `Release Branch: No` for `implementation` or `release packaging` branches.
-If a release-bearing branch lacks `Release Target:`, `Release Scope:`, or `Release Artifacts:`, Release Readiness is blocked by `Release Target Undefined`.
+If a release-bearing branch lacks `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, or `Release Artifacts:`, Release Readiness is blocked by `Release Target Undefined`.
+If the declared target is semantically wrong for the latest public prerelease and declared release floor, it is also blocked by `Release Target Undefined`.
 If Release Readiness analysis discovers missing, stale, or ambiguous release truth that requires a file update, do not patch in Release Readiness. Return to `PR Readiness` before merge, or defer the repair to the next active branch's `Branch Readiness` after merge. Treat any file mutation while the authority record says `Release Readiness` as `Release Readiness File Mutation Attempt`.
-Release Readiness consumes inherited release truth only; it must not create `Release Target:`, `Release Scope:`, `Release Artifacts:`, merged-unreleased owner, or post-release truth in repository files.
+Release Readiness consumes inherited release truth only; it must not create `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, `Release Artifacts:`, merged-unreleased owner, or post-release truth in repository files.
 
 ### Run A Narrow Fix Pass
 

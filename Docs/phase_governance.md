@@ -314,6 +314,8 @@ Required machine-checkable fields:
 - `Merged-Unreleased Release-Debt Owner:`
 - `Repo State: No Active Branch`
 - `Release Target:`
+- `Release Floor:`
+- `Version Rationale:`
 - `Release Scope:`
 - `Release Artifacts:`
 - `Post-Release Truth:`
@@ -329,6 +331,14 @@ Required owner docs:
 
 Release Readiness consumes this inherited release truth.
 Release Readiness may validate target, scope, artifacts, and post-release truth, but it must not create or repair those fields in repository files.
+
+Release target correctness is semantic, not marker-only.
+PR Readiness must derive the target from the latest public prerelease and the declared `Release Floor:` before green:
+
+- `patch prerelease` increments only the patch number, for example `v1.4.0-prebeta` -> `v1.4.1-prebeta`
+- `minor prerelease` increments the minor number and resets patch to zero, for example `v1.4.0-prebeta` -> `v1.5.0-prebeta`
+
+If the declared target, artifacts, or post-release truth do not match the semantic release floor, keep `Release Target Undefined` active and repair the mismatch in PR Readiness before Release Readiness.
 
 ### Successor Lane Lock Gate
 
@@ -524,8 +534,12 @@ Hard blocker:
 - `Release Target Undefined`:
   Release Readiness fails for a release-bearing branch unless the active branch authority record or active workstream authority record explicitly identifies all required release-bearing markers:
   - `Release Target:`
+  - `Release Floor:`
+  - `Version Rationale:`
   - `Release Scope:`
   - `Release Artifacts:`
+
+  The target must also be semantically correct from the latest public prerelease and declared release floor; marker presence alone is not enough.
 
 A branch is release-bearing when:
 
@@ -666,7 +680,8 @@ That validator should verify at minimum:
 - backlog, roadmap, workstreams index, and active workstream docs agree on active or merged-unreleased posture
 - stale merge-era wording does not remain in active current-state owners
 - Governance Drift Audit output exists before `Release Readiness`
-- release-bearing branches carry `Release Target:`, `Release Scope:`, and `Release Artifacts:` markers before Release Readiness can report green
+- release-bearing branches carry `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` markers before Release Readiness can report green
+- release-target semantics match the latest public prerelease and declared release floor before PR Readiness or Release Readiness can report green
 - Release Readiness is analysis-only and cannot mutate files; dirty tracked files while the authority record says `Release Readiness` are a `Release Readiness File Mutation Attempt`
 - non-release waiver records use `Release Branch: No` only for preserved historical records
 - unresolved blockers prevent phase advancement
@@ -1212,7 +1227,7 @@ Forbidden:
 Required evidence:
 
 - merged or legitimately merge-ready truth
-- explicit `Release Target:`, `Release Scope:`, and `Release Artifacts:` markers for release-bearing branches
+- explicit `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` markers for release-bearing branches
 - or explicit `Release Branch: No` only for preserved historical records
 - release-context verification
 - clean tracked-file state; any required file update must be routed back to `PR Readiness` before merge or to the next active branch's `Branch Readiness` after merge

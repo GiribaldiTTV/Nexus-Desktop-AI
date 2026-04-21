@@ -329,6 +329,8 @@ RELEASE_READINESS_TARGET_DOCS = (
 RELEASE_READINESS_TARGET_PHRASES = (
     "Release Target Undefined",
     "Release Target:",
+    "Release Floor:",
+    "Version Rationale:",
     "Release Scope:",
     "Release Artifacts:",
     "Release Branch: No",
@@ -391,6 +393,8 @@ MERGED_UNRELEASED_CONTRACT_PHRASES = (
     "Merged-Unreleased Release-Debt Owner:",
     "Repo State: No Active Branch",
     "Release Target:",
+    "Release Floor:",
+    "Version Rationale:",
     "Release Scope:",
     "Release Artifacts:",
     "Post-Release Truth:",
@@ -408,12 +412,18 @@ REQUIRED_MERGED_UNRELEASED_MARKERS = (
     "Merged-Unreleased Release-Debt Owner:",
     "Repo State: No Active Branch",
     "Release Target:",
+    "Release Floor:",
+    "Version Rationale:",
     "Release Scope:",
     "Release Artifacts:",
     "Post-Release Truth:",
     "Selected Next Workstream:",
     "Next-Branch Creation Gate:",
 )
+
+PATCH_PRERELEASE_FLOOR = "patch prerelease"
+MINOR_PRERELEASE_FLOOR = "minor prerelease"
+SEMANTIC_RELEASE_FLOORS = (PATCH_PRERELEASE_FLOOR, MINOR_PRERELEASE_FLOOR)
 
 NON_RELEASE_BRANCH_MARKER = "Release Branch: No"
 RELEASE_BEARING_BRANCH_CLASSES = ("release packaging",)
@@ -518,6 +528,39 @@ def _parse_backlog_sections(text: str) -> list[dict[str, str]]:
 def _extract_colon_value(block: str, label: str) -> str:
     match = re.search(rf"^{re.escape(label)}:\s*(.+)$", block, flags=re.M)
     return match.group(1).strip() if match else ""
+
+
+def _clean_release_value(value: str) -> str:
+    return value.strip().strip("`").strip()
+
+
+def _latest_public_prerelease(roadmap_text: str) -> str:
+    return _clean_release_value(_extract_colon_value(roadmap_text, "- latest public prerelease"))
+
+
+def _parse_prebeta_version(value: str) -> tuple[int, int, int] | None:
+    match = re.fullmatch(r"v(\d+)\.(\d+)\.(\d+)-prebeta", _clean_release_value(value))
+    if not match:
+        return None
+    return tuple(int(part) for part in match.groups())
+
+
+def _expected_prerelease_target(latest_public: str, release_floor: str) -> str:
+    parsed = _parse_prebeta_version(latest_public)
+    if parsed is None:
+        return ""
+
+    major, minor, patch = parsed
+    normalized_floor = _clean_release_value(release_floor).casefold()
+    if normalized_floor == PATCH_PRERELEASE_FLOOR:
+        return f"v{major}.{minor}.{patch + 1}-prebeta"
+    if normalized_floor == MINOR_PRERELEASE_FLOOR:
+        return f"v{major}.{minor + 1}.0-prebeta"
+    return ""
+
+
+def _workstream_target_version(workstream_text: str) -> str:
+    return _clean_release_value(_extract_first_backtick_value(_section(workstream_text, "Target Version")))
 
 
 def _parse_workstream_doc(text: str) -> dict[str, object]:
@@ -1519,6 +1562,7 @@ def main() -> int:
 
         normalized_workstream_status = _normalize_status(str(workstream_info["status"]))
         if normalized_workstream_status == "merged unreleased":
+            roadmap_section = _roadmap_section_for_id(roadmap_text, workstream_id)
             for required_marker in REQUIRED_MERGED_UNRELEASED_MARKERS:
                 require(
                     required_marker in workstream_text,
@@ -1551,6 +1595,109 @@ def main() -> int:
                     required_marker in backlog_text,
                     f"Docs/feature_backlog.md: merged-unreleased release-debt state is missing '{required_marker}'",
                 )
+            latest_public_prerelease = _latest_public_prerelease(roadmap_text)
+            require(
+                bool(latest_public_prerelease),
+                "Docs/prebeta_roadmap.md: latest public prerelease is missing",
+            )
+            require(
+                _parse_prebeta_version(latest_public_prerelease) is not None,
+                (
+                    "Docs/prebeta_roadmap.md: latest public prerelease must use "
+                    "v<major>.<minor>.<patch>-prebeta"
+                ),
+            )
+
+            release_sources = (
+                ("Docs/feature_backlog.md", entry["block"]),
+                ("Docs/prebeta_roadmap.md", roadmap_section),
+                (canonical_path, workstream_text),
+            )
+            release_floors = [
+                _clean_release_value(_extract_colon_value(source_text, "Release Floor")).casefold()
+                for _, source_text in release_sources
+            ]
+            release_floor = release_floors[0] if release_floors else ""
+            for source_name, source_text in release_sources:
+                source_floor = _clean_release_value(_extract_colon_value(source_text, "Release Floor")).casefold()
+                source_rationale = _clean_release_value(_extract_colon_value(source_text, "Version Rationale"))
+                require(
+                    source_floor in SEMANTIC_RELEASE_FLOORS,
+                    (
+                        f"{source_name}: Release Target Undefined blocker is active; "
+                        f"Release Floor must be one of {', '.join(SEMANTIC_RELEASE_FLOORS)}"
+                    ),
+                )
+                require(
+                    bool(source_rationale),
+                    (
+                        f"{source_name}: Release Target Undefined blocker is active; "
+                        "Version Rationale is required for semantic release target validation"
+                    ),
+                )
+                require(
+                    source_floor == release_floor,
+                    (
+                        f"{source_name}: Release Target Undefined blocker is active; "
+                        "Release Floor must match backlog release floor"
+                    ),
+                )
+
+            expected_release_target = _expected_prerelease_target(latest_public_prerelease, release_floor)
+            require(
+                bool(expected_release_target),
+                (
+                    f"{canonical_path}: Release Target Undefined blocker is active; "
+                    "cannot derive semantic release target from latest public prerelease and Release Floor"
+                ),
+            )
+
+            if expected_release_target:
+                backlog_target_version = _clean_release_value(
+                    _extract_colon_value(entry["block"], "Target Version")
+                )
+                require(
+                    backlog_target_version == expected_release_target,
+                    (
+                        "Docs/feature_backlog.md: Release Target Undefined blocker is active; "
+                        f"Target Version '{backlog_target_version}' must be '{expected_release_target}'"
+                    ),
+                )
+                workstream_target_version = _workstream_target_version(workstream_text)
+                require(
+                    workstream_target_version == expected_release_target,
+                    (
+                        f"{canonical_path}: Release Target Undefined blocker is active; "
+                        f"Target Version '{workstream_target_version}' must be '{expected_release_target}'"
+                    ),
+                )
+
+                for source_name, source_text in release_sources:
+                    source_target = _clean_release_value(_extract_colon_value(source_text, "Release Target"))
+                    source_artifacts = _extract_colon_value(source_text, "Release Artifacts")
+                    source_post_release = _extract_colon_value(source_text, "Post-Release Truth")
+                    require(
+                        source_target == expected_release_target,
+                        (
+                            f"{source_name}: Release Target Undefined blocker is active; "
+                            f"Release Target '{source_target}' must be '{expected_release_target}' "
+                            f"for {release_floor}"
+                        ),
+                    )
+                    require(
+                        expected_release_target in source_artifacts,
+                        (
+                            f"{source_name}: Release Target Undefined blocker is active; "
+                            f"Release Artifacts must reference '{expected_release_target}'"
+                        ),
+                    )
+                    require(
+                        expected_release_target in source_post_release,
+                        (
+                            f"{source_name}: Release Target Undefined blocker is active; "
+                            f"Post-Release Truth must reference '{expected_release_target}'"
+                        ),
+                    )
             require(
                 canonical_path in release_debt_index_paths,
                 (

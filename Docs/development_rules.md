@@ -239,7 +239,9 @@ That means:
   - if post-merge truth needs `No Active Branch` handling, release-debt handling, next-workstream planning, next-workstream canon sync, minimal scope, or branch-creation deferral, that handling must already be complete inside PR Readiness
 - no PR-ready with an incomplete merged-unreleased release-debt owner contract:
   - if merge will create unreleased implementation release debt, PR Readiness must leave merge-target canon in the exact post-merge shape
-  - required machine-checkable fields are `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:`
+  - required machine-checkable fields are `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:`
+  - release-target correctness is semantic, not marker-only: derive the target from the latest public prerelease and the declared `Release Floor:` before PR green
+  - `patch prerelease` increments patch only, for example `v1.4.0-prebeta` -> `v1.4.1-prebeta`; `minor prerelease` increments minor and resets patch, for example `v1.4.0-prebeta` -> `v1.5.0-prebeta`
   - active-branch truth must be removed from main-facing backlog, roadmap, and workstreams index canon before PR green
   - Release Readiness consumes these inherited fields; it must not create or repair them in files
 - no PR-ready with a dirty branch:
@@ -264,7 +266,8 @@ That means:
   - do not defer that work to Release Readiness, updated `main`, a later governance-only branch, or a between-branch repair window
   - if the next branch already exists before the current branch merged and updated `main` was revalidated, block as `Next Branch Created Too Early`
 - no Release Readiness green with `Release Target Undefined`:
-  - a release-bearing branch must explicitly declare `Release Target:`, `Release Scope:`, and `Release Artifacts:` before Release Readiness can report green
+  - a release-bearing branch must explicitly declare `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` before Release Readiness can report green
+  - stale or semantically mismatched release target truth is still `Release Target Undefined`, even when all fields are present
   - Release Readiness is analysis-only for repository files; it may produce release package information in the response, but it must not edit, stage, commit, generate, or refresh source, docs, canon, validator, helper, release-note, or handoff files
   - if Release Readiness analysis discovers missing, stale, or ambiguous release target/scope/artifact truth, do not patch in Release Readiness; return to `PR Readiness` on the active branch if unmerged, or defer the repair to the next active branch's `Branch Readiness` if already merged
   - tracked file changes while the authority record says `Release Readiness` are blocked as `Release Readiness File Mutation Attempt`

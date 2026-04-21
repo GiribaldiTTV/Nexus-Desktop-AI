@@ -253,10 +253,11 @@ These are reference layers, not active workstream or roadmap owners.
   13. run the normal branch governance validator and the PR-readiness gate mode
   14. only then allow the current branch to report `PR READY: YES` and enter PR creation
 - PR Readiness also owns `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early`; none may be deferred into Release Readiness or a later side branch
-- PR Readiness also owns the merged-unreleased release-debt owner contract when a branch will merge unreleased implementation work; the merge-target canon must already contain `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:` before PR green
+- PR Readiness also owns the merged-unreleased release-debt owner contract when a branch will merge unreleased implementation work; the merge-target canon must already contain `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:` before PR green
+- PR Readiness must validate release target semantics from the latest public prerelease and declared `Release Floor:` before green; marker presence is insufficient if the version is wrong
 - the normal `Release Readiness` sequence for a release-bearing branch must clear `Release Target Undefined` before reporting green:
   1. confirm whether the branch is release-bearing or explicitly non-release
-  2. for release-bearing branches, require machine-checkable `Release Target:`, `Release Scope:`, and `Release Artifacts:` markers before Release Readiness can report green
+  2. for release-bearing branches, require machine-checkable `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` markers before Release Readiness can report green
   3. for non-release branches, require `Release Branch: No`
   4. allow `Release Branch: No` only for preserved historical records
   5. never use the non-release waiver for `implementation` or `release packaging` branches

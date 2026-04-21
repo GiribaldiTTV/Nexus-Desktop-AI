@@ -34,15 +34,15 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
 ## Pattern: Release Readiness Green Must Require Explicit Release Target
 
 - symptom:
-  Release Readiness can appear green while the branch has not yet named the release version, bounded release scope, or release artifacts it is supposed to package
+  Release Readiness can appear green while the branch has not yet named the release version, release floor, version rationale, bounded release scope, or release artifacts it is supposed to package, or while the named target is semantically wrong
 - layer:
   branch governance and release-facing canon
 - root-cause pattern:
-  release-debt truth is present, but release-bearing branch records lack machine-checkable markers that prove the release target is explicit before green status
+  release-debt truth is present, but release-bearing branch records lack machine-checkable markers that prove the release target is explicit and semantically correct before green status
 - fix pattern:
-  require release-bearing branches to declare `Release Target:`, `Release Scope:`, and `Release Artifacts:`; allow `Release Branch: No` only for preserved historical records
+  require release-bearing branches to declare `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:`; validate target semantics from the latest public prerelease and declared floor; allow `Release Branch: No` only for preserved historical records
 - validation pattern:
-  run the branch governance validator; it must fail release-packaging branch records that omit release target markers or branch records that use the non-release waiver outside preserved historical records
+  run the branch governance validator; it must fail release-packaging branch records that omit release target markers, declare a semantically wrong target, or use the non-release waiver outside preserved historical records
 
 ## Pattern: Release Readiness File Mutation Must Backflow
 
@@ -86,9 +86,10 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
 - root-cause pattern:
   PR Readiness recorded future post-merge prose but did not leave machine-checkable merged-unreleased release-debt fields in the exact post-merge shape that `main` needs after merge
 - fix pattern:
-  require `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:` before PR green when a branch will merge unreleased implementation work
+  require `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:` before PR green when a branch will merge unreleased implementation work
+  validate release target semantics from the latest public prerelease and declared release floor before PR green
 - validation pattern:
-  run `python dev/orin_branch_governance_validation.py` plus the PR-readiness gate mode; the validator must fail if a promoted merged-unreleased workstream remains under Active, lacks release target/scope/artifacts, or if `main` carries tracked file mutation during Codex work
+  run `python dev/orin_branch_governance_validation.py` plus the PR-readiness gate mode; the validator must fail if a promoted merged-unreleased workstream remains under Active, lacks release target/floor/rationale/scope/artifacts, carries a semantically wrong release target, or if `main` carries tracked file mutation during Codex work
 - source references:
   - `Docs/phase_governance.md`
   - `Docs/prebeta_roadmap.md`

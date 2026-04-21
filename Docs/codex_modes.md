@@ -184,9 +184,12 @@ When the approved phase is `PR Readiness`, the output must also explicitly inclu
   - the blocking admission item
   - `Merged-Unreleased Release-Debt Owner:`
   - `Release Target:`
+  - `Release Floor:`
+  - `Version Rationale:`
   - `Release Scope:`
   - `Release Artifacts:`
   - `Post-Release Truth:`
+  - confirmation that the release target is semantically correct from the latest public prerelease and declared release floor
   - confirmation that branch creation remains deferred and no next implementation branch may execute by inertia
 - a required `## Next Branch` section with this exact field shape:
 
@@ -227,8 +230,11 @@ When the approved phase is `Release Readiness`, the output must also explicitly 
 - confirmation that `Release Target Undefined` is clear
 - for release-bearing branches:
   - `Release Target:`
+  - `Release Floor:`
+  - `Version Rationale:`
   - `Release Scope:`
   - `Release Artifacts:`
+  - confirmation that marker presence and semantic target correctness both pass
 - for explicitly non-release branches:
   - `Release Branch: No`
   - confirmation that this is only a historical context, not a new governance-only branch or a direct-main repair path

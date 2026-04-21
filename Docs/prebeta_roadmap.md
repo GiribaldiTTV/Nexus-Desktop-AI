@@ -84,10 +84,12 @@ Status: `Merged Unreleased (Release Debt)`
 canonical workstream doc: `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
 Merged-Unreleased Release-Debt Owner: FB-038
 Repo State: No Active Branch
-Release Target: v1.5.0-prebeta
+Release Target: v1.4.1-prebeta
+Release Floor: patch prerelease
+Version Rationale: FB-038 is tray UX, startup sequencing fix, and governance repair follow-through; it does not open a new feature lane or capability expansion beyond the completed tray/task UX milestone.
 Release Scope: FB-038 tray/task UX milestone only: tray identity/discoverability, tray Open Command Overlay, tray Create Custom Task dialog-open/no-write route, tray-origin create completion through existing FB-036 authoring, catalog reload, exact-match resolution, confirm/result execution, and startup first-visible Core Visualization repair.
-Release Artifacts: tag `v1.5.0-prebeta`; release title `Nexus Desktop AI v1.5.0-prebeta - Tray Quick-Task UX`; release notes summarizing FB-038 user-facing tray/task UX, validation evidence, and retained FB-038 evidence helpers.
-Post-Release Truth: after release, FB-038 should be represented as `Released (v1.5.0-prebeta)` / `Closed`; release debt clears; the latest public prerelease advances from `v1.4.0-prebeta` to `v1.5.0-prebeta`.
+Release Artifacts: tag `v1.4.1-prebeta`; release title `Nexus Desktop AI v1.4.1-prebeta - Tray Quick-Task UX`; release notes summarizing FB-038 user-facing tray/task UX, validation evidence, and retained FB-038 evidence helpers.
+Post-Release Truth: after release, FB-038 should be represented as `Released (v1.4.1-prebeta)` / `Closed`; release debt clears; the latest public prerelease advances from `v1.4.0-prebeta` to `v1.4.1-prebeta`.
 Selected Next Workstream: FB-039 External Trigger And Plugin Integration Architecture.
 Next-Branch Creation Gate: FB-039 remains selected-only and `Branch: Not created` until FB-038 release debt is cleared and updated `main` passes the repo-level admission gate.
 
