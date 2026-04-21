@@ -71,7 +71,7 @@ Current merged truth indicates:
 - blocker after release execution: none for FB-037
 - current active workstream: FB-038 Taskbar / Tray Quick-Task UX And Create Custom Task Surface
 - current branch: `feature/fb-038-taskbar-tray-quick-task-ux`
-- next concern on the active branch: execute PR Readiness in a separate pass, including merge-target canon, Governance Drift Audit, helper consolidation or retention decision, next-workstream selection, post-merge truth, and dirty-branch gates before PR green
+- next concern on the active branch: PR Readiness gate closure is the active concern; merge-target canon, Governance Drift Audit, helper retention, selected-next workstream, post-merge truth, and dirty-branch gates are owned by this PR Readiness pass before any Release Readiness work begins
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, and the released FB-037 built-in catalog milestone are now part of the current public shared pre-Beta baseline.
 
@@ -92,8 +92,18 @@ That means the released FB-027 interaction baseline, the released FB-036 authori
 - canonical workstream doc: `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
 - Branch: `feature/fb-038-taskbar-tray-quick-task-ux`
 - sequence: current active branch completed H1/H2 tray identity/discoverability repair and post-Hardening Live Validation, then returned to Hardening for H3/H4 after the filled User Test Summary reported a black placeholder window before Core Visualization during desktop shortcut launch; H3/H4 are green, fresh post-H4 Live Validation is green, and UTS returned-results handling is resolved by documented waiver
-- Minimal Scope: PR Readiness admission for the completed tray quick-task UX, limited to proving merge-target canon, Governance Drift Audit, helper consolidation or retention, next-workstream selection, post-merge truth, and dirty-branch gates before PR green.
-- live validation rule: automated validators, live helper evidence, user-facing desktop shortcut validation, and UTS waiver digestion are green enough to admit PR Readiness; PR Readiness itself has not been executed yet.
+- Minimal Scope: PR Readiness for the completed tray quick-task UX, limited to proving merge-target canon, Governance Drift Audit, helper retention, next-workstream selection, post-merge truth, and dirty-branch gates before PR green.
+- live validation rule: automated validators, live helper evidence, user-facing desktop shortcut validation, and UTS waiver digestion are green enough to admit PR Readiness; PR Readiness must remain active until its gate validator passes against clean durable branch truth.
+
+## Selected Next Workstream
+
+### FB-039 External Trigger And Plugin Integration Architecture
+
+- Record State: `Registry-only`
+- Minimal Scope: Branch Readiness only for external trigger and plugin integration architecture; define the source map, lifecycle ownership, trust/safety boundaries, validation contract, and explicit non-goals for external trigger surfaces such as Stream Deck or other installed integration points before any implementation. No plugin runtime implementation, Stream Deck integration, protocol handling, installer work, settings surface, taskbar/tray expansion, monitoring HUD work, or release packaging is admitted during Branch Readiness.
+- Branch: Not created
+- Selection Basis: FB-039 is the nearest canon successor after FB-038 because it plans external trigger ownership and plugin integration boundaries without expanding the completed tray/task UX branch. FB-040 remains deferred because monitoring, thermals, and HUD surfaces are a separate runtime/status lane.
+- Successor Deferral: FB-039 remains selected in canon only. Its branch may not be created until FB-038 merges, updated `main` is revalidated, and the repo-level admission gate passes.
 
 ## Most Recent Released Workstream Context
 
@@ -200,14 +210,15 @@ Current merged truth indicates:
 - the recent released workstreams above remain part of the locked current baseline
 - merged unreleased non-doc implementation debt exists: no
 - FB-038 is the active PR Readiness implementation workstream; H1 identity/discoverability repair, H2 shortcut-launch tray readback validation, H3 window initialization sequencing, H4 post-fix startup visibility validation, fresh post-H4 technical/live validation, user-facing desktop shortcut validation, and UTS waiver digestion are green
+- FB-039 is selected in canon only as the next workstream for Branch Readiness after FB-038 merges and updated `main` is revalidated; no FB-039 branch exists
 - post-release repo truth after the FB-037 release branch merge resolved to no FB-037 release-debt blocker
 - successor-lane branch creation for FB-038 has already occurred as the current Branch Readiness branch after updated `main` was revalidated
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed
 - post-release canon repair is emergency-only when merged canon is already stale or external drift made pre-merge prevention impossible
 - the released FB-027 baseline does not authorize further saved-action authoring, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
 - remaining future candidate spaces now explicitly recorded in the backlog include:
-  - FB-038 for taskbar or tray quick-task UX including Create Custom Task, now in PR Readiness with H3/H4 startup visibility re-entry green, `User-Facing Shortcut Validation: PASS`, UTS handling resolved by documented waiver, and PR Readiness execution still required before PR green
-  - FB-039 for external trigger and plugin integration architecture
+  - FB-038 for taskbar or tray quick-task UX including Create Custom Task, now in PR Readiness with H3/H4 startup visibility re-entry green, `User-Facing Shortcut Validation: PASS`, UTS handling resolved by documented waiver, and PR Readiness gate closure owned by the active branch before Release Readiness
+  - FB-039 for external trigger and plugin integration architecture, selected in canon only with `Branch: Not created`
   - FB-040 for monitoring, thermals, and performance HUD surfaces
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
 - FB-037 Branch Readiness does not imply automatic continuation into any remaining candidate lane

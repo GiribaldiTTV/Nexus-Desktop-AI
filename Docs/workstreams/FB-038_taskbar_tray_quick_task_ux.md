@@ -51,7 +51,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 - User-Facing Shortcut Validation: PASS
 - User Test Summary Results: WAIVED
 - UTS waiver source: operator-confirmed waiver artifact on 2026-04-21
-- final Live Validation advancement blocker is cleared; PR Readiness is admitted but not executed in this pass
+- final Live Validation advancement blocker is cleared; PR Readiness is admitted and this pass owns the remaining PR gate checks
 - FB-037 is released and closed in `v1.4.0-prebeta`
 - FB-037 release publication exists at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.4.0-prebeta`
 - no FB-037 release-debt blocker remains
@@ -105,20 +105,42 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 Live Validation was previously admitted after validating Workstream closure, Hardening GREEN evidence, User Test Summary alignment, helper registry compliance, and clean branch truth. Returned User Test Summary evidence first routed to bounded tray discoverability Hardening and then to bounded window initialization Hardening.
 
-Fresh post-Hardening Live Validation produced a returned User Test Summary failure: desktop shortcut launch briefly showed a black placeholder window before Core Visualization. H3/H4 Hardening re-entry is now green. Fresh post-H4 Live Validation technical/live evidence is green and a new User Test Summary handoff was exported. The UTS result was resolved by operator-confirmed waiver artifact on 2026-04-21, so `User Test Summary Results Pending` is cleared and PR Readiness is admitted. PR Readiness execution has not started in this pass.
+Fresh post-Hardening Live Validation produced a returned User Test Summary failure: desktop shortcut launch briefly showed a black placeholder window before Core Visualization. H3/H4 Hardening re-entry is now green. Fresh post-H4 Live Validation technical/live evidence is green and a new User Test Summary handoff was exported. The UTS result was resolved by operator-confirmed waiver artifact on 2026-04-21, so `User Test Summary Results Pending` is cleared and PR Readiness is admitted. PR Readiness now owns merge-target canon, helper-retention truth, next-workstream selection, post-merge state, Governance Drift Audit, and dirty-branch gates before green.
 
 ## Governance Drift Audit
 
-- Governance Drift Found: Not yet evaluated in the PR Readiness phase.
-- Admission note:
-  this section is present only to keep the newly admitted `PR Readiness` authority record structurally valid; the required PR Readiness Governance Drift Audit still must run before PR green.
+- Governance Drift Found: No.
+- Audit Date: 2026-04-21.
+- Audit Scope:
+  PR Readiness review of FB-038 branch truth, merge-target canon, post-merge state, next-workstream selection, helper registry obligations, desktop shortcut/UTS gates, and dirty-branch durability.
+- Findings:
+  - stale-canon blocker is clear after this PR Readiness canon update because current branch truth, Live Validation waiver digestion, helper-retention truth, and selected-next workstream truth are explicitly recorded.
+  - post-merge blocker is clear because the Post-Merge State section below records `No Active Branch`, FB-038 `Release Debt`, and selected FB-039 branch deferral after merge.
+  - dirty blocker must be evaluated by the PR-readiness validator after this update is committed.
+  - docs-sync blocker is clear after this update because backlog, roadmap, helper registry, and this authority record carry the same PR Readiness truth.
+  - next-workstream blocker is clear after FB-039 is selected in backlog and roadmap with `Record State: Registry-only`, `Minimal Scope:`, and `Branch: Not created`.
+  - desktop-shortcut blocker is clear because `User-Facing Shortcut Validation: PASS` is recorded with fresh post-H4 evidence.
+  - uts-results blocker is clear because `User Test Summary Results: WAIVED` is recorded with operator-confirmed waiver digestion.
+  - PR Readiness scope-miss blockers are clear: no branch-authority cleanup is required for this backlog-backed implementation branch, no between-branch canon repair is planned, no successor branch exists, and no PR-owned docs work is deferred into Release Readiness.
+- Helper Governance Finding:
+  FB-038 workstream-scoped helpers remain registered and are intentionally retained as FB-038 evidence helpers after merge. They are not promoted to reusable helpers in this branch because reuse would prematurely generalize tray-origin authoring proof before a second branch needs it. Future tray-origin or authoring work must consolidate these helpers into a reusable tray/Create Custom Task live helper or the saved-action interactive suite before creating another helper.
 
 ## Post-Merge State
 
-- successor handling:
-  not yet evaluated in the PR Readiness phase.
-- Admission note:
-  PR Readiness must decide and encode the post-merge successor or `No Active Branch` truth before PR green; this digestion pass does not execute that review.
+- Merge Target:
+  FB-038 merges as the completed tray quick-task UX implementation branch after PR approval.
+- Post-Merge Repo State:
+  `No Active Branch` until a release-packaging or later admitted branch passes the repo-level admission gate.
+- Release Debt:
+  FB-038 will become merged-unreleased non-doc implementation debt after merge and must remain the release-debt owner until release packaging clears it.
+- Workstream Index Target:
+  after merge, FB-038 should move from `Active` to `Merged / Release Debt Owners`; it must not remain an active implementation branch authority on updated `main`.
+- Backlog / Roadmap Target:
+  after merge, FB-038 should be represented as merged-unreleased release debt, while FB-039 remains selected in canon only.
+- Successor Handling:
+  FB-039 `External trigger and plugin integration architecture` is selected as the next workstream with `Record State: Registry-only`, bounded Branch Readiness minimal scope, and `Branch: Not created`. Its branch creation is deferred until FB-038 merges, updated `main` is revalidated, and the repo-level admission gate passes.
+- Release Readiness Boundary:
+  Release Readiness may validate release target/scope/artifacts later, but it must not absorb PR-owned docs sync, helper-retention decisions, next-workstream selection, or post-merge canon repair.
 
 ## Bounded Objective
 
@@ -322,7 +344,7 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
 - Seam 2 validation status:
   - added `dev/orin_fb038_seam2_validation.ps1` as the deterministic repo-local validator runner for this seam
   - added `dev/orin_fb038_seam2_live_validation.ps1` as the stable repo-local manual/live validation helper for the tray menu, dialog-open/no-write, tray overlay baseline, and hotkey overlay baseline evidence path
-  - both helpers are registered as `Workstream-scoped` in `Docs/validation_helper_registry.md`; Hardening or PR Readiness must decide whether to consolidate them into reusable tray/authoring validation support, promote them, or keep them explicitly workstream-scoped
+  - both helpers are registered as `Workstream-scoped` in `Docs/validation_helper_registry.md`; PR Readiness decided to keep them workstream-scoped after merge as FB-038 evidence helpers with a future consolidation target rather than promote them prematurely
   - the runner resolves `NEXUS_VALIDATION_PYTHON`, then the existing Nexus user-local Python at `C:\Users\anden\AppData\Local\Python\pythoncore-3.14-64\python.exe`, then `python` on `PATH`
   - the runner refuses to proceed unless `PySide6` imports successfully; no validator skip, stub, or fake pass condition was added
   - `python` and `py` remain unavailable in the current sandbox `PATH`, but the user-local Nexus Python is available and has `PySide6 6.10.2`
@@ -343,7 +365,7 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
 - Seam 3 validation support added:
   - tray-origin create-completion/re-resolution coverage in `dev/orin_saved_action_authoring_ui_validation.py`
   - `dev/orin_fb038_seam3_live_validation.ps1` as the stable repo-local live helper for tray-origin create, persisted saved-action source update, catalog reload, created-task exact-match resolution, confirm/result flow, launched Notepad cleanup, and saved-action source restoration
-  - the helper is registered as `Workstream-scoped` in `Docs/validation_helper_registry.md`; Hardening or PR Readiness must decide whether to consolidate it with the Seam 2 tray helper into reusable tray/Create Custom Task validation support, promote it, or keep it explicitly workstream-scoped
+  - the helper is registered as `Workstream-scoped` in `Docs/validation_helper_registry.md`; PR Readiness decided to keep it workstream-scoped after merge as FB-038 evidence with a future consolidation target rather than promote it prematurely
 - Seam 3 repo-side validation passed:
   - `dev/orin_saved_action_authoring_ui_validation.py`
   - the validation proves `CUSTOM_TASK_CREATE_ATTEMPT_STARTED`, `COMMAND_ACTION_CATALOG_RELOAD_COMPLETED`, `CUSTOM_TASK_CREATED`, created-record persistence, catalog inventory refresh, exact-match resolution, and normal launch-result flow through a fake launcher
@@ -379,8 +401,8 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
 - Updated this authority record so completed seams are marked green, evidence roots are current, no stale blocker remains, and Hardening is named only as the next legal phase.
 - Finalized the canonical `## User Test Summary` for the completed FB-038 user-facing Workstream behavior.
 - Refreshed the desktop convenience export at `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` from this workstream-owned canonical summary.
-- Recorded validation-helper registry drift:
-  FB-038 currently carries workstream-scoped Seam 2 and Seam 3 helpers; this is acceptable for Workstream evidence, but the helper registry now requires a consolidation or promotion decision before PR Readiness.
+- Recorded validation-helper registry obligation:
+  FB-038 carries workstream-scoped Seam 2 and Seam 3 helpers; PR Readiness resolved the obligation by retaining them as FB-038 evidence helpers with explicit future consolidation targets instead of promoting them prematurely.
 - Workstream completion decision:
   COMPLETE for the approved same-risk seam chain.
 - Remaining Workstream seams:
@@ -411,7 +433,7 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
 - Baseline preservation result:
   no regression observed for the released FB-027 interaction baseline, FB-036 authoring/source safety, FB-041 callable-group execution, or FB-037 built-in catalog and saved-action override behavior.
 - Helper-governance result:
-  FB-038 helper registry entries remain compliant as `Workstream-scoped`; the existing consolidation or promotion decision remains required before PR Readiness, but it is not a Hardening blocker.
+  FB-038 helper registry entries remain compliant as `Workstream-scoped`; PR Readiness later resolved the consolidation or promotion decision by retaining them as branch-family evidence helpers with future consolidation targets.
 - Scope-drift result:
   no schema change, target-kind change, resolution precedence change, built-in catalog change, callable-group change, taskbar pinning, jump-list, protocol, settings, installer, or broad UI work was introduced during Hardening.
 - Hardening decision:
@@ -453,7 +475,7 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
 - Baseline preservation result:
   no regression observed for the released FB-027 interaction baseline, FB-036 authoring/source safety, FB-041 callable-group execution, or FB-037 built-in catalog and saved-action override behavior.
 - Helper-governance result:
-  FB-038 helper registry entries remain compliant as `Workstream-scoped`; the consolidation or promotion decision remains required before PR Readiness, but it is not a Live Validation blocker.
+  FB-038 helper registry entries remain compliant as `Workstream-scoped`; PR Readiness later resolved the consolidation or promotion decision by retaining them as branch-family evidence helpers with future consolidation targets.
 - Scope-drift result:
   no new implementation, schema change, target-kind change, resolution precedence change, built-in catalog change, callable-group change, taskbar pinning, jump-list, protocol, settings, installer, release, or PR work was introduced during Live Validation.
 - Live Validation automated/live-helper decision:
@@ -704,7 +726,7 @@ Current manual/live status:
 - Final Live Validation advancement blocker is cleared by operator-confirmed waiver artifact on 2026-04-21.
 - desktop export refreshed at `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` with the fresh post-H4 evidence root, startup first-visible expectations, tray hidden-overflow guidance, and response slots
 - routing after returned User Test Summary digestion:
-  prior returned results failed on tray visibility/discoverability from the desktop VBS shortcut and were routed to bounded H1/H2 Hardening; later returned results failed on a black placeholder window before Core Visualization and were routed to H3/H4 Hardening re-entry. H1 through H4 are now green, fresh post-H4 Live Validation technical/live evidence is green, the UTS requirement is waived, and the next safe move is PR Readiness execution in a separate pass.
+  prior returned results failed on tray visibility/discoverability from the desktop VBS shortcut and were routed to bounded H1/H2 Hardening; later returned results failed on a black placeholder window before Core Visualization and were routed to H3/H4 Hardening re-entry. H1 through H4 are now green, fresh post-H4 Live Validation technical/live evidence is green, the UTS requirement is waived, and PR Readiness owns the final merge-target and successor-lock gates before Release Readiness.
 
 Returned User Test Summary digest on 2026-04-21:
 
@@ -754,7 +776,7 @@ Post-H4 User Test Summary waiver digestion on 2026-04-21:
 - rationale:
   automated validators, live helper evidence, shortcut-launched evidence, H1/H2 tray discoverability repair evidence, and H3/H4 startup visibility repair evidence are all green; the waiver resolves the remaining returned-results gate without changing product scope
 - routing decision:
-  transition the authority record to `PR Readiness`; do not execute PR Readiness work in this pass
+  transition the authority record to `PR Readiness`; execute PR Readiness only in the dedicated PR Readiness pass and do not start Release Readiness until that gate is green
 
 Completed user-facing behavior:
 
@@ -847,6 +869,6 @@ Fresh post-H4 User Test Summary handoff checklist:
 - Create Custom Task flow:
   confirm tray `Create Custom Task` opens the existing overlay entry path and existing dialog, cancel/close does not write `saved_actions.json`, and a deliberate submit can create, reload, resolve, execute, and clean up a test task through the existing FB-036 path
 - response status:
-  returned User Test Summary handling is `WAIVED`; PR Readiness is admitted, and PR Readiness work must run in a separate pass
+  returned User Test Summary handling is `WAIVED`; PR Readiness is admitted, and PR Readiness owns merge-target canon, helper-retention, successor-lock, post-merge, drift-audit, and dirty-branch gates before Release Readiness
 
-The desktop `User Test Summary.txt` export was refreshed during fresh post-H4 Live Validation because FB-038 remains a user-facing desktop workstream. Returned UTS handling is now resolved by documented waiver, allowing PR Readiness admission without starting PR Readiness execution in this pass.
+The desktop `User Test Summary.txt` export was refreshed during fresh post-H4 Live Validation because FB-038 remains a user-facing desktop workstream. Returned UTS handling is now resolved by documented waiver, allowing PR Readiness admission. The PR Readiness gate now owns the final merge-target, helper-retention, successor-lock, post-merge, drift-audit, and dirty-branch checks before Release Readiness.
