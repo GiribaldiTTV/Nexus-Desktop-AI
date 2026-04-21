@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Hardening`
+- `Live Validation`
 
 ## Release Stage
 
@@ -33,7 +33,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 ## Current Phase
 
-- Phase: `Hardening`
+- Phase: `Live Validation`
 
 ## Phase Status
 
@@ -42,6 +42,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 - Branch Readiness is complete and durably checkpointed in commit `766ff67`
 - Workstream seam chain and helper governance are complete and durably checkpointed in commit `ef05ab2`
 - Hardening execution pass completed on 2026-04-21; branch-wide validator and helper sweep is green
+- Live Validation is admitted for bounded real desktop validation; Live Validation execution has not started in the transition pass
 - FB-037 is released and closed in `v1.4.0-prebeta`
 - FB-037 release publication exists at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.4.0-prebeta`
 - no FB-037 release-debt blocker remains
@@ -68,24 +69,25 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 - FB-038 was selected in canon before this admission and is now promoted
 - Branch Readiness exit criteria are satisfied
 - Workstream exit criteria are satisfied: all approved seams are complete and green, the workstream-owned User Test Summary is current, evidence references exist, and no same-slice correctness gap remains
+- Hardening exit criteria are satisfied: branch-local validator and helper sweep is green, no regression or scope drift remains, helper-governance obligations are represented, and no Hardening blocker remains
 
 ## Exit Criteria
 
-- branch-wide pressure testing is complete for the tray overlay entry, tray Create Custom Task dialog-open/no-write path, tray-origin create completion, catalog reload, and exact-match re-resolution behavior
-- helper default profiles and workstream-scoped helper obligations are pressure-tested enough to decide whether consolidation, promotion, or continued workstream-scoped status is appropriate before PR Readiness
+- bounded real desktop validation is complete for tray overlay entry, tray Create Custom Task dialog-open/no-write behavior, tray-origin create completion, catalog reload, exact-match re-resolution, confirm/result behavior, cleanup, and released-baseline preservation
+- required runtime marker, persisted-state, screenshot or equivalent UI evidence, and cleanup evidence are captured and referenced
+- no runtime contradiction appears against repo-side validation or Hardening proof
 - no regression appears in released FB-027 interaction behavior, FB-036 authoring/source safety, FB-041 callable-group behavior, or FB-037 built-in catalog and saved-action override behavior
-- no stale evidence, no unresolved helper-governance contradiction, and no branch-truth drift remains
-- Hardening validation is green enough to proceed to Live Validation
+- returned Live Validation evidence is digested into this authority record before PR Readiness is recommended
 
 ## Rollback Target
 
-- `Workstream`
+- `Hardening`
 
 ## Next Legal Phase
 
-- `Live Validation`
+- `PR Readiness`
 
-Hardening was admitted after validating Workstream closure, evidence references, User Test Summary alignment, helper registry compliance, and clean durable branch truth. The Hardening pressure-test pass is now green. The next safe move is a separate Hardening-to-Live Validation phase-transition durability pass; do not start Live Validation inside the Hardening execution pass.
+Live Validation was admitted after validating Workstream closure, Hardening GREEN evidence, User Test Summary alignment, helper registry compliance, and clean branch truth. The next safe move is a separate Live Validation execution pass; do not perform Live Validation scenarios inside the phase-transition admission pass.
 
 ## Bounded Objective
 
@@ -215,7 +217,7 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
   - pressure-test the selected shell-facing UX and authoring-entry behavior across normal and edge cases
   - repair only defects, validation gaps, or helper seams inside the approved scope
 - Live Validation:
-  - capture real desktop evidence for taskbar/tray/Create Custom Task behavior when implementation reaches that point
+  - capture real desktop evidence for the completed taskbar/tray/Create Custom Task behavior now that Hardening is green
   - digest evidence into this authority record before phase advancement
 - PR Readiness:
   - complete merge-target canon, Governance Drift Audit, next-workstream selection, post-merge truth, and dirty-branch gates before PR green
@@ -384,7 +386,7 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
 - Hardening decision:
   GREEN.
 - Next safe move:
-  separate phase-transition durability pass from `Hardening` to `Live Validation`; do not start Live Validation from this Hardening execution pass.
+  separate Live Validation execution pass; do not treat Hardening helper evidence as a substitute for Live Validation closeout evidence.
 
 ## User Test Summary
 
@@ -406,7 +408,7 @@ Current manual/live status:
 - Seam 3 repo-side and manual/live validation passed at `dev/logs/fb_038_tray_create_completion_live_validation/20260421_045536`
 - Seam 3 is fully green
 - Seam 4 Workstream evidence and User Test Summary finalization is complete
-- the approved Workstream seam chain is complete and ready for a later Workstream-to-Hardening transition pass
+- the approved Workstream seam chain is complete, Hardening is green, and the branch is admitted to Live Validation
 - desktop export refreshed at `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt`
 
 Completed user-facing behavior:

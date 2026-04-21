@@ -32,13 +32,13 @@ Historical note:
 
 ### [ID: FB-038] Taskbar / tray quick-task UX and Create Custom Task surface
 
-Status: Hardening
+Status: Live Validation
 Record State: Promoted
 Priority: Medium
 Release Stage: pre-Beta
 Target Version: TBD
 Canonical Workstream Doc: Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md
-Minimal Scope: Hardening for the completed shell-facing tray quick-task entry surface, limited to pressure-testing the Workstream-delivered tray overlay entry, tray Create Custom Task dialog-open/no-write path, tray-origin create completion, catalog reload, exact-match re-resolution, and released-baseline preservation; no new feature seams are authorized during Hardening.
+Minimal Scope: Live Validation for the completed shell-facing tray quick-task entry surface, limited to bounded real desktop validation of tray overlay entry, tray Create Custom Task dialog-open/no-write behavior, tray-origin create completion, catalog reload, exact-match re-resolution, confirm/result behavior, cleanup, and released-baseline preservation; no new feature seams are authorized during Live Validation.
 Summary: Track future taskbar or tray quick-access UX, including a Create Custom Task affordance, as a deliberate shell-facing entry surface into the shared action model.
 Why it matters: Taskbar and tray interaction affect entry, discoverability, and user trust, so they should be planned as an explicit UX lane instead of piggybacking on overlay or authoring work.
 
