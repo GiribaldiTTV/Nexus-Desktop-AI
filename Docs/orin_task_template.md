@@ -1,5 +1,9 @@
 # ORIN Task Template
 
+## Top Rule: Pre-PR Durability
+
+**DO THIS ALWAYS before `PR Readiness`: when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready or staged-only state. This includes `Branch Readiness`, `Workstream`, `Hardening`, and `Live Validation`; the only exceptions are an explicit active-prompt prohibition, failed validation, or a legally file-frozen phase such as `Release Readiness`.**
+
 You are working inside the Nexus Desktop AI project as an implementation and analysis partner.
 
 ## Authoritative Source Of Truth

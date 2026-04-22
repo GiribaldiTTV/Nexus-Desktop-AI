@@ -83,6 +83,23 @@ REQUIRED_WORKSTREAM_HEADINGS = (
     "## Next Legal Phase",
 )
 
+REQUIRED_BRANCH_READINESS_DURABILITY_HEADINGS = (
+    "## Branch Objective",
+    "## Target End-State",
+    "## Expected Seam Families And Risk Classes",
+    "## User Test Summary Strategy",
+    "## Later-Phase Expectations",
+    "## Initial Workstream Seam Sequence",
+    "## Active Seam",
+)
+
+REQUIRED_BRANCH_READINESS_FIRST_SEAM_MARKERS = (
+    "Seam 1:",
+    "Goal:",
+    "Scope:",
+    "Non-Includes:",
+)
+
 SUCCESSOR_LOCK_WAIVER_DOCS = (
     Path("Docs/phase_governance.md"),
     Path("Docs/development_rules.md"),
@@ -171,6 +188,7 @@ PRE_PR_DURABILITY_DOCS = (
 )
 
 PRE_PR_DURABILITY_PHRASES = (
+    "DO THIS ALWAYS",
     "Pre-PR Durability Rule",
     "before `PR Readiness`",
     "commit and push",
@@ -998,6 +1016,8 @@ def main() -> int:
     backlog_text = _read_text(Path("Docs/feature_backlog.md"))
     roadmap_text = _read_text(Path("Docs/prebeta_roadmap.md"))
     index_text = _read_text(Path("Docs/workstreams/index.md"))
+    main_text = _read_text(Path("Docs/Main.md"))
+    main_canonical_workstream_routes = _subsection(main_text, "Canonical Workstream Records")
 
     def require(condition: bool, message: str) -> None:
         nonlocal checks
@@ -1463,6 +1483,14 @@ def main() -> int:
         if not canonical_path:
             continue
 
+        require(
+            canonical_path in main_canonical_workstream_routes,
+            (
+                "Docs/Main.md: promoted workstream "
+                f"{canonical_path} is missing from the Canonical Workstream Records routing list"
+            ),
+        )
+
         workstream_path = Path(canonical_path)
         require(
             (ROOT_DIR / workstream_path).is_file(),
@@ -1524,6 +1552,32 @@ def main() -> int:
                     f"{canonical_path}: blockers are present ({', '.join(blockers)}) but "
                     f"Next Legal Phase advances from '{current_phase}' to '{next_legal_phase}'"
                 ),
+            )
+
+        if current_phase == "Branch Readiness":
+            for heading in REQUIRED_BRANCH_READINESS_DURABILITY_HEADINGS:
+                require(
+                    heading in workstream_text,
+                    (
+                        f"{canonical_path}: Branch Readiness durability scaffold is missing "
+                        f"required heading '{heading}'"
+                    ),
+                )
+
+            initial_seam_sequence = _section(workstream_text, "Initial Workstream Seam Sequence")
+            for marker in REQUIRED_BRANCH_READINESS_FIRST_SEAM_MARKERS:
+                require(
+                    marker in initial_seam_sequence,
+                    (
+                        f"{canonical_path}: Initial Workstream Seam Sequence must define a first seam "
+                        f"with '{marker}'"
+                    ),
+                )
+
+            active_seam_section = _section(workstream_text, "Active Seam")
+            require(
+                "Active seam:" in active_seam_section,
+                f"{canonical_path}: Active Seam section must clearly identify the active seam",
             )
 
         if current_phase in {"Live Validation", "PR Readiness"} and _has_user_test_summary(workstream_text):

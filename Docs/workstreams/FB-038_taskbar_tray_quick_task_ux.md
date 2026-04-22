@@ -38,14 +38,14 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 ## Phase Status
 
 - `Closed historical workstream record`
-- repo state: `No Active Branch`
+- historical repo state at FB-038 release closure: `No Active Branch`; superseded for current repo truth by active FB-039 Branch Readiness
 - latest public prerelease: `v1.4.1-prebeta`
 - release title: `Pre-Beta v1.4.1`
 - protected-main rule: `main` is read-only for Codex work; no editing, staging, committing, generation, refresh, or direct repair on `main`
 - FB-038 has been squash-merged to `main`
 - FB-038 release execution completed for `v1.4.1-prebeta`
 - FB-038 release debt is cleared
-- FB-039 remains selected-only and `Branch: Not created` until fresh Branch Readiness admission passes on updated `main`
+- historical/superseded successor state: FB-039 remained selected-only and `Branch: Not created` until fresh Branch Readiness admission passed on updated `main`; current FB-039 truth now lives in `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
 - Branch Readiness is complete and durably checkpointed in commit `766ff67`
 - Workstream seam chain and helper governance are complete and durably checkpointed in commit `ef05ab2`
 - Hardening execution pass completed on 2026-04-21; branch-wide validator and helper sweep is green
@@ -77,7 +77,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 ## Entry Basis
 
 - local `main` and `origin/main` were aligned after the FB-038 squash merge and release execution
-- main-facing repo state is `No Active Branch`
+- main-facing repo state at FB-038 release closure was `No Active Branch`; current repo truth is superseded by active FB-039 Branch Readiness
 - this workstream is closed historical truth after the `v1.4.1-prebeta` release
 - Branch Readiness governance/canon repair plus FB-038 admission setup is durable in commit `766ff67`
 - Workstream seam chain completion, Workstream evidence finalization, User Test Summary finalization, and helper-governance registry integration are durable in commit `ef05ab2`
@@ -99,7 +99,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 - latest public prerelease truth advances to `v1.4.1-prebeta`
 - release debt is cleared in backlog, roadmap, and workstream index canon
 - `main` remains protected and file-frozen for Codex work
-- FB-039 remains selected-only and branch-not-created until fresh Branch Readiness admission passes
+- historical/superseded successor target: FB-039 remained selected-only and branch-not-created until fresh Branch Readiness admission passed; current FB-039 truth now lives in its active workstream record
 - H1 tray identity and discoverability refinement is implemented without new tray actions, new entrypoints, taskbar pinning, jump lists, protocol handling, or changes to Create Custom Task behavior
 - tray tooltip/title, tray menu identity, and any startup discovery cue clearly identify `Nexus Desktop AI` and document that Windows may place the icon in hidden tray overflow
 - H2 shortcut-launch tray readback validates the user-facing desktop shortcut path after the H1 repair
@@ -116,7 +116,7 @@ This workstream exists so taskbar or tray access and Create Custom Task entry ar
 
 ## Next Legal Phase
 
-- `Branch Readiness` for the next admitted branch only after updated `main` is revalidated; FB-039 remains selected-only and not created in this record.
+- Historical/superseded: `Branch Readiness` for the next admitted branch only after updated `main` was revalidated; FB-039 selected-only / not-created truth was superseded when FB-039 Branch Readiness was admitted on `feature/fb-039-external-trigger-plugin-integration-architecture`.
 
 Live Validation was previously admitted after validating Workstream closure, Hardening GREEN evidence, User Test Summary alignment, helper registry compliance, and clean branch truth. Returned User Test Summary evidence first routed to bounded tray discoverability Hardening and then to bounded window initialization Hardening.
 
@@ -133,7 +133,7 @@ Fresh post-Hardening Live Validation produced a returned User Test Summary failu
   - post-release blocker is clear because the Released-State Closure section below records `Released (v1.4.1-prebeta)`, cleared FB-038 release debt, and selected FB-039 branch deferral after release.
   - dirty blocker must be evaluated by the governance validator after this update is committed.
   - docs-sync blocker is clear after this update because backlog, roadmap, helper registry, and this authority record carry the same PR Readiness truth.
-  - next-workstream blocker is clear after FB-039 is selected in backlog and roadmap with `Record State: Registry-only`, `Minimal Scope:`, and `Branch: Not created`.
+  - historical next-workstream blocker was clear after FB-039 was selected in backlog and roadmap with `Record State: Registry-only`, `Minimal Scope:`, and `Branch: Not created`; this selected-only posture is superseded by current FB-039 Branch Readiness truth.
   - desktop-shortcut blocker is clear because `User-Facing Shortcut Validation: PASS` is recorded with fresh post-H4 evidence.
   - uts-results blocker is clear because `User Test Summary Results: WAIVED` is recorded with operator-confirmed waiver digestion.
   - PR Readiness scope-miss blockers are clear for the closed FB-038 record: no branch-authority cleanup remains, no direct-main repair occurred, no successor branch exists, and no PR-owned docs work is deferred into Release Readiness.
@@ -150,32 +150,32 @@ Fresh post-Hardening Live Validation produced a returned User Test Summary failu
   `Pre-Beta v1.4.1`.
 - Release URL:
   `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.4.1-prebeta`.
-- Post-Release Repo State:
-  `No Active Branch`.
+- Historical Post-Release Repo State:
+  `No Active Branch` at FB-038 release closure; superseded for current repo truth by active FB-039 Branch Readiness.
 - Release Debt:
   Cleared for FB-038.
 - Workstream Index Target:
   FB-038 is listed under `Closed`; it must not remain under `Merged / Release Debt Owners` or `Active`.
 - Backlog / Roadmap Target:
-  FB-038 is represented as `Released (v1.4.1-prebeta)` / `Closed`, while FB-039 remains selected in canon only.
-- Successor Handling:
-  FB-039 `External trigger and plugin integration architecture` is selected as the next workstream with `Record State: Registry-only`, bounded Branch Readiness minimal scope, and `Branch: Not created`. Its branch creation is deferred until updated `main` is revalidated and the repo-level admission gate passes.
+  FB-038 is represented as `Released (v1.4.1-prebeta)` / `Closed`; at FB-038 release closure, FB-039 remained selected in canon only, and that historical posture is superseded by current FB-039 Branch Readiness truth.
+- Historical Successor Handling:
+  FB-039 `External trigger and plugin integration architecture` was selected as the next workstream with `Record State: Registry-only`, bounded Branch Readiness minimal scope, and `Branch: Not created` at FB-038 release closure. That posture is superseded by current active FB-039 Branch Readiness after updated `main` was revalidated and the repo-level admission gate passed.
 - Release Readiness Boundary:
   Release Readiness remains analysis-only and file-frozen. Any future stale release-state canon discovered after release must be repaired on a legal branch surface, not on protected `main`.
 
 ## Released-State Canon Contract
 
 Released Workstream: FB-038
-Repo State: No Active Branch
+Historical Repo State At FB-038 Release Closure: No Active Branch
 Latest Public Prerelease: v1.4.1-prebeta
 Release Title: Pre-Beta v1.4.1
 Release Floor: patch prerelease
 Version Rationale: FB-038 is tray UX, startup sequencing fix, and governance repair follow-through; it does not open a new feature lane or capability expansion beyond the completed tray/task UX milestone.
 Release Scope: FB-038 tray/task UX milestone only: tray identity/discoverability, tray Open Command Overlay, tray Create Custom Task dialog-open/no-write route, tray-origin create completion through existing FB-036 authoring, catalog reload, exact-match resolution, confirm/result execution, and startup first-visible Core Visualization repair.
 Release Artifacts: tag `v1.4.1-prebeta`; release title `Pre-Beta v1.4.1`; release notes summarizing FB-038 user-facing tray/task UX, validation evidence, and retained FB-038 evidence helpers.
-Post-Release Truth: FB-038 is `Closed` / `Released (v1.4.1-prebeta)`, release debt is clear, roadmap latest public prerelease is `v1.4.1-prebeta`, and repo-level admission may reconsider FB-039 Branch Readiness from updated `main`.
+Post-Release Truth: FB-038 is `Closed` / `Released (v1.4.1-prebeta)`, release debt is clear, roadmap latest public prerelease is `v1.4.1-prebeta`, and repo-level admission later admitted FB-039 Branch Readiness from updated `main`.
 Selected Next Workstream: FB-039 External trigger and plugin integration architecture.
-Next-Branch Creation Gate: FB-039 remains selected-only and `Branch: Not created` until updated `main` passes the repo-level admission gate.
+Historical Next-Branch Creation Gate: FB-039 remained selected-only and `Branch: Not created` until updated `main` passed the repo-level admission gate; this is superseded by current active FB-039 Branch Readiness.
 
 ## Bounded Objective
 

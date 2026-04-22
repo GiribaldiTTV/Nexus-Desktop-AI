@@ -1,5 +1,9 @@
 # Nexus Source-Of-Truth Index
 
+## Top Rule: Pre-PR Durability
+
+**DO THIS ALWAYS before `PR Readiness`: when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready or staged-only state. This includes `Branch Readiness`, `Workstream`, `Hardening`, and `Live Validation`; the only exceptions are an explicit active-prompt prohibition, failed validation, or a legally file-frozen phase such as `Release Readiness`.**
+
 ## Purpose
 
 This document is the routing authority for the merged Nexus Desktop AI canon.
@@ -145,6 +149,7 @@ Rules:
 Use these for promoted work that needs a stable feature-state, branch-local validation/evidence record, active seam trail, durable artifact/reuse history, and closure history:
 
 - `Docs/workstreams/index.md`
+- `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
 - `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
 - `Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md`
 - `Docs/workstreams/FB-036_saved_action_authoring.md`
