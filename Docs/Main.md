@@ -261,8 +261,10 @@ These are reference layers, not active workstream or roadmap owners.
   11. If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor branch creation remains deferred; next-workstream selection is still required unless the user explicitly approves a no-next-workstream steady-state outcome in canon.
   12. commit all required docs, canon, validator, and branch-truth changes so the worktree is clean and truth is durable in commit history
   13. run the normal branch governance validator and the PR-readiness gate mode
-  14. only then allow the current branch to report `PR READY: YES` and enter PR creation
+  14. report `PR package ready`, create the PR, and validate the live PR state before reporting `PR READY: YES`
+  15. only after the PR exists, has no conflicts, has no unresolved Codex comments/issues, and matches merge-target canon may the branch report `PR Readiness GREEN`
 - PR Readiness also owns `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early`; none may be deferred into Release Readiness or a later side branch
+- PR Readiness also owns `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown`; `PR package ready` is not `PR Readiness GREEN`
 - PR Readiness also owns the merged-unreleased release-debt owner contract when a branch will merge unreleased implementation work; the merge-target canon must already contain `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:` before PR green
 - PR Readiness must validate release target semantics from the latest public prerelease and declared `Release Floor:` before green; marker presence is insufficient if the version is wrong
 - the normal `Release Readiness` sequence for a release-bearing branch must clear `Release Target Undefined` before reporting green:

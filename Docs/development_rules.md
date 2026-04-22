@@ -232,7 +232,7 @@ Supporting canon must stay aligned with live truth.
 
 That means:
 
-- PR Readiness hard blocker shorthand is `stale-canon`, `post-merge`, `dirty`, `docs-sync`, `next-workstream`, and `uts-results`
+- PR Readiness hard blocker shorthand is `stale-canon`, `post-merge`, `dirty`, `docs-sync`, `next-workstream`, `uts-results`, `pr-created`, and `pr-validated`
 - directly supporting canon and tightly coupled governance may be updated on the active implementation or release branch when that branch changes or depends on the truth
 - no PR-ready without canon-ready:
   - a branch is not PR-ready if merging it would leave `main` canon-stale
@@ -275,6 +275,13 @@ That means:
   - automated validators and live helper evidence may be green, but final phase advancement remains blocked while a required User Test Summary handoff is outstanding
   - returned User Test Summary results must be submitted or explicitly waived, digested into the active authority record, and reevaluated before PR Readiness can report green
   - if returned results expose mismatch, regression, cleanup failure, ambiguity, or scope drift, route back to `Workstream` or `Hardening` instead of advancing
+- no PR-ready before PR creation and PR validation:
+  - `PR package ready` is not `PR Readiness GREEN`
+  - PR creation is part of PR Readiness completion, not a later phase
+  - the GitHub PR must exist before final green
+  - the PR must be open, non-draft, conflict-free, inspectable, and aligned to merge-target canon
+  - a missing PR keeps `PR Creation Pending` active
+  - unresolved Codex comments/issues, requested changes, unknown mergeability, unknown PR state, or inability to inspect the PR keep `PR Validation Pending` or `PR State Unknown` active
 - no PR-ready with a PR Readiness scope miss:
   - named blockers are `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early`
   - PR Readiness must complete branch-authority cleanup, merge-target canon, post-merge truth, next-workstream selection, next-branch deferral, and release-debt routing on the active branch before green

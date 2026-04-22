@@ -185,6 +185,8 @@ When the approved phase is `PR Readiness`, the output must also explicitly inclu
 - whether governance drift was found
 - confirmation that stale-canon, post-merge-state, next-workstream, dirty-branch, docs-sync/drift-audit, and `User Test Summary Results Pending` blockers are clear
 - confirmation that `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early` are clear
+- confirmation that `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown` are clear before reporting `PR Readiness GREEN`
+- confirmation that `PR package ready` is not being collapsed into `PR Readiness GREEN`
 - confirmation that no PR-owned docs or canon work is being deferred to Release Readiness, updated `main`, or a governance-only branch
 - confirmation that `main` remains protected and that no Codex file mutation, staging, commit, generation, refresh, or repair work is being performed on `main`
 - confirmation that branch truth is committed and durable, not only present in the working tree
@@ -223,7 +225,7 @@ When the approved phase is `PR Readiness`, the output must also explicitly inclu
 - Reason:
 ```
 
-- when PR Readiness is green or `PR READY: YES`, a copy-ready markdown PR package with this exact section shape:
+- when PR Readiness is package-ready or `PR package ready`, a copy-ready markdown PR package with this exact section shape:
 
 ```markdown
 ## PR Creation Details
@@ -239,7 +241,8 @@ When the approved phase is `PR Readiness`, the output must also explicitly inclu
 
 The `Next Branch` section must separate the next legal branch type/name from the selected next implementation workstream branch.
 If release debt, updated-`main` revalidation, or another admission gate blocks branch creation, `May Create Now: NO` is required with the reason.
-The `PR Creation Details` block is preparation material only; it must not imply PR creation, merge execution, release execution, or next-branch creation has occurred.
+The `PR Creation Details` block is preparation material only; it must not imply PR creation, merge execution, release execution, next-branch creation, or PR Readiness GREEN has occurred.
+PR Readiness GREEN requires the PR to exist, be open, be non-draft, have no conflicts, match merge-target canon, and have no unresolved Codex comments/issues or requested changes.
 
 When the approved phase is `Release Readiness`, the output must also explicitly include:
 

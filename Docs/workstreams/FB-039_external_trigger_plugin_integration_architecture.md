@@ -43,6 +43,7 @@
 - LV-R1, LV-R2, and LV-R3 corrective Live Validation repair are recorded; no runtime/product code changed during repair
 - PR-1 through PR-3 are admitted to complete merge-target canon, governance drift audit, successor selection, branch-creation gate validation, and PR-ready output packaging.
 - Post-merge main-facing canon is shaped as merged-unreleased release debt for FB-039 and `No Active Branch` until release handling or later Branch Readiness admission.
+- PR-R1 through PR-R3 are admitted to repair PR Readiness green-state criteria so PR package readiness cannot be collapsed into PR Readiness GREEN before PR creation and PR validation.
 
 ## Branch Class
 
@@ -50,7 +51,9 @@
 
 ## Blockers
 
-- None.
+- `PR Creation Pending`
+- `PR Validation Pending`
+- `PR State Unknown`
 
 ## Entry Basis
 
@@ -285,7 +288,7 @@
 
 ## Active Seam
 
-- Active seam: `None after PR-3 completion`.
+- Active seam: `None after PR-R3 completion`.
 - Last executed seam before PR Readiness: `LV-R3 User Test Summary Waiver Handling And Live Validation Re-evaluation`.
 - WS-1 status: complete and durable as architecture-only documentation.
 - WS-2 status: complete and durable as architecture-only documentation.
@@ -330,7 +333,10 @@
 - PR-1 status: complete and durable as merge-target canon completeness and Governance Drift Audit repair.
 - PR-2 status: complete and durable as FB-040 selected-next workstream and branch-creation gate validation.
 - PR-3 status: complete and durable as PR Readiness final evaluation and output package basis.
-- Next runtime implementation seam: not active; PR Readiness is green for the current internal-only milestone.
+- PR-R1 status: complete as governance repair for PR Readiness green-state criteria.
+- PR-R2 status: complete as validator alignment and enforcement update.
+- PR-R3 status: complete as PR Readiness re-evaluation under corrected governance.
+- Next runtime implementation seam: not active; PR package is ready, but PR Readiness GREEN is blocked until PR creation and PR validation complete.
 
 ## WS-1 External Trigger Source Map
 
@@ -1740,6 +1746,9 @@ LV-R3 decision:
   - `git diff --check`
   - `git status --short --branch`
 - PR Readiness must prove merge-target canon completeness, Governance Drift Audit completion, FB-040 selected-next scope and branch lock, release target semantics, helper registry status, clean durable branch truth, and no scope drift before PR creation.
+- PR package readiness is not PR Readiness GREEN. PR Readiness GREEN also requires the GitHub PR to exist, be inspectable, be open, be non-draft, have base/head aligned to merge-target canon, have no conflicts, and have no unresolved Codex comments/issues or requested changes.
+- Current PR state: not created / not inspectable from this environment.
+- Current PR blocker state: `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown`.
 - Live Validation LV-1/LV-2/LV-3 and LV-R1/LV-R2/LV-R3 validation:
   - `python dev\orin_branch_governance_validation.py`
   - `python dev\orin_external_trigger_intake_validation.py`
@@ -1777,6 +1786,7 @@ LV-R3 decision:
 - FB-039 is represented as the merged-unreleased release-debt owner in backlog, roadmap, workstreams index, and this workstream record for post-merge truth.
 - PR Readiness has selected FB-040 as the next workstream with `Branch: Not created` and no successor branch creation before updated-main Branch Readiness.
 - Release target semantics are explicit and correct from latest public prerelease `v1.4.1-prebeta` plus `Release Floor: minor prerelease`, yielding `Release Target: v1.5.0-prebeta`.
+- PR package readiness is complete, but PR Readiness GREEN remains incomplete until the GitHub PR is created and validated as open, non-draft, conflict-free, merge-target aligned, and free of unresolved Codex comments/issues or requested changes.
 - This workstream record contains the required phase authority fields.
 - WS-1 external trigger source map, ownership vocabulary, ownership boundaries, and architecture-only entry-point framing are recorded.
 - WS-2 lifecycle ownership boundaries, trust/safety boundary vocabulary, trigger class admission posture, and user-control rules are recorded.
@@ -1829,7 +1839,7 @@ LV-R3 decision:
 
 ## Next Legal Phase
 
-- `Release Readiness`
+- `PR Readiness`
 
 ## Governance Drift Audit
 
@@ -1842,6 +1852,13 @@ Governance Drift Found: Yes, repaired during PR Readiness.
 - PR Readiness Scope Missed: Clear.
 - Between-Branch Canon Repair Attempt: Clear.
 - Next Branch Created Too Early: Clear.
+
+Governance Drift Found: Yes, repaired during PR-R1 through PR-R3.
+
+- Drift Type: PR Readiness phase-completion drift.
+- Finding: PR Readiness was previously reported GREEN after local package/canon readiness, before a GitHub PR existed and before PR conflict/comment state could be validated.
+- Repair: canon now distinguishes `PR package ready` from `PR Readiness GREEN`; PR creation and PR validation are part of PR Readiness completion.
+- Current State After Repair: PR package ready; PR Readiness GREEN is blocked by `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown` until a live PR exists and is validated.
 
 ## Post-Merge State
 

@@ -221,6 +221,9 @@ The default named blockers are:
 - `Release Readiness File Mutation Attempt`
 - `User-Facing Shortcut Validation Pending`
 - `User Test Summary Results Pending`
+- `PR Creation Pending`
+- `PR Validation Pending`
+- `PR State Unknown`
 - `PR Readiness Scope Missed`
 - `Release Readiness Scope Drift`
 - `Prior Branch Canon Unresolved`
@@ -420,6 +423,12 @@ Hard blockers:
   Live Validation and PR Readiness cannot be final-green for a relevant desktop user-facing workstream until the final Live Validation closeout has launched through the declared user-facing desktop shortcut or equivalent user entrypoint, recorded `User-Facing Shortcut Validation: PASS` or `User-Facing Shortcut Validation: WAIVED`, and preserved the evidence before User Test Summary handoff
 - `User Test Summary Results Pending`:
   PR Readiness cannot be green while a user-facing workstream has a required User Test Summary handoff outstanding and returned results have not been submitted, waived, digested into the active authority record, and reevaluated
+- `PR Creation Pending`:
+  PR Readiness package-ready is not PR Readiness green. PR Readiness cannot be green until the GitHub PR exists for the current head branch and base branch.
+- `PR Validation Pending`:
+  PR Readiness cannot be green until the existing PR has been validated as open, non-draft, conflict-free, aligned to the merge-target canon, and clear of unresolved Codex comments/issues or requested changes.
+- `PR State Unknown`:
+  PR Readiness cannot be green if Codex cannot inspect the PR state, mergeability/conflict state, base/head alignment, or Codex review-thread state.
 - `PR Readiness Scope Missed`:
   PR Readiness cannot be green if branch-authority cleanup, merge-target canon, post-merge truth, next-workstream selection, next-branch deferral, or release-debt routing is incomplete or being deferred to Release Readiness, updated `main`, or a later governance-only branch
 - `Between-Branch Canon Repair Attempt`:
@@ -430,9 +439,21 @@ Hard blockers:
 The PR-readiness validator gate must be run in its PR-specific mode before reporting `PR READY: YES`.
 If the normal governance validator passes but the PR-specific gate reports dirty worktree or unresolved PR blockers, the result is not PR-ready.
 
+`PR package ready` is the state where local branch truth, merge-target canon, next-workstream selection, and copy-ready PR details are complete. It is not `PR Readiness GREEN`.
+
+`PR Readiness GREEN` requires all `PR package ready` conditions plus:
+
+- the GitHub PR exists
+- the PR is open and not draft
+- the PR base/head match merge-target canon
+- the PR has no conflicts
+- PR state is inspectable rather than unknown
+- no unresolved Codex comments/issues or requested changes remain
+
 ### PR Readiness Response Contract
 
-When `PR Readiness` reports green or `PR READY: YES`, the response must include a repo-wide standardized `Next Branch` block and a markdown-friendly `PR Creation Details` package.
+When `PR Readiness` reports package-ready or `PR package ready`, the response must include a repo-wide standardized `Next Branch` block and a markdown-friendly `PR Creation Details` package.
+Those package details are the input to PR creation and validation; they are not themselves proof that PR Readiness is GREEN.
 This is a response contract, not permission to create the PR, merge the branch, release the branch, or create the next branch.
 
 The `Next Branch` block must distinguish the next legal branch from the selected next implementation branch.
@@ -453,7 +474,7 @@ Required `Next Branch` block:
 - Reason:
 ```
 
-Required PR-green markdown package:
+Required PR-package markdown:
 
 ```markdown
 ## PR Creation Details
@@ -1181,8 +1202,8 @@ Exit:
 
 Purpose:
 
-- determine whether the branch is ready to become a merge candidate without leaving merged canon stale and, when post-merge truth will admit a next branch, with the next lane already locked
-- determine whether the branch is ready to become a merge candidate without leaving merged canon stale and with the next workstream selected, canon-defined, minimally scoped, and explicitly not branched yet
+- first determine whether the branch is package-ready for PR creation without leaving merged canon stale and with the next lane already locked
+- then validate the created PR as the actual merge candidate before reporting PR Readiness green
 
 Allowed:
 
@@ -1194,6 +1215,8 @@ Allowed:
 - Branch Readiness branch-creation deferral
 - Governance Drift Audit
 - PR material preparation
+- PR creation
+- PR state validation
 
 Forbidden:
 
@@ -1201,6 +1224,7 @@ Forbidden:
 - hardening
 - release tagging
 - skipping governance drift review
+- reporting PR Readiness GREEN before PR creation and PR validation
 
 Required evidence:
 
@@ -1215,13 +1239,17 @@ Required evidence:
 - docs sync complete and validator-aligned
 - standardized `## Next Branch` response block and copy-ready `## PR Creation Details` markdown package prepared
 - clean worktree with required branch truth durable in commit history
+- GitHub PR created for the current head branch and intended base branch
+- PR exists, is open, non-draft, conflict-free, and inspectable
+- PR state matches merge-target canon
+- unresolved Codex comments/issues and requested changes are absent or resolved
 - approved non-backlog branches merge with historical or removed branch-authority truth rather than lingering as active branch owners on `main`
 - no active seam
 - no unresolved blocker that should have been repaired on the current branch before merge
 
 Exit:
 
-- ready for PR creation
+- PR exists and is validated as ready for merge review
 - or returned to the failed earlier phase with explicit blockers
 
 ### Release Readiness

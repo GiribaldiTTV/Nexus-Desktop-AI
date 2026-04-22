@@ -18,15 +18,15 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
 ## Pattern: PR Readiness Green Must Require Durable Process Truth
 
 - symptom:
-  PR Readiness can appear green while required canon sync, post-merge state handling, or docs changes still exist only in the working tree
+  PR Readiness can appear green while required canon sync, post-merge state handling, docs changes, PR creation, or PR validation still have not completed
 - layer:
-  branch governance and merge-target canon
+  branch governance, merge-target canon, and PR-state validation
 - root-cause pattern:
-  validation proves branch behavior, but process blockers are not named strongly enough as pre-merge gates
+  validation proves branch behavior or produces a copy-ready PR package, but process blockers are not named strongly enough as pre-merge gates
 - fix pattern:
-  require PR Readiness to clear stale canon, post-merge-state handling, next-workstream selection with minimal scope and no branch created yet, dirty branch / durable commit state, and docs-sync / Governance Drift Audit blockers before reporting `PR READY: YES`
+  require PR Readiness to clear stale canon, post-merge-state handling, next-workstream selection with minimal scope and no branch created yet, dirty branch / durable commit state, docs-sync / Governance Drift Audit blockers, PR creation, and PR validation before reporting `PR READY: YES` or `PR Readiness GREEN`; `PR package ready` is not green, missing PRs carry `PR Creation Pending`, unknown PR inspection carries `PR State Unknown`, and unresolved live PR issues carry `PR Validation Pending`
 - validation pattern:
-  run the normal branch governance validator plus the PR-readiness gate mode; the gate must fail while the worktree is dirty, while required post-merge truth is not encoded, or while the next workstream is undefined, unscoped, or already branched
+  run the normal branch governance validator plus the PR-readiness gate mode; the gate must fail while the worktree is dirty, while required post-merge truth is not encoded, while the next workstream is undefined, unscoped, or already branched, while the PR does not exist, or while PR state cannot be inspected
 - source references:
   - `Docs/phase_governance.md`
   - `dev/orin_branch_governance_validation.py`

@@ -1,3 +1,4 @@
+import json
 import re
 import subprocess
 import sys
@@ -310,6 +311,21 @@ PR_READINESS_RESPONSE_CONTRACT_PHRASES = (
     "### Post-Merge Truth",
     "### Next Branch",
     "### Not Included",
+)
+
+PR_LIVE_STATE_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/incident_patterns.md"),
+)
+
+PR_LIVE_STATE_PHRASES = (
+    "PR package ready",
+    "PR Creation Pending",
+    "PR Validation Pending",
+    "PR State Unknown",
 )
 
 UTS_RESULTS_BLOCKER_DOCS = (
@@ -834,6 +850,81 @@ def _git_branch_names() -> tuple[list[str], str]:
     return sorted(set(names)), "; ".join(error for error in errors if error)
 
 
+def _gh_pr_view_for_branch(branch_name: str) -> tuple[dict[str, object] | None, str]:
+    fields = (
+        "id,number,state,mergeable,mergeStateStatus,reviewDecision,isDraft,"
+        "headRefName,baseRefName,title,url"
+    )
+    completed = subprocess.run(
+        ("gh", "pr", "view", branch_name, "--json", fields),
+        cwd=ROOT_DIR,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return None, completed.stderr.strip() or completed.stdout.strip() or "gh pr view failed"
+    try:
+        return json.loads(completed.stdout), ""
+    except json.JSONDecodeError as exc:
+        return None, f"could not parse gh pr view JSON: {exc}"
+
+
+def _gh_unresolved_codex_threads(pr_node_id: str) -> tuple[list[str], str]:
+    if not pr_node_id:
+        return [], "PR node id is missing"
+
+    query = """
+query($id: ID!) {
+  node(id: $id) {
+    ... on PullRequest {
+      reviewThreads(first: 100) {
+        nodes {
+          isResolved
+          comments(first: 20) {
+            nodes {
+              author { login }
+              body
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+    completed = subprocess.run(
+        ("gh", "api", "graphql", "-f", f"query={query}", "-F", f"id={pr_node_id}"),
+        cwd=ROOT_DIR,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return [], completed.stderr.strip() or completed.stdout.strip() or "gh api graphql failed"
+
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        return [], f"could not parse gh review-thread JSON: {exc}"
+
+    nodes = (((payload.get("data") or {}).get("node") or {}).get("reviewThreads") or {}).get("nodes") or []
+    unresolved: list[str] = []
+    for thread in nodes:
+        if thread.get("isResolved"):
+            continue
+        comments = ((thread.get("comments") or {}).get("nodes")) or []
+        for comment in comments:
+            author = ((comment.get("author") or {}).get("login") or "").casefold()
+            body = (comment.get("body") or "").casefold()
+            if "codex" in author or "openai" in author or "codex" in body:
+                unresolved.append(author or "unknown-author")
+                break
+    return unresolved, ""
+
+
 def _selected_next_workstream_entries(backlog_entries: list[dict[str, str]]) -> list[dict[str, str]]:
     return [
         entry
@@ -1049,6 +1140,95 @@ def _run_next_workstream_gate(require, backlog_entries: list[dict[str, str]], ro
     )
 
 
+def _run_pr_live_state_gate(require) -> None:
+    branch_name = _git_current_branch()
+    require(
+        bool(branch_name),
+        "PR readiness gate: PR State Unknown blocker is active; current branch could not be determined",
+    )
+    if not branch_name:
+        return
+
+    pr_info, pr_error = _gh_pr_view_for_branch(branch_name)
+    require(
+        bool(pr_info),
+        (
+            "PR readiness gate: PR Creation Pending / PR State Unknown blocker is active; "
+            f"could not inspect a GitHub PR for branch '{branch_name}': {pr_error}"
+        ),
+    )
+    if not pr_info:
+        return
+
+    pr_url = str(pr_info.get("url") or "")
+    pr_state = str(pr_info.get("state") or "")
+    pr_head = str(pr_info.get("headRefName") or "")
+    pr_base = str(pr_info.get("baseRefName") or "")
+    mergeable = str(pr_info.get("mergeable") or "")
+    merge_state = str(pr_info.get("mergeStateStatus") or "")
+    review_decision = str(pr_info.get("reviewDecision") or "")
+
+    require(
+        pr_state == "OPEN",
+        f"PR readiness gate: PR Validation Pending blocker is active; PR {pr_url or pr_info.get('number')} state is '{pr_state}'",
+    )
+    require(
+        not bool(pr_info.get("isDraft")),
+        f"PR readiness gate: PR Validation Pending blocker is active; PR {pr_url or pr_info.get('number')} is still draft",
+    )
+    require(
+        pr_head == branch_name,
+        (
+            "PR readiness gate: PR Validation Pending blocker is active; "
+            f"PR head '{pr_head}' does not match current branch '{branch_name}'"
+        ),
+    )
+    require(
+        pr_base == "main",
+        (
+            "PR readiness gate: PR Validation Pending blocker is active; "
+            f"PR base '{pr_base}' does not match merge-target canon 'main'"
+        ),
+    )
+    require(
+        mergeable == "MERGEABLE",
+        (
+            "PR readiness gate: PR Validation Pending blocker is active; "
+            f"PR mergeability is '{mergeable or 'UNKNOWN'}'"
+        ),
+    )
+    require(
+        merge_state not in {"BLOCKED", "DIRTY", "UNKNOWN", "DRAFT"},
+        (
+            "PR readiness gate: PR Validation Pending blocker is active; "
+            f"PR merge state is '{merge_state or 'UNKNOWN'}'"
+        ),
+    )
+    require(
+        review_decision not in {"CHANGES_REQUESTED", "REVIEW_REQUIRED"},
+        (
+            "PR readiness gate: PR Validation Pending blocker is active; "
+            f"PR review decision is '{review_decision or 'UNKNOWN'}'"
+        ),
+    )
+
+    unresolved_codex_threads, thread_error = _gh_unresolved_codex_threads(str(pr_info.get("id") or ""))
+    require(
+        not thread_error,
+        (
+            "PR readiness gate: PR State Unknown blocker is active; "
+            f"could not inspect Codex review threads for PR {pr_url or pr_info.get('number')}: {thread_error}"
+        ),
+    )
+    require(
+        not unresolved_codex_threads,
+        (
+            "PR readiness gate: PR Validation Pending blocker is active; "
+            "unresolved Codex comments/issues remain on the PR"
+        ),
+    )
+
+
 def _run_pr_readiness_gate(require, backlog_entries: list[dict[str, str]], roadmap_text: str) -> None:
     status_output = _git_status_porcelain()
     require(
@@ -1060,6 +1240,7 @@ def _run_pr_readiness_gate(require, backlog_entries: list[dict[str, str]], roadm
     )
     _run_uts_results_pr_gate(require, backlog_entries)
     _run_next_workstream_gate(require, backlog_entries, roadmap_text)
+    _run_pr_live_state_gate(require)
 
 
 def main() -> int:
@@ -1267,6 +1448,14 @@ def main() -> int:
             require(
                 required_phrase in text,
                 f"{relative_path}: PR Readiness response contract is missing '{required_phrase}'",
+            )
+
+    for relative_path in PR_LIVE_STATE_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in PR_LIVE_STATE_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: PR live-state completion contract is missing '{required_phrase}'",
             )
 
     for relative_path in UTS_RESULTS_BLOCKER_DOCS:
