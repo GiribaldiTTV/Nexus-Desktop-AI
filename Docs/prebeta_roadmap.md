@@ -67,13 +67,13 @@ Current merged truth indicates:
 - latest public prerelease title: `Pre-Beta v1.6.0`
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestone is FB-040 monitoring, thermals, and performance HUD surface in `v1.6.0-prebeta`
-- current phase after FB-040 post-release canon repair: `Branch Readiness`
+- current phase after FB-031 Workstream admission: `Workstream`
 - phase status after FB-040 post-release canon repair: `Active Branch`
 - blocker after FB-040 release: none; release debt is clear
 - current active workstream: FB-031 Nexus Desktop AI UI/UX overhaul planning
 - current branch: `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`
 - merged-unreleased release-debt owner: none
-- next concern: complete FB-031 Branch Readiness without beginning UI/UX implementation until the branch scaffold, scope, non-goals, validation contract, and first Workstream seam are explicit.
+- next concern: execute FB-031 Workstream architecture seams without beginning UI implementation until source map, lifecycle/state framing, and validation/admission truth are explicit.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, and the released FB-040 monitoring/thermal architecture milestone are now part of the current public shared pre-Beta baseline.
 
@@ -85,12 +85,12 @@ None. FB-040 is released and closed in `v1.6.0-prebeta`; release debt is clear.
 
 ### FB-031 Nexus Desktop AI UI/UX Overhaul Planning
 
-- status: `Branch Readiness`
+- status: `Workstream`
 - record state: `Promoted`
 - branch: `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`
 - canonical workstream doc: `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`
 - minimal scope: Branch Readiness must define the Nexus-era UI/UX overhaul planning boundary, source map, visual-language ownership, validation contract, and explicit non-goals before any UI implementation, runtime behavior, settings work, launcher work, or release work is considered.
-- admission note: FB-031 is the legal next active branch surface after FB-040 release debt cleared and updated main was revalidated.
+- admission note: FB-031 Branch Readiness is complete; the active Workstream is architecture-only and begins with source map plus visual-language ownership vocabulary.
 
 ## Selected Next Workstream
 
@@ -241,7 +241,7 @@ Current merged truth indicates:
 - FB-038 is released and closed in `v1.4.1-prebeta`; H1 identity/discoverability repair, H2 shortcut-launch tray readback validation, H3 window initialization sequencing, H4 post-fix startup visibility validation, fresh post-H4 technical/live validation, user-facing desktop shortcut validation, and UTS waiver digestion are preserved as historical evidence
 - FB-039 is released and closed in `v1.5.0-prebeta`; internal-only intake runtime boundaries, reusable validation coverage, Live Validation waivers, PR readiness governance, and post-merge release-truth repairs are preserved as historical evidence
 - FB-040 is released and closed in `v1.6.0-prebeta`; architecture-only monitoring and thermal source mapping, lifecycle/trust-safety framing, validation/admission contract, hardening, Live Validation waiver truth, and post-release canon closure are preserved as historical evidence
-- post-release repo truth after the FB-040 release is clear; FB-031 Branch Readiness is the active legal branch surface
+- post-release repo truth after the FB-040 release is clear; FB-031 Workstream is the active legal branch surface
 - successor-lane branch creation for FB-039 is historical; FB-039 is released and no longer an executable active implementation branch
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed
 - escaped post-merge canon repair must ride a legal branch surface; `main` is protected and must not be patched directly by Codex
@@ -250,7 +250,7 @@ Current merged truth indicates:
   - FB-038 for taskbar or tray quick-task UX including Create Custom Task, now released and closed in `v1.4.1-prebeta` with H3/H4 startup visibility re-entry green, `User-Facing Shortcut Validation: PASS`, and UTS handling resolved by documented waiver
   - FB-039 for external trigger and plugin integration architecture, now released and closed in `v1.5.0-prebeta`
   - FB-040 for monitoring, thermals, and performance HUD surfaces, released and closed in `v1.6.0-prebeta`
-  - FB-031 for Nexus Desktop AI UI/UX overhaul planning, active in Branch Readiness on `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`
+  - FB-031 for Nexus Desktop AI UI/UX overhaul planning, active in Workstream on `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
 - FB-037 Branch Readiness does not imply automatic continuation into any remaining candidate lane
 

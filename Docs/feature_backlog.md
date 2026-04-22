@@ -30,7 +30,7 @@ Historical note:
 
 ## Active Promoted Workstream
 
-FB-031 Nexus Desktop AI UI/UX overhaul planning is in Branch Readiness on `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`.
+FB-031 Nexus Desktop AI UI/UX overhaul planning is in Workstream on `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`.
 
 FB-040 is released and closed in `v1.6.0-prebeta`; release debt is clear.
 FB-039 is released and closed in `v1.5.0-prebeta`.
@@ -94,7 +94,7 @@ Why it matters: Voice identity should be intentional and should not piggyback on
 
 ### [ID: FB-031] Nexus Desktop AI UI/UX overhaul planning
 
-Status: Branch Readiness
+Status: Workstream
 Record State: Promoted
 Priority: Medium
 Release Stage: pre-Beta
