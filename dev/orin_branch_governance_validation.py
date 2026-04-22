@@ -328,6 +328,12 @@ PR_LIVE_STATE_PHRASES = (
     "PR State Unknown",
 )
 
+POST_MERGE_PR_BLOCKERS = (
+    "PR Creation Pending",
+    "PR Validation Pending",
+    "PR State Unknown",
+)
+
 UTS_RESULTS_BLOCKER_DOCS = (
     Path("Docs/phase_governance.md"),
     Path("Docs/development_rules.md"),
@@ -1990,7 +1996,7 @@ def main() -> int:
                 f"{canonical_path}: Governance Drift Audit is missing 'Governance Drift Found:'",
             )
 
-        if current_phase == "Release Readiness":
+        if current_phase == "Release Readiness" and _git_current_branch() == "main":
             status_output = _git_status_porcelain(tracked_only=True)
             require(
                 not status_output,
@@ -2016,27 +2022,60 @@ def main() -> int:
             )
 
         phase_status_section = _section(workstream_text, "Phase Status")
-        if (
-            _normalize_status(str(workstream_info["status"])) == "merged unreleased"
-            and "`No Active Branch`" in phase_status_section
-            and "Release Debt" in blockers
-        ):
+        normalized_workstream_status = _normalize_status(str(workstream_info["status"]))
+        if normalized_workstream_status == "merged unreleased":
             require(
                 current_phase == "Release Readiness",
                 (
-                    f"{canonical_path}: merged-unreleased `No Active Branch` release-debt owner "
+                    f"{canonical_path}: merged-unreleased release-debt owner "
                     "must use `Release Readiness` as Current Phase"
+                ),
+            )
+            require(
+                "`No Active Branch`" in phase_status_section,
+                (
+                    f"{canonical_path}: merged-unreleased release-debt owner "
+                    "must declare `No Active Branch` in Phase Status"
+                ),
+            )
+            require(
+                "`Active Branch`" not in phase_status_section,
+                (
+                    f"{canonical_path}: merged-unreleased release-debt owner "
+                    "must not still declare `Active Branch` in Phase Status"
+                ),
+            )
+            stale_pr_blockers = sorted(set(blockers) & set(POST_MERGE_PR_BLOCKERS))
+            require(
+                not stale_pr_blockers,
+                (
+                    f"{canonical_path}: merged-unreleased release-debt owner "
+                    "must not keep pre-merge PR blockers active after merge: "
+                    f"{', '.join(stale_pr_blockers)}"
+                ),
+            )
+            require(
+                "Current PR blocker state:" not in workstream_text,
+                (
+                    f"{canonical_path}: merged-unreleased release-debt owner "
+                    "must not describe pre-merge PR blockers as current state"
+                ),
+            )
+            require(
+                "Current PR state: not created" not in workstream_text,
+                (
+                    f"{canonical_path}: merged-unreleased release-debt owner "
+                    "must not describe the merged PR as currently uncreated"
                 ),
             )
             require(
                 "Merged Canon Drift" not in blockers and "Current-State Claim Drift" not in blockers,
                 (
-                    f"{canonical_path}: merged-unreleased `No Active Branch` release-debt owner "
+                    f"{canonical_path}: merged-unreleased release-debt owner "
                     "must not keep resolved current-state drift blockers active"
                 ),
             )
 
-        normalized_workstream_status = _normalize_status(str(workstream_info["status"]))
         if normalized_workstream_status == "merged unreleased":
             roadmap_section = _roadmap_section_for_id(roadmap_text, workstream_id)
             for required_marker in REQUIRED_MERGED_UNRELEASED_MARKERS:

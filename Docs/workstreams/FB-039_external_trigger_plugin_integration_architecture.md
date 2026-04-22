@@ -27,15 +27,18 @@
 
 ## Current Phase
 
-- Phase: `PR Readiness`
+- Phase: `Release Readiness`
 
 ## Phase Status
 
-- `Active Branch`
-- branch: `feature/fb-039-external-trigger-plugin-integration-architecture`
-- branch created from updated `main` after FB-038 release/post-release confirmation green
+- `No Active Branch`
+- PR #69 merged `feature/fb-039-external-trigger-plugin-integration-architecture` into `main`; FB-039 is now the merged-unreleased release-debt owner.
+- Release Readiness is analysis-only and consumes the inherited release target, release scope, release artifacts, and post-release truth below without file mutation.
+- historical branch: `feature/fb-039-external-trigger-plugin-integration-architecture`
+- historical branch was created from updated `main` after FB-038 release/post-release confirmation green
 - FB-038 remains `Released (v1.4.1-prebeta)` / `Closed`
-- release debt is clear
+- FB-038 release debt is clear
+- FB-039 release debt remains open until `v1.5.0-prebeta` release handling clears it.
 - no external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10/WS-13/WS-16/WS-19/WS-22/WS-25/WS-28 boundary code
 - WS-31 Workstream completion evaluation is recorded; WS-32 and WS-33 were not executed because another same-layer runtime seam would not add bounded value before Hardening
 - H-1, H-2, and H-3 Hardening are recorded; no runtime/product code changed during Hardening
@@ -43,7 +46,8 @@
 - LV-R1, LV-R2, and LV-R3 corrective Live Validation repair are recorded; no runtime/product code changed during repair
 - PR-1 through PR-3 are admitted to complete merge-target canon, governance drift audit, successor selection, branch-creation gate validation, and PR-ready output packaging.
 - Post-merge main-facing canon is shaped as merged-unreleased release debt for FB-039 and `No Active Branch` until release handling or later Branch Readiness admission.
-- PR-R1 through PR-R3 are admitted to repair PR Readiness green-state criteria so PR package readiness cannot be collapsed into PR Readiness GREEN before PR creation and PR validation.
+- PR-R1 through PR-R3 repaired PR Readiness green-state criteria so PR package readiness cannot be collapsed into PR Readiness GREEN before PR creation and PR validation.
+- PR #69 live validation resolved the pre-merge PR creation/state blockers historically; those blockers are not current Release Readiness blockers.
 
 ## Branch Class
 
@@ -51,9 +55,7 @@
 
 ## Blockers
 
-- `PR Creation Pending`
-- `PR Validation Pending`
-- `PR State Unknown`
+- None.
 
 ## Entry Basis
 
@@ -1747,8 +1749,8 @@ LV-R3 decision:
   - `git status --short --branch`
 - PR Readiness must prove merge-target canon completeness, Governance Drift Audit completion, FB-040 selected-next scope and branch lock, release target semantics, helper registry status, clean durable branch truth, and no scope drift before PR creation.
 - PR package readiness is not PR Readiness GREEN. PR Readiness GREEN also requires the GitHub PR to exist, be inspectable, be open, be non-draft, have base/head aligned to merge-target canon, have no conflicts, and have no unresolved Codex comments/issues or requested changes.
-- Current PR state: not created / not inspectable from this environment.
-- Current PR blocker state: `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown`.
+- Historical PR state before PR #69: not created / not inspectable from the local `gh` environment.
+- Historical PR blocker state before PR #69: `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown`; resolved by PR #69 creation, validation, and merge.
 - Live Validation LV-1/LV-2/LV-3 and LV-R1/LV-R2/LV-R3 validation:
   - `python dev\orin_branch_governance_validation.py`
   - `python dev\orin_external_trigger_intake_validation.py`
@@ -1786,7 +1788,7 @@ LV-R3 decision:
 - FB-039 is represented as the merged-unreleased release-debt owner in backlog, roadmap, workstreams index, and this workstream record for post-merge truth.
 - PR Readiness has selected FB-040 as the next workstream with `Branch: Not created` and no successor branch creation before updated-main Branch Readiness.
 - Release target semantics are explicit and correct from latest public prerelease `v1.4.1-prebeta` plus `Release Floor: minor prerelease`, yielding `Release Target: v1.5.0-prebeta`.
-- PR package readiness is complete, but PR Readiness GREEN remains incomplete until the GitHub PR is created and validated as open, non-draft, conflict-free, merge-target aligned, and free of unresolved Codex comments/issues or requested changes.
+- PR package readiness completed historically; PR #69 existed, matched the expected base/head, and merged the expected head commit before Release Readiness.
 - This workstream record contains the required phase authority fields.
 - WS-1 external trigger source map, ownership vocabulary, ownership boundaries, and architecture-only entry-point framing are recorded.
 - WS-2 lifecycle ownership boundaries, trust/safety boundary vocabulary, trigger class admission posture, and user-control rules are recorded.
@@ -1839,7 +1841,7 @@ LV-R3 decision:
 
 ## Next Legal Phase
 
-- `PR Readiness`
+- `Release Readiness`
 
 ## Governance Drift Audit
 
@@ -1858,7 +1860,7 @@ Governance Drift Found: Yes, repaired during PR-R1 through PR-R3.
 - Drift Type: PR Readiness phase-completion drift.
 - Finding: PR Readiness was previously reported GREEN after local package/canon readiness, before a GitHub PR existed and before PR conflict/comment state could be validated.
 - Repair: canon now distinguishes `PR package ready` from `PR Readiness GREEN`; PR creation and PR validation are part of PR Readiness completion.
-- Current State After Repair: PR package ready; PR Readiness GREEN is blocked by `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown` until a live PR exists and is validated.
+- Current State After Repair: PR package readiness is historical; PR #69 creation and validation resolved the PR creation/state blockers, and FB-039 now stands as merged-unreleased release debt for Release Readiness.
 
 ## Post-Merge State
 
