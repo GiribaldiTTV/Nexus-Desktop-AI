@@ -115,7 +115,7 @@ Before PR Readiness, each workstream-scoped helper must be resolved in one of th
 
 | Path | Helper Status | Family | Reuse / Consolidation |
 | --- | --- | --- | --- |
-| `dev/orin_external_trigger_intake_validation.py` | Helper Status: Reusable | external trigger intake validator | Extend for FB-039 trigger intake, registration, lifecycle state transitions, bounded invocation follow-through, and negative-path checks before creating another external-trigger helper. |
+| `dev/orin_external_trigger_intake_validation.py` | Helper Status: Reusable | external trigger intake validator | Extend for FB-039 trigger intake, registration, lifecycle state transitions, decision evidence snapshots, bounded invocation follow-through, and negative-path checks before creating another external-trigger helper. |
 
 ### Toolkits, Boot, Diagnostics, Support, And Voice
 

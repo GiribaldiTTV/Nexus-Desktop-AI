@@ -73,7 +73,7 @@ Current merged truth indicates:
 - current active workstream: FB-039 External trigger and plugin integration architecture
 - current branch: `feature/fb-039-external-trigger-plugin-integration-architecture`
 - merged-unreleased release-debt owner: none
-- next concern: FB-039 WS-12 follow-on boundary review is durable; any next runtime seam requires later bounded Workstream admission
+- next concern: FB-039 WS-15 follow-on boundary review is recorded; any next runtime seam requires later bounded Workstream admission
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, and the released FB-038 tray quick-task UX milestone are now part of the current public shared pre-Beta baseline.
 
@@ -92,7 +92,7 @@ None.
 - current phase: `Workstream`
 - phase status: `Active Branch`
 - blocker: none
-- scope: WS-12 records the follow-on boundary review above the durable WS-6 intake skeleton, WS-7 registration/follow-through seam, WS-8 validation/user-test alignment, WS-9 boundary review, WS-10 lifecycle transitions, and WS-11 validation tightening; runtime defaults to reject/defer and does not wire external listeners, plugin host, protocols, transports, action execution, persistence, audit-log format, runtime marker schema, or UI
+- scope: WS-15 records follow-on boundary review above the durable WS-6 intake skeleton, WS-7 registration/follow-through seam, WS-8 validation/user-test alignment, WS-9 boundary review, WS-10 lifecycle transitions, WS-11 validation tightening, WS-12 boundary review, WS-13 evidence snapshot seam, and WS-14 validation tightening; runtime defaults to reject/defer and does not wire external listeners, plugin host, protocols, transports, action execution, persistence, audit-log format, runtime marker schema, or UI
 - release readiness rule: Release Readiness remains analysis-only; post-release canon already represents latest public prerelease and closed FB-038 truth
 
 ## Selected Next Workstream
@@ -217,7 +217,7 @@ Current merged truth indicates:
 - merged unreleased non-doc implementation debt exists: no
 - FB-038 is released and closed in `v1.4.1-prebeta`; H1 identity/discoverability repair, H2 shortcut-launch tray readback validation, H3 window initialization sequencing, H4 post-fix startup visibility validation, fresh post-H4 technical/live validation, user-facing desktop shortcut validation, and UTS waiver digestion are preserved as historical evidence
 - FB-039 is now active in Workstream on `feature/fb-039-external-trigger-plugin-integration-architecture`
-- FB-039 runtime/product implementation remains limited to the internal-only WS-6 intake skeleton, WS-7 in-memory registration and bounded invocation follow-through, and WS-10 in-memory lifecycle state transitions; WS-8 and WS-11 validation helper coverage plus WS-9 and WS-12 boundary reviews are durable, and any next runtime seam requires later bounded Workstream admission before edits
+- FB-039 runtime/product implementation remains limited to the internal-only WS-6 intake skeleton, WS-7 in-memory registration and bounded invocation follow-through, WS-10 in-memory lifecycle state transitions, and WS-13 in-memory decision evidence snapshots; WS-8, WS-11, and WS-14 validation helper coverage plus WS-9, WS-12, and WS-15 boundary reviews are durable, and any next runtime seam requires later bounded Workstream admission before edits
 - post-release repo truth after the FB-038 release resolves to no FB-038 release-debt blocker
 - successor-lane branch creation for FB-038 is historical; FB-038 is now merged and no longer an executable active implementation branch
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed

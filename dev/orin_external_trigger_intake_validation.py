@@ -22,11 +22,38 @@ def _assert(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
+def _assert_evidence(
+    evidence,
+    message: str,
+    *,
+    boundary: str,
+    operation: str,
+    decision: str,
+    reason: str,
+) -> None:
+    _assert(evidence is not None, f"{message}: evidence must be present")
+    _assert(evidence.boundary == boundary, f"{message}: evidence boundary mismatch")
+    _assert(evidence.operation == operation, f"{message}: evidence operation mismatch")
+    _assert(evidence.decision == decision, f"{message}: evidence decision mismatch")
+    _assert(evidence.reason == reason, f"{message}: evidence reason mismatch")
+    _assert(not evidence.routed_to_execution, f"{message}: evidence routed_to_execution must stay false")
+    _assert(not evidence.execution_authorized, f"{message}: evidence execution_authorized must stay false")
+    _assert(not evidence.cleanup_required, f"{message}: evidence cleanup_required must stay false")
+
+
 def _assert_no_execution(result, message: str) -> None:
     _assert(not result.routed_to_execution, f"{message}: routed_to_execution must stay false")
     _assert(not result.execution_authorized, f"{message}: execution_authorized must stay false")
     _assert(not result.cleanup_required, f"{message}: cleanup_required must stay false")
     _assert(not result.accepted, f"{message}: accepted must stay false")
+    _assert_evidence(
+        result.evidence,
+        message,
+        boundary="internal_trigger_intake",
+        operation="receive",
+        decision=result.decision,
+        reason=result.reason,
+    )
 
 
 def validate_registration_contract() -> None:
@@ -42,6 +69,16 @@ def validate_registration_contract() -> None:
     )
     _assert(registered.registered, "supported trigger origin should register")
     _assert(registered.reason == "registered", "supported registration should report registered")
+    _assert_evidence(
+        registered.evidence,
+        "supported trigger registration",
+        boundary="trigger_origin_registry",
+        operation="register",
+        decision="registered",
+        reason="registered",
+    )
+    _assert(registered.evidence.origin_registered, "supported registration evidence should mark registered")
+    _assert(registered.evidence.origin_enabled, "supported registration evidence should mark enabled")
 
     duplicate = registry.register(
         {
@@ -51,6 +88,15 @@ def validate_registration_contract() -> None:
     )
     _assert(not duplicate.registered, "duplicate trigger origin should reject")
     _assert(duplicate.reason == "duplicate_origin_id", "duplicate should report duplicate_origin_id")
+    _assert_evidence(
+        duplicate.evidence,
+        "duplicate trigger registration",
+        boundary="trigger_origin_registry",
+        operation="register",
+        decision="rejected",
+        reason="duplicate_origin_id",
+    )
+    _assert(duplicate.evidence.origin_registered, "duplicate evidence should mark existing registration")
 
     blocked = registry.register(
         {
@@ -60,6 +106,15 @@ def validate_registration_contract() -> None:
     )
     _assert(not blocked.registered, "blocked trigger origin should reject")
     _assert(blocked.reason == "blocked_origin_category", "blocked should report blocked category")
+    _assert_evidence(
+        blocked.evidence,
+        "blocked trigger registration",
+        boundary="trigger_origin_registry",
+        operation="register",
+        decision="rejected",
+        reason="blocked_origin_category",
+    )
+    _assert(blocked.evidence.origin_category_blocked, "blocked evidence should mark blocked category")
 
     unsupported = registry.register(
         {
@@ -71,6 +126,14 @@ def validate_registration_contract() -> None:
     _assert(
         unsupported.reason == "unsupported_origin_category",
         "unsupported should report unsupported category",
+    )
+    _assert_evidence(
+        unsupported.evidence,
+        "unsupported trigger registration",
+        boundary="trigger_origin_registry",
+        operation="register",
+        decision="rejected",
+        reason="unsupported_origin_category",
     )
 
     print("PASS: trigger origin registration contract")
@@ -216,6 +279,15 @@ def validate_lifecycle_state_transition_contract() -> None:
     _assert(enabled_result.changed, "enable should change disabled origin state")
     _assert(enabled_result.origin_found, "enable should find origin")
     _assert(enabled_result.reason == "enabled", "enable should report enabled")
+    _assert_evidence(
+        enabled_result.evidence,
+        "enable lifecycle transition",
+        boundary="trigger_origin_registry",
+        operation="enable",
+        decision="changed",
+        reason="enabled",
+    )
+    _assert(enabled_result.evidence.origin_enabled, "enable evidence should mark enabled")
 
     enabled = boundary.receive(
         {
@@ -234,10 +306,27 @@ def validate_lifecycle_state_transition_contract() -> None:
     already_enabled = registry.enable("Automation A")
     _assert(not already_enabled.changed, "repeated enable should be a no-op")
     _assert(already_enabled.reason == "already_enabled", "repeated enable should report no-op")
+    _assert_evidence(
+        already_enabled.evidence,
+        "repeated enable lifecycle transition",
+        boundary="trigger_origin_registry",
+        operation="enable",
+        decision="unchanged",
+        reason="already_enabled",
+    )
 
     disabled_result = registry.disable("Automation A")
     _assert(disabled_result.changed, "disable should change enabled origin state")
     _assert(disabled_result.reason == "disabled", "disable should report disabled")
+    _assert_evidence(
+        disabled_result.evidence,
+        "disable lifecycle transition",
+        boundary="trigger_origin_registry",
+        operation="disable",
+        decision="changed",
+        reason="disabled",
+    )
+    _assert(not disabled_result.evidence.origin_enabled, "disable evidence should mark disabled")
 
     redisabled = boundary.receive(
         {
@@ -256,11 +345,27 @@ def validate_lifecycle_state_transition_contract() -> None:
     already_disabled = registry.disable("Automation A")
     _assert(not already_disabled.changed, "repeated disable should be a no-op")
     _assert(already_disabled.reason == "already_disabled", "repeated disable should report no-op")
+    _assert_evidence(
+        already_disabled.evidence,
+        "repeated disable lifecycle transition",
+        boundary="trigger_origin_registry",
+        operation="disable",
+        decision="unchanged",
+        reason="already_disabled",
+    )
 
     unregistered = registry.unregister("Automation A")
     _assert(unregistered.changed, "unregister should remove registered origin")
     _assert(unregistered.origin_found, "unregister should find registered origin")
     _assert(unregistered.reason == "unregistered", "unregister should report unregistered")
+    _assert_evidence(
+        unregistered.evidence,
+        "unregister lifecycle transition",
+        boundary="trigger_origin_registry",
+        operation="unregister",
+        decision="changed",
+        reason="unregistered",
+    )
 
     after_teardown = boundary.receive(
         {
@@ -278,10 +383,26 @@ def validate_lifecycle_state_transition_contract() -> None:
     missing = registry.unregister("Automation A")
     _assert(not missing.changed, "missing unregister should be a no-op")
     _assert(missing.reason == "origin_not_registered", "missing unregister should report not registered")
+    _assert_evidence(
+        missing.evidence,
+        "missing unregister lifecycle transition",
+        boundary="trigger_origin_registry",
+        operation="unregister",
+        decision="unchanged",
+        reason="origin_not_registered",
+    )
 
     invalid = registry.enable("   ")
     _assert(not invalid.changed, "blank origin enable should be a no-op")
     _assert(invalid.reason == "invalid_origin_id", "blank origin enable should report invalid id")
+    _assert_evidence(
+        invalid.evidence,
+        "invalid enable lifecycle transition",
+        boundary="trigger_origin_registry",
+        operation="enable",
+        decision="unchanged",
+        reason="invalid_origin_id",
+    )
 
     print("PASS: trigger origin lifecycle state transition contract")
 

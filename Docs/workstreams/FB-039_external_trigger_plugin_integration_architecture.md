@@ -36,7 +36,7 @@
 - branch created from updated `main` after FB-038 release/post-release confirmation green
 - FB-038 remains `Released (v1.4.1-prebeta)` / `Closed`
 - release debt is clear
-- no external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10 boundary code
+- no external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10/WS-13 boundary code
 
 ## Branch Class
 
@@ -78,7 +78,7 @@
 
 ## User Test Summary Strategy
 
-- Branch Readiness had no meaningful manual User Test Summary because it did not change runtime or user-visible product behavior; WS-1 through WS-12 remain documentation-only, validation-only, or internal-only runtime work with no meaningful manual User Test Summary.
+- Branch Readiness had no meaningful manual User Test Summary because it did not change runtime or user-visible product behavior; WS-1 through WS-15 remain documentation-only, validation-only, or internal-only runtime work with no meaningful manual User Test Summary.
 - If a later Workstream seam introduces user-visible setup, trigger invocation, tray/overlay interaction, settings, prompt, or desktop shortcut behavior, the workstream must add a User Test Summary section and follow the returned-results blocker model before Live Validation or PR Readiness can advance.
 - If later implementation remains headless or architecture-only, the workstream must explicitly record why no meaningful manual User Test Summary applies.
 
@@ -163,10 +163,28 @@
 - Scope: docs-only review of lifecycle boundary status, blocked expansion points, and next-admission requirements.
 - Non-Includes: no new runtime implementation, protocol/transport design, external trigger source integration, or release work.
 
+### Seam 13: Internal Trigger Decision Evidence Snapshot
+
+- Goal: add an internal-only in-memory evidence snapshot for registration, lifecycle, and intake decisions.
+- Scope: attach immutable decision evidence to existing registration, lifecycle, and intake result objects so validators can prove boundary, operation, decision, reason, origin state, and no-execution flags without creating logs or persistence.
+- Non-Includes: no external listener, protocol, payload schema, transport, persistence, runtime marker schema, audit/event log, plugin host, settings UI, installer flow, saved-action/callable-group execution, confirmation bypass, or user-visible behavior.
+
+### Seam 14: Validation Tightening And Runtime-Boundary Confirmation
+
+- Goal: extend reusable validation so WS-13 decision evidence snapshots are durable proof rather than ad hoc direct proof.
+- Scope: prove evidence presence, boundary, operation, decision, reason, origin state, and no-execution invariants across registration, lifecycle, and intake paths.
+- Non-Includes: no runtime behavior change, external integration, helper sprawl, release work, or phase advancement by inertia.
+
+### Seam 15: Follow-On Boundary Review
+
+- Goal: review whether decision evidence snapshots leave any safely admissible next runtime seam.
+- Scope: docs-only review of the current internal-only runtime boundary, blocked expansion points, and next-admission requirements.
+- Non-Includes: no new runtime implementation, protocol/transport design, external trigger source integration, marker/log design, persistence, execution authority, or release work.
+
 ## Active Seam
 
-- Active seam: `None after WS-12 completion`.
-- Last executed seam: `WS-12 Follow-On Boundary Review`.
+- Active seam: `None after WS-15 completion`.
+- Last executed seam: `WS-15 Follow-On Boundary Review`.
 - WS-1 status: complete and durable as architecture-only documentation.
 - WS-2 status: complete and durable as architecture-only documentation.
 - WS-3 status: complete and durable as architecture-only documentation.
@@ -179,6 +197,9 @@
 - WS-10 status: complete and durable as internal-only in-memory enable/disable/unregister lifecycle state transitions.
 - WS-11 status: complete and durable as reusable validation coverage plus runtime-boundary confirmation for lifecycle transitions.
 - WS-12 status: complete and durable as docs-only follow-on boundary review.
+- WS-13 status: complete and durable as internal-only in-memory decision evidence snapshots on existing result objects.
+- WS-14 status: complete and durable as reusable validation coverage plus runtime-boundary confirmation for decision evidence snapshots.
+- WS-15 status: complete and durable as docs-only follow-on boundary review.
 - Next runtime implementation seam: not active; requires a later bounded Workstream pass with exact affected files, non-includes, validation gates, and User Test Summary classification.
 
 ## WS-1 External Trigger Source Map
@@ -559,9 +580,9 @@ Reusable validation helper:
 
 ## User Test Summary
 
-- Current classification: no meaningful manual User Test Summary applies for WS-1 through WS-12.
+- Current classification: no meaningful manual User Test Summary applies for WS-1 through WS-15.
 - Reason: the current FB-039 implementation remains internal-only and has no user-visible setup, trigger invocation surface, tray/overlay prompt, notification, settings UI, desktop shortcut flow, or external device integration.
-- Desktop UTS export: not required for WS-12.
+- Desktop UTS export: not required for WS-15.
 - Future trigger: the first seam that adds user-visible setup, operator-facing trigger invocation, external integration setup, desktop-visible prompt, notification, tray/overlay change, settings UI, or manual trigger workflow must create a meaningful User Test Summary handoff and follow the returned-results blocker model before Live Validation or PR Readiness can advance.
 
 ## WS-8 Execution Record
@@ -719,9 +740,113 @@ Next-admission requirements for any later runtime seam:
 - User Test Summary classification: unchanged; no meaningful manual UTS exists until user-visible/operator-facing behavior is introduced.
 - Continue decision after WS-12: stop the current bounded pipeline. Future Workstream movement requires a new bounded seam admission from repo truth.
 
+## WS-13 Internal Trigger Decision Evidence Snapshot
+
+WS-13 adds internal-only in-memory decision evidence to the existing trigger intake result model. This evidence is not a runtime marker schema, audit log, event log, persisted record, UI, protocol contract, transport binding, plugin API, settings surface, or execution authority handoff.
+
+Affected files admitted before WS-13 edits:
+
+- `desktop/external_trigger_intake.py`
+- `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
+- `Docs/feature_backlog.md`
+- `Docs/prebeta_roadmap.md`
+
+Runtime boundary extended:
+
+- Decision evidence concept: immutable `TriggerDecisionEvidence` attached to registration, lifecycle, and intake results.
+- Evidence scope: boundary name, operation, normalized origin identity/category, decision, reason, category state, registration state, enablement state, and no-execution flags.
+- Registration evidence: supported, duplicate, blocked, unsupported, invalid-id, and invalid-category decisions can be inspected without reading private registry state.
+- Lifecycle evidence: enable, disable, unregister, repeated no-op, missing-origin, and invalid-origin decisions expose changed/unchanged evidence without persistence.
+- Intake evidence: reject/defer decisions expose the intake boundary, receive operation, reason, registration/enabled flags, and execution-denial flags.
+
+WS-13 direct validation expectations:
+
+- registration decisions carry `trigger_origin_registry` / `register` evidence
+- lifecycle transitions carry `trigger_origin_registry` / `enable`, `disable`, or `unregister` evidence
+- intake decisions carry `internal_trigger_intake` / `receive` evidence
+- evidence mirrors decision/reason/origin state from the owning result object
+- all evidence keeps `routed_to_execution=false`, `execution_authorized=false`, and `cleanup_required=false`
+- import/compile succeeds without PySide, desktop runtime, external device, plugin, protocol, transport, saved-action, callable-group, UI, log, or persistence dependencies
+
+## WS-13 Execution Record
+
+- WS-13 executed as an internal-only runtime evidence snapshot seam on the active FB-039 branch.
+- Evidence boundary: complete for immutable in-memory decision snapshots on registration, lifecycle, and intake results.
+- Runtime/product behavior: unchanged from WS-12 except for introspectable in-memory result evidence.
+- External listener/protocol/transport/payload schema/plugin host/settings UI/installer/taskbar/tray/action execution/callable-group execution/persistence/audit logging/runtime marker schema: none.
+- User-visible behavior: none; User Test Summary remains not meaningful for WS-13.
+- Durable dev helper update: not part of WS-13; direct proof uses inline Python and WS-14 remains the planned seam for reusable validation tightening and runtime-boundary confirmation.
+- Continue decision after WS-13: continue to WS-14 only if validation remains green and the reusable helper can be extended without widening runtime scope.
+
+## WS-14 Validation Tightening And Runtime-Boundary Confirmation
+
+WS-14 extends the reusable external trigger intake validator so WS-13 evidence snapshots are durable and repeatable. This seam does not change runtime behavior beyond validation coverage and helper-registry truth.
+
+Affected files admitted before WS-14 edits:
+
+- `dev/orin_external_trigger_intake_validation.py`
+- `Docs/validation_helper_registry.md`
+- `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
+- `Docs/feature_backlog.md`
+- `Docs/prebeta_roadmap.md`
+
+Reusable validation extended:
+
+- `dev/orin_external_trigger_intake_validation.py` now proves decision evidence presence, boundary, operation, decision, reason, origin state, and no-execution flags across supported, duplicate, blocked, unsupported, enable, disable, repeated no-op, unregister, missing-origin, invalid-origin, and intake paths.
+- `Docs/validation_helper_registry.md` now identifies decision evidence snapshots as part of the reusable external trigger intake validator family.
+
+Runtime-boundary confirmation:
+
+- Decision evidence snapshots remain in-memory only.
+- No persisted audit/event log, runtime marker schema, external listener, protocol, transport, plugin host, settings UI, installer flow, action execution, callable-group execution, confirmation bypass, or user-visible behavior was added.
+
+## WS-14 Execution Record
+
+- WS-14 executed as validation tightening and runtime-boundary confirmation on the active FB-039 branch.
+- Reusable validator coverage: complete for current decision evidence snapshots, registration, lifecycle state transitions, bounded invocation follow-through, negative paths, and no-execution invariants.
+- Helper registry alignment: complete for decision evidence snapshot coverage.
+- Runtime/product behavior: unchanged from WS-13.
+- User Test Summary classification: unchanged; no meaningful manual UTS exists for WS-14.
+- Continue decision after WS-14: WS-15 may continue only as docs-only follow-on boundary review if validation remains green.
+
+## WS-15 Follow-On Boundary Review
+
+WS-15 reviews the current runtime boundary after WS-13 evidence snapshots and WS-14 validation tightening. It is documentation-only and does not admit another runtime seam.
+
+Current admitted runtime boundary after WS-15:
+
+- `desktop/external_trigger_intake.py` owns internal trigger request normalization, origin-category classification, in-memory origin registration, in-memory lifecycle state transitions, bounded invocation follow-through defer, and in-memory decision evidence snapshots on existing result objects.
+- Decision evidence is immutable, in-memory, and result-local only; it is not persisted, emitted as runtime markers, serialized as an audit/event log, or surfaced to users.
+- Enabled and registered origins still reach only `invocation_follow_through_not_admitted`; they do not route to saved actions, callable groups, overlays, confirmations, result screens, plugins, protocols, transports, persistence, audit logs, runtime markers, or external listeners.
+- `dev/orin_external_trigger_intake_validation.py` remains the reusable proof root for registration, lifecycle, follow-through, decision evidence, negative paths, and no-execution invariants.
+
+Blocked expansion points that remain outside current Workstream execution:
+
+- persistent origin registration or durable enablement storage
+- runtime marker schema, audit log format, event-log persistence, serialized decision evidence, or user-visible failure surface
+- external listener, URI handler, socket, webhook, browser bridge, cloud ingress, or other transport binding
+- protocol mechanics, payload schema, serialization format, plugin API, Stream Deck API, settings UI, installer path, tray/taskbar expansion, monitoring/HUD behavior, or user-facing setup
+- saved-action execution, callable-group execution, silent execution, confirmation bypass, direct result handling, or any execution-authority routing
+
+Next-admission requirements for any later runtime seam:
+
+- name exactly one runtime boundary and one active owner before edits begin
+- list exact affected files, non-includes, cleanup expectations, and User Test Summary classification
+- reuse `dev/orin_external_trigger_intake_validation.py` and existing shared-action/callable-group/interaction baselines first
+- stop if the seam needs protocol, payload, transport, plugin host, settings, installer, UI, persistence, runtime markers, audit logs, serialized evidence, or execution authority decisions that are not explicitly admitted
+
+## WS-15 Execution Record
+
+- WS-15 executed as docs-only follow-on boundary review on the active FB-039 branch.
+- Boundary review: complete for current internal-only evidence snapshot boundary, blocked expansion points, and next-admission requirements.
+- Runtime/product behavior: unchanged from WS-14.
+- External listener/protocol/transport/payload schema/plugin host/settings UI/installer/taskbar/tray/action execution/callable-group execution/persistence/audit logging/runtime marker schema/serialized evidence: none.
+- User Test Summary classification: unchanged; no meaningful manual UTS exists until user-visible/operator-facing behavior is introduced.
+- Continue decision after WS-15: stop the current bounded pipeline. Future Workstream movement requires a new bounded seam admission from repo truth.
+
 ## Scope
 
-- Record WS-12 as follow-on boundary review when validation remains green.
+- Record WS-15 as follow-on boundary review when validation remains green.
 - Preserve WS-1 as complete and durable architecture-only source map and ownership vocabulary.
 - Preserve WS-2 as complete and durable architecture-only lifecycle ownership and trust/safety boundary contract.
 - Preserve WS-3 through WS-5 as complete and durable architecture/admission framing.
@@ -731,23 +856,27 @@ Next-admission requirements for any later runtime seam:
 - Preserve WS-9 as complete and durable post-follow-through runtime boundary review.
 - Preserve WS-10 as complete and durable internal-only lifecycle state transitions.
 - Preserve WS-11 as complete and durable validation tightening and runtime-boundary confirmation.
-- Do not implement any new runtime behavior, external integration, persistence, runtime marker schema, audit log format, or phase movement in this pass.
+- Preserve WS-12 as complete and durable follow-on boundary review.
+- Preserve WS-13 as complete and durable internal-only decision evidence snapshot.
+- Preserve WS-14 as complete and durable reusable validation tightening.
+- Preserve WS-15 as complete and durable follow-on boundary review.
+- Do not implement any new external integration, persistence, runtime marker schema, audit log format, user-facing behavior, execution authority routing, or phase movement in this pass.
 - Preserve architecture-level entry-point framing without implementation design, listener design, transport binding, protocol mechanics, payload schema details, settings UI, installer flow, or helper creation.
 - Carry the deferred PR #67 connector follow-up as later Workstream governance review only if it remains relevant to validator trust.
 
 ## Non-Goals
 
-- No plugin runtime implementation during WS-12.
-- No Stream Deck integration implementation during WS-12.
+- No plugin runtime implementation during WS-15.
+- No Stream Deck integration implementation during WS-15.
 - No protocol handling, installer work, settings surface, taskbar/tray expansion, monitoring HUD work, or release packaging.
-- No runtime/product code beyond the already-admitted internal-only WS-6/WS-7/WS-10 boundary code.
-- No durable helper creation beyond the reusable external trigger intake validator coverage recorded by WS-8 and WS-11.
+- No runtime/product code beyond the already-admitted internal-only WS-6/WS-7/WS-10 boundary code and WS-13 in-memory decision evidence snapshots.
+- No durable helper creation beyond the reusable external trigger intake validator coverage recorded by WS-8, WS-11, and WS-14.
 - No FB-040 monitoring, thermals, or HUD scope.
-- No trust/safety enforcement logic, transport payload schema detail, user-facing settings/UI, or runtime plugin lifecycle implementation in WS-12.
+- No trust/safety enforcement logic, transport payload schema detail, user-facing settings/UI, or runtime plugin lifecycle implementation in WS-15.
 
 ## Validation Contract
 
-- Workstream WS-12 validation:
+- Workstream WS-15 validation:
   - `python dev\orin_branch_governance_validation.py`
   - `python dev\orin_external_trigger_intake_validation.py`
   - `python -m compileall desktop\external_trigger_intake.py dev\orin_external_trigger_intake_validation.py`
@@ -756,7 +885,7 @@ Next-admission requirements for any later runtime seam:
   - `python dev\orin_interaction_baseline_validation.py`
   - `git diff --check`
   - `git status --short --branch`
-- WS-12 is boundary-review documentation-only and introduces no user-visible desktop behavior; no User Test Summary export is required.
+- WS-15 is boundary-review documentation-only and introduces no user-visible desktop behavior; no User Test Summary export is required.
 - Future runtime seams must be activated by a later bounded pass with explicit source-of-truth reconstruction, affected files, validation gates, cleanup expectations, and User Test Summary classification.
 - Reuse existing validator families and `Docs/validation_helper_registry.md` guidance first.
 - Additional new helpers are blocked until a concrete validation gap exists, the helper purpose is branch-scoped or reusable by design, and registry status/consolidation rules are satisfied.
@@ -764,14 +893,14 @@ Next-admission requirements for any later runtime seam:
 
 ## Stop Conditions
 
-- Stop if FB-039 scope expands beyond follow-on boundary review during WS-12.
-- Stop if WS-12 starts defining trust/safety enforcement logic, protocol mechanics, payload schemas, settings UI, installer flow, plugin host, action/callable-group execution, persistence, audit log format, runtime marker schema, or product runtime behavior.
+- Stop if FB-039 scope expands beyond follow-on boundary review during WS-15.
+- Stop if WS-15 starts defining trust/safety enforcement logic, protocol mechanics, payload schemas, settings UI, installer flow, plugin host, action/callable-group execution, persistence, audit log format, runtime marker schema, serialized evidence format, or product runtime behavior.
 - Stop if a downstream seam cannot be stated as the same workstream, same phase, same branch class, same risk class, and same subsystem family or tightly coupled architecture chain.
-- Stop if reusable lifecycle proof cannot demonstrate enable/disable/unregister behavior, defer-only follow-through, and no execution routing.
+- Stop if reusable evidence proof cannot demonstrate registration/lifecycle/intake evidence, defer-only follow-through, and no execution routing.
 - Stop if any FB-038 release debt or stale release canon reappears.
 - Stop if a governance-only branch, direct-main mutation, or between-branch repair path is attempted.
 - Stop if another new helper is proposed before reuse and registry obligations are satisfied.
-- Stop if Workstream execution expands into another runtime seam before WS-12 is recorded and validated and a fresh downstream admission decision is justified.
+- Stop if Workstream execution expands into another runtime seam before WS-15 is recorded and validated and a fresh downstream admission decision is justified.
 
 ## Exit Criteria
 
@@ -789,9 +918,12 @@ Next-admission requirements for any later runtime seam:
 - WS-10 trigger-origin lifecycle state transitions are implemented and validated.
 - WS-11 validation tightening and runtime-boundary confirmation is implemented and validated.
 - WS-12 follow-on boundary review is recorded and validated.
+- WS-13 internal trigger decision evidence snapshot is implemented and validated.
+- WS-14 validation tightening and runtime-boundary confirmation is implemented and validated.
+- WS-15 follow-on boundary review is recorded and validated.
 - FB-038 remains released/closed and release debt remains clear.
 - Repo state is no longer `No Active Branch`; active branch truth is `feature/fb-039-external-trigger-plugin-integration-architecture`.
-- No external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10 boundary code.
+- No external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10 boundary code and WS-13 in-memory decision evidence snapshots.
 
 ## Rollback Target
 
@@ -803,4 +935,4 @@ Next-admission requirements for any later runtime seam:
 
 ## Branch Readiness Notes
 
-Branch Readiness durability is complete, WS-1 through WS-5 are durable, WS-6 is recorded as the first internal-only runtime skeleton, WS-7 is recorded as the in-memory registration plus bounded invocation follow-through layer, WS-8 is recorded as reusable validation plus no-UTS classification alignment, WS-9 is recorded as post-follow-through runtime boundary review, WS-10 is recorded as internal-only lifecycle state transitions, WS-11 is recorded as validation tightening and runtime-boundary confirmation, and WS-12 is recorded as follow-on boundary review.
+Branch Readiness durability is complete, WS-1 through WS-5 are durable, WS-6 is recorded as the first internal-only runtime skeleton, WS-7 is recorded as the in-memory registration plus bounded invocation follow-through layer, WS-8 is recorded as reusable validation plus no-UTS classification alignment, WS-9 is recorded as post-follow-through runtime boundary review, WS-10 is recorded as internal-only lifecycle state transitions, WS-11 is recorded as validation tightening and runtime-boundary confirmation, WS-12 is recorded as follow-on boundary review, WS-13 is recorded as an internal-only decision evidence snapshot, WS-14 is recorded as validation tightening and runtime-boundary confirmation for decision evidence snapshots, and WS-15 is recorded as follow-on boundary review.

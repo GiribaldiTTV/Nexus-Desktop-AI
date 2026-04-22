@@ -26,6 +26,23 @@ TRIGGER_INTAKE_DECISION_REJECTED = "rejected"
 
 
 @dataclass(frozen=True)
+class TriggerDecisionEvidence:
+    boundary: str
+    operation: str
+    origin_id: str = ""
+    origin_category: str = ""
+    decision: str = ""
+    reason: str = ""
+    origin_category_known: bool = False
+    origin_category_blocked: bool = False
+    origin_registered: bool = False
+    origin_enabled: bool = False
+    routed_to_execution: bool = False
+    execution_authorized: bool = False
+    cleanup_required: bool = False
+
+
+@dataclass(frozen=True)
 class TriggerIntakeRequest:
     origin_id: str
     origin_category: str
@@ -48,6 +65,7 @@ class TriggerRegistrationResult:
     reason: str
     origin_category_known: bool = False
     origin_category_blocked: bool = False
+    evidence: TriggerDecisionEvidence | None = None
 
 
 @dataclass(frozen=True)
@@ -56,6 +74,7 @@ class TriggerOriginLifecycleResult:
     changed: bool
     reason: str
     origin_found: bool = False
+    evidence: TriggerDecisionEvidence | None = None
 
 
 @dataclass(frozen=True)
@@ -70,10 +89,44 @@ class TriggerIntakeResult:
     routed_to_execution: bool = False
     execution_authorized: bool = False
     cleanup_required: bool = False
+    evidence: TriggerDecisionEvidence | None = None
 
     @property
     def accepted(self) -> bool:
         return False
+
+
+def _trigger_decision_evidence(
+    *,
+    boundary: str,
+    operation: str,
+    origin_id: str = "",
+    origin_category: str = "",
+    decision: str = "",
+    reason: str = "",
+    origin_category_known: bool = False,
+    origin_category_blocked: bool = False,
+    origin_registered: bool = False,
+    origin_enabled: bool = False,
+    routed_to_execution: bool = False,
+    execution_authorized: bool = False,
+    cleanup_required: bool = False,
+) -> TriggerDecisionEvidence:
+    return TriggerDecisionEvidence(
+        boundary=boundary,
+        operation=operation,
+        origin_id=normalize_trigger_origin_id(origin_id),
+        origin_category=normalize_trigger_origin_category(origin_category),
+        decision=decision,
+        reason=reason,
+        origin_category_known=origin_category_known,
+        origin_category_blocked=origin_category_blocked,
+        origin_registered=origin_registered,
+        origin_enabled=origin_enabled,
+        routed_to_execution=routed_to_execution,
+        execution_authorized=execution_authorized,
+        cleanup_required=cleanup_required,
+    )
 
 
 def normalize_trigger_origin_category(value: object) -> str:
@@ -196,38 +249,94 @@ class TriggerOriginRegistry:
             registered=True,
             reason="registered",
             origin_category_known=True,
+            evidence=self._registration_evidence(
+                normalized_registration,
+                decision="registered",
+                reason="registered",
+                category_known=True,
+                origin_registered=True,
+                origin_enabled=normalized_registration.enabled,
+            ),
         )
 
     def enable(self, origin_id: object) -> TriggerOriginLifecycleResult:
-        return self._set_enabled(origin_id, True)
+        return self._set_enabled(origin_id, True, operation="enable")
 
     def disable(self, origin_id: object) -> TriggerOriginLifecycleResult:
-        return self._set_enabled(origin_id, False)
+        return self._set_enabled(origin_id, False, operation="disable")
 
     def unregister(self, origin_id: object) -> TriggerOriginLifecycleResult:
         key = self._registration_key(origin_id)
         if not key:
-            return self._lifecycle_result(None, False, "invalid_origin_id")
+            return self._lifecycle_result(
+                None,
+                False,
+                "invalid_origin_id",
+                operation="unregister",
+                origin_id=origin_id,
+            )
         registration = self._registrations.pop(key, None)
         if registration is None:
-            return self._lifecycle_result(None, False, "origin_not_registered")
-        return self._lifecycle_result(registration, True, "unregistered", origin_found=True)
+            return self._lifecycle_result(
+                None,
+                False,
+                "origin_not_registered",
+                operation="unregister",
+                origin_id=origin_id,
+            )
+        return self._lifecycle_result(
+            registration,
+            True,
+            "unregistered",
+            operation="unregister",
+            origin_found=True,
+        )
 
-    def _set_enabled(self, origin_id: object, enabled: bool) -> TriggerOriginLifecycleResult:
+    def _set_enabled(
+        self,
+        origin_id: object,
+        enabled: bool,
+        *,
+        operation: str,
+    ) -> TriggerOriginLifecycleResult:
         key = self._registration_key(origin_id)
         if not key:
-            return self._lifecycle_result(None, False, "invalid_origin_id")
+            return self._lifecycle_result(
+                None,
+                False,
+                "invalid_origin_id",
+                operation=operation,
+                origin_id=origin_id,
+            )
         registration = self._registrations.get(key)
         if registration is None:
-            return self._lifecycle_result(None, False, "origin_not_registered")
+            return self._lifecycle_result(
+                None,
+                False,
+                "origin_not_registered",
+                operation=operation,
+                origin_id=origin_id,
+            )
         if registration.enabled is enabled:
             reason = "already_enabled" if enabled else "already_disabled"
-            return self._lifecycle_result(registration, False, reason, origin_found=True)
+            return self._lifecycle_result(
+                registration,
+                False,
+                reason,
+                operation=operation,
+                origin_found=True,
+            )
 
         updated_registration = replace(registration, enabled=enabled)
         self._registrations[key] = updated_registration
         reason = "enabled" if enabled else "disabled"
-        return self._lifecycle_result(updated_registration, True, reason, origin_found=True)
+        return self._lifecycle_result(
+            updated_registration,
+            True,
+            reason,
+            operation=operation,
+            origin_found=True,
+        )
 
     def _registration_key(self, origin_id: object) -> str:
         normalized_origin_id = normalize_trigger_origin_id(origin_id)
@@ -249,6 +358,15 @@ class TriggerOriginRegistry:
             reason=reason,
             origin_category_known=category_known,
             origin_category_blocked=category_blocked,
+            evidence=self._registration_evidence(
+                registration,
+                decision="rejected",
+                reason=reason,
+                category_known=category_known,
+                category_blocked=category_blocked,
+                origin_registered=reason == "duplicate_origin_id",
+                origin_enabled=False,
+            ),
         )
 
     def _lifecycle_result(
@@ -257,13 +375,51 @@ class TriggerOriginRegistry:
         changed: bool,
         reason: str,
         *,
+        operation: str,
+        origin_id: object = "",
         origin_found: bool = False,
     ) -> TriggerOriginLifecycleResult:
+        decision = "changed" if changed else "unchanged"
         return TriggerOriginLifecycleResult(
             registration=registration,
             changed=changed,
             reason=reason,
             origin_found=origin_found,
+            evidence=_trigger_decision_evidence(
+                boundary="trigger_origin_registry",
+                operation=operation,
+                origin_id=registration.origin_id if registration is not None else origin_id,
+                origin_category=registration.origin_category if registration is not None else "",
+                decision=decision,
+                reason=reason,
+                origin_category_known=registration is not None,
+                origin_registered=origin_found,
+                origin_enabled=registration.enabled if registration is not None else False,
+            ),
+        )
+
+    def _registration_evidence(
+        self,
+        registration: TriggerOriginRegistration,
+        *,
+        decision: str,
+        reason: str,
+        category_known: bool = False,
+        category_blocked: bool = False,
+        origin_registered: bool = False,
+        origin_enabled: bool = False,
+    ) -> TriggerDecisionEvidence:
+        return _trigger_decision_evidence(
+            boundary="trigger_origin_registry",
+            operation="register",
+            origin_id=registration.origin_id,
+            origin_category=registration.origin_category,
+            decision=decision,
+            reason=reason,
+            origin_category_known=category_known,
+            origin_category_blocked=category_blocked,
+            origin_registered=origin_registered,
+            origin_enabled=origin_enabled,
         )
 
 
@@ -356,6 +512,14 @@ class InternalTriggerIntakeBoundary:
             origin_category_known=True,
             origin_registered=origin_registered,
             origin_enabled=origin_enabled,
+            evidence=self._intake_evidence(
+                request,
+                decision=TRIGGER_INTAKE_DECISION_DEFERRED,
+                reason=reason,
+                category_known=True,
+                origin_registered=origin_registered,
+                origin_enabled=origin_enabled,
+            ),
         )
 
     def _reject(
@@ -376,6 +540,39 @@ class InternalTriggerIntakeBoundary:
             origin_category_blocked=category_blocked,
             origin_registered=origin_registered,
             origin_enabled=origin_enabled,
+            evidence=self._intake_evidence(
+                request,
+                decision=TRIGGER_INTAKE_DECISION_REJECTED,
+                reason=reason,
+                category_known=category_known,
+                category_blocked=category_blocked,
+                origin_registered=origin_registered,
+                origin_enabled=origin_enabled,
+            ),
+        )
+
+    def _intake_evidence(
+        self,
+        request: TriggerIntakeRequest,
+        *,
+        decision: str,
+        reason: str,
+        category_known: bool = False,
+        category_blocked: bool = False,
+        origin_registered: bool = False,
+        origin_enabled: bool = False,
+    ) -> TriggerDecisionEvidence:
+        return _trigger_decision_evidence(
+            boundary="internal_trigger_intake",
+            operation="receive",
+            origin_id=request.origin_id,
+            origin_category=request.origin_category,
+            decision=decision,
+            reason=reason,
+            origin_category_known=category_known,
+            origin_category_blocked=category_blocked,
+            origin_registered=origin_registered,
+            origin_enabled=origin_enabled,
         )
 
 
@@ -385,6 +582,7 @@ __all__ = (
     "KNOWN_TRIGGER_ORIGIN_CATEGORIES",
     "TRIGGER_INTAKE_DECISION_DEFERRED",
     "TRIGGER_INTAKE_DECISION_REJECTED",
+    "TriggerDecisionEvidence",
     "TriggerIntakeRequest",
     "TriggerIntakeResult",
     "TriggerOriginLifecycleResult",
