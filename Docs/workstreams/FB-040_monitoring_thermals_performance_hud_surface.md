@@ -37,8 +37,10 @@
 - FB-039 release debt is clear.
 - Latest public prerelease truth is `v1.5.0-prebeta`.
 - WS-1 monitoring and thermal source map plus ownership vocabulary is complete and durably recorded.
-- WS-2 and WS-3 remain planned only.
-- The prior stop-after-WS-1 posture is classified as seam-continuation governance drift; WS-2 is the next Workstream continuation candidate after this governance repair.
+- WS-2 lifecycle and trust/safety boundary framing for monitoring inputs is complete and durably recorded.
+- WS-3 validation and admission contract for future runtime monitoring seams is complete and durably recorded.
+- Initial architecture-only Workstream seam sequence is complete and ready for Hardening evaluation.
+- The prior stop-after-WS-1 posture is classified as seam-continuation governance drift and is superseded by the completed WS-1 through WS-3 chain.
 - No FB-040 runtime, HUD, telemetry, thermal, monitoring, plugin, installer, or settings implementation has started.
 
 ## Branch Class
@@ -101,27 +103,33 @@ Seam 1: monitoring and thermal source map plus ownership vocabulary
 - Scope: architecture-only source categories, Nexus-owned versus external/system-owned responsibility, naming vocabulary, and explicit unknowns for later admission.
 - Non-Includes: no telemetry collection, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, tray/taskbar work, plugin integration, installer changes, or release packaging.
 
-Seam 2: HUD surface and visibility boundary framing
+Seam 2: lifecycle and trust/safety boundary framing for monitoring inputs
 
-- Goal: define when a monitoring or performance signal may become user-visible and what surface classes are candidates.
-- Scope: desktop/HUD/tray/overlay framing, visibility ownership, and non-invasive display constraints.
-- Non-Includes: no UI implementation, no layout, no live overlays, no notification system, no hotkeys, no timers, and no runtime rendering.
+- Status: Completed.
+- Goal: define the lifecycle, trust, safety, data-state, and failure-handling boundaries for candidate monitoring inputs before any source collection, adapter, runtime polling, or display surface is admitted.
+- Scope: monitoring input lifecycle states, monitoring data states, trust/safety ownership, missing or conflicting telemetry handling, and non-invasive interpretation rules.
+- Non-Includes: no telemetry collection, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, tray/taskbar work, plugin integration, installer changes, or release packaging.
 
 Seam 3: validation and admission contract for later implementation seams
 
+- Status: Completed.
 - Goal: define the proof required before any monitoring, thermal, or HUD runtime seam can begin.
 - Scope: cleanup expectations, non-invasive behavior, performance overhead proof, no-persistence-by-default checks, and UTS classification rules.
 - Non-Includes: no validation helper creation unless a later implementation seam makes it necessary, no hardware-dependent test matrix, and no release execution.
 
 ## Active Seam
 
-Active seam: seam-continuation governance repair for the WS-1 stop drift.
+Active seam: None after WS-3 completion.
 
 - WS-1 Status: Completed / executed.
 - WS-1 Boundary: architecture-only source categories, ownership vocabulary, Nexus-owned versus external/system-owned responsibilities, and explicit unknowns for later admission.
 - WS-1 Non-Includes: no telemetry collection, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, tray/taskbar work, plugin integration, installer changes, or release packaging.
-- WS-2 Status: Planned only; next legal Workstream continuation candidate under `Next-Seam Continuation Required` when continuation authority conditions pass.
-- WS-3 Status: Planned only.
+- WS-2 Status: Completed / executed.
+- WS-2 Boundary: architecture-only lifecycle states, data states, trust/safety ownership, and missing/conflicting telemetry handling.
+- WS-2 Non-Includes: no telemetry collection, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, tray/taskbar work, plugin integration, installer changes, or release packaging.
+- WS-3 Status: Completed / executed.
+- WS-3 Boundary: architecture-only validation/admission criteria for future runtime monitoring, thermal, and HUD seams.
+- WS-3 Non-Includes: no validation helper creation, hardware-dependent test matrix, runtime collector, source adapter, HUD implementation, release packaging, or phase advancement execution.
 
 ## WS-1 Execution Record
 
@@ -199,7 +207,7 @@ Nexus does not own:
 - Validation Layer: documentation and governance validation only.
 - Cleanup: no programs, helper processes, windows, temporary files, telemetry collectors, probes, or runtime artifacts were created.
 - User Test Summary Applicability: not applicable for WS-1 because it adds architecture-only planning and no user-visible behavior.
-- Continue/Stop Decision: the original stop after WS-1 is superseded and classified as seam-continuation governance drift because no canon-valid blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback` required stopping. WS-2 remains planned only, but it is the next Workstream continuation candidate after this governance repair rather than a prompt-only activation dependency.
+- Continue/Stop Decision: the original stop after WS-1 is superseded and classified as seam-continuation governance drift because no canon-valid blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback` required stopping. WS-2 was the required next Workstream continuation candidate after this governance repair and is now complete.
 
 ## Seam Continuation Governance Repair
 
@@ -208,6 +216,94 @@ Nexus does not own:
 - Root Cause: source-of-truth required a continue-or-stop decision but did not make safe next-seam continuation the default after a green seam.
 - Corrected Rule: `Next-Seam Continuation Required` is now the default after a green seam in a valid bounded multi-seam workflow.
 - Recurrence Prevention: prompt-named seams are entry seams, not terminal boundaries; stopping after a green seam requires a recorded blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback`.
+
+## WS-2 Execution Record
+
+WS-2 defines lifecycle and trust/safety boundary framing for monitoring inputs. This record is architecture-only and does not admit runtime telemetry collection, source adapters, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, plugin integration, installer work, or release work.
+
+### Monitoring Input Lifecycle Framing
+
+- Startup: monitoring inputs are not assumed available during startup. Future runtime seams must treat source discovery, delayed availability, permission gaps, and missing vendor surfaces as normal startup conditions rather than failures that block Nexus startup.
+- Steady-State: monitoring inputs may be considered steady-state only after a future admitted source can provide current, bounded, provenance-labeled data inside its declared freshness and confidence expectations.
+- Degradation: monitoring inputs enter degradation when a source becomes partial, stale, contradictory, slow, permission-limited, or otherwise unable to support confident interpretation. Degradation must favor conservative status language rather than alarmist or overconfident health claims.
+- Recovery: monitoring inputs recover only when the future admitted source again produces current data that satisfies its declared provenance, freshness, and confidence requirements. Recovery must be explicit and must not infer health from silence.
+
+### Monitoring Data States
+
+- Valid: data is current enough for its declared freshness window, comes from an admitted source, and can be interpreted inside the source's documented confidence limits.
+- Invalid: data is malformed, outside the source's expected shape, internally impossible, or known to violate the admitted source contract.
+- Stale: data was once valid but is older than the declared freshness expectation for the future admitted source.
+- Partial: data covers only part of the expected source surface, such as CPU without GPU, temperature without throttle state, or Nexus runtime responsiveness without OS performance context.
+- Unavailable: the source, permission, vendor surface, operating-system path, or plugin-fed origin is not available to Nexus at the time of interpretation.
+- Unknown: Nexus lacks enough admitted evidence to classify the state as valid, invalid, stale, partial, or unavailable.
+
+### Trust And Safety Boundary Rules
+
+- Raw monitoring inputs are not execution authority. A source can inform a future derived status only after a later seam admits the source, declares provenance, and proves validation behavior.
+- External-owned surfaces retain authority over raw sensor production, source availability, source-specific accuracy claims, driver behavior, and hardware access.
+- Nexus-owned surfaces may classify, normalize, explain, suppress, or display admitted inputs, but must not claim hardware-control authority.
+- Future plugin-fed monitoring input is conditionally admissible only after lifecycle, trust/safety, validation, and cleanup contracts define the plugin's provenance and failure behavior.
+- User-visible warnings, HUD status, tray status, or overlay presentation must not be produced directly from raw source data without a later display-admission seam.
+- Monitoring must remain non-invasive by default: no driver installation, no hardware control, no fan or clock changes, no kernel probing, no remote/cloud telemetry, and no persistent surveillance behavior.
+- Missing, stale, partial, or conflicting telemetry must degrade the confidence of Nexus interpretation rather than trigger hidden execution, automatic remediation, or hardware policy changes.
+
+### Conflicting Or Missing Telemetry Handling
+
+- If two admitted sources conflict, Nexus must preserve provenance and report conservative confidence rather than silently choosing the more dramatic or more convenient value.
+- If one source is missing and another is present, Nexus may later derive a partial status only if the future source contract says that partial interpretation is meaningful.
+- If all relevant sources are unavailable or unknown, Nexus must represent monitoring status as unavailable or unknown rather than healthy.
+- If a source becomes stale, Nexus must prefer stale/degraded language over continuing to display the last value as current.
+- If a source reports values outside plausible or contract-defined bounds, Nexus must classify the input as invalid and prevent it from becoming display-ready without later validation rules.
+
+### WS-2 Continuation Decision
+
+- WS-2 Result: Complete.
+- Validation Layer: documentation and governance validation only.
+- Cleanup: no programs, helper processes, windows, temporary files, telemetry collectors, probes, or runtime artifacts were created.
+- User Test Summary Applicability: not applicable for WS-2 because it adds architecture-only planning and no user-visible behavior.
+- Continue/Stop Decision: continue to WS-3 under `Next-Seam Continuation Required` if documentation and governance validation pass, because WS-3 remains in the same workstream, phase, branch class, risk envelope, and architecture-only subsystem family.
+
+## WS-3 Execution Record
+
+WS-3 defines the validation and admission contract future runtime monitoring seams must satisfy before FB-040 can move from architecture into implementation. This record is architecture/governance-only and does not create validators, helpers, runtime collectors, source adapters, HUD surfaces, or hardware-dependent test matrices.
+
+### Future Runtime Admission Gate
+
+Before any future runtime monitoring seam may begin, the seam must explicitly define:
+
+- the admitted monitoring source or source family
+- the owning external, OS, vendor, plugin, companion, or Nexus surface
+- the source's provenance, freshness, confidence, and availability expectations
+- the exact data states it can produce: valid, invalid, stale, partial, unavailable, or unknown
+- the lifecycle state it participates in: startup, steady-state, degradation, or recovery
+- the Nexus-owned interpretation boundary and the external-owned raw-source boundary
+- the affected files and modules
+- the validation surface
+- cleanup expectations
+- User Test Summary applicability
+
+### Validation Contract For Future Runtime Seams
+
+- Baseline governance validation remains `python dev\orin_branch_governance_validation.py` plus `git diff --check` for docs/canon changes.
+- Future source-adapter or intake code must add the smallest reliable repo-side validation needed to prove healthy-path, failure-path, stale-data, unavailable-source, partial-data, and cleanup behavior.
+- Durable root `dev/` validators or helpers must route through `Docs/validation_helper_registry.md` before closeout-grade proof depends on them.
+- Hardware-specific or vendor-specific proof must stay optional and bounded unless a future seam explicitly admits that dependency.
+- User-facing HUD, tray, overlay, settings, or shortcut behavior must add the exact `## User Test Summary` artifact and later Live Validation shortcut gate required by repo governance.
+
+### Cleanup And Non-Invasive Requirements
+
+- Future runtime seams must default to no persistence, no autorun collection, no hidden background polling, and no hardware-control behavior unless a later authority record explicitly admits a narrower exception.
+- Runtime validation must prove created collectors, timers, subscriptions, processes, windows, temporary files, or probe artifacts are stopped or removed after the pass.
+- Source failures must degrade to documented state handling rather than forcing Nexus startup failure, hidden remediation, or unrelated runtime changes.
+- Missing or conflicting telemetry must not produce display-ready health claims without an admitted confidence model.
+
+### WS-3 Completion Decision
+
+- WS-3 Result: Complete.
+- Validation Layer: documentation and governance validation only.
+- Cleanup: no programs, helper processes, windows, temporary files, telemetry collectors, probes, or runtime artifacts were created.
+- User Test Summary Applicability: not applicable for WS-3 because it adds architecture-only admission rules and no user-visible behavior.
+- Continue/Stop Decision: stop at the Workstream phase boundary because the approved initial WS-1 through WS-3 architecture sequence is complete. The next legal phase is `Hardening`.
 
 Completed Branch Readiness seam history:
 
@@ -233,13 +329,14 @@ Completed Branch Readiness seam history:
 - Stop if FB-039 release debt, stale latest public prerelease truth, or merged-unreleased state returns.
 - Stop if FB-040 implementation work begins outside an admitted Workstream seam.
 - Stop if WS-1 drifts into telemetry collection, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, tray/taskbar work, plugin integration, installer changes, or release packaging.
+- Stop if WS-2 or WS-3 drift from architecture/admission framing into runtime telemetry collection, source-adapter implementation, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, tray/taskbar work, plugin integration, installer changes, or release packaging.
 - Stop if monitoring/HUD scope drifts into external trigger integration, saved-action execution, installer behavior, release packaging, or unrelated governance expansion.
 - Stop if validator enforcement would require broad redesign outside current Workstream truth.
 
 ## Exit Criteria
 
 - WS-1 monitoring and thermal source map plus ownership vocabulary is complete and durably recorded.
-- WS-2 HUD surface and visibility boundary framing is either completed or deliberately deferred with documented rationale.
+- WS-2 lifecycle and trust/safety boundary framing for monitoring inputs is complete and durably recorded.
 - WS-3 validation and admission contract for later implementation seams is complete before any runtime monitoring or HUD implementation seam begins.
 - Workstream evidence and User Test Summary obligations are current for the completed scope.
 - Direct validation is green.
