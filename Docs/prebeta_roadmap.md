@@ -61,46 +61,34 @@ Use these release-state values when relevant:
 
 Current merged truth indicates:
 
-- latest public prerelease: `v1.4.0-prebeta`
-- latest public release commit: the `v1.4.0-prebeta` tag target
-- latest public prerelease publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.4.0-prebeta`
-- merged unreleased non-doc implementation debt exists: yes
-- the latest public released implementation milestone is FB-037 curated built-in system actions and Nexus settings expansion in `v1.4.0-prebeta`
-- current phase: `Release Readiness`
+- latest public prerelease: `v1.4.1-prebeta`
+- latest public release commit: the `v1.4.1-prebeta` tag target
+- latest public prerelease publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.4.1-prebeta`
+- latest public prerelease title: `Pre-Beta v1.4.1`
+- merged unreleased non-doc implementation debt exists: no
+- the latest public released implementation milestone is FB-038 taskbar / tray quick-task UX and Create Custom Task surface in `v1.4.1-prebeta`
+- current phase: `No Active Branch`
 - phase status: `No Active Branch`
-- blocker after release execution: none for FB-037
+- blocker after release execution: none for FB-038
 - current active workstream: none
 - current branch: `No Active Branch`
-- merged-unreleased release-debt owner: FB-038 Taskbar / Tray Quick-Task UX And Create Custom Task Surface
-- next concern: Release Readiness may validate the inherited FB-038 release target, scope, artifacts, and post-release truth without mutating repository files
+- merged-unreleased release-debt owner: none
+- next concern: FB-039 Branch Readiness may be evaluated from updated `main`; FB-039 remains selected-only and unbranched until admitted
 
-That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, and the released FB-037 built-in catalog milestone are now part of the current public shared pre-Beta baseline.
+That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, and the released FB-038 tray quick-task UX milestone are now part of the current public shared pre-Beta baseline.
 
 ## Current Release Debt Owner
 
-### FB-038 Taskbar / Tray Quick-Task UX And Create Custom Task Surface
-
-Status: `Merged Unreleased (Release Debt)`
-canonical workstream doc: `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
-Merged-Unreleased Release-Debt Owner: FB-038
-Repo State: No Active Branch
-Release Target: v1.4.1-prebeta
-Release Floor: patch prerelease
-Version Rationale: FB-038 is tray UX, startup sequencing fix, and governance repair follow-through; it does not open a new feature lane or capability expansion beyond the completed tray/task UX milestone.
-Release Scope: FB-038 tray/task UX milestone only: tray identity/discoverability, tray Open Command Overlay, tray Create Custom Task dialog-open/no-write route, tray-origin create completion through existing FB-036 authoring, catalog reload, exact-match resolution, confirm/result execution, and startup first-visible Core Visualization repair.
-Release Artifacts: tag `v1.4.1-prebeta`; release title `Nexus Desktop AI v1.4.1-prebeta - Tray Quick-Task UX`; release notes summarizing FB-038 user-facing tray/task UX, validation evidence, and retained FB-038 evidence helpers.
-Post-Release Truth: after release, FB-038 should be represented as `Released (v1.4.1-prebeta)` / `Closed`; release debt clears; the latest public prerelease advances from `v1.4.0-prebeta` to `v1.4.1-prebeta`.
-Selected Next Workstream: FB-039 External Trigger And Plugin Integration Architecture.
-Next-Branch Creation Gate: FB-039 remains selected-only and `Branch: Not created` until FB-038 release debt is cleared and updated `main` passes the repo-level admission gate.
+None.
 
 ## Current Active Workstream
 
 ### None
 
 - repo state: `No Active Branch`
-- blocker: `Release Debt`
-- current owner: FB-038 is merged-unreleased release debt, not an active implementation branch
-- release readiness rule: Release Readiness is analysis-only and may consume inherited FB-038 release target/scope/artifacts; any required file mutation must be repaired on a legal branch surface, not on `main` and not inside Release Readiness
+- blocker: none
+- current owner: none
+- release readiness rule: Release Readiness remains analysis-only; post-release canon is already expected to represent latest public prerelease and closed workstream truth before any later release review reports green
 
 ## Selected Next Workstream
 
@@ -110,9 +98,22 @@ Next-Branch Creation Gate: FB-039 remains selected-only and `Branch: Not created
 - Minimal Scope: Branch Readiness only for external trigger and plugin integration architecture; define the source map, lifecycle ownership, trust/safety boundaries, validation contract, and explicit non-goals for external trigger surfaces such as Stream Deck or other installed integration points before any implementation. No plugin runtime implementation, Stream Deck integration, protocol handling, installer work, settings surface, taskbar/tray expansion, monitoring HUD work, or release packaging is admitted during Branch Readiness.
 - Branch: Not created
 - Selection Basis: FB-039 is the nearest canon successor after FB-038 because it plans external trigger ownership and plugin integration boundaries without expanding the completed tray/task UX branch. FB-040 remains deferred because monitoring, thermals, and HUD surfaces are a separate runtime/status lane.
-- Successor Deferral: FB-039 remains selected in canon only. Its branch may not be created until FB-038 release debt clears, updated `main` is revalidated, and the repo-level admission gate passes.
+- Successor Deferral: FB-039 remains selected in canon only. Its branch may not be created until updated `main` is revalidated during Branch Readiness and the repo-level admission gate passes.
 
 ## Most Recent Released Workstream Context
+
+### FB-038 Taskbar / Tray Quick-Task UX And Create Custom Task Surface
+
+- status: `released`
+- lane type: `implementation`
+- release floor: `patch prerelease`
+- target version: `v1.4.1-prebeta`
+- release state: `released`
+- release title: `Pre-Beta v1.4.1`
+- canonical workstream doc: `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
+- sequencing note: released the tray quick-task UX milestone, including tray identity/discoverability, tray Open Command Overlay, tray Create Custom Task dialog-open/no-write route, tray-origin create completion through existing FB-036 authoring, catalog reload, exact-match resolution, confirm/result execution, and startup first-visible Core Visualization sequencing repair
+
+## Prior Released Workstream Context
 
 ### FB-037 Curated Built-In System Actions And Nexus Settings Expansion
 
@@ -123,8 +124,6 @@ Next-Branch Creation Gate: FB-039 remains selected-only and `Branch: Not created
 - release state: `released`
 - canonical workstream doc: `Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md`
 - sequencing note: released the curated built-in Windows utility catalog for Task Manager, Calculator, Notepad, and Paint while preserving saved-action override authority, authoring collision protection, confirm/result surfaces, and callable-group behavior
-
-## Prior Released Workstream Context
 
 ### FB-041 Deterministic Callable-Group Execution Layer
 
@@ -213,19 +212,20 @@ Current merged truth indicates:
 - the released FB-036 authoring-and-callable-group milestone is now part of the locked current pre-Beta baseline
 - the released FB-041 deterministic callable-group execution milestone is now part of the locked current pre-Beta baseline
 - the released FB-037 built-in catalog milestone is now part of the locked current pre-Beta baseline
+- the released FB-038 tray quick-task UX milestone is now part of the locked current pre-Beta baseline
 - the released FB-035 lane is closed
 - the recent released workstreams above remain part of the locked current baseline
-- merged unreleased non-doc implementation debt exists: yes
-- FB-038 is the merged-unreleased release-debt owner for the completed tray/task UX milestone; H1 identity/discoverability repair, H2 shortcut-launch tray readback validation, H3 window initialization sequencing, H4 post-fix startup visibility validation, fresh post-H4 technical/live validation, user-facing desktop shortcut validation, and UTS waiver digestion are green
-- FB-039 is selected in canon only as the next workstream for Branch Readiness after FB-038 release debt clears and updated `main` is revalidated; no FB-039 branch exists
-- FB-039 branch creation remains blocked while FB-038 release debt remains unresolved
-- post-release repo truth after the FB-037 release branch merge resolved to no FB-037 release-debt blocker
+- merged unreleased non-doc implementation debt exists: no
+- FB-038 is released and closed in `v1.4.1-prebeta`; H1 identity/discoverability repair, H2 shortcut-launch tray readback validation, H3 window initialization sequencing, H4 post-fix startup visibility validation, fresh post-H4 technical/live validation, user-facing desktop shortcut validation, and UTS waiver digestion are preserved as historical evidence
+- FB-039 is selected in canon only as the next workstream for Branch Readiness after updated `main` is revalidated; no FB-039 branch exists
+- FB-039 branch creation remains deferred until Branch Readiness passes; it is no longer blocked by FB-038 release debt
+- post-release repo truth after the FB-038 release resolves to no FB-038 release-debt blocker
 - successor-lane branch creation for FB-038 is historical; FB-038 is now merged and no longer an executable active implementation branch
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed
 - escaped post-merge canon repair must ride a legal branch surface; `main` is protected and must not be patched directly by Codex
 - the released FB-027 baseline does not authorize further saved-action authoring, resolution, voice, Action Studio, routines, profiles, hotkey cleanup, or shutdown-confirmation work by inertia
 - remaining future candidate spaces now explicitly recorded in the backlog include:
-  - FB-038 for taskbar or tray quick-task UX including Create Custom Task, now merged-unreleased release debt with H3/H4 startup visibility re-entry green, `User-Facing Shortcut Validation: PASS`, UTS handling resolved by documented waiver, and Release Readiness allowed only as file-frozen analysis of inherited release target/scope/artifacts
+  - FB-038 for taskbar or tray quick-task UX including Create Custom Task, now released and closed in `v1.4.1-prebeta` with H3/H4 startup visibility re-entry green, `User-Facing Shortcut Validation: PASS`, and UTS handling resolved by documented waiver
   - FB-039 for external trigger and plugin integration architecture, selected in canon only with `Branch: Not created`
   - FB-040 for monitoring, thermals, and performance HUD surfaces
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation

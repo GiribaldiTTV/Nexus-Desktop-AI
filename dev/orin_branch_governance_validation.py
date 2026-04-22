@@ -424,6 +424,20 @@ REQUIRED_MERGED_UNRELEASED_MARKERS = (
 PATCH_PRERELEASE_FLOOR = "patch prerelease"
 MINOR_PRERELEASE_FLOOR = "minor prerelease"
 SEMANTIC_RELEASE_FLOORS = (PATCH_PRERELEASE_FLOOR, MINOR_PRERELEASE_FLOOR)
+PREBETA_RELEASE_TITLE_TEMPLATE = "Pre-Beta v<major>.<minor>.<patch>"
+FB038_RELEASE_TAG = "v1.4.1-prebeta"
+FB038_RELEASE_TITLE = "Pre-Beta v1.4.1"
+FB038_CANONICAL_PATH = "Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md"
+
+RELEASE_TITLE_FORMAT_DOCS = (
+    Path("Docs/closeout_guidance.md"),
+    Path("Docs/incident_patterns.md"),
+)
+
+RELEASE_TITLE_FORMAT_PHRASES = (
+    PREBETA_RELEASE_TITLE_TEMPLATE,
+    "release notes",
+)
 
 NON_RELEASE_BRANCH_MARKER = "Release Branch: No"
 RELEASE_BEARING_BRANCH_CLASSES = ("release packaging",)
@@ -557,6 +571,46 @@ def _expected_prerelease_target(latest_public: str, release_floor: str) -> str:
     if normalized_floor == MINOR_PRERELEASE_FLOOR:
         return f"v{major}.{minor + 1}.0-prebeta"
     return ""
+
+
+def _expected_prebeta_release_title(release_tag: str) -> str:
+    parsed = _parse_prebeta_version(release_tag)
+    if parsed is None:
+        return ""
+    major, minor, patch = parsed
+    return f"Pre-Beta v{major}.{minor}.{patch}"
+
+
+def _entry_by_id(entries: list[dict[str, str]], workstream_id: str) -> dict[str, str] | None:
+    for entry in entries:
+        if entry.get("id") == workstream_id:
+            return entry
+    return None
+
+
+def _git_prebeta_tags() -> list[str]:
+    completed = subprocess.run(
+        ("git", "tag", "--list", "v*-prebeta"),
+        cwd=ROOT_DIR,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return []
+    return [
+        line.strip()
+        for line in completed.stdout.splitlines()
+        if _parse_prebeta_version(line.strip()) is not None
+    ]
+
+
+def _highest_local_prebeta_tag() -> str:
+    tags = _git_prebeta_tags()
+    if not tags:
+        return ""
+    return max(tags, key=lambda tag: _parse_prebeta_version(tag) or (0, 0, 0))
 
 
 def _workstream_target_version(workstream_text: str) -> str:
@@ -1157,6 +1211,14 @@ def main() -> int:
                 f"{relative_path}: Release Readiness file-freeze guidance is missing '{required_phrase}'",
             )
 
+    for relative_path in RELEASE_TITLE_FORMAT_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in RELEASE_TITLE_FORMAT_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: Pre-Beta release title format guidance is missing '{required_phrase}'",
+            )
+
     for relative_path in PROTECTED_MAIN_DOCS:
         text = _read_text(relative_path).casefold()
         for required_phrase in PROTECTED_MAIN_PHRASES:
@@ -1185,6 +1247,77 @@ def main() -> int:
     release_debt_index_paths = _collect_release_debt_index_paths(index_text)
 
     backlog_entries = _parse_backlog_sections(backlog_text)
+    latest_public_prerelease = _latest_public_prerelease(roadmap_text)
+    highest_local_prebeta_tag = _highest_local_prebeta_tag()
+    if highest_local_prebeta_tag:
+        require(
+            latest_public_prerelease == highest_local_prebeta_tag,
+            (
+                "Docs/prebeta_roadmap.md: latest public prerelease must match the latest "
+                f"local prebeta tag '{highest_local_prebeta_tag}', found '{latest_public_prerelease}'"
+            ),
+        )
+
+    fb038_entry = _entry_by_id(backlog_entries, "FB-038")
+    require(bool(fb038_entry), "Docs/feature_backlog.md: FB-038 backlog entry is missing")
+    if highest_local_prebeta_tag == FB038_RELEASE_TAG and fb038_entry:
+        require(
+            fb038_entry["record_state"] == "Closed",
+            f"Docs/feature_backlog.md: FB-038 must be Closed after {FB038_RELEASE_TAG} release",
+        )
+        require(
+            _normalize_status(fb038_entry["status"]) == "released",
+            f"Docs/feature_backlog.md: FB-038 must be Released after {FB038_RELEASE_TAG} release",
+        )
+        require(
+            _clean_release_value(_extract_colon_value(fb038_entry["block"], "Target Version")) == FB038_RELEASE_TAG,
+            f"Docs/feature_backlog.md: FB-038 Target Version must remain {FB038_RELEASE_TAG}",
+        )
+        require(
+            _clean_release_value(_extract_colon_value(fb038_entry["block"], "Release Title")) == FB038_RELEASE_TITLE,
+            f"Docs/feature_backlog.md: FB-038 Release Title must be '{FB038_RELEASE_TITLE}'",
+        )
+        require(
+            FB038_CANONICAL_PATH in closed_index_paths,
+            "Docs/workstreams/index.md: FB-038 must be listed under Closed after v1.4.1-prebeta release",
+        )
+        require(
+            FB038_CANONICAL_PATH not in release_debt_index_paths,
+            "Docs/workstreams/index.md: FB-038 must not remain under Merged / Release Debt Owners after release",
+        )
+        require(
+            "merged unreleased non-doc implementation debt exists: no" in roadmap_text,
+            "Docs/prebeta_roadmap.md: FB-038 release must clear merged-unreleased implementation debt",
+        )
+        require(
+            "merged-unreleased release-debt owner: none" in roadmap_text,
+            "Docs/prebeta_roadmap.md: FB-038 release must clear the release-debt owner",
+        )
+        fb038_workstream_path = ROOT_DIR / Path(FB038_CANONICAL_PATH)
+        require(
+            fb038_workstream_path.is_file(),
+            f"{FB038_CANONICAL_PATH}: FB-038 workstream doc does not exist",
+        )
+        if fb038_workstream_path.is_file():
+            fb038_text = _read_text(Path(FB038_CANONICAL_PATH))
+            fb038_info = _parse_workstream_doc(fb038_text)
+            require(
+                fb038_info["record_state"] == "Closed",
+                f"{FB038_CANONICAL_PATH}: Record State must be Closed after {FB038_RELEASE_TAG} release",
+            )
+            require(
+                _normalize_status(str(fb038_info["status"])) == "released",
+                f"{FB038_CANONICAL_PATH}: Status must be Released after {FB038_RELEASE_TAG} release",
+            )
+            require(
+                f"Latest Public Prerelease: {FB038_RELEASE_TAG}" in fb038_text,
+                f"{FB038_CANONICAL_PATH}: released-state canon must record latest public prerelease {FB038_RELEASE_TAG}",
+            )
+            require(
+                f"Release Title: {FB038_RELEASE_TITLE}" in fb038_text,
+                f"{FB038_CANONICAL_PATH}: released-state canon must record release title '{FB038_RELEASE_TITLE}'",
+            )
+
     if pr_readiness_gate:
         _run_pr_readiness_gate(require, backlog_entries, roadmap_text)
 
@@ -1653,6 +1786,7 @@ def main() -> int:
             )
 
             if expected_release_target:
+                expected_release_title = _expected_prebeta_release_title(expected_release_target)
                 backlog_target_version = _clean_release_value(
                     _extract_colon_value(entry["block"], "Target Version")
                 )
@@ -1689,6 +1823,14 @@ def main() -> int:
                         (
                             f"{source_name}: Release Target Undefined blocker is active; "
                             f"Release Artifacts must reference '{expected_release_target}'"
+                        ),
+                    )
+                    require(
+                        expected_release_title in source_artifacts,
+                        (
+                            f"{source_name}: Release Target Undefined blocker is active; "
+                            "Release Artifacts must use the canonical Pre-Beta release title "
+                            f"'{expected_release_title}'"
                         ),
                     )
                     require(

@@ -26,39 +26,18 @@ Historical note:
 
 ## Promoted Canonical Workstreams
 
-- `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
+None.
 
 ## Active Promoted Workstream
 
 None.
 
-Main-facing canon is in `No Active Branch` while FB-038 remains merged-unreleased release debt.
-FB-039 is selected only and must not be branched until release debt clears and updated `main` passes the repo-level admission gate.
+Main-facing canon is in steady-state `No Active Branch` after the FB-038 `v1.4.1-prebeta` release.
+FB-039 is selected only and remains `Branch: Not created` until a fresh Branch Readiness admission passes on updated `main`.
 
 ## Merged-Unreleased Release-Debt Owner
 
-### [ID: FB-038] Taskbar / tray quick-task UX and Create Custom Task surface
-
-Status: Merged Unreleased (Release Debt)
-Blocker: Release Debt
-Record State: Promoted
-Priority: Medium
-Release Stage: pre-Beta
-Target Version: v1.4.1-prebeta
-Canonical Workstream Doc: Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md
-Merged-Unreleased Release-Debt Owner: FB-038
-Repo State: No Active Branch
-Release Target: v1.4.1-prebeta
-Release Floor: patch prerelease
-Version Rationale: FB-038 is tray UX, startup sequencing fix, and governance repair follow-through; it does not open a new feature lane or capability expansion beyond the completed tray/task UX milestone.
-Release Scope: FB-038 tray/task UX milestone only: tray identity/discoverability, tray Open Command Overlay, tray Create Custom Task dialog-open/no-write route, tray-origin create completion through existing FB-036 authoring, catalog reload, exact-match resolution, confirm/result execution, and startup first-visible Core Visualization repair.
-Release Artifacts: tag `v1.4.1-prebeta`; release title `Nexus Desktop AI v1.4.1-prebeta - Tray Quick-Task UX`; release notes summarizing FB-038 user-facing tray/task UX, validation evidence, and retained FB-038 evidence helpers.
-Post-Release Truth: after release, FB-038 can move to `Closed` / `Released (v1.4.1-prebeta)`, release debt clears, and repo-level admission may reconsider FB-039 Branch Readiness from updated `main`.
-Selected Next Workstream: FB-039 External trigger and plugin integration architecture.
-Next-Branch Creation Gate: FB-039 remains selected-only and `Branch: Not created` until FB-038 release debt is cleared and updated `main` passes the repo-level admission gate.
-Minimal Scope: Merged-unreleased release-debt owner for completed FB-038 tray quick-task UX; Release Readiness may validate inherited target/scope/artifacts but must not mutate repository files.
-Summary: Track future taskbar or tray quick-access UX, including a Create Custom Task affordance, as a deliberate shell-facing entry surface into the shared action model.
-Why it matters: Taskbar and tray interaction affect entry, discoverability, and user trust, so they should be planned as an explicit UX lane instead of piggybacking on overlay or authoring work.
+None.
 
 ## Registry Items
 
@@ -155,6 +134,18 @@ Summary: Track future runtime monitoring and HUD surfaces for GPU / CPU thermals
 Why it matters: Monitoring overlays are a separate runtime and status surface and should not be bolted onto the saved-action system without an explicit product boundary.
 
 ## Closed Canonical Workstreams
+
+### [ID: FB-038] Taskbar / tray quick-task UX and Create Custom Task surface
+
+Status: Released (v1.4.1-prebeta)
+Record State: Closed
+Priority: Medium
+Release Stage: pre-Beta
+Target Version: v1.4.1-prebeta
+Release Title: Pre-Beta v1.4.1
+Canonical Workstream Doc: Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md
+Summary: Released the FB-038 tray quick-task UX milestone, including tray identity/discoverability, tray Open Command Overlay, tray Create Custom Task dialog-open/no-write route, tray-origin create completion through the existing FB-036 authoring path, catalog reload and exact-match resolution, confirm/result execution, and startup first-visible Core Visualization sequencing repair.
+Why it matters: Taskbar and tray interaction now has an explicit released UX lane that remains bounded to the shared action model rather than becoming a parallel authoring or launcher surface.
 
 ### [ID: FB-037] Curated built-in system actions and Nexus settings expansion
 

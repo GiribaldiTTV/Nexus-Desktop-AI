@@ -80,6 +80,13 @@ Do not repair directly on `main`; `main` is protected and read-only for Codex wo
 There is no emergency direct-main repair path for Codex.
 Any tracked file mutation while Codex is on `main` is a `Main Write Attempt`.
 
+The public GitHub prerelease title format for Nexus `pre-Beta` releases is:
+
+- `Pre-Beta v<major>.<minor>.<patch>`
+
+Milestone names, user-facing scope, evidence roots, and implementation details belong in the release notes, not in the GitHub release title.
+Post-release confirmation must treat that concise `Pre-Beta v<major>.<minor>.<patch>` title as the expected published title when it matches the tag and release notes carry the scoped summary.
+
 ## Current Policy
 
 - preserve historical closeouts
@@ -89,3 +96,4 @@ Any tracked file mutation while Codex is on `main` is a `Main Write Attempt`.
 - do not let this guidance doc become a live current-state owner
 - create new closeouts or rebaselines only when they materially improve future planning clarity
 - keep escaped post-release canon drift as a protected-main blocker that must be repaired on a legal branch surface, not as a planned governance-only branch or direct-main write
+- prevent recurrence during PR Readiness by carrying the exact release-state closure plan for latest public prerelease, released/closed workstream state, release-debt clearing, and release title format before a release-bearing branch reports PR-ready

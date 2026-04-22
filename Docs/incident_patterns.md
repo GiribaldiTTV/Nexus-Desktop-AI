@@ -180,6 +180,41 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
   - `Docs/workstreams/FB-035_release_context_fallback_hardening.md`
   - `Docs/prebeta_roadmap.md`
 
+## Pattern: Post-Release Canon Must Close Released Release Debt
+
+- symptom:
+  a public prerelease tag and GitHub prerelease exist, but canon still reports the released workstream as merged-unreleased release debt or leaves latest public prerelease at the prior tag
+- layer:
+  post-release confirmation and release-state canon
+- root-cause pattern:
+  PR Readiness defines pre-release target/scope/artifacts but does not include a machine-checkable release-state closure plan that forces latest public prerelease, released/closed workstream state, and release-debt clearing after the tag exists
+- fix pattern:
+  during PR Readiness for release-bearing work, require a release-state closure plan that covers latest public prerelease, released/closed workstream state, release-debt clearing, workstream-index movement to Closed, and successor branch deferral; after a release tag exists, the governance validator must fail stale release-debt canon
+- validation pattern:
+  run `python dev/orin_branch_governance_validation.py`; it must fail if the latest local pre-Beta tag is newer than roadmap latest public prerelease, or if the released workstream remains promoted/merged-unreleased instead of closed/released
+- source references:
+  - `Docs/prebeta_roadmap.md`
+  - `Docs/feature_backlog.md`
+  - `Docs/workstreams/index.md`
+  - `dev/orin_branch_governance_validation.py`
+
+## Pattern: Pre-Beta Release Title Format Is Concise
+
+- symptom:
+  post-release confirmation compares the GitHub release title against a long PR-generated milestone title and treats the published concise title as drift
+- layer:
+  release artifacts and post-release confirmation
+- root-cause pattern:
+  source-of-truth does not record the public GitHub prerelease title format separately from release-note summary content
+- fix pattern:
+  use `Pre-Beta v<major>.<minor>.<patch>` as the public GitHub release title format for Nexus pre-Beta releases; put milestone name, scope, evidence, and exclusions in release notes
+- validation pattern:
+  run `python dev/orin_branch_governance_validation.py`; release artifacts and released-state canon should use the concise title format while release notes carry the scoped milestone summary
+- source references:
+  - `Docs/closeout_guidance.md`
+  - `Docs/prebeta_roadmap.md`
+  - `dev/orin_branch_governance_validation.py`
+
 ## Pattern: Repeated-Identical Recoverable launch_failed Must Stay Bounded
 
 - symptom:
