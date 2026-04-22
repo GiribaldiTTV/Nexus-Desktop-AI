@@ -1383,13 +1383,10 @@ def main() -> int:
             FB038_CANONICAL_PATH not in release_debt_index_paths,
             "Docs/workstreams/index.md: FB-038 must not remain under Merged / Release Debt Owners after release",
         )
+        roadmap_lower = roadmap_text.casefold()
         require(
-            "merged unreleased non-doc implementation debt exists: no" in roadmap_text,
-            "Docs/prebeta_roadmap.md: FB-038 release must clear merged-unreleased implementation debt",
-        )
-        require(
-            "merged-unreleased release-debt owner: none" in roadmap_text,
-            "Docs/prebeta_roadmap.md: FB-038 release must clear the release-debt owner",
+            "merged-unreleased release-debt owner: fb-038" not in roadmap_lower,
+            "Docs/prebeta_roadmap.md: FB-038 release must not remain the release-debt owner",
         )
         fb038_workstream_path = ROOT_DIR / Path(FB038_CANONICAL_PATH)
         require(

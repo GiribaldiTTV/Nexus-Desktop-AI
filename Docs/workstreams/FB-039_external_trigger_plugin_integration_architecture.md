@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Live Validation`
+- `Merged Unreleased`
 
 ## Release Stage
 
@@ -19,7 +19,7 @@
 
 ## Target Version
 
-- `TBD`
+- `v1.5.0-prebeta`
 
 ## Canonical Branch
 
@@ -27,7 +27,7 @@
 
 ## Current Phase
 
-- Phase: `Live Validation`
+- Phase: `PR Readiness`
 
 ## Phase Status
 
@@ -41,6 +41,8 @@
 - H-1, H-2, and H-3 Hardening are recorded; no runtime/product code changed during Hardening
 - LV-1, LV-2, and LV-3 Live Validation are recorded; no runtime/product code changed during Live Validation
 - LV-R1, LV-R2, and LV-R3 corrective Live Validation repair are recorded; no runtime/product code changed during repair
+- PR-1 through PR-3 are admitted to complete merge-target canon, governance drift audit, successor selection, branch-creation gate validation, and PR-ready output packaging.
+- Post-merge main-facing canon is shaped as merged-unreleased release debt for FB-039 and `No Active Branch` until release handling or later Branch Readiness admission.
 
 ## Branch Class
 
@@ -283,8 +285,8 @@
 
 ## Active Seam
 
-- Active seam: `None after LV-R3 completion`.
-- Last executed seam: `LV-R3 User Test Summary Waiver Handling And Live Validation Re-evaluation`.
+- Active seam: `None after PR-3 completion`.
+- Last executed seam before PR Readiness: `LV-R3 User Test Summary Waiver Handling And Live Validation Re-evaluation`.
 - WS-1 status: complete and durable as architecture-only documentation.
 - WS-2 status: complete and durable as architecture-only documentation.
 - WS-3 status: complete and durable as architecture-only documentation.
@@ -325,7 +327,10 @@
 - LV-R1 status: complete and durable as governance/output drift repair for Live Validation waiver handling.
 - LV-R2 status: complete and durable as launcher-path and User-Facing Shortcut Validation waiver re-evaluation.
 - LV-R3 status: complete and durable as User Test Summary waiver handling re-evaluation and Live Validation green restoration.
-- Next runtime implementation seam: not active; Live Validation is green for the current internal-only milestone.
+- PR-1 status: complete and durable as merge-target canon completeness and Governance Drift Audit repair.
+- PR-2 status: complete and durable as FB-040 selected-next workstream and branch-creation gate validation.
+- PR-3 status: complete and durable as PR Readiness final evaluation and output package basis.
+- Next runtime implementation seam: not active; PR Readiness is green for the current internal-only milestone.
 
 ## WS-1 External Trigger Source Map
 
@@ -1724,6 +1729,17 @@ LV-R3 decision:
 
 ## Validation Contract
 
+- PR Readiness PR-1/PR-2/PR-3 validation:
+  - `python dev\orin_branch_governance_validation.py`
+  - `python dev\orin_branch_governance_validation.py --pr-readiness-gate`
+  - `python dev\orin_external_trigger_intake_validation.py`
+  - `python -m compileall desktop\external_trigger_intake.py dev\orin_external_trigger_intake_validation.py`
+  - `python dev\orin_shared_action_baseline_validation.py`
+  - `python dev\orin_callable_group_execution_validation.py`
+  - `python dev\orin_interaction_baseline_validation.py`
+  - `git diff --check`
+  - `git status --short --branch`
+- PR Readiness must prove merge-target canon completeness, Governance Drift Audit completion, FB-040 selected-next scope and branch lock, release target semantics, helper registry status, clean durable branch truth, and no scope drift before PR creation.
 - Live Validation LV-1/LV-2/LV-3 and LV-R1/LV-R2/LV-R3 validation:
   - `python dev\orin_branch_governance_validation.py`
   - `python dev\orin_external_trigger_intake_validation.py`
@@ -1758,7 +1774,9 @@ LV-R3 decision:
 
 ## Exit Criteria
 
-- FB-039 is represented as the active branch/workstream owner in backlog, roadmap, and workstreams index.
+- FB-039 is represented as the merged-unreleased release-debt owner in backlog, roadmap, workstreams index, and this workstream record for post-merge truth.
+- PR Readiness has selected FB-040 as the next workstream with `Branch: Not created` and no successor branch creation before updated-main Branch Readiness.
+- Release target semantics are explicit and correct from latest public prerelease `v1.4.1-prebeta` plus `Release Floor: minor prerelease`, yielding `Release Target: v1.5.0-prebeta`.
 - This workstream record contains the required phase authority fields.
 - WS-1 external trigger source map, ownership vocabulary, ownership boundaries, and architecture-only entry-point framing are recorded.
 - WS-2 lifecycle ownership boundaries, trust/safety boundary vocabulary, trigger class admission posture, and user-control rules are recorded.
@@ -1802,7 +1820,7 @@ LV-R3 decision:
 - LV-R3 User Test Summary waiver handling is re-evaluated and validated.
 - User-facing shortcut validation and User Test Summary results are waived with explicit no-meaningful-manual-test rationale.
 - FB-038 remains released/closed and release debt remains clear.
-- Repo state is no longer `No Active Branch`; active branch truth is `feature/fb-039-external-trigger-plugin-integration-architecture`.
+- Repo state after merge is `No Active Branch` while FB-039 remains merged-unreleased release debt until release handling clears it.
 - No external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10 boundary code, WS-13 in-memory decision evidence snapshots, WS-16 in-memory state snapshots, WS-19 read-only readiness inspection, WS-22 read-only registry readiness sweep, WS-25 read-only registry readiness summary, and WS-28 read-only registry readiness detail snapshot.
 
 ## Rollback Target
@@ -1811,7 +1829,36 @@ LV-R3 decision:
 
 ## Next Legal Phase
 
-- `PR Readiness`
+- `Release Readiness`
+
+## Governance Drift Audit
+
+Governance Drift Found: Yes, repaired during PR Readiness.
+
+- Drift Type: PR Readiness canon completeness drift.
+- Finding: Live Validation was green, but PR Readiness initially found `Next Workstream Undefined` because no successor workstream carried `Next Workstream: Selected`, no roadmap selected-next section named the successor with `Branch: Not created`, and FB-039 merge-target canon was still shaped like active Live Validation truth.
+- Repair: FB-039 is now encoded as merged-unreleased release debt for post-merge truth, FB-040 is selected as the next workstream with minimal Branch Readiness scope, successor branch creation remains blocked, release target semantics are explicit, and PR Readiness output packaging can be generated from durable canon.
+- Governance Drift Found After Repair: No unresolved drift remains.
+- PR Readiness Scope Missed: Clear.
+- Between-Branch Canon Repair Attempt: Clear.
+- Next Branch Created Too Early: Clear.
+
+## Post-Merge State
+
+Merged-Unreleased Release-Debt Owner: FB-039 External trigger and plugin integration architecture
+Repo State: No Active Branch
+Release Target: v1.5.0-prebeta
+Release Floor: minor prerelease
+Version Rationale: FB-039 creates the external trigger and plugin integration architecture lane with an internal trigger intake boundary, so it is a new pre-Beta capability lane rather than patch-only UX, sequencing, or governance repair.
+Release Scope: Internal-only external trigger intake architecture and runtime boundary, including source map, ownership vocabulary, lifecycle/trust framing, in-memory registration, bounded invocation follow-through, lifecycle transitions, decision evidence, boundary snapshots, readiness inspection, readiness sweep, readiness summary, and readiness detail snapshot.
+Release Artifacts: Tag v1.5.0-prebeta; release title Pre-Beta v1.5.0; release notes summarize the FB-039 internal-only trigger intake milestone, validation evidence, Live Validation waivers, and explicit non-includes.
+Post-Release Truth: FB-039 becomes Released / Closed in v1.5.0-prebeta; release debt clears; repo remains No Active Branch until FB-040 Branch Readiness admission.
+Selected Next Workstream: FB-040 Monitoring, thermals, and performance HUD surface
+Next-Branch Creation Gate: FB-040 remains selected-only and Branch: Not created until FB-039 merge/release debt is resolved on updated main and Branch Readiness admits the next implementation branch.
+
+- Successor branch handling: the selected FB-040 implementation branch is deferred and must not be created during FB-039 PR Readiness, Release Readiness, or release execution.
+- Helper retention: `dev/orin_external_trigger_intake_validation.py` remains registered as a reusable validation helper for the external trigger intake family.
+- User-facing validation: desktop shortcut validation and User Test Summary results remain waived because this milestone has no user-facing setup, invocation, launcher, tray, overlay, plugin-host, transport, settings, or operator-facing path.
 
 ## Branch Readiness Notes
 
