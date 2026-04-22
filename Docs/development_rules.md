@@ -196,6 +196,13 @@ Do not use a standalone `docs/governance` branch to carry routine canon or gover
 Do not open a governance-only branch for between-branch canon repair.
 If PR Readiness missed required canon or docs work and the owning branch has already merged, the next active branch must treat the miss as a `Branch Readiness` blocker and repair it before implementation begins.
 
+Pre-PR Durability Rule:
+
+- before `PR Readiness`, when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready or staged-only state
+- this applies through `Branch Readiness`, `Workstream`, `Hardening`, and `Live Validation`
+- if validation fails, do not commit and push; report the blocker and keep the branch in the current phase
+- `PR Readiness` still performs the final dirty-branch and durable-truth gate before PR creation
+
 For active promoted work, the canonical workstream doc is the single authoritative owner of:
 
 - `Current Phase`

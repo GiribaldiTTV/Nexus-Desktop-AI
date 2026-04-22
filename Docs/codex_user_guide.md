@@ -541,6 +541,7 @@ The key distinction is prompt length, not analysis depth.
 - use evidence-digestion language when returned validation evidence should control the next move, rather than implying that phase advancement is automatic
 - in `PR Readiness`, require hard blocker checks before accepting `PR READY: YES`: `stale-canon`, `post-merge`, `next-workstream`, `dirty`, `docs-sync`, `desktop-shortcut`, `uts-results`, `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early`
 - in `PR Readiness`, require the standardized `## Next Branch` block and, when green, the copy-ready `## PR Creation Details` markdown package
+- before `PR Readiness`, apply the Pre-PR Durability Rule: when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready or staged-only state
 - route through `Docs/Main.md` whenever authority is unclear
 - treat local unmerged overlays as reference material until revalidated against updated `origin/main`
 - treat `main` as protected/read-only for Codex work; any required repository file mutation must move to a legal branch surface

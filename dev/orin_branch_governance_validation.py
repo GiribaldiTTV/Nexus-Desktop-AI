@@ -161,6 +161,22 @@ WORKSTREAM_TO_PR_DEFAULT_GUARD_PHRASES = (
     "Do not prompt Codex to treat Workstream completion as direct `PR Readiness`.",
 )
 
+PRE_PR_DURABILITY_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+PRE_PR_DURABILITY_PHRASES = (
+    "Pre-PR Durability Rule",
+    "before `PR Readiness`",
+    "commit and push",
+    "copy-ready or staged-only state",
+)
+
 LIVE_VALIDATION_REUSE_DOCS = (
     Path("Docs/phase_governance.md"),
     Path("Docs/development_rules.md"),
@@ -1085,6 +1101,14 @@ def main() -> int:
             guard_phrase in text,
             f"{relative_path}: direct Workstream-to-PR default guard is missing",
         )
+
+    for relative_path in PRE_PR_DURABILITY_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in PRE_PR_DURABILITY_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: Pre-PR Durability Rule is missing '{required_phrase}'",
+            )
 
     for relative_path in LIVE_VALIDATION_REUSE_DOCS:
         text = _read_text(relative_path)

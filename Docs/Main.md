@@ -236,6 +236,8 @@ These are reference layers, not active workstream or roadmap owners.
 - if repo truth resolves to blocked `No Active Branch`, report the blocking repair path
 - if repo truth resolves to steady-state `No Active Branch`, do not invent a next implementation branch by inertia
 - governance-only branches are not used for new Nexus work; governance or canon repair rides on the active branch that owns the affected truth, or on the next active branch's `Branch Readiness` if a PR Readiness miss escaped the prior branch
+- Pre-PR Durability Rule: before `PR Readiness`, when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready or staged-only state
+- the Pre-PR Durability Rule applies through `Branch Readiness`, `Workstream`, `Hardening`, and `Live Validation`; `PR Readiness` remains the later merge-target gate and must still prove clean durable branch truth
 - the normal `PR Readiness` sequence for a branch that changes release-facing canon is:
   0. clear the hard PR Readiness blockers: `stale-canon`, `post-merge`, `dirty`, `docs-sync`, `next-workstream`, and `uts-results`
   1. validate current branch truth

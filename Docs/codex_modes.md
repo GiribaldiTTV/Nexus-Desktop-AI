@@ -161,6 +161,13 @@ Workflow mode should usually return:
 - remaining drift or known gaps
 - whether the approved phase is complete
 
+Pre-PR Durability Rule:
+
+- before `PR Readiness`, when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready or staged-only state
+- this applies through `Branch Readiness`, `Workstream`, `Hardening`, and `Live Validation`
+- if validation fails, do not commit and push; report the blocker and keep the branch in the current phase
+- `PR Readiness` still performs the final dirty-branch and durable-truth gate before PR creation
+
 When the approved phase is `PR Readiness`, the output must also explicitly include:
 
 - confirmation that the merge-target canon completeness gate passed

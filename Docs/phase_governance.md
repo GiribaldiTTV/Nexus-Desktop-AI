@@ -178,6 +178,20 @@ This gate controls next-lane implementation admission.
 It does not authorize a governance-only branch.
 Release packaging branches still satisfy their own admission rules below.
 
+### Pre-PR Durability Rule
+
+before `PR Readiness`, when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready or staged-only state.
+
+This rule applies through:
+
+- `Branch Readiness`
+- `Workstream`
+- `Hardening`
+- `Live Validation`
+
+If validation fails, Codex must not commit and push; it must report the blocker and keep the branch in the current phase.
+`PR Readiness` remains the later merge-target gate and must still prove clean durable branch truth before PR creation.
+
 ### Blocker Catalog
 
 The default named blockers are:
