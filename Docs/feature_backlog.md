@@ -32,7 +32,7 @@ Historical note:
 
 FB-040 Monitoring, thermals, and performance HUD surface.
 
-Main-facing canon is shaped for Workstream truth: FB-039 is released and closed in `v1.5.0-prebeta`, release debt is clear, and `feature/fb-040-monitoring-thermals-performance-hud-surface` is the active Workstream branch.
+Main-facing canon is shaped for Live Validation truth: FB-039 is released and closed in `v1.5.0-prebeta`, release debt is clear, and `feature/fb-040-monitoring-thermals-performance-hud-surface` is the active Live Validation branch.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
 ## Merged-Unreleased Release-Debt Owner
@@ -113,14 +113,14 @@ Why it matters: The repo still needs deeper identity and wording normalization a
 
 ### [ID: FB-040] Monitoring, thermals, and performance HUD surface
 
-Status: Active (Workstream)
+Status: Active (Live Validation)
 Record State: Promoted
 Priority: Medium
 Release Stage: pre-Beta
 Target Version: TBD
 Branch: feature/fb-040-monitoring-thermals-performance-hud-surface
 Canonical Workstream Doc: Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md
-Minimal Scope: Workstream begins with architecture-first monitoring and thermal source mapping, ownership vocabulary, HUD visibility framing, and validation/admission contract definition before any runtime monitoring or HUD implementation is considered. No telemetry plumbing, sensor polling, HUD UI, plugin integration, installer work, settings work, or release work is admitted in the initial Workstream seam.
+Minimal Scope: Architecture-only monitoring and thermal source mapping, ownership vocabulary, lifecycle/trust-safety framing, and validation/admission contract definition are complete; no telemetry plumbing, sensor polling, HUD UI, plugin integration, installer work, settings work, or release work is admitted for this milestone.
 Summary: Track future runtime monitoring and HUD surfaces for GPU / CPU thermals and performance, including possible plugin-fed telemetry inputs.
 Why it matters: Monitoring overlays are a separate runtime and status surface and should not be bolted onto the saved-action system without an explicit product boundary.
 

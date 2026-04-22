@@ -67,13 +67,13 @@ Current merged truth indicates:
 - latest public prerelease title: `Pre-Beta v1.5.0`
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestone is FB-039 external trigger and plugin integration architecture in `v1.5.0-prebeta`
-- current phase after FB-039 release closure: `Workstream`
+- current phase after FB-039 release closure: `Live Validation`
 - phase status after FB-039 release closure: `Active Branch`
 - blocker after release execution: none for FB-039 after this Branch Readiness repair
 - current active workstream: FB-040 Monitoring, thermals, and performance HUD surface
 - current branch after FB-039 release closure: `feature/fb-040-monitoring-thermals-performance-hud-surface`
 - merged-unreleased release-debt owner: none
-- next concern: execute FB-040 Workstream from the admitted WS-1 monitoring and thermal source-map seam without widening into runtime monitoring or HUD implementation.
+- next concern: evaluate FB-040 PR Readiness after architecture-only Live Validation completes without widening into runtime monitoring or HUD implementation.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, and the released FB-039 external trigger intake architecture milestone are now part of the current public shared pre-Beta baseline.
 
@@ -85,11 +85,11 @@ None. FB-039 release debt cleared when `v1.5.0-prebeta` was tagged and published
 
 ### FB-040 Monitoring, Thermals, And Performance HUD Surface
 
-- status: `Active (Workstream)`
+- status: `Active (Live Validation)`
 - record state: `Promoted`
 - branch: `feature/fb-040-monitoring-thermals-performance-hud-surface`
 - canonical workstream doc: `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`
-- scope: Workstream begins with architecture-first monitoring and thermal source mapping, ownership vocabulary, HUD visibility framing, and validation/admission contract definition before any runtime monitoring or HUD implementation is considered.
+- scope: Architecture-first monitoring and thermal source mapping, ownership vocabulary, lifecycle/trust-safety framing, and validation/admission contract definition are complete; Live Validation records that no user-facing or manual validation surface exists for this architecture-only milestone.
 
 ## Selected Next Workstream
 
@@ -228,7 +228,7 @@ Current merged truth indicates:
 - FB-038 is released and closed in `v1.4.1-prebeta`; H1 identity/discoverability repair, H2 shortcut-launch tray readback validation, H3 window initialization sequencing, H4 post-fix startup visibility validation, fresh post-H4 technical/live validation, user-facing desktop shortcut validation, and UTS waiver digestion are preserved as historical evidence
 - FB-039 is released and closed in `v1.5.0-prebeta`; internal-only intake runtime boundaries, reusable validation coverage, Live Validation waivers, PR readiness governance, and post-merge release-truth repairs are preserved as historical evidence
 - post-release repo truth after the FB-039 release resolves to no merged-unreleased release-debt blocker
-- FB-040 is now the active Workstream on `feature/fb-040-monitoring-thermals-performance-hud-surface`
+- FB-040 is now in Live Validation on `feature/fb-040-monitoring-thermals-performance-hud-surface`
 - successor-lane branch creation for FB-039 is historical; FB-039 is released and no longer an executable active implementation branch
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed
 - escaped post-merge canon repair must ride a legal branch surface; `main` is protected and must not be patched directly by Codex

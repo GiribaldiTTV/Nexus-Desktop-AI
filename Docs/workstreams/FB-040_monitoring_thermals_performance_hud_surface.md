@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Active (Workstream)`
+- `Active (Live Validation)`
 
 ## Release Stage
 
@@ -27,7 +27,7 @@
 
 ## Current Phase
 
-- Phase: `Hardening`
+- Phase: `Live Validation`
 
 ## Phase Status
 
@@ -41,6 +41,7 @@
 - WS-3 validation and admission contract for future runtime monitoring seams is complete and durably recorded.
 - Initial architecture-only Workstream seam sequence is complete and ready for Hardening evaluation.
 - H-1 monitoring architecture and admission-contract pressure test is complete and green.
+- LV-1 through LV-3 repo-truth, waiver, and Live Validation completion checks are complete and green.
 - The prior stop-after-WS-1 posture is classified as seam-continuation governance drift and is superseded by the completed WS-1 through WS-3 chain.
 - No FB-040 runtime, HUD, telemetry, thermal, monitoring, plugin, installer, or settings implementation has started.
 
@@ -65,11 +66,11 @@
 
 - Define the branch authority and first execution boundaries for monitoring, thermals, and performance HUD surfaces.
 - Keep FB-040 focused on local monitoring/HUD product boundaries rather than external trigger integration, saved-action execution, installer behavior, release packaging, or generic telemetry sprawl.
-- Preserve the completed carried-forward FB-039 post-release canon repair while FB-040 hardens the completed architecture-first Workstream seams.
+- Preserve the completed carried-forward FB-039 post-release canon repair while FB-040 validates the completed architecture-only milestone for PR Readiness.
 
 ## Target End-State
 
-- FB-040 has a coherent Workstream scaffold and completed architecture-first WS-1 through WS-3 records.
+- FB-040 has a coherent Workstream scaffold, completed architecture-first WS-1 through WS-3 records, and completed Live Validation waiver truth.
 - Monitoring, thermal, and performance HUD source categories are separated from later telemetry plumbing, HUD implementation, or source-adapter work.
 - Future runtime monitoring seams have a documented admission contract before collection, HUD rendering, persistence, plugin integration, or installer changes can be considered.
 - FB-039 remains closed/released and release debt remains clear.
@@ -120,7 +121,7 @@ Seam 3: validation and admission contract for later implementation seams
 
 ## Active Seam
 
-Active seam: None after H-1 completion.
+Active seam: None after LV-3 completion.
 
 - WS-1 Status: Completed / executed.
 - WS-1 Boundary: architecture-only source categories, ownership vocabulary, Nexus-owned versus external/system-owned responsibilities, and explicit unknowns for later admission.
@@ -327,6 +328,35 @@ H-1 pressure-tested the completed monitoring architecture and admission contract
 - User Test Summary Applicability: not applicable for H-1 because it hardens architecture-only records and adds no user-visible behavior.
 - Continue/Stop Decision: stop at the Hardening phase boundary after validation because the current architecture-only milestone has no runtime or user-facing surface to further harden. The next legal phase is `Live Validation`.
 
+## Live Validation Record
+
+LV-1 through LV-3 validated the completed FB-040 architecture-only milestone against live repo truth, branch truth, and user-facing/manual validation applicability. The branch remains documentation-only for this milestone: no runtime monitoring source, telemetry collector, source adapter, HUD surface, settings path, tray path, shortcut path, plugin integration, installer flow, helper, or product code has been added.
+
+### Live Validation Findings
+
+- Repo Truth Alignment: FB-040 remains `Promoted`, active on `feature/fb-040-monitoring-thermals-performance-hud-surface`, and FB-039 remains released/closed in `v1.5.0-prebeta` with release debt clear.
+- Branch Truth Alignment: the checked-out branch is the canonical FB-040 branch and carries the completed WS-1 through WS-3 architecture records plus H-1 hardening record.
+- User-Facing Applicability: no user-facing desktop entrypoint exists for this milestone because no HUD, tray, overlay, settings, shortcut, runtime monitoring path, or operator-facing invocation behavior was implemented.
+- Manual Validation Applicability: no meaningful manual test exists for this milestone because the deliverable is architecture and admission truth only; manual testing cannot exercise behavior that does not exist.
+- Runtime Evidence Applicability: no runtime/helper evidence is required or meaningful for this milestone because no runtime product surface was created.
+- Cleanup: no programs, helper processes, windows, temporary files, telemetry collectors, probes, or runtime artifacts were created.
+
+### Live Validation Completion Decision
+
+- LV-1 Result: Complete / green.
+- LV-2 Result: Complete / green with user-facing shortcut and User Test Summary waivers recorded.
+- LV-3 Result: Complete / green.
+- Validation Layer: documentation and governance validation only.
+- Continue/Stop Decision: stop at the Live Validation phase boundary after validation because the branch is clean to advance to `PR Readiness`.
+
+## User Test Summary
+
+- User-Facing Shortcut Path: Not applicable - no user-facing desktop entrypoint exists for the current architecture-only FB-040 milestone.
+- User-Facing Shortcut Validation: WAIVED
+- User-Facing Shortcut Waiver Reason: FB-040 has no launcher, shortcut, tray, overlay, settings, HUD, runtime monitoring, plugin, protocol, transport, or operator-facing invocation path to exercise.
+- User Test Summary Results: WAIVED
+- User Test Summary Waiver Reason: The milestone remains architecture-only and validator-proven through repo/canon checks; a filled manual UTS would not materially validate behavior because no user-visible setup, display, runtime monitoring, or invocation surface exists.
+
 Completed Branch Readiness seam history:
 
 - BR-1: repaired carried-forward post-release canon drift from FB-039.
@@ -343,8 +373,8 @@ Completed Branch Readiness seam history:
 - `git status --short --branch`
 - The validator must fail if latest public prerelease canon trails the latest local pre-Beta tag.
 - The validator must fail if a workstream whose release tag exists remains represented as merged-unreleased release debt instead of closed/released.
-- Hardening is not clean unless FB-039 is closed/released, release debt is clear, FB-040 is active/promoted, this authority record records WS-1 through WS-3 complete, and this authority record contains the current Hardening phase state.
-- Hardening validation remains architecture/documentation-only because no runtime monitoring, HUD, telemetry, helper, source-adapter, or user-facing implementation exists yet.
+- Live Validation is not clean unless FB-039 is closed/released, release debt is clear, FB-040 is active/promoted, this authority record records WS-1 through WS-3 and H-1 complete, this authority record contains the current Live Validation phase state, and the exact `## User Test Summary` waiver markers are present.
+- Live Validation remains architecture/documentation-only because no runtime monitoring, HUD, telemetry, helper, source-adapter, shortcut, or user-facing implementation exists yet.
 
 ## Stop Conditions
 
@@ -355,6 +385,7 @@ Completed Branch Readiness seam history:
 - Stop if monitoring/HUD scope drifts into external trigger integration, saved-action execution, installer behavior, release packaging, or unrelated governance expansion.
 - Stop if validator enforcement would require broad redesign outside current Workstream truth.
 - Stop if Hardening tries to admit runtime monitoring, source adapters, telemetry collection, HUD rendering, user-facing surfaces, or helper creation without reopening Workstream through the WS-3 admission gate.
+- Stop if Live Validation tries to run or invent a user-facing shortcut, HUD, runtime monitoring path, helper, or manual test for behavior that was not implemented in this architecture-only milestone.
 
 ## Exit Criteria
 
@@ -362,17 +393,19 @@ Completed Branch Readiness seam history:
 - WS-2 lifecycle and trust/safety boundary framing for monitoring inputs is complete and durably recorded.
 - WS-3 validation and admission contract for later implementation seams is complete before any runtime monitoring or HUD implementation seam begins.
 - H-1 pressure-test of architecture, validation, scope, ambiguity, contradiction, and implementation-readiness issues is complete and green.
+- LV-1 through LV-3 Live Validation repo-truth, waiver, and completion checks are complete and green.
+- `## User Test Summary` records `User-Facing Shortcut Validation: WAIVED`, `User-Facing Shortcut Waiver Reason:`, `User Test Summary Results: WAIVED`, and `User Test Summary Waiver Reason:`.
 - Workstream evidence and User Test Summary obligations are current for the completed scope.
 - Direct validation is green.
 - No unresolved same-slice correctness gap remains.
 
 ## Rollback Target
 
-- `Workstream`
+- `Hardening`
 
 ## Next Legal Phase
 
-- `Live Validation` after Hardening exit criteria are met.
+- `PR Readiness` after Live Validation exit criteria are met.
 
 ## Governance Drift Audit
 
