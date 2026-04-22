@@ -57,6 +57,15 @@ def _assert_no_execution(result, message: str, *, operation: str = "receive") ->
     )
 
 
+def _assert_sweep_no_execution(sweep, message: str) -> None:
+    _assert(not sweep.routed_to_execution, f"{message}: routed_to_execution must stay false")
+    _assert(not sweep.execution_authorized, f"{message}: execution_authorized must stay false")
+    _assert(not sweep.cleanup_required, f"{message}: cleanup_required must stay false")
+    _assert(not sweep.accepted, f"{message}: accepted must stay false")
+    for inspection in sweep.inspections:
+        _assert_no_execution(inspection, message, operation="inspect_readiness")
+
+
 def validate_registration_contract() -> None:
     registry = TriggerOriginRegistry()
 
@@ -665,12 +674,106 @@ def validate_readiness_inspection_contract() -> None:
     print("PASS: trigger readiness inspection contract")
 
 
+def validate_registry_readiness_sweep_contract() -> None:
+    empty_sweep = InternalTriggerIntakeBoundary().inspect_registry_readiness()
+    _assert(
+        empty_sweep.boundary == "internal_trigger_registry_readiness_sweep",
+        "empty sweep should identify registry readiness boundary",
+    )
+    _assert(empty_sweep.inspections == (), "empty sweep should expose empty inspection tuple")
+    _assert(empty_sweep.inspected_count == 0, "empty sweep should report zero inspections")
+    _assert(empty_sweep.deferred_count == 0, "empty sweep should report zero deferred")
+    _assert(empty_sweep.rejected_count == 0, "empty sweep should report zero rejected")
+    _assert(
+        empty_sweep.boundary_snapshot is not None,
+        "empty sweep should include boundary snapshot",
+    )
+    _assert(
+        not empty_sweep.boundary_snapshot.registration_support_admitted,
+        "empty sweep without registry should report no registration support",
+    )
+    _assert_sweep_no_execution(empty_sweep, "empty registry readiness sweep")
+
+    registry = TriggerOriginRegistry()
+    deck_result = registry.register(
+        TriggerOriginRegistration(
+            origin_id="Deck Button 1",
+            origin_category="hardware_adjacent",
+            user_visible_label="Deck Button 1",
+            enabled=True,
+        )
+    )
+    _assert(deck_result.registered, "sweep setup should register enabled origin")
+    automation_result = registry.register(
+        TriggerOriginRegistration(
+            origin_id="Automation A",
+            origin_category="desktop_automation",
+            user_visible_label="Automation A",
+            enabled=False,
+        )
+    )
+    _assert(automation_result.registered, "sweep setup should register disabled origin")
+
+    boundary = InternalTriggerIntakeBoundary(origin_registry=registry)
+    before_snapshot = registry.snapshot()
+    sweep = boundary.inspect_registry_readiness()
+    _assert(sweep.inspected_count == 2, "sweep should inspect registered origins")
+    _assert(sweep.deferred_count == 2, "sweep should defer all current registered origins")
+    _assert(sweep.rejected_count == 0, "sweep should not reject matching current registrations")
+    _assert(sweep.enabled_count == 1, "sweep should count enabled origin readiness")
+    _assert(sweep.disabled_count == 1, "sweep should count disabled origin readiness")
+    _assert(
+        tuple(inspection.request.origin_id for inspection in sweep.inspections)
+        == ("Automation A", "Deck Button 1"),
+        "sweep should follow deterministic registry snapshot order",
+    )
+    _assert(
+        tuple(inspection.reason for inspection in sweep.inspections)
+        == ("origin_not_enabled", "invocation_follow_through_not_admitted"),
+        "sweep should preserve readiness reasons",
+    )
+    _assert(
+        sweep.boundary_snapshot.registry_snapshot == before_snapshot,
+        "sweep should include current registry snapshot",
+    )
+    _assert_sweep_no_execution(sweep, "populated registry readiness sweep")
+    _assert(registry.snapshot() == before_snapshot, "sweep should not mutate registry state")
+
+    custom_registry = TriggerOriginRegistry(known_origin_categories=("custom_local",))
+    custom_result = custom_registry.register(
+        TriggerOriginRegistration(
+            origin_id="Custom Trigger",
+            origin_category="custom_local",
+            enabled=True,
+        )
+    )
+    _assert(custom_result.registered, "custom sweep setup should register custom origin")
+    rejected_sweep = InternalTriggerIntakeBoundary(origin_registry=custom_registry).inspect_registry_readiness()
+    _assert(rejected_sweep.inspected_count == 1, "custom sweep should inspect custom origin")
+    _assert(rejected_sweep.rejected_count == 1, "custom sweep should count unsupported boundary rejection")
+    _assert(
+        rejected_sweep.inspections[0].reason == "unsupported_origin_category",
+        "custom sweep should preserve unsupported readiness reason",
+    )
+    _assert_sweep_no_execution(rejected_sweep, "rejected registry readiness sweep")
+
+    try:
+        sweep.inspected_count = 99
+    except FrozenInstanceError:
+        pass
+    else:
+        raise AssertionError("registry readiness sweep should be immutable")
+
+    print("PASS: trigger registry readiness sweep contract")
+
+
 def main() -> int:
     validate_registration_contract()
     validate_invocation_follow_through_contract()
     validate_lifecycle_state_transition_contract()
     validate_state_snapshot_contract()
     validate_readiness_inspection_contract()
+    validate_registry_readiness_sweep_contract()
     print("EXTERNAL TRIGGER INTAKE VALIDATION: PASS")
     return 0
 

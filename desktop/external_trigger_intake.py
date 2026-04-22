@@ -97,6 +97,25 @@ class TriggerIntakeReadinessResult:
 
 
 @dataclass(frozen=True)
+class TriggerRegistryReadinessSweepResult:
+    boundary: str
+    inspections: tuple[TriggerIntakeReadinessResult, ...] = ()
+    inspected_count: int = 0
+    deferred_count: int = 0
+    rejected_count: int = 0
+    enabled_count: int = 0
+    disabled_count: int = 0
+    routed_to_execution: bool = False
+    execution_authorized: bool = False
+    cleanup_required: bool = False
+    boundary_snapshot: TriggerIntakeBoundarySnapshot | None = None
+
+    @property
+    def accepted(self) -> bool:
+        return False
+
+
+@dataclass(frozen=True)
 class TriggerRegistrationResult:
     registration: TriggerOriginRegistration | None
     registered: bool
@@ -571,6 +590,48 @@ class InternalTriggerIntakeBoundary:
             origin_enabled=True,
         )
 
+    def inspect_registry_readiness(self) -> TriggerRegistryReadinessSweepResult:
+        boundary_snapshot = self.snapshot()
+        registry_snapshot = boundary_snapshot.registry_snapshot
+        if registry_snapshot is None:
+            return TriggerRegistryReadinessSweepResult(
+                boundary="internal_trigger_registry_readiness_sweep",
+                boundary_snapshot=boundary_snapshot,
+            )
+
+        inspections = tuple(
+            self.inspect_readiness(
+                TriggerIntakeRequest(
+                    origin_id=registration.origin_id,
+                    origin_category=registration.origin_category,
+                    user_visible_label=registration.user_visible_label,
+                )
+            )
+            for registration in registry_snapshot.registrations
+        )
+        return TriggerRegistryReadinessSweepResult(
+            boundary="internal_trigger_registry_readiness_sweep",
+            inspections=inspections,
+            inspected_count=len(inspections),
+            deferred_count=sum(
+                1
+                for inspection in inspections
+                if inspection.decision == TRIGGER_INTAKE_DECISION_DEFERRED
+            ),
+            rejected_count=sum(
+                1
+                for inspection in inspections
+                if inspection.decision == TRIGGER_INTAKE_DECISION_REJECTED
+            ),
+            enabled_count=sum(1 for inspection in inspections if inspection.origin_enabled),
+            disabled_count=sum(
+                1
+                for inspection in inspections
+                if inspection.origin_registered and not inspection.origin_enabled
+            ),
+            boundary_snapshot=boundary_snapshot,
+        )
+
     def receive(self, request: TriggerIntakeRequest | dict) -> TriggerIntakeResult:
         normalized_request = coerce_trigger_intake_request(request)
         category = normalized_request.origin_category
@@ -767,6 +828,7 @@ __all__ = (
     "TriggerOriginRegistration",
     "TriggerOriginRegistry",
     "TriggerOriginRegistrySnapshot",
+    "TriggerRegistryReadinessSweepResult",
     "TriggerRegistrationResult",
     "coerce_trigger_intake_request",
     "coerce_trigger_origin_registration",
