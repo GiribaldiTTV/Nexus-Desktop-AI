@@ -15,6 +15,8 @@ from desktop.external_trigger_intake import (
     TRIGGER_INTAKE_DECISION_REJECTED,
     TriggerOriginRegistration,
     TriggerOriginRegistry,
+    normalize_trigger_origin_category,
+    normalize_trigger_origin_id,
 )
 
 
@@ -97,6 +99,218 @@ def _assert_detail_snapshot_no_execution(snapshot, message: str) -> None:
     _assert_summary_no_execution(snapshot.summary, message)
     for detail in snapshot.details:
         _assert_detail_no_execution(detail, message)
+
+
+def validate_hardened_normalization_and_malformed_input_contract() -> None:
+    _assert(
+        normalize_trigger_origin_category(" Hardware Adjacent!! ") == "hardware_adjacent",
+        "category normalization should produce canonical snake case",
+    )
+    _assert(
+        normalize_trigger_origin_id(" Deck\tButton\n1 ") == "Deck Button 1",
+        "origin id normalization should trim and collapse whitespace",
+    )
+
+    registry = TriggerOriginRegistry()
+    before_snapshot = registry.snapshot()
+
+    invalid_id = registry.register(
+        {
+            "origin_id": "   ",
+            "origin_category": "hardware_adjacent",
+        }
+    )
+    _assert(not invalid_id.registered, "blank origin id registration should reject")
+    _assert(invalid_id.reason == "invalid_origin_id", "blank origin id should report invalid id")
+    _assert_evidence(
+        invalid_id.evidence,
+        "blank origin id registration",
+        boundary="trigger_origin_registry",
+        operation="register",
+        decision="rejected",
+        reason="invalid_origin_id",
+    )
+    _assert(registry.snapshot() == before_snapshot, "blank origin id should not mutate registry")
+
+    invalid_category = registry.register(
+        {
+            "origin_id": "Deck Button 2",
+            "origin_category": "   ",
+        }
+    )
+    _assert(not invalid_category.registered, "blank category registration should reject")
+    _assert(
+        invalid_category.reason == "invalid_origin_category",
+        "blank category should report invalid category",
+    )
+    _assert_evidence(
+        invalid_category.evidence,
+        "blank category registration",
+        boundary="trigger_origin_registry",
+        operation="register",
+        decision="rejected",
+        reason="invalid_origin_category",
+    )
+    _assert(registry.snapshot() == before_snapshot, "blank category should not mutate registry")
+
+    boundary = InternalTriggerIntakeBoundary(origin_registry=registry)
+    missing_id = boundary.receive({"origin_category": "hardware_adjacent"})
+    _assert(missing_id.reason == "invalid_origin_id", "missing origin id intake should reject")
+    _assert_no_execution(missing_id, "missing origin id intake")
+    _assert(registry.snapshot() == before_snapshot, "missing origin id intake should not mutate registry")
+
+    missing_category = boundary.inspect_readiness({"origin_id": "Deck Button 2"})
+    _assert(
+        missing_category.reason == "invalid_origin_category",
+        "missing category readiness should reject",
+    )
+    _assert_no_execution(missing_category, "missing category readiness", operation="inspect_readiness")
+    _assert(registry.snapshot() == before_snapshot, "missing category readiness should not mutate registry")
+
+    try:
+        registry.register(object())
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("unsupported registration object should raise TypeError")
+    _assert(registry.snapshot() == before_snapshot, "unsupported registration object should not mutate registry")
+
+    try:
+        boundary.receive(object())
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("unsupported intake object should raise TypeError")
+    _assert(registry.snapshot() == before_snapshot, "unsupported intake object should not mutate registry")
+
+    print("PASS: hardened normalization and malformed input contract")
+
+
+def validate_blocked_category_precedence_contract() -> None:
+    registry = TriggerOriginRegistry(
+        known_origin_categories=("hardware_adjacent", "remote_network"),
+        blocked_origin_categories=("remote_network",),
+    )
+    before_snapshot = registry.snapshot()
+    blocked_registration = registry.register(
+        {
+            "origin_id": "Remote Trigger",
+            "origin_category": "remote_network",
+            "enabled": True,
+        }
+    )
+    _assert(not blocked_registration.registered, "blocked category should reject even when known")
+    _assert(
+        blocked_registration.reason == "blocked_origin_category",
+        "blocked category should win over known-category admission",
+    )
+    _assert(blocked_registration.evidence.origin_category_blocked, "blocked evidence should mark blocked")
+    _assert_evidence(
+        blocked_registration.evidence,
+        "known-but-blocked registration",
+        boundary="trigger_origin_registry",
+        operation="register",
+        decision="rejected",
+        reason="blocked_origin_category",
+    )
+    _assert(registry.snapshot() == before_snapshot, "blocked registration should not mutate registry")
+
+    boundary = InternalTriggerIntakeBoundary(
+        known_origin_categories=("remote_network",),
+        blocked_origin_categories=("remote_network",),
+        origin_registry=registry,
+    )
+    blocked_intake = boundary.receive(
+        {
+            "origin_id": "Remote Trigger",
+            "origin_category": "remote_network",
+        }
+    )
+    _assert(blocked_intake.reason == "blocked_origin_category", "blocked intake should reject")
+    _assert(blocked_intake.origin_category_blocked, "blocked intake should mark blocked category")
+    _assert_no_execution(blocked_intake, "known-but-blocked intake")
+    _assert(registry.snapshot() == before_snapshot, "blocked intake should not mutate registry")
+
+    blocked_readiness = boundary.inspect_readiness(
+        {
+            "origin_id": "Remote Trigger",
+            "origin_category": "remote_network",
+        }
+    )
+    _assert(blocked_readiness.reason == "blocked_origin_category", "blocked readiness should reject")
+    _assert(blocked_readiness.origin_category_blocked, "blocked readiness should mark blocked category")
+    _assert_no_execution(
+        blocked_readiness,
+        "known-but-blocked readiness",
+        operation="inspect_readiness",
+    )
+    _assert(registry.snapshot() == before_snapshot, "blocked readiness should not mutate registry")
+
+    print("PASS: blocked category precedence contract")
+
+
+def validate_duplicate_and_result_immutability_contract() -> None:
+    registry = TriggerOriginRegistry()
+    registered = registry.register(
+        TriggerOriginRegistration(
+            origin_id="Deck Button 1",
+            origin_category="hardware_adjacent",
+            user_visible_label="Deck Button 1",
+            enabled=True,
+        )
+    )
+    _assert(registered.registered, "immutability setup should register enabled origin")
+    before_snapshot = registry.snapshot()
+    duplicate = registry.register(
+        {
+            "origin_id": " deck   button 1 ",
+            "origin_category": "hardware-adjacent",
+        }
+    )
+    _assert(not duplicate.registered, "normalized duplicate should reject")
+    _assert(duplicate.reason == "duplicate_origin_id", "normalized duplicate should report duplicate id")
+    _assert(duplicate.evidence.origin_registered, "duplicate evidence should mark existing registration")
+    _assert_evidence(
+        duplicate.evidence,
+        "normalized duplicate registration",
+        boundary="trigger_origin_registry",
+        operation="register",
+        decision="rejected",
+        reason="duplicate_origin_id",
+    )
+    _assert(registry.snapshot() == before_snapshot, "duplicate registration should not mutate registry")
+
+    boundary = InternalTriggerIntakeBoundary(origin_registry=registry)
+    intake = boundary.receive(
+        {
+            "origin_id": "Deck Button 1",
+            "origin_category": "hardware_adjacent",
+        }
+    )
+    _assert_no_execution(intake, "immutability intake")
+
+    try:
+        duplicate.reason = "changed"
+    except FrozenInstanceError:
+        pass
+    else:
+        raise AssertionError("registration result should be immutable")
+
+    try:
+        intake.reason = "changed"
+    except FrozenInstanceError:
+        pass
+    else:
+        raise AssertionError("intake result should be immutable")
+
+    try:
+        intake.evidence.reason = "changed"
+    except FrozenInstanceError:
+        pass
+    else:
+        raise AssertionError("intake evidence should be immutable")
+
+    print("PASS: duplicate registration and result immutability contract")
 
 
 def validate_registration_contract() -> None:
@@ -1077,6 +1291,9 @@ def validate_registry_readiness_detail_snapshot_contract() -> None:
 
 
 def main() -> int:
+    validate_hardened_normalization_and_malformed_input_contract()
+    validate_blocked_category_precedence_contract()
+    validate_duplicate_and_result_immutability_contract()
     validate_registration_contract()
     validate_invocation_follow_through_contract()
     validate_lifecycle_state_transition_contract()

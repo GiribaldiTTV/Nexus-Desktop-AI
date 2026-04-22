@@ -32,7 +32,7 @@ Historical note:
 
 FB-039 External trigger and plugin integration architecture.
 
-Main-facing canon is no longer in steady-state `No Active Branch`; FB-039 Workstream is active on `feature/fb-039-external-trigger-plugin-integration-architecture`.
+Main-facing canon is no longer in steady-state `No Active Branch`; FB-039 Hardening is active on `feature/fb-039-external-trigger-plugin-integration-architecture`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
 ## Merged-Unreleased Release-Debt Owner
@@ -113,14 +113,14 @@ Why it matters: The repo still needs deeper identity and wording normalization a
 
 ### [ID: FB-039] External trigger and plugin integration architecture
 
-Status: Workstream
+Status: Hardening
 Record State: Promoted
 Priority: Medium
 Release Stage: pre-Beta
 Target Version: TBD
 Branch: feature/fb-039-external-trigger-plugin-integration-architecture
 Canonical Workstream Doc: Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md
-Minimal Scope: Workstream WS-31 completion evaluation is recorded after the WS-1 through WS-5 architecture chain, WS-6 intake skeleton, WS-7 registration/follow-through seam, WS-8 validation/user-test alignment, WS-9 boundary review, WS-10 lifecycle transitions, WS-11 validation tightening, WS-12 boundary review, WS-13 internal decision evidence snapshot, WS-14 validation tightening, WS-15 boundary review, WS-16 internal state snapshot, WS-17 validation tightening, WS-18 boundary review, WS-19 internal readiness inspection, WS-20 validation tightening, WS-21 boundary review, WS-22 internal registry readiness sweep, WS-23 validation tightening, WS-24 boundary review, WS-25 internal registry readiness summary, WS-26 validation tightening, WS-27 boundary review, WS-28 internal registry readiness detail snapshot, WS-29 validation tightening, and WS-30 follow-on boundary review. The runtime surface remains internal-only and in-memory, defaults to reject/defer, and does not wire external listeners, protocols, transports, payload schemas, plugin host, settings UI, saved-action execution, callable-group execution, persistence, audit-log format, runtime marker schema, serialized evidence, or release packaging. Workstream is green for the current internal intake milestone; next legal phase is Hardening rather than another same-layer runtime seam.
+Minimal Scope: Hardening H-1 through H-3 is recorded after Workstream WS-31 completion evaluation. The runtime surface remains internal-only and in-memory, defaults to reject/defer, and does not wire external listeners, protocols, transports, payload schemas, plugin host, settings UI, saved-action execution, callable-group execution, persistence, audit-log format, runtime marker schema, serialized evidence, or release packaging. Hardening tightened reusable validator coverage for malformed input, blocked-category precedence, duplicate non-mutation, result immutability, cleanup, no-execution, and regression protection without changing runtime/product code. Hardening is green for the current internal intake milestone; next legal phase is Live Validation.
 Summary: Track future plugin and integration lifecycle design for external trigger surfaces such as Stream Deck and other installed integration points.
 Why it matters: Plugin-backed action triggering needs explicit lifecycle, safety, and ownership boundaries before it becomes part of the product.
 

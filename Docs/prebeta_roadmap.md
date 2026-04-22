@@ -67,13 +67,13 @@ Current merged truth indicates:
 - latest public prerelease title: `Pre-Beta v1.4.1`
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestone is FB-038 taskbar / tray quick-task UX and Create Custom Task surface in `v1.4.1-prebeta`
-- current phase: `Workstream`
+- current phase: `Hardening`
 - phase status: `Active Branch`
 - blocker after release execution: none for FB-038
 - current active workstream: FB-039 External trigger and plugin integration architecture
 - current branch: `feature/fb-039-external-trigger-plugin-integration-architecture`
 - merged-unreleased release-debt owner: none
-- next concern: FB-039 WS-31 Workstream completion evaluation is recorded; next legal phase is Hardening
+- next concern: FB-039 H-1 through H-3 Hardening is recorded green; next legal phase is Live Validation
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, and the released FB-038 tray quick-task UX milestone are now part of the current public shared pre-Beta baseline.
 
@@ -85,19 +85,19 @@ None.
 
 ### FB-039 External Trigger And Plugin Integration Architecture
 
-- status: `Workstream`
+- status: `Hardening`
 - record state: `Promoted`
 - branch: `feature/fb-039-external-trigger-plugin-integration-architecture`
 - canonical workstream doc: `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
-- current phase: `Workstream`
+- current phase: `Hardening`
 - phase status: `Active Branch`
 - blocker: none
-- scope: WS-31 records Workstream completion evaluation above the durable WS-6 intake skeleton, WS-7 registration/follow-through seam, WS-8 validation/user-test alignment, WS-9 boundary review, WS-10 lifecycle transitions, WS-11 validation tightening, WS-12 boundary review, WS-13 evidence snapshot seam, WS-14 validation tightening, WS-15 boundary review, WS-16 state snapshot seam, WS-17 validation tightening, WS-18 boundary review, WS-19 readiness inspection, WS-20 validation tightening, WS-21 boundary review, WS-22 registry readiness sweep, WS-23 validation tightening, WS-24 boundary review, WS-25 registry readiness summary, WS-26 validation tightening, WS-27 boundary review, WS-28 registry readiness detail snapshot, WS-29 validation tightening, and WS-30 follow-on boundary review; runtime defaults to reject/defer and does not wire external listeners, plugin host, protocols, transports, action execution, persistence, audit-log format, runtime marker schema, serialized evidence, or UI; next legal phase is Hardening
+- scope: H-1 through H-3 records Hardening pressure-test, reusable validator tightening, and Hardening completion evaluation above the durable internal-only WS-6 through WS-31 intake milestone; runtime defaults to reject/defer and does not wire external listeners, plugin host, protocols, transports, action execution, persistence, audit-log format, runtime marker schema, serialized evidence, or UI; next legal phase is Live Validation
 - release readiness rule: Release Readiness remains analysis-only; post-release canon already represents latest public prerelease and closed FB-038 truth
 
 ## Selected Next Workstream
 
-None. FB-039 has moved from selected-only canon through Branch Readiness into active Workstream.
+None. FB-039 has moved from selected-only canon through Branch Readiness, Workstream, and active Hardening.
 
 ## Most Recent Released Workstream Context
 
@@ -216,8 +216,8 @@ Current merged truth indicates:
 - the recent released workstreams above remain part of the locked current baseline
 - merged unreleased non-doc implementation debt exists: no
 - FB-038 is released and closed in `v1.4.1-prebeta`; H1 identity/discoverability repair, H2 shortcut-launch tray readback validation, H3 window initialization sequencing, H4 post-fix startup visibility validation, fresh post-H4 technical/live validation, user-facing desktop shortcut validation, and UTS waiver digestion are preserved as historical evidence
-- FB-039 is now active in Workstream on `feature/fb-039-external-trigger-plugin-integration-architecture`
-- FB-039 runtime/product implementation remains limited to the internal-only WS-6 intake skeleton, WS-7 in-memory registration and bounded invocation follow-through, WS-10 in-memory lifecycle state transitions, WS-13 in-memory decision evidence snapshots, WS-16 in-memory state snapshots, WS-19 read-only readiness inspection, WS-22 read-only registry readiness sweep, WS-25 read-only registry readiness summary, and WS-28 read-only registry readiness detail snapshot; WS-8, WS-11, WS-14, WS-17, WS-20, WS-23, WS-26, and WS-29 validation helper coverage plus WS-9, WS-12, WS-15, WS-18, WS-21, WS-24, WS-27, and WS-30 boundary reviews are durable; WS-31 records Workstream completion evaluation and routes the next legal phase to Hardening
+- FB-039 is now active in Hardening on `feature/fb-039-external-trigger-plugin-integration-architecture`
+- FB-039 runtime/product implementation remains limited to the internal-only WS-6 intake skeleton, WS-7 in-memory registration and bounded invocation follow-through, WS-10 in-memory lifecycle state transitions, WS-13 in-memory decision evidence snapshots, WS-16 in-memory state snapshots, WS-19 read-only readiness inspection, WS-22 read-only registry readiness sweep, WS-25 read-only registry readiness summary, and WS-28 read-only registry readiness detail snapshot; WS-8, WS-11, WS-14, WS-17, WS-20, WS-23, WS-26, and WS-29 validation helper coverage plus WS-9, WS-12, WS-15, WS-18, WS-21, WS-24, WS-27, and WS-30 boundary reviews are durable; WS-31 records Workstream completion evaluation; H-1 through H-3 records Hardening pressure-test, validator tightening, and Hardening-green evaluation with Live Validation as the next legal phase
 - post-release repo truth after the FB-038 release resolves to no FB-038 release-debt blocker
 - successor-lane branch creation for FB-038 is historical; FB-038 is now merged and no longer an executable active implementation branch
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed

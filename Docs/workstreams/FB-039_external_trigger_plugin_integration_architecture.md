@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Workstream`
+- `Hardening`
 
 ## Release Stage
 
@@ -27,7 +27,7 @@
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `Hardening`
 
 ## Phase Status
 
@@ -38,6 +38,7 @@
 - release debt is clear
 - no external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10/WS-13/WS-16/WS-19/WS-22/WS-25/WS-28 boundary code
 - WS-31 Workstream completion evaluation is recorded; WS-32 and WS-33 were not executed because another same-layer runtime seam would not add bounded value before Hardening
+- H-1, H-2, and H-3 Hardening are recorded; no runtime/product code changed during Hardening
 
 ## Branch Class
 
@@ -79,7 +80,7 @@
 
 ## User Test Summary Strategy
 
-- Branch Readiness had no meaningful manual User Test Summary because it did not change runtime or user-visible product behavior; WS-1 through WS-31 remain documentation-only, validation-only, or internal-only runtime work with no meaningful manual User Test Summary.
+- Branch Readiness had no meaningful manual User Test Summary because it did not change runtime or user-visible product behavior; WS-1 through WS-31 and H-1 through H-3 remain documentation-only, validation-only, or internal-only runtime work with no meaningful manual User Test Summary.
 - If a later Workstream seam introduces user-visible setup, trigger invocation, tray/overlay interaction, settings, prompt, or desktop shortcut behavior, the workstream must add a User Test Summary section and follow the returned-results blocker model before Live Validation or PR Readiness can advance.
 - If later implementation remains headless or architecture-only, the workstream must explicitly record why no meaningful manual User Test Summary applies.
 
@@ -280,8 +281,8 @@
 
 ## Active Seam
 
-- Active seam: `None after WS-31 completion`.
-- Last executed seam: `WS-31 Workstream Completion Evaluation And Hardening Admission Decision`.
+- Active seam: `None after H-3 completion`.
+- Last executed seam: `H-3 Hardening Completion Evaluation For Live Validation Admission`.
 - WS-1 status: complete and durable as architecture-only documentation.
 - WS-2 status: complete and durable as architecture-only documentation.
 - WS-3 status: complete and durable as architecture-only documentation.
@@ -313,7 +314,10 @@
 - WS-29 status: complete and durable as reusable validation coverage plus runtime-boundary confirmation for registry readiness detail snapshots.
 - WS-30 status: complete and durable as docs-only follow-on boundary review.
 - WS-31 status: complete and durable as Workstream completion evaluation and Hardening admission decision.
-- Next runtime implementation seam: not active; WS-32 and WS-33 were not executed because the current internal-only milestone is complete enough for Hardening pressure-testing.
+- H-1 status: complete and durable as internal trigger intake boundary and validator-depth pressure test.
+- H-2 status: complete and durable as validator hardening for no-execution, cleanup, immutability, malformed input, blocked-category precedence, and duplicate non-mutation.
+- H-3 status: complete and durable as Hardening completion evaluation for Live Validation admission.
+- Next runtime implementation seam: not active; Hardening is green for the current internal-only milestone.
 
 ## WS-1 External Trigger Source Map
 
@@ -693,9 +697,9 @@ Reusable validation helper:
 
 ## User Test Summary
 
-- Current classification: no meaningful manual User Test Summary applies for WS-1 through WS-31.
+- Current classification: no meaningful manual User Test Summary applies for WS-1 through WS-31 or H-1 through H-3.
 - Reason: the current FB-039 implementation remains internal-only and has no user-visible setup, trigger invocation surface, tray/overlay prompt, notification, settings UI, desktop shortcut flow, or external device integration.
-- Desktop UTS export: not required for WS-31.
+- Desktop UTS export: not required for H-3.
 - Future trigger: the first seam that adds user-visible setup, operator-facing trigger invocation, external integration setup, desktop-visible prompt, notification, tray/overlay change, settings UI, or manual trigger workflow must create a meaningful User Test Summary handoff and follow the returned-results blocker model before Live Validation or PR Readiness can advance.
 
 ## WS-8 Execution Record
@@ -1488,9 +1492,63 @@ Hardening admission decision:
 - WS-32 and WS-33 remain unexecuted; their runtime/validation work is not admitted because any meaningful next seam now belongs to Hardening pressure-testing or to a later separately admitted Workstream expansion after Hardening findings.
 - Next legal phase is `Hardening`.
 
+## H-1 Pressure-Test Internal Trigger Intake Boundary And Validator Depth
+
+H-1 pressure-tested the internal trigger intake boundary against the existing validator surface and source code. The current runtime module remained internal-only, in-memory, and defer/reject by default, but the reusable validator had depth gaps around edge cases that should be part of closeout-grade internal proof.
+
+H-1 findings:
+
+- no product/runtime defect was found in the admitted intake surface
+- validation depth was incomplete for category and origin normalization
+- validation depth was incomplete for malformed dict input and unsupported object input
+- validation depth was incomplete for known-but-blocked category precedence
+- validation depth was incomplete for normalized duplicate registration non-mutation
+- validation depth was incomplete for result and evidence immutability beyond snapshot-specific assertions
+
+H-1 continue decision:
+
+- Continue to H-2 because the first hardening gap was validator depth, not product behavior.
+- Keep runtime/product code unchanged unless the tightened validator exposes a failing product invariant.
+
+## H-2 No-Execution, Cleanup, And Regression Protection Tightening
+
+H-2 extended the reusable external trigger intake validator only. It added hardening coverage for malformed input, blocked-category precedence, duplicate registration non-mutation, and result/evidence immutability while preserving the internal-only runtime boundary.
+
+H-2 validator tightening:
+
+- `dev/orin_external_trigger_intake_validation.py` now proves canonical category normalization and origin-id whitespace normalization.
+- The validator now proves blank registration IDs, blank registration categories, missing intake IDs, and missing readiness categories reject without registry mutation, execution routing, execution authorization, or cleanup requirements.
+- The validator now proves unsupported input object types raise the internal API `TypeError` contract without mutating registry state.
+- The validator now proves blocked categories win even if also present in the known-category set.
+- The validator now proves normalized duplicate registration attempts do not mutate the registry and remain no-execution/no-cleanup.
+- The validator now proves registration results, intake results, and intake evidence are immutable.
+- `Docs/validation_helper_registry.md` now records those hardening responsibilities in the reusable helper family.
+
+H-2 continue decision:
+
+- Continue to H-3 because validator hardening passed without forcing runtime/product changes or scope expansion.
+
+## H-3 Hardening Completion Evaluation For Live Validation Admission
+
+H-3 evaluates Hardening after H-1/H-2. The branch-local hardening gate is green for the current internal-only intake milestone.
+
+Hardening completion basis:
+
+- H-1 identified validator-depth gaps rather than runtime/product defects.
+- H-2 closed those gaps by extending the reusable validator without creating helper sprawl.
+- The current runtime surface remains internal-only, in-memory, defer/reject by default, and has no external listener, protocol, transport, plugin host, payload schema, persistence, marker/log schema, UI, settings, installer, saved-action execution, callable-group execution, confirmation bypass, or user-visible behavior.
+- No meaningful manual User Test Summary applies because no operator-facing setup or invocation path exists yet.
+- No same-slice correctness gap remains in the admitted internal intake boundary.
+
+Hardening decision:
+
+- Hardening is `GREEN`.
+- Next legal phase is `Live Validation`.
+- Live Validation must not invent user-facing proof; it should validate repo-side/live posture and explicitly confirm whether no meaningful manual/live desktop validation applies for this internal-only branch.
+
 ## Scope
 
-- Record WS-31 as Workstream completion evaluation and Hardening admission decision when validation remains green.
+- Record H-1 through H-3 Hardening when validation remains green.
 - Preserve WS-1 as complete and durable architecture-only source map and ownership vocabulary.
 - Preserve WS-2 as complete and durable architecture-only lifecycle ownership and trust/safety boundary contract.
 - Preserve WS-3 through WS-5 as complete and durable architecture/admission framing.
@@ -1520,23 +1578,24 @@ Hardening admission decision:
 - Preserve WS-29 as complete and durable reusable validation tightening.
 - Preserve WS-30 as complete and durable docs-only follow-on boundary review.
 - Preserve WS-31 as complete and durable Workstream completion evaluation.
-- Do not implement any new external integration, persistence, runtime marker schema, audit log format, user-facing behavior, execution authority routing, or Hardening execution in this pass.
+- Preserve H-1 through H-3 as complete and durable Hardening pressure-test, validator tightening, and completion evaluation.
+- Do not implement any new external integration, persistence, runtime marker schema, audit log format, user-facing behavior, execution authority routing, or Live Validation execution in this pass.
 - Preserve architecture-level entry-point framing without implementation design, listener design, transport binding, protocol mechanics, payload schema details, settings UI, installer flow, or helper creation.
 - Carry the deferred PR #67 connector follow-up as later Workstream governance review only if it remains relevant to validator trust.
 
 ## Non-Goals
 
-- No plugin runtime implementation during WS-31.
-- No Stream Deck integration implementation during WS-31.
+- No plugin runtime implementation during H-1/H-2/H-3.
+- No Stream Deck integration implementation during H-1/H-2/H-3.
 - No protocol handling, installer work, settings surface, taskbar/tray expansion, monitoring HUD work, or release packaging.
 - No runtime/product code beyond the already-admitted internal-only WS-6/WS-7/WS-10 boundary code, WS-13 in-memory decision evidence snapshots, WS-16 in-memory state snapshots, WS-19 read-only readiness inspection, WS-22 read-only registry readiness sweep, WS-25 read-only registry readiness summary, and WS-28 read-only registry readiness detail snapshot.
 - No durable helper creation beyond the reusable external trigger intake validator coverage recorded by WS-8, WS-11, WS-14, WS-17, WS-20, WS-23, WS-26, and WS-29.
 - No FB-040 monitoring, thermals, or HUD scope.
-- No trust/safety enforcement logic, transport payload schema detail, user-facing settings/UI, or runtime plugin lifecycle implementation in WS-31.
+- No trust/safety enforcement logic, transport payload schema detail, user-facing settings/UI, or runtime plugin lifecycle implementation in H-1/H-2/H-3.
 
 ## Validation Contract
 
-- Workstream WS-31 validation:
+- Hardening H-1/H-2/H-3 validation:
   - `python dev\orin_branch_governance_validation.py`
   - `python dev\orin_external_trigger_intake_validation.py`
   - `python -m compileall desktop\external_trigger_intake.py dev\orin_external_trigger_intake_validation.py`
@@ -1545,7 +1604,7 @@ Hardening admission decision:
   - `python dev\orin_interaction_baseline_validation.py`
   - `git diff --check`
   - `git status --short --branch`
-- WS-31 introduces no user-visible desktop behavior; no User Test Summary export is required.
+- H-1/H-2/H-3 introduce no user-visible desktop behavior; no User Test Summary export is required.
 - Future runtime seams must be activated by a later bounded pass with explicit source-of-truth reconstruction, affected files, validation gates, cleanup expectations, and User Test Summary classification.
 - Reuse existing validator families and `Docs/validation_helper_registry.md` guidance first.
 - Additional new helpers are blocked until a concrete validation gap exists, the helper purpose is branch-scoped or reusable by design, and registry status/consolidation rules are satisfied.
@@ -1553,18 +1612,18 @@ Hardening admission decision:
 
 ## Stop Conditions
 
-- Stop if FB-039 scope expands beyond Workstream completion evaluation during WS-31.
-- Stop if WS-31 starts defining trust/safety enforcement logic, protocol mechanics, payload schemas, settings UI, installer flow, plugin host, action/callable-group execution, persistence, audit log format, runtime marker schema, serialized evidence format, or product runtime behavior.
+- Stop if FB-039 scope expands beyond Hardening pressure-test, validator tightening, and Hardening completion evaluation during H-1/H-2/H-3.
+- Stop if H-1/H-2/H-3 starts defining trust/safety enforcement logic, protocol mechanics, payload schemas, settings UI, installer flow, plugin host, action/callable-group execution, persistence, audit log format, runtime marker schema, serialized evidence format, or product runtime behavior.
 - Stop if a downstream seam cannot be stated as the same workstream, same phase, same branch class, same risk class, and same subsystem family or tightly coupled architecture chain.
 - Stop if reusable registry readiness detail proof cannot demonstrate deterministic readback, defer-only follow-through, no registry mutation, and no execution routing.
 - Stop if any FB-038 release debt or stale release canon reappears.
 - Stop if a governance-only branch, direct-main mutation, or between-branch repair path is attempted.
 - Stop if another new helper is proposed before reuse and registry obligations are satisfied.
-- Stop if Workstream execution expands into another runtime seam after WS-31 instead of routing to Hardening.
+- Stop if Hardening tries to start Live Validation, PR Readiness, release work, or another runtime seam before H-3 is recorded and validated.
 
 ## Exit Criteria
 
-- FB-039 is represented as the active Workstream in backlog, roadmap, and workstreams index.
+- FB-039 is represented as the active branch/workstream owner in backlog, roadmap, and workstreams index.
 - This workstream record contains the required phase authority fields.
 - WS-1 external trigger source map, ownership vocabulary, ownership boundaries, and architecture-only entry-point framing are recorded.
 - WS-2 lifecycle ownership boundaries, trust/safety boundary vocabulary, trigger class admission posture, and user-control rules are recorded.
@@ -1597,6 +1656,9 @@ Hardening admission decision:
 - WS-29 validation tightening and runtime-boundary confirmation is implemented and validated.
 - WS-30 follow-on boundary review is recorded and validated.
 - WS-31 Workstream completion evaluation and Hardening admission decision is recorded and validated.
+- H-1 internal trigger intake boundary and validator-depth pressure test is recorded and validated.
+- H-2 no-execution, cleanup, immutability, malformed-input, blocked-category precedence, and duplicate non-mutation validator tightening is implemented and validated.
+- H-3 Hardening completion evaluation is recorded and validated.
 - FB-038 remains released/closed and release debt remains clear.
 - Repo state is no longer `No Active Branch`; active branch truth is `feature/fb-039-external-trigger-plugin-integration-architecture`.
 - No external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10 boundary code, WS-13 in-memory decision evidence snapshots, WS-16 in-memory state snapshots, WS-19 read-only readiness inspection, WS-22 read-only registry readiness sweep, WS-25 read-only registry readiness summary, and WS-28 read-only registry readiness detail snapshot.
@@ -1607,8 +1669,8 @@ Hardening admission decision:
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Live Validation`
 
 ## Branch Readiness Notes
 
-Branch Readiness durability is complete, WS-1 through WS-5 are durable, WS-6 is recorded as the first internal-only runtime skeleton, WS-7 is recorded as the in-memory registration plus bounded invocation follow-through layer, WS-8 is recorded as reusable validation plus no-UTS classification alignment, WS-9 is recorded as post-follow-through runtime boundary review, WS-10 is recorded as internal-only lifecycle state transitions, WS-11 is recorded as validation tightening and runtime-boundary confirmation, WS-12 is recorded as follow-on boundary review, WS-13 is recorded as an internal-only decision evidence snapshot, WS-14 is recorded as validation tightening and runtime-boundary confirmation for decision evidence snapshots, WS-15 is recorded as follow-on boundary review, WS-16 is recorded as an internal-only boundary state snapshot, WS-17 is recorded as validation tightening and runtime-boundary confirmation for state snapshots, WS-18 is recorded as follow-on boundary review, WS-19 is recorded as an internal-only readiness inspection, WS-20 is recorded as validation tightening and runtime-boundary confirmation for readiness inspections, WS-21 is recorded as follow-on boundary review, WS-22 is recorded as an internal-only registry readiness sweep, WS-23 is recorded as validation tightening and runtime-boundary confirmation for registry readiness sweeps, WS-24 is recorded as follow-on boundary review, WS-25 is recorded as an internal-only registry readiness summary, WS-26 is recorded as validation tightening and runtime-boundary confirmation for registry readiness summaries, WS-27 is recorded as follow-on boundary review, WS-28 is recorded as an internal-only registry readiness detail snapshot, WS-29 is recorded as validation tightening and runtime-boundary confirmation for registry readiness detail snapshots, WS-30 is recorded as follow-on boundary review, and WS-31 is recorded as Workstream completion evaluation with Hardening as the next legal phase.
+Branch Readiness durability is complete, WS-1 through WS-5 are durable, WS-6 is recorded as the first internal-only runtime skeleton, WS-7 is recorded as the in-memory registration plus bounded invocation follow-through layer, WS-8 is recorded as reusable validation plus no-UTS classification alignment, WS-9 is recorded as post-follow-through runtime boundary review, WS-10 is recorded as internal-only lifecycle state transitions, WS-11 is recorded as validation tightening and runtime-boundary confirmation, WS-12 is recorded as follow-on boundary review, WS-13 is recorded as an internal-only decision evidence snapshot, WS-14 is recorded as validation tightening and runtime-boundary confirmation for decision evidence snapshots, WS-15 is recorded as follow-on boundary review, WS-16 is recorded as an internal-only boundary state snapshot, WS-17 is recorded as validation tightening and runtime-boundary confirmation for state snapshots, WS-18 is recorded as follow-on boundary review, WS-19 is recorded as an internal-only readiness inspection, WS-20 is recorded as validation tightening and runtime-boundary confirmation for readiness inspections, WS-21 is recorded as follow-on boundary review, WS-22 is recorded as an internal-only registry readiness sweep, WS-23 is recorded as validation tightening and runtime-boundary confirmation for registry readiness sweeps, WS-24 is recorded as follow-on boundary review, WS-25 is recorded as an internal-only registry readiness summary, WS-26 is recorded as validation tightening and runtime-boundary confirmation for registry readiness summaries, WS-27 is recorded as follow-on boundary review, WS-28 is recorded as an internal-only registry readiness detail snapshot, WS-29 is recorded as validation tightening and runtime-boundary confirmation for registry readiness detail snapshots, WS-30 is recorded as follow-on boundary review, WS-31 is recorded as Workstream completion evaluation, and H-1 through H-3 are recorded as Hardening green with Live Validation as the next legal phase.
