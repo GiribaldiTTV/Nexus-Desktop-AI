@@ -40,12 +40,14 @@ Add these fields when relevant:
 
 - `Branch Class: <implementation / docs/governance / emergency canon repair / release packaging>`
 - `Active Seam: <seam name>`
-- `Seam Sequence: <ordered seam list>` when a Workstream pass may execute more than one seam
+- `Seam Sequence: <ordered seam list>` when the current phase permits a bounded multi-seam pipeline
 - `Validation Contract: <summary or authority reference>`
 - `Timeout Contract: <summary or authority reference>`
 
 If `Phase` is missing or is not one of the exact canonical phase names below, execution is blocked and only truth-validation or analysis may continue.
-If `Seam Sequence` is present, the pass must still execute only one active seam at a time and must report a validation-backed continue-or-stop decision before starting the next seam.
+If `Seam Sequence` is present, it is structure only.
+Prompt text may name the entry seam and downstream planned seams, but it does not define seam behavior, bypass phase rules, or authorize continuation by itself.
+The canonical seam workflow contract below controls whether Codex may continue, must stop, or must fall back to a single active seam.
 
 ## Canonical Phase Enum
 
@@ -878,35 +880,74 @@ Validation seams should be classified before they are fixed:
 
 Do not treat a seam as a product defect merely because the interactive harness failed first.
 
-## Bounded Multi-Seam Workflow Rule
+## Seam Workflow Contract
 
-The primary Workstream execution model is `bounded multi-seam workflow`.
+`Docs/phase_governance.md` is the canonical owner of seam workflow behavior.
+Prompts, workstream docs, and mode docs may name a seam chain, active seam, or validation focus, but they do not define continuation authority.
+Codex must derive continuation, stopping, fallback, and phase movement from source-of-truth, validation, branch truth, and this contract.
 
-A bounded multi-seam workflow is an ordered sequence of seams executed inside one approved Workstream boundary.
+### Phase Scope
+
+Seam workflow applies differently by phase:
+
+- `Branch Readiness` may use planning, admission, or tightly coupled governance-repair seams, but it must not execute product/runtime implementation.
+- `Workstream` uses the full bounded multi-seam pipeline as the primary execution model when a coherent same-risk seam chain is safe.
+- `Hardening` may use a constrained continuous validation loop when the branch is already inside an approved hardening boundary.
+- `Live Validation` may use validation, evidence-digestion, waiver, or output-contract seams; it must not become a hidden implementation phase.
+- `PR Readiness` uses readiness-gate seams for merge-target canon, drift audit, PR creation, and PR validation; it is not a product implementation seam pipeline.
+- `Release Readiness` is analysis-only and file-frozen; it may use review steps in output, but it must not execute file-mutating seams.
+
+### Bounded Multi-Seam Workflow
+
+A bounded multi-seam workflow is an ordered sequence of seams executed inside one approved phase boundary.
 It is allowed only when every seam in the sequence stays within:
 
-- the same workstream
+- the same workstream or equivalent active authority record
 - the same normal phase
 - the same branch class
 - the same risk class
-- the same subsystem family or a tightly coupled implementation chain
+- the same subsystem family or a tightly coupled implementation, validation, or governance chain
+- a validation surface strong enough to support safe continuation
 
 Multi-seam does not mean batch execution.
 It means Codex may continue across a planned seam sequence without requiring a new operator prompt after every seam, but only while it executes exactly one active seam at a time.
 
+### Seam Stages
+
+Each active seam follows this governed stage model:
+
+1. `Stage 0 - Startup and admission`: load the required source-of-truth, confirm branch, phase, branch class, blockers, active authority record, and whether multi-seam continuation is legal.
+2. `Stage 1 - Seam analysis and plan`: define the seam name, exact boundary, affected files or evidence surfaces, explicit non-includes, validation gate, cleanup expectations, risk class, and `UTS` applicability.
+3. `Stage 2 - Execution`: execute only the active seam within the approved boundary.
+4. `Stage 3 - Review and validation`: run the seam validation, inspect results, classify defects or drift, and loop back to Stage 2 only for the same seam when validation, stop-loss, and phase rules allow.
+5. `Stage 4 - Record truth and continuation decision`: update branch-local workstream evidence, authority records, `UTS` artifacts, helper registry, or governance docs only when truth changed and the phase permits mutation; then report `continue` or `stop`.
+6. `Stage 5 - Finalization`: summarize work, validation, cleanup, durability state, remaining blockers, next legal phase, and next safe move.
+
+Stage 4 is not permission to churn canon after every seam.
+Repository files are updated only when branch-local truth, evidence, validation contracts, helper records, or governing rules actually changed and the current phase permits file mutation.
+
+### Required Per-Seam Declaration
+
 Before each seam, Codex must state:
 
 - the seam name
+- the active phase and branch class
 - the exact boundary
+- the affected files or evidence surfaces when known
 - the explicit non-includes
 - the validation gate required for that seam
+- cleanup expectations when the seam opens files, processes, windows, helpers, or temporary artifacts
+- `User Test Summary` applicability when user-visible or operator-facing behavior may be affected
 
 After each seam, Codex must:
 
 - run the required validation for that seam
-- update the active workstream evidence when branch-local truth changed
+- update active workstream evidence when branch-local truth changed
 - update the canonical workstream `User Test Summary` when the seam changes user-visible or operator-facing behavior
+- verify cleanup for artifacts the pass created or opened
 - decide and report `continue` or `stop`
+
+### Continuation Authority
 
 Continuation is allowed only when:
 
@@ -917,8 +958,11 @@ Continuation is allowed only when:
 - no governance drift is detected
 - no unresolved manual-validation blocker is present
 - branch truth remains consistent with the authority record
+- stop-loss has not been reached
+- the next seam remains inside the same permitted phase scope
 
 If any continuation condition fails, the whole workflow stops immediately and the next safe move must be reported from the blocking truth.
+If continuation would require broader authority, a different phase, a different risk class, or weaker validation, Codex must stop and report the blocker rather than treating the downstream seam as activated.
 
 ## Single-Seam Fallback Rule
 

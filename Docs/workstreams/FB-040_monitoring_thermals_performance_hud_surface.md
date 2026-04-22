@@ -36,6 +36,7 @@
 - FB-039 is released and closed in `v1.5.0-prebeta`.
 - FB-039 release debt is clear.
 - Latest public prerelease truth is `v1.5.0-prebeta`.
+- This Branch Readiness pass is implementing the approved seam workflow governance contract before FB-040 Workstream begins.
 - No FB-040 runtime, HUD, telemetry, thermal, monitoring, plugin, installer, or settings implementation has started.
 
 ## Branch Class
@@ -110,11 +111,14 @@ Seam 3: validation and admission contract for later implementation seams
 
 ## Active Seam
 
-Active seam: BR-1 through BR-3 Branch Readiness repair and admission evaluation.
+Active seam: GOV-1 through GOV-3 Branch Readiness seam workflow governance implementation.
 
 - BR-1: repair carried-forward post-release canon drift from FB-039.
 - BR-2: repair carried-forward version-governance drift and validator expectations.
 - BR-3: re-evaluate repo truth and admit FB-040 only if Branch Readiness becomes clean.
+- GOV-1: implement the refined seam workflow contract in the canonical governance owner.
+- GOV-2: align development rules and Codex mode posture to the canonical seam contract without creating duplicate authority.
+- GOV-3: validate governance alignment and confirm FB-040 remains ready for Workstream admission.
 
 ## Validation Contract
 

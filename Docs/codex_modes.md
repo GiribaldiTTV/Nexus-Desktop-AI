@@ -131,8 +131,9 @@ In Workflow mode, Codex should:
 - make the required changes
 - verify the changed behavior or changed docs
 - report any drift or remaining gaps honestly
+- when the approved boundary contains a seam chain, treat prompt-provided seams as structure only and use `Docs/phase_governance.md` as the continuation authority
 - when the approved Workstream boundary contains a coherent same-risk seam chain, use bounded multi-seam workflow as the primary model while executing one active seam at a time
-- when the approved boundary is continuous validation inside the current workstream, keep iterating until the full gate is green or a hard stop is reached
+- when the approved boundary is continuous validation inside the current workstream, keep iterating only while the governing phase rules, validation, and stop-loss contract remain green
 
 ### What Codex Must Not Do
 
@@ -293,14 +294,19 @@ That means:
 ### Bounded Multi-Seam Workflow
 
 For coherent Workstream implementation, bounded multi-seam workflow is the primary execution model.
+`Docs/phase_governance.md` owns the exact seam workflow contract; this mode doc mirrors the collaboration posture only.
 
 That means:
 
+- prompts may name a seam chain and active seam, but source-of-truth and validation decide continuation
 - Branch Readiness should plan the branch objective, target end-state, expected seam families, risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam sequence
 - Workstream may execute multiple planned seams in one pass only when they share the same workstream, phase, branch class, risk class, and subsystem family or tightly coupled chain
-- each seam is still analyzed, bounded, implemented, validated, recorded, and judged before the next seam starts
+- each seam is still analyzed, bounded, executed, validated, recorded, and judged before the next seam starts
+- Hardening and Live Validation may continue through constrained validation or evidence-digestion seams only when their phase rules allow it
+- PR Readiness uses readiness-gate seams for PR package, PR creation, and PR validation rather than implementation continuation
+- Release Readiness is review-only and file-frozen; it must not mutate repository files through a seam
 - the output must report the per-seam validation result and `continue` or `stop` decision
-- a risk-class change, validation failure, scope drift, governance drift, unresolved manual-validation blocker, or branch-truth contradiction stops the workflow
+- a risk-class change, validation failure, scope drift, governance drift, unresolved manual-validation blocker, branch-truth contradiction, or stop-loss trigger stops the workflow
 
 Single-seam fallback is required for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem work, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation.
 
