@@ -120,7 +120,7 @@ Release Stage: pre-Beta
 Target Version: TBD
 Branch: feature/fb-039-external-trigger-plugin-integration-architecture
 Canonical Workstream Doc: Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md
-Minimal Scope: Workstream WS-1 through WS-5 architecture chain is durable: source map, ownership vocabulary, lifecycle/trust boundaries, validation/admission contract, first runtime seam framing, and follow-on architecture tightening. The future `Internal Trigger Intake Boundary Skeleton` runtime seam is framed but not active. No plugin runtime implementation, Stream Deck integration, protocol handling, installer work, settings surface, taskbar/tray expansion, monitoring HUD work, transport schema, helper creation, or release packaging is admitted until a later bounded Workstream pass names exactly one runtime seam.
+Minimal Scope: Workstream WS-6 internal trigger intake boundary skeleton is durable after the WS-1 through WS-5 architecture chain. The skeleton is internal-only, defaults to reject/defer, and does not wire external listeners, protocols, transports, payload schemas, plugin host, settings UI, saved-action execution, callable-group execution, helper creation, or release packaging. WS-7 registration/invocation follow-through and WS-8 validation tightening remain planned only until a later bounded Workstream pass admits them.
 Summary: Track future plugin and integration lifecycle design for external trigger surfaces such as Stream Deck and other installed integration points.
 Why it matters: Plugin-backed action triggering needs explicit lifecycle, safety, and ownership boundaries before it becomes part of the product.
 
