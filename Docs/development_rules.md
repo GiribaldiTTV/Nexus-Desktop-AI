@@ -106,11 +106,13 @@ Record-state meaning:
 - `Promoted` = a canonical workstream doc is required and becomes the durable branch record that must stay current throughout the active lane
 - `Closed` = the canonical workstream doc remains historical lane truth and must not be treated as active execution authority by inertia
 
-## Required Startup Contract
+## Required Startup Loading
 
-Before planning, patching, reviewing, or recommending the next move, Codex must follow the canonical startup contract in `Docs/nexus_startup_contract.md`.
+Before planning, patching, reviewing, or recommending the next move, Codex must load the canonical source-of-truth set.
 
-That compact loader contract routes back through `Docs/Main.md`, `Docs/development_rules.md`, `Docs/phase_governance.md`, and `Docs/codex_modes.md` so new chats do not need the full governance stack pasted into the prompt.
+`Docs/nexus_startup_contract.md` may be used as a compact ChatGPT/new-chat loader map, but it is not Codex execution authority.
+Execution behavior is governed by this document, `Docs/Main.md`, `Docs/phase_governance.md`, `Docs/codex_modes.md`, the active workstream or branch authority record, and directly relevant owning canon.
+Prompt text and loader templates may describe requested task scope, but they must not override source-of-truth, restrict required continuation, define seam behavior, bypass phase rules, change durability requirements, or weaken validation.
 
 That startup pass must make explicit:
 

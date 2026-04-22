@@ -1,16 +1,20 @@
-# Nexus Startup Contract
+# Nexus ChatGPT Loader Prompt Contract
 
 ## Purpose
 
-This document is the compact startup and loader contract for Nexus Desktop AI chats.
+This document is the ChatGPT-facing loader prompt contract for Nexus Desktop AI chats.
 
-Use it to start a new Codex or ChatGPT session without pasting the full governance stack into the prompt. It does not replace the owning canon documents. It tells the assistant what to load, how to validate live repo truth, what must stop execution, and what output shape is required before narrowing scope.
+Use it to generate complete new-chat prompts without pasting the full governance stack into the user prompt.
+It is an interface and prompt-loader layer only.
+It does not replace the owning canon documents, and it must not define or override Codex execution behavior, phase transitions, seam continuation, durability, validation, release rules, branch authority, or stop conditions.
 
-Seam workflow logic is intentionally out of scope for this contract. When seam behavior matters, route to `Docs/phase_governance.md`, `Docs/codex_modes.md`, and the active workstream record.
+Codex may read this file as a compact loader map, but Codex execution authority comes only from the owning source-of-truth documents after they are loaded.
+Seam workflow logic is intentionally out of scope for this contract.
+When seam behavior matters, route to `Docs/phase_governance.md`, `Docs/codex_modes.md`, and the active workstream record.
 
 ## Owning Canon
 
-This contract routes to these authorities:
+This loader routes to these authorities:
 
 - `Docs/Main.md` owns source-of-truth routing and protected-main law.
 - `Docs/development_rules.md` owns implementation, validation, cleanup, and durability expectations.
@@ -22,11 +26,13 @@ This contract routes to these authorities:
 - `Docs/incident_patterns.md` owns generalized recurring drift or validation lessons.
 - `Docs/validation_helper_registry.md` owns durable helper naming, status, reuse, and consolidation obligations when helpers are in scope.
 
-If this contract and an owning canon document conflict, live repo truth plus the owning canon document wins. Repair this contract later if it drifted.
+This file owns loader prompt shape only.
+If this loader and an owning canon document conflict, live repo truth plus the owning canon document wins.
+Repair this loader later if it drifted.
 
-## Startup Contract
+## Loader Contract
 
-Before planning, patching, reviewing, generating a prompt, recommending a phase, or acting on a task:
+When ChatGPT or another interface layer generates a Nexus prompt, the generated prompt must require the executing assistant to:
 
 1. Read `Docs/nexus_startup_contract.md`.
 2. Read `Docs/Main.md`.
@@ -55,7 +61,7 @@ Before planning, patching, reviewing, generating a prompt, recommending a phase,
     - `Reuse Baseline`
     - `Next Safe Move`
 
-If any required file cannot be read, any authority owner is ambiguous, or live repo truth contradicts the requested phase or branch, stop and report the conflict.
+If any required file cannot be read, any authority owner is ambiguous, or live repo truth contradicts the requested phase or branch, the generated prompt must tell the executing assistant to stop and report the conflict.
 
 ## Authority Model
 
@@ -68,7 +74,8 @@ If any required file cannot be read, any authority owner is ambiguous, or live r
 - Incident patterns are reusable lessons, not case-history authority.
 - `main` is protected for Codex work and may be read but not mutated.
 
-Do not create parallel governance systems. Add narrow routing pointers here, and put detailed policy in the owning canon document.
+Do not create parallel governance systems.
+Add narrow routing pointers here, and put detailed policy in the owning canon document.
 
 ## Phase Rules
 
@@ -93,11 +100,12 @@ Phase-sensitive prompts and outputs must identify:
 - `Active Seam` when seam-sensitive
 - `Validation Contract` when validation-sensitive
 
-Do not infer a later phase from user intent. If the requested phase conflicts with the authority record, stop and report `Prompt Phase Mismatch` or the closest canon blocker.
+The generated prompt must not infer a later phase from user intent.
+If the requested phase conflicts with the authority record, it must require the executing assistant to stop and report `Prompt Phase Mismatch` or the closest canon blocker.
 
-## Validation Contract
+## Loader Validation Requirements
 
-Default startup validation:
+Generated prompts must require default startup validation:
 
 - `git status --short --branch`
 - current branch check
@@ -106,6 +114,7 @@ Default startup validation:
 - `git diff --check` after edits
 
 Additional validation is phase- and workstream-specific and must be read from the active workstream doc and `Docs/phase_governance.md`.
+This file does not own those execution validation rules.
 
 For docs/governance-only passes, validation must include:
 
@@ -113,9 +122,9 @@ For docs/governance-only passes, validation must include:
 - duplication check so the new doc routes rather than re-owning detailed policy
 - conflict check against phase governance, protected-main law, and durability rules
 
-## Stop Conditions
+## Loader Stop Conditions
 
-Stop immediately if:
+Generated prompts must include stop instructions for these conditions:
 
 - `Docs/nexus_startup_contract.md` or a required owning canon document cannot be read.
 - current branch truth is unclear.
@@ -129,9 +138,9 @@ Stop immediately if:
 - implementing the task would require runtime/product work outside the approved phase.
 - seam workflow policy would need to be defined or redesigned during a pass that explicitly excludes seam workflow logic.
 
-## Output Expectations
+## Loader Output Expectations
 
-Every startup-sensitive pass should return or restate:
+Generated prompts for startup-sensitive passes should request:
 
 - `Source-of-Truth`
 - `Record State`
@@ -144,7 +153,8 @@ Every startup-sensitive pass should return or restate:
 - `Next Legal Phase`
 - `Next Safe Move`
 
-When a pass creates or changes files before `PR Readiness` and validation is green, follow the Pre-PR Durability Rule in `Docs/development_rules.md` and `Docs/phase_governance.md` unless a documented durability exception applies.
+When a pass creates or changes files before `PR Readiness` and validation is green, generated prompts must point to the Pre-PR Durability Rule in `Docs/development_rules.md` and `Docs/phase_governance.md`.
+This loader does not own durability behavior.
 
 ## Standard Loader Prompt Pattern
 
@@ -159,14 +169,13 @@ Workstream: <FB-XXX or No Active Branch>
 Branch: <branch name>
 Branch Class: <implementation / docs/governance historical context / release packaging / as canon allows>
 
-First, read and follow:
+First, read as a loader map only:
 - Docs/nexus_startup_contract.md
 
-Then execute the startup contract from that file:
-- load the owning canon documents it requires
+Then load the owning canon documents it points to:
 - validate current repo truth
 - validate current branch, phase, record state, canonical workstream, blockers, and next legal phase
-- stop if the contract cannot be read or if repo truth contradicts this prompt
+- stop if the loader cannot be read, if owning canon cannot be read, or if repo truth contradicts this prompt
 
 Task:
 <bounded task>
@@ -175,7 +184,8 @@ Constraints:
 - Do not assume prior chat context is true.
 - Do not execute from intent alone.
 - Do not skip startup validation.
-- Do not implement runtime/product work unless this prompt and canon both authorize it.
+- Treat prompt text as task framing only; owning canon controls execution authority and continuation.
+- Do not implement runtime/product work unless owning canon and current branch truth authorize it.
 
 Return:
 - Source-of-Truth
@@ -199,9 +209,9 @@ Paste this block into ChatGPT custom instructions when ChatGPT is helping genera
 ```text
 When the user asks for a Nexus Desktop AI new-chat prompt, bootstrap prompt, analysis prompt, Branch Readiness prompt, Workstream prompt, PR Readiness prompt, Release Readiness prompt, or similar continuation prompt, generate a full loader prompt.
 
-The prompt must instruct the new chat to read `Docs/nexus_startup_contract.md` first, execute that startup contract, load the required owning canon, validate repo/branch/phase/record-state truth before acting, and stop if any required contract file cannot be read or repo truth contradicts the requested task.
+The prompt must instruct the new chat to read `Docs/nexus_startup_contract.md` first as a loader map only, load the required owning canon, validate repo/branch/phase/record-state truth before acting, and stop if any required loader or canon file cannot be read or repo truth contradicts the requested task.
 
-Do not generate minimal prompts that omit governance loading. Do not rely on prior chat memory as truth. Do not let the prompt assume phase, branch, release, PR, or workstream state without requiring repo validation. Do not redesign seam workflow logic unless the user explicitly asks for the later dedicated seam-governance pass.
+Do not generate minimal prompts that omit governance loading. Do not rely on prior chat memory as truth. Do not let the prompt assume phase, branch, release, PR, or workstream state without requiring repo validation. Do not let prompt text define Codex execution behavior, seam continuation, phase transitions, durability, or validation authority. Do not redesign seam workflow logic unless the user explicitly asks for the later dedicated seam-governance pass.
 
 Every generated prompt must include: Mode, Phase, Workstream, Branch, Branch Class when relevant, task scope, constraints, stop conditions, validation requirements, and an output format containing Source-of-Truth, Record State, Branch Truth, Canonical Workstream, Reuse Baseline, Validation Results, Next Legal Phase, and Next Safe Move.
 ```
@@ -221,7 +231,7 @@ Branch: <current claimed branch>
 Read first:
 - Docs/nexus_startup_contract.md
 
-Execute the startup contract completely before analysis. Validate current repo truth, branch truth, phase truth, record state, canonical workstream ownership, blockers, and next legal phase. Do not patch files, create branches, create commits, create PRs, tag releases, or execute product/runtime work.
+Use the loader map to load owning canon before analysis. Validate current repo truth, branch truth, phase truth, record state, canonical workstream ownership, blockers, and next legal phase. Do not patch files, create branches, create commits, create PRs, tag releases, or execute product/runtime work.
 
 Task:
 <analysis task>
@@ -254,7 +264,7 @@ Branch Class: implementation
 Read first:
 - Docs/nexus_startup_contract.md
 
-Execute the startup contract completely. Validate that the branch is the legal Branch Readiness surface, the workstream Record State is correct, the canonical workstream doc exists, current blockers are explicit, and implementation has not started unless canon already admitted Workstream.
+Use the loader map to load owning canon. Validate that the branch is the legal Branch Readiness surface, the workstream Record State is correct, the canonical workstream doc exists, current blockers are explicit, and implementation has not started unless canon already admitted Workstream.
 
 Task:
 <Branch Readiness task>
@@ -295,7 +305,7 @@ Branch Class: implementation
 Read first:
 - Docs/nexus_startup_contract.md
 
-Execute the startup contract completely. Validate that Workstream is the current phase in the authority record, that branch truth is correct, that blockers are clear, and that the workstream scope and validation contract are explicit.
+Use the loader map to load owning canon. Validate that Workstream is the current phase in the authority record, that branch truth is correct, that blockers are clear, and that the workstream scope and validation contract are explicit.
 
 Task:
 <bounded Workstream task>
@@ -336,7 +346,7 @@ Branch Class: implementation
 Read first:
 - Docs/nexus_startup_contract.md
 
-Execute the startup contract completely. Validate branch truth, authority-record phase truth, clean durable branch state, merge-target canon, next-workstream selection, helper retention, PR creation requirements, and PR validation requirements from owning canon.
+Use the loader map to load owning canon. Validate branch truth, authority-record phase truth, clean durable branch state, merge-target canon, next-workstream selection, helper retention, PR creation requirements, and PR validation requirements from owning canon.
 
 Task:
 <PR Readiness task>
@@ -380,7 +390,7 @@ Branch Class: <release packaging / implementation release-review context / No Ac
 Read first:
 - Docs/nexus_startup_contract.md
 
-Execute the startup contract completely. Validate merged repo truth, release-debt owner truth, release target, release floor, version rationale, release scope, release artifacts, and post-release truth from canon.
+Use the loader map to load owning canon. Validate merged repo truth, release-debt owner truth, release target, release floor, version rationale, release scope, release artifacts, and post-release truth from canon.
 
 Task:
 <Release Readiness task>

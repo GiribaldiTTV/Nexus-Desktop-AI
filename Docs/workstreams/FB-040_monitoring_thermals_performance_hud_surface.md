@@ -37,6 +37,7 @@
 - FB-039 release debt is clear.
 - Latest public prerelease truth is `v1.5.0-prebeta`.
 - This Branch Readiness pass is implementing the approved seam workflow governance contract before FB-040 Workstream begins.
+- This Branch Readiness pass also separates ChatGPT loader/prompt responsibilities from Codex execution authority before FB-040 Workstream begins.
 - No FB-040 runtime, HUD, telemetry, thermal, monitoring, plugin, installer, or settings implementation has started.
 
 ## Branch Class
@@ -111,7 +112,7 @@ Seam 3: validation and admission contract for later implementation seams
 
 ## Active Seam
 
-Active seam: GOV-1 through GOV-3 Branch Readiness seam workflow governance implementation.
+Active seam: GOV-I1 through GOV-I3 Branch Readiness governance integration and interface separation.
 
 - BR-1: repair carried-forward post-release canon drift from FB-039.
 - BR-2: repair carried-forward version-governance drift and validator expectations.
@@ -119,6 +120,9 @@ Active seam: GOV-1 through GOV-3 Branch Readiness seam workflow governance imple
 - GOV-1: implement the refined seam workflow contract in the canonical governance owner.
 - GOV-2: align development rules and Codex mode posture to the canonical seam contract without creating duplicate authority.
 - GOV-3: validate governance alignment and confirm FB-040 remains ready for Workstream admission.
+- GOV-I1: validate governance integration and locate ChatGPT/Codex interface drift.
+- GOV-I2: clarify that ChatGPT and loader prompts are interface-only while Codex execution authority lives in owning canon.
+- GOV-I3: validate governance alignment and confirm FB-040 remains ready for Workstream admission.
 
 ## Validation Contract
 

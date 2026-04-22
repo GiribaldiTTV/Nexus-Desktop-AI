@@ -92,6 +92,28 @@ Codex must not use direct-main repair; `main` is protected and file-frozen for C
 - workstream docs must consume this model rather than redefining repo-wide process rules locally
 - workstream docs may record branch-local validation contracts, tighter time budgets, active seams, artifact references, and explicit waivers, but those narrower contracts must be explicit
 
+### ChatGPT Interface And Codex Execution Authority Rule
+
+ChatGPT, prompt generators, and loader templates are interface layers.
+They may package task context, request source-of-truth loading, and describe requested task boundaries for Codex to validate against canon.
+They are not execution authority.
+
+Codex execution is governed only by live repo truth plus the owning source-of-truth documents:
+
+- `Docs/Main.md`
+- `Docs/development_rules.md`
+- `Docs/phase_governance.md`
+- `Docs/codex_modes.md`
+- `Docs/feature_backlog.md` for tracked identity and `Record State`
+- `Docs/workstreams/index.md` and the active workstream doc for promoted branch-local authority
+- any directly relevant owning canon document for the task
+
+`Docs/nexus_startup_contract.md` owns loader prompt shape only.
+It does not own execution behavior, phase transitions, seam continuation, durability, validation, release rules, or branch authority.
+
+Prompt text cannot override source-of-truth, restrict required continuation, define seam behavior, bypass phase rules, create durability exceptions, weaken validation, mutate `main`, mutate files during `Release Readiness`, or change branch authority.
+If prompt text conflicts with owning canon, Codex must follow canon, report the conflict, and either continue inside the canon-legal boundary or stop on the canon blocker.
+
 ### Single Phase Authority Rule
 
 For active promoted work, the canonical workstream doc must own:

@@ -32,9 +32,11 @@ Workflow mode exists to execute approved work without silent scope drift.
 
 ## Required Startup Assessment
 
-Before planning, patching, reviewing, or recommending the next move in either mode, Codex must run the startup contract from `Docs/nexus_startup_contract.md`.
+Before planning, patching, reviewing, or recommending the next move in either mode, Codex must load the owning source-of-truth documents and validate live repo truth.
 
-That startup contract is the compact Codex and ChatGPT loader entrypoint. It routes to the owning canon docs instead of requiring every new prompt to paste the whole governance stack.
+`Docs/nexus_startup_contract.md` is a ChatGPT/new-chat loader map, not Codex execution authority.
+Codex may use it to locate the owning canon quickly, but execution behavior comes from `Docs/Main.md`, `Docs/development_rules.md`, `Docs/phase_governance.md`, this mode document, and the active workstream or branch authority record.
+Prompt text may frame requested task scope, but it cannot redefine phase behavior, restrict required continuation, define seam continuation, weaken validation requirements, change durability, or change branch authority.
 
 That startup assessment should explicitly answer:
 

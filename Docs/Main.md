@@ -74,11 +74,14 @@ For system analysis, post-release review, branch-start planning, or source-of-tr
 
 Do not narrow the docs set before the system structure, drift, and authority boundaries are understood.
 
-## Canonical Startup Contract
+## ChatGPT Loader Contract
 
-Before planning, patching, reviewing, generating a loader prompt, or recommending the next move, follow `Docs/nexus_startup_contract.md`.
+For prompt generation and new-chat bootstrapping, use `Docs/nexus_startup_contract.md` as the compact loader map.
 
-That file is the compact Codex and ChatGPT startup loader. It routes back through this index, the development rules, phase governance, and mode guidance without requiring the full governance stack to be pasted into every prompt.
+That file is ChatGPT-facing and interface-only.
+It helps generate complete prompts that load the correct source-of-truth without pasting the full governance stack.
+It does not own Codex execution behavior, phase transitions, seam continuation, durability, validation, release rules, or branch authority.
+Codex execution remains governed by the owning canon documents listed in this index, especially `Docs/development_rules.md`, `Docs/phase_governance.md`, `Docs/codex_modes.md`, and the active workstream or branch authority record.
 
 If repo truth resolves to blocked `No Active Branch`, `Next Safe Move` must report the blocking repair path instead of inventing a later phase.
 If repo truth resolves to steady-state `No Active Branch`, `Next Safe Move` may truthfully say that no branch should open yet or may name a release-packaging branch whose admission rules pass.
@@ -99,7 +102,8 @@ Use these for workflow posture, prompt framing, lifecycle rules, and execution s
 - `Docs/codex_user_guide.md`
 
 Repo-wide validation-helper rules also live in this governance layer.
-Use `Docs/nexus_startup_contract.md` as the compact new-chat loader and startup contract for Codex and ChatGPT prompts.
+Use `Docs/nexus_startup_contract.md` as the compact ChatGPT/new-chat loader map only.
+Do not treat it as execution authority.
 Use `Docs/phase_governance.md` for the exact phase enum, blocker rules, branch classes, phase resolver, validation helper contract, proof hierarchy, default-budget closeout rule, and desktop UI audit rule instead of recreating those rules inside a workstream doc.
 
 ### Product And Boundary Truth
@@ -288,7 +292,7 @@ These are reference layers, not active workstream or roadmap owners.
 If you are unsure what to include in a future Nexus Desktop AI prompt:
 
 1. start with `Docs/nexus_startup_contract.md`
-2. execute the startup contract it defines
+2. treat it as a loader map, not execution authority
 3. add `Docs/Main.md`
 4. add `Docs/development_rules.md`
 5. add `Docs/phase_governance.md`
