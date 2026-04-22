@@ -36,7 +36,7 @@
 - FB-039 is released and closed in `v1.5.0-prebeta`.
 - FB-039 release debt is clear.
 - Latest public prerelease truth is `v1.5.0-prebeta`.
-- WS-1 is the active Workstream seam for monitoring and thermal source map plus ownership vocabulary.
+- WS-1 monitoring and thermal source map plus ownership vocabulary is complete and durably recorded.
 - WS-2 and WS-3 remain planned only.
 - No FB-040 runtime, HUD, telemetry, thermal, monitoring, plugin, installer, or settings implementation has started.
 
@@ -95,6 +95,7 @@
 
 Seam 1: monitoring and thermal source map plus ownership vocabulary
 
+- Status: Completed.
 - Goal: define candidate monitoring data origins, ownership terms, and product boundaries for CPU/GPU thermals, performance status, and HUD-facing signals.
 - Scope: architecture-only source categories, Nexus-owned versus external/system-owned responsibility, naming vocabulary, and explicit unknowns for later admission.
 - Non-Includes: no telemetry collection, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, tray/taskbar work, plugin integration, installer changes, or release packaging.
@@ -113,13 +114,91 @@ Seam 3: validation and admission contract for later implementation seams
 
 ## Active Seam
 
-Active seam: WS-1 monitoring and thermal source map plus ownership vocabulary.
+Active seam: None after WS-1 completion.
 
-- WS-1 Status: Active / admitted.
+- WS-1 Status: Completed / executed.
 - WS-1 Boundary: architecture-only source categories, ownership vocabulary, Nexus-owned versus external/system-owned responsibilities, and explicit unknowns for later admission.
 - WS-1 Non-Includes: no telemetry collection, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, tray/taskbar work, plugin integration, installer changes, or release packaging.
-- WS-2 Status: Planned only.
+- WS-2 Status: Planned only; next legal Workstream seam when explicitly activated.
 - WS-3 Status: Planned only.
+
+## WS-1 Execution Record
+
+WS-1 defined the monitoring and thermal source map and the ownership vocabulary for future FB-040 seams. This record is architecture-only and does not admit runtime telemetry collection, sensor polling, hardware API binding, HUD rendering, persistence, settings UI, plugin integration, installer work, or release work.
+
+### Monitoring And Thermal Source Map
+
+Candidate source categories:
+
+- Operating-system performance posture: Windows-owned process, memory, CPU, power, and responsiveness signals that may later describe system or app health without requiring hardware control.
+- Hardware thermal posture: system-owned or vendor-owned temperature, throttle, fan-state, and thermal-limit signals for CPU, GPU, and storage-class hardware when exposed through supported local APIs or tools.
+- GPU performance posture: vendor-owned utilization, memory pressure, encoder/decoder activity, power, temperature, and throttling status that may later support a local GPU-first status surface.
+- Nexus runtime self-observation: Nexus-owned process health, startup responsiveness, renderer responsiveness, validation markers, and cleanup state that can describe Nexus behavior without reading external hardware sensors.
+- Desktop session posture: OS-owned foreground/background, power-mode, battery/AC, display/session, and degraded-availability context that may explain whether monitoring data should be visible or suppressed.
+- Future plugin-fed monitoring origins: later plugin-owned or companion-app-owned signals that may be considered only after lifecycle, trust/safety, and validation/admission seams define their boundaries.
+- Explicitly unsupported origins for this milestone: cloud telemetry, remote device telemetry, UI scraping of third-party monitoring tools, driver installation, kernel-level probing, fan/overclock control, persistent surveillance, and any source that requires Nexus to own hardware-control authority.
+
+Source category status:
+
+- Candidate only: all source categories are planning inputs for future admission.
+- No source category is implemented by WS-1.
+- No source category is approved for collection until a later seam defines lifecycle, trust/safety, validation, cleanup, and user-facing behavior.
+
+### Ownership Vocabulary
+
+- Monitoring source: a local origin that may expose performance, thermal, availability, or responsiveness information.
+- Thermal source: a monitoring source whose primary value is temperature, throttle, fan-state, or thermal-limit posture.
+- Performance signal: a point-in-time or derived description of load, pressure, throughput, responsiveness, or resource availability.
+- Telemetry sample: a future bounded read from an admitted source; WS-1 defines the term but does not authorize sampling.
+- Sensor origin: the system, vendor, runtime, plugin, or companion-owned surface that produces a signal before Nexus interprets it.
+- Source adapter: a future Nexus-owned boundary object that may translate one admitted origin into normalized monitoring language.
+- Nexus monitoring intake: the future Nexus-owned conceptual entry point where admitted monitoring signals would be classified before any display or action.
+- Derived status: a Nexus-owned interpretation of one or more admitted signals, such as healthy, degraded, unavailable, stale, or unknown.
+- HUD candidate signal: a derived status or admitted signal that may later be considered for user-visible display.
+- Freshness: the time-validity expectation for a signal or derived status.
+- Confidence: the trust level attached to a signal after source ownership, availability, and interpretation limits are known.
+- Availability state: whether a source or signal is available, unavailable, partial, stale, invalid, or unknown.
+- External-owned surface: a driver, OS, vendor tool, plugin, companion app, or hardware-facing component that Nexus does not control.
+- Nexus-owned surface: the in-product boundary for classification, normalization, display admission, validation evidence, cleanup, and user-facing explanation.
+- User-visible monitoring surface: a future HUD, overlay, tray, settings, or status path that presents an admitted signal to the operator.
+
+### Ownership Boundaries
+
+External, OS, vendor, plugin, or companion systems own:
+
+- raw sensor production
+- driver and hardware access
+- source permissions and availability
+- source-specific accuracy claims
+- vendor-specific terminology and failure behavior
+- hardware control, fan control, clock control, and power-policy control
+
+Nexus owns only after a source is admitted by later seams:
+
+- source classification and naming inside Nexus
+- validation of whether a source is allowed to enter the product boundary
+- normalization into Nexus monitoring vocabulary
+- stale, partial, invalid, unavailable, and unknown-state handling
+- deciding whether a signal can become a HUD candidate signal
+- user-facing explanation, if a display surface is later admitted
+- cleanup, no-persistence-by-default behavior, and non-invasive runtime posture
+
+Nexus does not own:
+
+- installing drivers or vendor tools
+- scraping third-party monitoring UI
+- changing hardware clocks, fan curves, power limits, or thermal policies
+- collecting remote/cloud telemetry
+- guaranteeing hardware sensor accuracy
+- treating plugin-fed monitoring as trusted without future trust/safety admission
+
+### WS-1 Continuation Decision
+
+- WS-1 Result: Complete.
+- Validation Layer: documentation and governance validation only.
+- Cleanup: no programs, helper processes, windows, temporary files, telemetry collectors, probes, or runtime artifacts were created.
+- User Test Summary Applicability: not applicable for WS-1 because it adds architecture-only planning and no user-visible behavior.
+- Continue/Stop Decision: Stop after WS-1. WS-2 remains the next planned seam and must be explicitly activated before lifecycle or trust/safety boundary work begins.
 
 Completed Branch Readiness seam history:
 
