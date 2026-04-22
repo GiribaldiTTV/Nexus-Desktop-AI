@@ -54,13 +54,13 @@
 - Repo-level admission gate passed: no release debt, no stale FB-038 canon, no active implementation branch, and no existing FB-039 branch.
 - FB-039 was selected in backlog and roadmap as the next implementation workstream before this branch was created.
 - Branch Readiness is admitted to define the FB-039 source map, lifecycle ownership, trust/safety boundaries, validation contract, non-goals, and first Workstream seam before implementation.
-- Branch Readiness durability is committed and pushed; Workstream is admitted for WS-1 only.
+- Branch Readiness durability is committed and pushed; Workstream admitted WS-1 first, and WS-1 durability is complete.
 
 ## Branch Objective
 
 - Establish the architecture-first authority for FB-039 external trigger and plugin integration before any runtime implementation begins.
 - Define how external trigger origins are named, owned, trusted, admitted, validated, and later routed into existing Nexus action authority.
-- Keep this branch bounded to external trigger and plugin integration architecture; do not use it to implement Stream Deck, protocol transport, installer, settings, or runtime plugin behavior during WS-1.
+- Keep this branch bounded to external trigger and plugin integration architecture; do not use it to implement Stream Deck, protocol transport, installer, settings, or runtime plugin behavior during architecture seams.
 
 ## Target End-State
 
@@ -78,7 +78,7 @@
 
 ## User Test Summary Strategy
 
-- Branch Readiness had no meaningful manual User Test Summary because it did not change runtime or user-visible product behavior; WS-1 is also documentation-only and has no meaningful manual User Test Summary.
+- Branch Readiness had no meaningful manual User Test Summary because it did not change runtime or user-visible product behavior; WS-1 and WS-2 are documentation-only and have no meaningful manual User Test Summary.
 - If a later Workstream seam introduces user-visible setup, trigger invocation, tray/overlay interaction, settings, prompt, or desktop shortcut behavior, the workstream must add a User Test Summary section and follow the returned-results blocker model before Live Validation or PR Readiness can advance.
 - If later implementation remains headless or architecture-only, the workstream must explicitly record why no meaningful manual User Test Summary applies.
 
@@ -111,9 +111,9 @@
 
 ## Active Seam
 
-- Active seam: `WS-1 External Trigger Source Map And Ownership Vocabulary`.
-- WS-1 status: active in this pass and architecture-only.
-- WS-2 status: planned only.
+- Active seam: `WS-2 Lifecycle Ownership And Trust/Safety Boundary Contract`.
+- WS-1 status: complete and durable as architecture-only documentation.
+- WS-2 status: active in this pass and architecture-only.
 - WS-3 status: planned only.
 
 ## WS-1 External Trigger Source Map
@@ -187,55 +187,139 @@ The entry point does not define a listener, transport, payload schema, protocol,
 - Entry-point framing: complete as a concept only, with no implementation contract.
 - Runtime/product implementation: none.
 - Helper creation: none.
-- WS-2 and WS-3 remain planned only.
-- Continuation decision: WS-2 may be admitted only in a later bounded Workstream pass.
+- WS-2 was admitted only in a later bounded Workstream pass.
+- WS-3 remained planned only at WS-1 completion.
+
+## WS-2 Lifecycle Ownership Boundaries
+
+WS-2 defines lifecycle ownership at the architecture boundary only. It does not define a listener, protocol, payload schema, persistence schema, plugin API, transport binding, settings UI, or runtime implementation.
+
+Lifecycle ownership for FB-039 planning:
+
+- Discovery: external systems own whether their device, automation tool, companion app, or future plugin-hosted surface exists and is available; Nexus owns whether an origin category is recognized as eligible for later support.
+- Registration: Nexus owns the future admission record concept for a supported origin; the external system may present origin identity, but it cannot self-register into Nexus authority.
+- Enablement: the user and Nexus-owned approval surfaces own enablement; an external origin may request eligibility but cannot silently enable itself.
+- Invocation: the external origin owns the trigger event before handoff; Nexus-owned trigger intake owns classification, acceptance, rejection, and routing once a trigger request crosses the entry boundary.
+- Disablement: Nexus and the user own revocation, disablement, and blocked-origin state; an external origin must not bypass a disabled or rejected state.
+- Teardown: Nexus owns cleanup of Nexus-accepted intake state, pending request state, and user-visible Nexus failure state; the external system owns its own device/app shutdown and local cleanup.
+- Failure visibility: external systems own failures before handoff; Nexus owns user-visible failure visibility once a trigger request reaches Nexus-owned intake or execution authority.
+
+## WS-2 Trust/Safety Boundary Vocabulary
+
+- Nexus-owned trigger intake: the future Nexus boundary that may classify a trigger request, determine whether the origin is supported, and reject unsafe or unsupported requests before action authority is reached.
+- Nexus-owned execution authority: the existing Nexus-controlled authority that governs saved actions, callable groups, confirmation, result reporting, and any future trigger-routed execution.
+- User-controlled approval surface: any Nexus-owned surface or recorded user decision that enables, confirms, disables, or rejects trigger-origin access.
+- Externally initiable request: a request an external origin may start, limited to asking Nexus to consider handling; it is not execution authority.
+- User-controlled execution decision: a Nexus-owned decision point that remains under user or Nexus policy control before action execution may happen.
+- Blocked origin: an origin class or concrete origin that must not be admitted because it lacks user-visible ownership, local trust posture, validation basis, or safe routing.
+- Conditional origin: an origin class that may be considered later only after lifecycle, trust/safety, and validation/admission contracts prove enough boundary control.
+
+## WS-2 Trigger Class Admission Posture
+
+Admissible at architecture level for later consideration:
+
+- local hardware-adjacent trigger tools with user-visible device/app ownership
+- local desktop automation tools with user-owned configuration
+- local companion apps installed and controlled by the user
+- future plugin-hosted sources after Nexus-owned lifecycle and validation contracts exist
+
+Conditionally admissible in later seams only:
+
+- background local services with explicit user-visible owner, revocation path, and failure visibility
+- local app-to-app request paths whose transport and trust posture are admitted by later seams
+- multi-action plugin surfaces after WS-3 defines validation/admission proof and later implementation seams remain bounded
+
+Explicitly blocked for FB-039 unless future governance reopens scope:
+
+- remote/cloud webhook ingress
+- untrusted web pages or browser-originated arbitrary trigger requests
+- arbitrary scripts with no named user-visible owner
+- origins that request direct execution while bypassing Nexus-owned intake, confirmation, or execution authority
+- origins that require credential, privilege, session, or persistence escalation outside existing Nexus authority
+- silent background origins that cannot be disabled, audited, or made visible to the user
+
+## WS-2 User Control And External Initiation Rules
+
+Must remain user-controlled or Nexus-controlled:
+
+- whether an origin category is supported
+- whether a concrete origin is enabled or disabled
+- any binding from a trigger request into saved-action, callable-group, overlay, confirmation, or result behavior
+- any approval, confirmation, or rejection surface needed before execution authority is reached
+- user-visible failure handling once a request crosses into Nexus-owned intake
+
+May be externally initiable:
+
+- the original trigger event on an external-owned surface
+- a trigger request asking Nexus-owned intake to consider routing
+- a later eligible handoff into Nexus only after the origin is supported and enabled
+
+Must not be externally controlled:
+
+- direct execution of saved actions or callable groups
+- bypass of confirmation or approval surfaces
+- automatic enablement, registration, disablement override, or teardown override
+- suppression of Nexus-owned failure visibility or audit markers
+
+## WS-2 Execution Record
+
+- WS-2 executed as architecture-only documentation on the active FB-039 branch.
+- Lifecycle ownership boundaries: complete for discovery, registration, enablement, invocation, disablement, teardown, and failure visibility.
+- Trust/safety boundary vocabulary: complete for external origin, Nexus intake, Nexus execution authority, and user-controlled surfaces.
+- Trigger class admission posture: complete for admissible, conditionally admissible, and blocked trigger classes.
+- User-control rules: complete for what remains user/Nexus controlled versus externally initiable.
+- Runtime/product implementation: none.
+- Protocol, payload schema, transport binding, installer, settings UI, monitoring/HUD, taskbar/tray expansion, and helper creation: none.
+- WS-3 remains planned only.
+- Continuation decision: WS-3 may be admitted only in a later bounded Workstream pass.
 
 ## Scope
 
-- Execute WS-1 only: external trigger source map and ownership vocabulary.
-- Keep lifecycle/trust-safety contract work in WS-2 planned-only status.
+- Execute WS-2 only: lifecycle ownership and trust/safety boundary contract.
+- Preserve WS-1 as complete and durable architecture-only source map and ownership vocabulary.
 - Keep validation/admission contract work in WS-3 planned-only status.
 - Preserve architecture-level entry-point framing without implementation design, listener design, transport binding, protocol mechanics, payload schema details, settings UI, installer flow, or helper creation.
 - Carry the deferred PR #67 connector follow-up as later Workstream governance review only if it remains relevant to validator trust.
 
 ## Non-Goals
 
-- No plugin runtime implementation during WS-1.
-- No Stream Deck integration implementation during WS-1.
+- No plugin runtime implementation during WS-2.
+- No Stream Deck integration implementation during WS-2.
 - No protocol handling, installer work, settings surface, taskbar/tray expansion, monitoring HUD work, or release packaging.
 - No product/runtime code changes in this Workstream pass.
 - No new validation helper creation unless a later Workstream seam proves an actual validation gap and registry rules are satisfied.
 - No FB-040 monitoring, thermals, or HUD scope.
-- No trust/safety enforcement logic, transport payload schema detail, validation matrix design, user-facing settings/UI, or plugin lifecycle rules in WS-1.
+- No trust/safety enforcement logic, transport payload schema detail, validation matrix design, user-facing settings/UI, or runtime plugin lifecycle implementation in WS-2.
 
 ## Validation Contract
 
-- Workstream WS-1 validation:
+- Workstream WS-2 validation:
   - `python dev\orin_branch_governance_validation.py`
   - `git diff --check`
   - `git status --short --branch`
-- WS-1 is documentation-only and architecture-first; no runtime helper is required.
+- WS-2 is documentation-only and architecture-first; no runtime helper is required.
 - Reuse existing validator families and `Docs/validation_helper_registry.md` guidance first.
 - New helpers are blocked until a concrete validation gap exists, the helper purpose is branch-scoped or reusable by design, and registry status/consolidation rules are satisfied.
 - Any user-facing behavior introduced later must route through the User Test Summary and user-facing shortcut validation rules if applicable.
 
 ## Stop Conditions
 
-- Stop if FB-039 scope expands into plugin/runtime implementation during WS-1.
-- Stop if WS-1 starts defining lifecycle/trust-safety enforcement detail, protocol mechanics, payload schemas, validation matrix design, settings UI, installer flow, or helper implementation.
-- Stop if WS-2 or WS-3 begins executing in this pass.
-- Stop if source map, ownership vocabulary, ownership boundaries, or architecture-only entry-point framing cannot be stated explicitly.
+- Stop if FB-039 scope expands into plugin/runtime implementation during WS-2.
+- Stop if WS-2 starts defining trust/safety enforcement logic, protocol mechanics, payload schemas, validation matrix design, settings UI, installer flow, or helper implementation.
+- Stop if WS-3 begins executing in this pass.
+- Stop if lifecycle ownership boundaries, trust/safety vocabulary, trigger admission posture, or user-control rules cannot be stated explicitly at architecture level.
 - Stop if any FB-038 release debt or stale release canon reappears.
 - Stop if a governance-only branch, direct-main mutation, or between-branch repair path is attempted.
 - Stop if new helper creation is proposed before reuse and registry obligations are satisfied.
-- Stop if Workstream execution expands beyond WS-1 before WS-1 is recorded and validated.
+- Stop if Workstream execution expands beyond WS-2 before WS-2 is recorded and validated.
 
 ## Exit Criteria
 
 - FB-039 is represented as the active Workstream in backlog, roadmap, and workstreams index.
 - This workstream record contains the required phase authority fields.
 - WS-1 external trigger source map, ownership vocabulary, ownership boundaries, and architecture-only entry-point framing are recorded.
-- WS-2 and WS-3 remain planned only.
+- WS-2 lifecycle ownership boundaries, trust/safety boundary vocabulary, trigger class admission posture, and user-control rules are recorded.
+- WS-3 remains planned only.
 - FB-038 remains released/closed and release debt remains clear.
 - Repo state is no longer `No Active Branch`; active branch truth is `feature/fb-039-external-trigger-plugin-integration-architecture`.
 - No runtime/product implementation has started.
@@ -250,4 +334,4 @@ The entry point does not define a listener, transport, payload schema, protocol,
 
 ## Branch Readiness Notes
 
-Branch Readiness durability is complete and WS-1 is now the active Workstream seam. This pass remains architecture-only and does not execute WS-2 or WS-3.
+Branch Readiness durability is complete, WS-1 is durable, and WS-2 is now recorded as the active Workstream seam for this pass. This pass remains architecture-only and does not execute WS-3.

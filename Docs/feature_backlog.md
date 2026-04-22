@@ -120,7 +120,7 @@ Release Stage: pre-Beta
 Target Version: TBD
 Branch: feature/fb-039-external-trigger-plugin-integration-architecture
 Canonical Workstream Doc: Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md
-Minimal Scope: Workstream WS-1 only for external trigger source map and ownership vocabulary. No plugin runtime implementation, Stream Deck integration, protocol handling, installer work, settings surface, taskbar/tray expansion, monitoring HUD work, transport schema, trust/safety enforcement design, validation matrix design, helper creation, or release packaging is admitted during WS-1.
+Minimal Scope: Workstream WS-2 records lifecycle ownership and trust/safety boundary contract, with WS-1 source map and ownership vocabulary already durable; WS-3 remains planned only until a later bounded Workstream pass. No plugin runtime implementation, Stream Deck integration, protocol handling, installer work, settings surface, taskbar/tray expansion, monitoring HUD work, transport schema, trust/safety enforcement design, validation matrix design, helper creation, or release packaging is admitted during WS-2.
 Summary: Track future plugin and integration lifecycle design for external trigger surfaces such as Stream Deck and other installed integration points.
 Why it matters: Plugin-backed action triggering needs explicit lifecycle, safety, and ownership boundaries before it becomes part of the product.
 
