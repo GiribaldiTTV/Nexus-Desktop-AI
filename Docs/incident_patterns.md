@@ -224,7 +224,7 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
 - root-cause pattern:
   source-of-truth does not record the public GitHub prerelease title format separately from release-note summary content
 - fix pattern:
-  use `Pre-Beta v<major>.<minor>.<patch>` as the public GitHub release title format for Nexus pre-Beta releases; put milestone name, scope, evidence, and exclusions in release notes
+  use `Pre-Beta v<major>.<minor>.<patch>` as the public GitHub release title format for Nexus pre-Beta releases; put milestone name, user-facing scope, capabilities, behavior, and evidence in inclusion-only release notes
 - validation pattern:
   run `python dev/orin_branch_governance_validation.py`; release artifacts and released-state canon should use the concise title format while release notes carry the scoped milestone summary
 - source references:
@@ -247,3 +247,23 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
 - source references:
   - `Docs/workstreams/FB-034_recoverable_diagnostics.md`
   - `Docs/architecture.md`
+
+## Pattern: Green Multi-Seam Workflows Must Continue Until Blocked
+
+- symptom:
+  Codex completes and validates one seam inside a valid bounded multi-seam Workstream sequence, then stops because the prompt named only the entry seam or the output format asks for a next safe move
+- layer:
+  seam workflow governance, prompt interpretation, and active workstream phase truth
+- root-cause pattern:
+  source-of-truth required a continue-or-stop decision, but did not make next-seam continuation the default after a green seam; validator enforcement only checked for broad multi-seam markers and missed prompt-as-terminal ambiguity
+- fix pattern:
+  define `Next-Seam Continuation Required` as the default after a green seam, treat prompt-named seams inside approved sequences as entry seams rather than terminal boundaries, and require a recorded blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback` before stopping
+- validation pattern:
+  run `python dev/orin_branch_governance_validation.py`; governing docs and prompt scaffolds must include `Next-Seam Continuation Required`, entry-seam language, default-continuation language, and `Single-Seam Fallback` stop authority
+- source references:
+  - `Docs/phase_governance.md`
+  - `Docs/development_rules.md`
+  - `Docs/codex_modes.md`
+  - `Docs/orin_task_template.md`
+  - `Docs/codex_user_guide.md`
+  - `dev/orin_branch_governance_validation.py`

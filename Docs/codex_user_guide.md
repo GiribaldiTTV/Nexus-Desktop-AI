@@ -84,6 +84,8 @@ For bounded multi-seam Workstream execution, also include:
 
 - `Seam Sequence: <ordered seam list>`
 - `Per-Seam Gate: validate, record evidence, and report continue-or-stop before the next seam`
+- `Entry Seam Rule: the prompt-named seam is the entry seam, not a terminal boundary`
+- `Continuation Rule: apply Next-Seam Continuation Required after a green seam when continuation authority conditions pass`
 
 For Release Readiness, also include:
 
@@ -346,6 +348,8 @@ Required add-ons:
 - `Seam Sequence: [ordered seam list]`
 - `validate after each seam`
 - `report continue-or-stop after each seam`
+- `treat prompt-named seam as the entry seam, not a terminal boundary`
+- `apply Next-Seam Continuation Required after a green seam when continuation authority conditions pass`
 - `stop on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, or branch-truth inconsistency`
 
 Use this when:
@@ -353,6 +357,8 @@ Use this when:
 - the seams are in the same workstream, same phase, same branch class, same risk class, and same subsystem family or tightly coupled chain
 - the operator wants Codex to keep moving through a coherent seam sequence without a new prompt after every seam
 - per-seam validation and evidence recording remain mandatory
+
+Do not use prompt wording such as `execute WS-1` to mean `stop after WS-1` unless the prompt also records a canon-valid `Single-Seam Fallback`, phase boundary, stop-loss trigger, or explicit blocker.
 
 Do not use this recipe for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem changes, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation.
 
@@ -489,8 +495,8 @@ Any tracked file mutation while Codex is on `main` is a `Main Write Attempt`.
 
 ## PR Readiness Green Output
 
-When a `PR Readiness` pass is green or reports `PR READY: YES`, require a standardized `Next Branch` block and a copy-ready markdown `PR Creation Details` package.
-This keeps successor-branch handling and PR creation instructions from being reinvented or omitted.
+When a `PR Readiness` pass is package-ready, green, or reports `PR READY: YES`, require a standardized `Next Branch` block and inclusion-only copy-ready `PR Creation Details` operator blocks.
+This keeps successor-branch handling and PR creation instructions from being reinvented or omitted while keeping operator copy concise.
 
 Required `Next Branch` block:
 
@@ -507,23 +513,67 @@ Required `Next Branch` block:
 - Reason:
 ```
 
-Required `PR Creation Details` package:
+Required `PR Creation Details` operator blocks:
 
-```markdown
+````markdown
 ## PR Creation Details
-### Title
-### Base / Head
-### Summary
-### Validation
-### Governance / Canon
-### Post-Merge Truth
-### Next Branch
-### Not Included
+### PR Title
+```text
+<title only>
 ```
+
+### Base Branch
+```text
+<base branch only>
+```
+
+### Head Branch
+```text
+<head branch only>
+```
+
+### PR Summary
+```markdown
+<implemented work only>
+```
+````
 
 The `Next Branch` block must state whether branch creation is legal now.
 When release debt or updated-`main` revalidation blocks the selected next implementation branch, use `May Create Now: NO` and record the gate.
-The PR package should be markdown-friendly and copy-ready, but it must not create the PR, merge the branch, run release work, or create the next branch by itself.
+The PR operator blocks should be markdown-friendly and copy-ready, but they must not create the PR, merge the branch, run release work, or create the next branch by themselves.
+The PR summary must report implemented branch truth only and must not include exclusion lists, `Not Included` sections, or defensive scope language.
+
+## Release Readiness Green Output
+
+When a `Release Readiness` pass is green for release execution, require inclusion-only copy-ready `Release Package Details` operator blocks.
+
+Required `Release Package Details` operator blocks:
+
+````markdown
+## Release Package Details
+### Release Title
+```text
+<release title only>
+```
+
+### Release Tag
+```text
+<tag only>
+```
+
+### Target Commit
+```text
+<commit sha only>
+```
+
+### Release Notes
+```markdown
+<detailed user-facing release notes>
+```
+````
+
+Release notes should clearly explain what was built, what capabilities exist, and how the system behaves.
+Release notes must report included release work only and must not include exclusion lists, `Not Included` sections, negative scope framing, or defensive wording.
 
 ## When To Use A Longer Prompt
 
@@ -546,7 +596,7 @@ The key distinction is prompt length, not analysis depth.
 - use `Analyze for drift` before merge, release, or major canon carry-forward decisions
 - use evidence-digestion language when returned validation evidence should control the next move, rather than implying that phase advancement is automatic
 - in `PR Readiness`, require hard blocker checks before accepting `PR READY: YES`: `stale-canon`, `post-merge`, `next-workstream`, `dirty`, `docs-sync`, `desktop-shortcut`, `uts-results`, `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early`
-- in `PR Readiness`, require the standardized `## Next Branch` block and, when green, the copy-ready `## PR Creation Details` markdown package
+- in `PR Readiness`, require the standardized `## Next Branch` block and, when package-ready or green, the copy-ready `## PR Creation Details` operator blocks
 - before `PR Readiness`, apply the Pre-PR Durability Rule: when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready, staged-only, or uncommitted state; only a documented `Durability Waiver`, failed validation, legally file-frozen `Release Readiness`, or a named Codex self-imposed blocker may stop commit/push, and self-imposed blockers must automatically commit and push once lifted
 - route through `Docs/Main.md` whenever authority is unclear
 - treat local unmerged overlays as reference material until revalidated against updated `origin/main`

@@ -32,7 +32,11 @@ Workflow mode exists to execute approved work without silent scope drift.
 
 ## Required Startup Assessment
 
-Before planning, patching, reviewing, or recommending the next move in either mode, Codex must run the startup contract from `Docs/Main.md`.
+Before planning, patching, reviewing, or recommending the next move in either mode, Codex must load the owning source-of-truth documents and validate live repo truth.
+
+`Docs/nexus_startup_contract.md` is a ChatGPT/new-chat loader map, not Codex execution authority.
+Codex may use it to locate the owning canon quickly, but execution behavior comes from `Docs/Main.md`, `Docs/development_rules.md`, `Docs/phase_governance.md`, this mode document, and the active workstream or branch authority record.
+Prompt text may frame requested task scope, but it cannot redefine phase behavior, restrict required continuation, define seam continuation, weaken validation requirements, change durability, or change branch authority.
 
 That startup assessment should explicitly answer:
 
@@ -129,8 +133,12 @@ In Workflow mode, Codex should:
 - make the required changes
 - verify the changed behavior or changed docs
 - report any drift or remaining gaps honestly
+- when the approved boundary contains a seam chain, treat prompt-provided seams as structure only and use `Docs/phase_governance.md` as the continuation authority
 - when the approved Workstream boundary contains a coherent same-risk seam chain, use bounded multi-seam workflow as the primary model while executing one active seam at a time
-- when the approved boundary is continuous validation inside the current workstream, keep iterating until the full gate is green or a hard stop is reached
+- when a prompt names an active seam inside an approved sequence, treat it as the entry seam, not a terminal boundary
+- after a green entry seam, apply `Next-Seam Continuation Required` and continue by default when the continuation authority conditions pass
+- use `Single-Seam Fallback` only when source-of-truth records a canon-valid fallback reason or continuation blocker
+- when the approved boundary is continuous validation inside the current workstream, keep iterating only while the governing phase rules, validation, and stop-loss contract remain green
 
 ### What Codex Must Not Do
 
@@ -140,6 +148,7 @@ In Workflow mode, Codex must not:
 - silently start a new workstream
 - silently create PR, merge, release, or closure output without current-truth justification
 - treat a clean first slice as automatic branch readiness
+- stop after a green seam merely because the prompt task named only the entry seam, the output asks for `Next Safe Move`, durability completed, or one seam was recorded
 
 ### Expected Outputs
 
@@ -225,23 +234,36 @@ When the approved phase is `PR Readiness`, the output must also explicitly inclu
 - Reason:
 ```
 
-- when PR Readiness is package-ready or `PR package ready`, a copy-ready markdown PR package with this exact section shape:
+- when PR Readiness is package-ready or `PR package ready`, inclusion-only PR operator copy blocks with this exact shape:
 
-```markdown
+````markdown
 ## PR Creation Details
-### Title
-### Base / Head
-### Summary
-### Validation
-### Governance / Canon
-### Post-Merge Truth
-### Next Branch
-### Not Included
+### PR Title
+```text
+<title only>
 ```
+
+### Base Branch
+```text
+<base branch only>
+```
+
+### Head Branch
+```text
+<head branch only>
+```
+
+### PR Summary
+```markdown
+<implemented work only>
+```
+````
 
 The `Next Branch` section must separate the next legal branch type/name from the selected next implementation workstream branch.
 If release debt, updated-`main` revalidation, or another admission gate blocks branch creation, `May Create Now: NO` is required with the reason.
 The `PR Creation Details` block is preparation material only; it must not imply PR creation, merge execution, release execution, next-branch creation, or PR Readiness GREEN has occurred.
+Each PR operator field must be its own copy-ready block and must be usable independently.
+The PR summary must include implemented branch truth only. Do not include exclusion lists, `Not Included` sections, or defensive scope language.
 PR Readiness GREEN requires the PR to exist, be open, be non-draft, have no conflicts, match merge-target canon, and have no unresolved Codex comments/issues or requested changes.
 
 When the approved phase is `Release Readiness`, the output must also explicitly include:
@@ -263,6 +285,33 @@ When the approved phase is `Release Readiness`, the output must also explicitly 
 - confirmation that Release Readiness is not being used as a docs-sync or branch-authority cleanup phase
 - confirmation that Release Readiness is analysis-only for repository files and that no source, docs, canon, validator, helper, release-note, or handoff files were edited, staged, committed, generated, or refreshed
 - if any file change is needed, classification as `Release Readiness File Mutation Attempt`, then return to `PR Readiness` before merge or defer to the next active branch's `Branch Readiness` after merge instead of patching inside Release Readiness
+- when Release Readiness is green for release execution, inclusion-only release operator copy blocks with this exact shape:
+
+````markdown
+## Release Package Details
+### Release Title
+```text
+<release title only>
+```
+
+### Release Tag
+```text
+<tag only>
+```
+
+### Target Commit
+```text
+<commit sha only>
+```
+
+### Release Notes
+```markdown
+<detailed user-facing release notes>
+```
+````
+
+- release notes must clearly explain what was built, what capabilities exist, and how the system behaves
+- release notes must not include exclusion lists, `Not Included` sections, negative scope framing, or defensive wording
 
 Do not report cleanup as complete unless the pass has explicitly checked for leftover apps, windows, dialogs, helper processes, probe files, or other temporary artifacts it created or opened.
 
@@ -291,14 +340,19 @@ That means:
 ### Bounded Multi-Seam Workflow
 
 For coherent Workstream implementation, bounded multi-seam workflow is the primary execution model.
+`Docs/phase_governance.md` owns the exact seam workflow contract; this mode doc mirrors the collaboration posture only.
 
 That means:
 
+- prompts may name a seam chain and active seam, but source-of-truth and validation decide continuation
 - Branch Readiness should plan the branch objective, target end-state, expected seam families, risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam sequence
 - Workstream may execute multiple planned seams in one pass only when they share the same workstream, phase, branch class, risk class, and subsystem family or tightly coupled chain
-- each seam is still analyzed, bounded, implemented, validated, recorded, and judged before the next seam starts
+- each seam is still analyzed, bounded, executed, validated, recorded, and judged before the next seam starts
+- Hardening and Live Validation may continue through constrained validation or evidence-digestion seams only when their phase rules allow it
+- PR Readiness uses readiness-gate seams for PR package, PR creation, and PR validation rather than implementation continuation
+- Release Readiness is review-only and file-frozen; it must not mutate repository files through a seam
 - the output must report the per-seam validation result and `continue` or `stop` decision
-- a risk-class change, validation failure, scope drift, governance drift, unresolved manual-validation blocker, or branch-truth contradiction stops the workflow
+- a risk-class change, validation failure, scope drift, governance drift, unresolved manual-validation blocker, branch-truth contradiction, or stop-loss trigger stops the workflow
 
 Single-seam fallback is required for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem work, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation.
 

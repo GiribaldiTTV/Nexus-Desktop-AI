@@ -40,12 +40,14 @@ Add these fields when relevant:
 
 - `Branch Class: <implementation / docs/governance / emergency canon repair / release packaging>`
 - `Active Seam: <seam name>`
-- `Seam Sequence: <ordered seam list>` when a Workstream pass may execute more than one seam
+- `Seam Sequence: <ordered seam list>` when the current phase permits a bounded multi-seam pipeline
 - `Validation Contract: <summary or authority reference>`
 - `Timeout Contract: <summary or authority reference>`
 
 If `Phase` is missing or is not one of the exact canonical phase names below, execution is blocked and only truth-validation or analysis may continue.
-If `Seam Sequence` is present, the pass must still execute only one active seam at a time and must report a validation-backed continue-or-stop decision before starting the next seam.
+If `Seam Sequence` is present, it is structure only.
+Prompt text may name the entry seam and downstream planned seams, but it does not define seam behavior, bypass phase rules, or authorize continuation by itself.
+The canonical seam workflow contract below controls whether Codex may continue, must stop, or must fall back to a single active seam.
 
 ## Canonical Phase Enum
 
@@ -89,6 +91,28 @@ Codex must not use direct-main repair; `main` is protected and file-frozen for C
 - `Docs/phase_governance.md` is the repo-wide authority for exact phase names, blocker rules, proof governance, timeout governance, seam governance, stop-loss rules, branch classes, the Governance Drift Audit, and the phase resolver contract
 - workstream docs must consume this model rather than redefining repo-wide process rules locally
 - workstream docs may record branch-local validation contracts, tighter time budgets, active seams, artifact references, and explicit waivers, but those narrower contracts must be explicit
+
+### ChatGPT Interface And Codex Execution Authority Rule
+
+ChatGPT, prompt generators, and loader templates are interface layers.
+They may package task context, request source-of-truth loading, and describe requested task boundaries for Codex to validate against canon.
+They are not execution authority.
+
+Codex execution is governed only by live repo truth plus the owning source-of-truth documents:
+
+- `Docs/Main.md`
+- `Docs/development_rules.md`
+- `Docs/phase_governance.md`
+- `Docs/codex_modes.md`
+- `Docs/feature_backlog.md` for tracked identity and `Record State`
+- `Docs/workstreams/index.md` and the active workstream doc for promoted branch-local authority
+- any directly relevant owning canon document for the task
+
+`Docs/nexus_startup_contract.md` owns loader prompt shape only.
+It does not own execution behavior, phase transitions, seam continuation, durability, validation, release rules, or branch authority.
+
+Prompt text cannot override source-of-truth, restrict required continuation, define seam behavior, bypass phase rules, create durability exceptions, weaken validation, mutate `main`, mutate files during `Release Readiness`, or change branch authority.
+If prompt text conflicts with owning canon, Codex must follow canon, report the conflict, and either continue inside the canon-legal boundary or stop on the canon blocker.
 
 ### Single Phase Authority Rule
 
@@ -452,7 +476,7 @@ If the normal governance validator passes but the PR-specific gate reports dirty
 
 ### PR Readiness Response Contract
 
-When `PR Readiness` reports package-ready or `PR package ready`, the response must include a repo-wide standardized `Next Branch` block and a markdown-friendly `PR Creation Details` package.
+When `PR Readiness` reports package-ready or `PR package ready`, the response must include a repo-wide standardized `Next Branch` block and markdown-friendly PR operator copy blocks.
 Those package details are the input to PR creation and validation; they are not themselves proof that PR Readiness is GREEN.
 This is a response contract, not permission to create the PR, merge the branch, release the branch, or create the next branch.
 
@@ -474,23 +498,42 @@ Required `Next Branch` block:
 - Reason:
 ```
 
-Required PR-package markdown:
+Required PR operator copy blocks:
 
-```markdown
+````markdown
 ## PR Creation Details
-### Title
-### Base / Head
-### Summary
-### Validation
-### Governance / Canon
-### Post-Merge Truth
-### Next Branch
-### Not Included
+### PR Title
+```text
+<title only>
 ```
 
-The PR package must be copy-ready markdown.
-It must summarize the actual PR title, base/head, implemented scope, validation evidence, governance/canon state, post-merge truth, next-branch handling, and explicit non-includes.
+### Base Branch
+```text
+<base branch only>
+```
+
+### Head Branch
+```text
+<head branch only>
+```
+
+### PR Summary
+```markdown
+<implemented work only>
+```
+````
+
+Each PR operator field must be its own copy-ready block and must be usable independently.
+The PR summary must describe implemented work, validation evidence, governance/canon state, post-merge truth, and next-branch handling only when those items are part of the implemented branch truth.
+The PR summary must not include exclusion lists, `Not Included` sections, or defensive scope language.
 If `May Create Now` is `NO`, the `Next Branch` subsection must explain the blocking gate rather than implying branch creation is allowed.
+
+### Operator Output Content Rule
+
+Operator-facing PR summaries and GitHub release notes are inclusion-only.
+They must report what exists, what was implemented, what capabilities are available, how the system behaves, and which validation or release facts support the package.
+They must not report what was not done, include exclusion lists, use `Not Included` sections, or use defensive scope framing.
+This rule governs operator output packages; it does not remove normal canon requirements for branch scope, non-goals, stop conditions, or blockers in source-of-truth records.
 
 ### User-Facing Shortcut Live Validation Gate
 
@@ -633,6 +676,40 @@ Forbidden in `Release Readiness`:
 - any source, docs, canon, validator, helper, release-note, or handoff-file mutation
 - any direct write to protected `main`
 
+### Release Readiness Operator Output Contract
+
+When `Release Readiness` is green for release execution, the response must include markdown-friendly release operator copy blocks for direct GitHub release use.
+
+Required release operator copy blocks:
+
+````markdown
+## Release Package Details
+### Release Title
+```text
+<release title only>
+```
+
+### Release Tag
+```text
+<tag only>
+```
+
+### Target Commit
+```text
+<commit sha only>
+```
+
+### Release Notes
+```markdown
+<detailed user-facing release notes>
+```
+````
+
+Each release operator field must be its own copy-ready block and must be usable independently.
+Release notes must be detailed, descriptive, and user-facing.
+They must clearly explain what was built, what capabilities exist, and how the system behaves.
+Release notes must follow the operator output content rule: report included work only, with no exclusion lists, `Not Included` sections, negative scope framing, or defensive wording.
+
 If Release Readiness discovers missing PR-owned canon or docs work, stop immediately and classify the issue as `PR Readiness Scope Missed` and `Release Readiness Scope Drift`.
 If the branch has not merged, return to `PR Readiness` and repair the miss there before any Release Readiness output can be treated as green.
 If the branch has already merged, the next active branch's `Branch Readiness` must repair the miss before implementation begins and must update governance or validator coverage so the miss cannot recur.
@@ -737,7 +814,8 @@ That validator should verify at minimum:
 - the canonical `bounded multi-seam workflow` contract is present in governance and operator scaffolds
 - prompt scaffolds teach `Seam Sequence`, per-seam validation, and continue-or-stop decisions for multi-seam Workstream execution
 - docs do not teach direct `Workstream` -> `PR Readiness` as the default path
-- PR Readiness prompt scaffolds require the standardized `## Next Branch` block and `## PR Creation Details` markdown package before reporting PR green
+- PR Readiness prompt scaffolds require the standardized `## Next Branch` block and inclusion-only `## PR Creation Details` operator copy blocks before reporting PR green
+- Release Readiness prompt scaffolds require inclusion-only `## Release Package Details` operator copy blocks when release execution is green
 
 A governance or current-state canon branch is not complete until that validator is green.
 
@@ -878,35 +956,105 @@ Validation seams should be classified before they are fixed:
 
 Do not treat a seam as a product defect merely because the interactive harness failed first.
 
-## Bounded Multi-Seam Workflow Rule
+## Seam Workflow Contract
 
-The primary Workstream execution model is `bounded multi-seam workflow`.
+`Docs/phase_governance.md` is the canonical owner of seam workflow behavior.
+Prompts, workstream docs, and mode docs may name a seam chain, active seam, or validation focus, but they do not define continuation authority.
+Codex must derive continuation, stopping, fallback, and phase movement from source-of-truth, validation, branch truth, and this contract.
 
-A bounded multi-seam workflow is an ordered sequence of seams executed inside one approved Workstream boundary.
+### Phase Scope
+
+Seam workflow applies differently by phase:
+
+- `Branch Readiness` may use planning, admission, or tightly coupled governance-repair seams, but it must not execute product/runtime implementation.
+- `Workstream` uses the full bounded multi-seam pipeline as the primary execution model when a coherent same-risk seam chain is safe.
+- `Hardening` may use a constrained continuous validation loop when the branch is already inside an approved hardening boundary.
+- `Live Validation` may use validation, evidence-digestion, waiver, or output-contract seams; it must not become a hidden implementation phase.
+- `PR Readiness` uses readiness-gate seams for merge-target canon, drift audit, PR creation, and PR validation; it is not a product implementation seam pipeline.
+- `Release Readiness` is analysis-only and file-frozen; it may use review steps in output, but it must not execute file-mutating seams.
+
+### Bounded Multi-Seam Workflow
+
+A bounded multi-seam workflow is an ordered sequence of seams executed inside one approved phase boundary.
 It is allowed only when every seam in the sequence stays within:
 
-- the same workstream
+- the same workstream or equivalent active authority record
 - the same normal phase
 - the same branch class
 - the same risk class
-- the same subsystem family or a tightly coupled implementation chain
+- the same subsystem family or a tightly coupled implementation, validation, or governance chain
+- a validation surface strong enough to support safe continuation
 
 Multi-seam does not mean batch execution.
 It means Codex may continue across a planned seam sequence without requiring a new operator prompt after every seam, but only while it executes exactly one active seam at a time.
 
+### Default Continuation Duty
+
+`Next-Seam Continuation Required` is the default result after a green seam in a valid bounded multi-seam workflow.
+When a prompt names an `Active Seam` or says to execute a seam that also appears inside an approved seam sequence, that seam is the entry seam, not a terminal boundary.
+After the entry seam validates green, Codex must evaluate the next seam in the sequence from source-of-truth and continue by default when the continuation authority conditions pass.
+
+Codex must not stop merely because:
+
+- the prompt task named only the entry seam
+- the output format asks for `Next Safe Move`
+- durability commit and push completed
+- one seam was successfully recorded
+
+Stopping after a green seam requires one of these recorded reasons:
+
+- a validation failure
+- a regression
+- scope drift
+- risk-class change
+- governance drift
+- branch-truth contradiction
+- unresolved manual-validation blocker
+- stop-loss trigger
+- phase boundary
+- weaker validation would be required for the next seam
+- `Single-Seam Fallback` is canon-valid for the pass
+
+A prompt-level `execute only <seam>` request does not override this continuation duty unless the request is paired with a canon-valid `Single-Seam Fallback` reason or another named blocker from this contract.
+If Codex stops after a green seam without one of the recorded reasons above, classify that stop as `Governance Drift` and repair the source-of-truth or validator gap before treating the workflow as healthy.
+
+### Seam Stages
+
+Each active seam follows this governed stage model:
+
+1. `Stage 0 - Startup and admission`: load the required source-of-truth, confirm branch, phase, branch class, blockers, active authority record, and whether multi-seam continuation is legal.
+2. `Stage 1 - Seam analysis and plan`: define the seam name, exact boundary, affected files or evidence surfaces, explicit non-includes, validation gate, cleanup expectations, risk class, and `UTS` applicability.
+3. `Stage 2 - Execution`: execute only the active seam within the approved boundary.
+4. `Stage 3 - Review and validation`: run the seam validation, inspect results, classify defects or drift, and loop back to Stage 2 only for the same seam when validation, stop-loss, and phase rules allow.
+5. `Stage 4 - Record truth and continuation decision`: update branch-local workstream evidence, authority records, `UTS` artifacts, helper registry, or governance docs only when truth changed and the phase permits mutation; then report `continue` or `stop`.
+6. `Stage 5 - Finalization`: summarize work, validation, cleanup, durability state, remaining blockers, next legal phase, and next safe move.
+
+Stage 4 is not permission to churn canon after every seam.
+Repository files are updated only when branch-local truth, evidence, validation contracts, helper records, or governing rules actually changed and the current phase permits file mutation.
+
+### Required Per-Seam Declaration
+
 Before each seam, Codex must state:
 
 - the seam name
+- the active phase and branch class
 - the exact boundary
+- the affected files or evidence surfaces when known
 - the explicit non-includes
 - the validation gate required for that seam
+- cleanup expectations when the seam opens files, processes, windows, helpers, or temporary artifacts
+- `User Test Summary` applicability when user-visible or operator-facing behavior may be affected
 
 After each seam, Codex must:
 
 - run the required validation for that seam
-- update the active workstream evidence when branch-local truth changed
+- update active workstream evidence when branch-local truth changed
 - update the canonical workstream `User Test Summary` when the seam changes user-visible or operator-facing behavior
+- verify cleanup for artifacts the pass created or opened
 - decide and report `continue` or `stop`
+- continue by default to the next planned seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass
+
+### Continuation Authority
 
 Continuation is allowed only when:
 
@@ -917,8 +1065,12 @@ Continuation is allowed only when:
 - no governance drift is detected
 - no unresolved manual-validation blocker is present
 - branch truth remains consistent with the authority record
+- stop-loss has not been reached
+- the next seam remains inside the same permitted phase scope
 
 If any continuation condition fails, the whole workflow stops immediately and the next safe move must be reported from the blocking truth.
+If continuation would require broader authority, a different phase, a different risk class, or weaker validation, Codex must stop and report the blocker rather than treating the downstream seam as activated.
+If all continuation conditions pass and the next planned seam remains inside the approved sequence, continuation is required under `Next-Seam Continuation Required`; do not downgrade a safe continuation into an optional stop.
 
 ## Single-Seam Fallback Rule
 
@@ -1237,7 +1389,7 @@ Required evidence:
 - post-merge truth fully encoded before merge
 - Governance Drift Audit completed
 - docs sync complete and validator-aligned
-- standardized `## Next Branch` response block and copy-ready `## PR Creation Details` markdown package prepared
+- standardized `## Next Branch` response block and inclusion-only `## PR Creation Details` operator copy blocks prepared
 - clean worktree with required branch truth durable in commit history
 - GitHub PR created for the current head branch and intended base branch
 - PR exists, is open, non-draft, conflict-free, and inspectable

@@ -111,6 +111,9 @@ If a governance or canon update is directly required to keep the active current 
 Add `Validation Contract`, `Timeout Contract`, and `Current active seam` when the governed task needs them.
 Add `Seam Sequence` when the Workstream prompt may use bounded multi-seam workflow.
 If `Seam Sequence` is present, Codex must execute one active seam at a time, validate after each seam, and report a continue-or-stop decision before starting the next seam.
+If a prompt names an active seam inside that sequence, treat it as the entry seam, not a terminal boundary.
+After a green seam, `Next-Seam Continuation Required` applies by default when continuation authority conditions pass.
+Do not encode a single-seam stop unless `Single-Seam Fallback`, a phase boundary, stop-loss trigger, or another canon-valid blocker applies.
 For `Release Readiness`, a release-bearing branch must include `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` before green status is allowed.
 For `PR Readiness`, release-bearing merge-target canon must prove the target is semantically correct from the latest public prerelease and declared release floor before green status is allowed.
 `Release Readiness` is analysis-only for repository files. It may produce release package information in the response, but it must not edit, stage, commit, generate, or refresh source, docs, canon, validator, helper, release-note, or handoff files.
@@ -258,6 +261,8 @@ After analysis is complete and execution scope is approved, follow these discipl
 - one coherent approved subproblem per revision
 - use bounded multi-seam workflow as the primary Workstream model when the approved seams are same-workstream, same-phase, same-risk, and same-subsystem-family or tightly coupled
 - execute exactly one active seam at a time and validate, record, and decide continue-or-stop before the next seam
+- treat a prompt-named seam inside an approved sequence as the entry seam, not a terminal boundary
+- continue by default after a green seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass
 - use single-seam fallback for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem work, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation
 - preserve architecture boundaries
 - keep source-of-truth docs aligned with actual implemented state
@@ -312,8 +317,8 @@ If an execution task is too broad for one approved pass, explain the cleaner exe
 4. Explain the next legal phase or say explicitly that repo state is `No Active Branch`.
 5. If in `Branch Readiness`, explain the whole-branch execution plan before Workstream admission.
 6. If in `Workstream`, explain whether bounded multi-seam workflow is safe; if it is, list the seam sequence, per-seam gates, and stop conditions.
-7. If in `PR Readiness`, explicitly plan the stale-canon check, post-merge-state handling, release-target semantic check from latest public prerelease plus `Release Floor:`, next-workstream selection/canon/minimal-scope/no-branch-exists check, required `Next Workstream: Selected`, `Minimal Scope:`, `## Selected Next Workstream`, and `Branch: Not created` markers, dirty-branch/durable-commit check, docs-sync/drift-audit check, `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, `Next Branch Created Too Early`, normal governance validator, PR-readiness gate mode, required `## Next Branch` response block, and copy-ready `## PR Creation Details` package.
-8. If in `Release Readiness`, explicitly plan the `Release Target Undefined` check, required inherited `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` markers for release-bearing branches, confirm Release Readiness is not being used for broad docs sync or branch-authority cleanup, and confirm no repository file mutation will occur in the phase.
+7. If in `PR Readiness`, explicitly plan the stale-canon check, post-merge-state handling, release-target semantic check from latest public prerelease plus `Release Floor:`, next-workstream selection/canon/minimal-scope/no-branch-exists check, required `Next Workstream: Selected`, `Minimal Scope:`, `## Selected Next Workstream`, and `Branch: Not created` markers, dirty-branch/durable-commit check, docs-sync/drift-audit check, `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, `Next Branch Created Too Early`, normal governance validator, PR-readiness gate mode, required `## Next Branch` response block, and inclusion-only `## PR Creation Details` operator copy blocks.
+8. If in `Release Readiness`, explicitly plan the `Release Target Undefined` check, required inherited `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` markers for release-bearing branches, release operator copy blocks, confirm Release Readiness is not being used for broad docs sync or branch-authority cleanup, and confirm no repository file mutation will occur in the phase.
 9. Explain the validation plan.
 10. If a User Test Summary handoff is relevant, explicitly state whether returned results are `PENDING`, `PASS`, `FAIL`, or `WAIVED`; `PENDING` is the hard blocker `User Test Summary Results Pending`.
 11. Apply the Pre-PR Durability Rule: before `PR Readiness`, when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready, staged-only, or uncommitted state; only a documented `Durability Waiver`, failed validation, legally file-frozen `Release Readiness`, or a named Codex self-imposed blocker may stop commit/push, and self-imposed blockers must automatically commit and push once lifted.
@@ -336,9 +341,10 @@ If the task includes interactive validation, the validation plan should also sta
 
 1. Perform only the approved execution work.
 2. For bounded multi-seam workflow, perform exactly one seam, verify it, record evidence, and decide `continue` or `stop` before starting the next seam.
-3. Stop the workflow immediately on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, or branch-truth inconsistency.
-4. Clean up session-scoped side effects from the pass unless there is an explicit reason to preserve them.
-5. Report what changed, what was verified, the per-seam continue-or-stop decisions, and what was cleaned up or intentionally left in place.
+3. Continue by default to the next planned seam after a green seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass.
+4. Stop the workflow immediately on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, branch-truth inconsistency, phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback`.
+5. Clean up session-scoped side effects from the pass unless there is an explicit reason to preserve them.
+6. Report what changed, what was verified, the per-seam continue-or-stop decisions, and what was cleaned up or intentionally left in place.
 
 ## Verification Requirements
 
@@ -490,22 +496,61 @@ If the phase is `PR Readiness`, the final response must include:
 - Reason:
 ```
 
-If `PR Readiness` is green or `PR READY: YES`, the final response must also include this copy-ready markdown package:
+If `PR Readiness` is package-ready, green, or `PR READY: YES`, the final response must also include these inclusion-only copy-ready operator blocks:
 
-```markdown
+````markdown
 ## PR Creation Details
-### Title
-### Base / Head
-### Summary
-### Validation
-### Governance / Canon
-### Post-Merge Truth
-### Next Branch
-### Not Included
+### PR Title
+```text
+<title only>
 ```
+
+### Base Branch
+```text
+<base branch only>
+```
+
+### Head Branch
+```text
+<head branch only>
+```
+
+### PR Summary
+```markdown
+<implemented work only>
+```
+````
 
 The `Next Branch` block must separate the next legal branch from the selected next implementation branch.
 If the next implementation branch is deferred by release debt, updated-`main` revalidation, or another branch-admission gate, set `May Create Now: NO` and state the reason.
+The PR summary must report included implementation and validation truth only. Do not include exclusion lists, `Not Included` sections, or defensive scope language.
+
+If `Release Readiness` is green for release execution, the final response must include these inclusion-only copy-ready operator blocks:
+
+````markdown
+## Release Package Details
+### Release Title
+```text
+<release title only>
+```
+
+### Release Tag
+```text
+<tag only>
+```
+
+### Target Commit
+```text
+<commit sha only>
+```
+
+### Release Notes
+```markdown
+<detailed user-facing release notes>
+```
+````
+
+Release notes must clearly explain what was built, what capabilities exist, and how the system behaves. Do not include exclusion lists, `Not Included` sections, negative scope framing, or defensive wording.
 
 ## Important
 

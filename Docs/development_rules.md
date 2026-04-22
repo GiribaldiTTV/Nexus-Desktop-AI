@@ -106,9 +106,13 @@ Record-state meaning:
 - `Promoted` = a canonical workstream doc is required and becomes the durable branch record that must stay current throughout the active lane
 - `Closed` = the canonical workstream doc remains historical lane truth and must not be treated as active execution authority by inertia
 
-## Required Startup Contract
+## Required Startup Loading
 
-Before planning, patching, reviewing, or recommending the next move, Codex must follow the canonical startup contract in `Docs/Main.md`.
+Before planning, patching, reviewing, or recommending the next move, Codex must load the canonical source-of-truth set.
+
+`Docs/nexus_startup_contract.md` may be used as a compact ChatGPT/new-chat loader map, but it is not Codex execution authority.
+Execution behavior is governed by this document, `Docs/Main.md`, `Docs/phase_governance.md`, `Docs/codex_modes.md`, the active workstream or branch authority record, and directly relevant owning canon.
+Prompt text and loader templates may describe requested task scope, but they must not override source-of-truth, restrict required continuation, define seam behavior, bypass phase rules, change durability requirements, or weaken validation.
 
 That startup pass must make explicit:
 
@@ -298,6 +302,12 @@ That means:
   - `Release Branch: No` is limited to preserved historical records
   - the non-release waiver is not available to `implementation` or `release packaging` branches
   - the waiver does not clear `Release Debt`, weaken post-merge truth rules, weaken validation, or permit premature successor branch creation
+- operator output is inclusion-only:
+  - PR Readiness PR creation details must use separate copy-ready blocks for `PR Title`, `Base Branch`, `Head Branch`, and `PR Summary`
+  - Release Readiness release package details must use separate copy-ready blocks for `Release Title`, `Release Tag`, `Target Commit`, and `Release Notes`
+  - PR summaries and release notes must report implemented or released work only
+  - do not include `Not Included` sections, exclusion lists, negative scope framing, or defensive wording in operator summaries or release notes
+  - keep normal source-of-truth scope, non-goals, stop conditions, and blockers in canon records; the inclusion-only rule applies to operator-facing PR and release packages
 - post-release canon repair is emergency-only:
   - use it only when canon drift already exists on updated `main` and could not be prevented before merge or release
 - governance-only branches are not used for new Nexus work:
@@ -364,14 +374,24 @@ and keep that validator green before calling the branch ready.
 - minimal isolated changes means the minimal coherent change set needed to close that approved subproblem
 - grouped workstreams are allowed during `pre-Beta` when they remain coherent by subsystem and end-state
 - a grouped branch may carry multiple validated slices when they all belong to the same milestone
+- `Docs/phase_governance.md` owns seam workflow behavior; prompts and task text may name seams, but they do not define continuation authority
 - `bounded multi-seam workflow` is the primary Workstream execution model for coherent same-risk seam chains
+- `Next-Seam Continuation Required` is the default after a green seam inside a valid bounded multi-seam workflow
+- a prompt-named seam inside an approved sequence is the entry seam, not a terminal boundary
 - unrelated ideas must still be split out even if they look convenient to batch
 
 Bounded multi-seam workflow means:
 
-- multiple seams may execute in sequence within one approved Workstream pass
-- each seam still has one active owner, exact boundary, explicit non-includes, validation gate, and continue-or-stop decision
-- every seam must remain in the same workstream, same phase, same branch class, same risk class, and same subsystem family or tightly coupled chain
+- multiple seams may execute in sequence within one approved phase boundary only when phase governance allows it
+- each seam still has one active owner, exact boundary, explicit non-includes, validation gate, cleanup expectation, and continue-or-stop decision
+- Codex must continue by default to the next planned seam when the continuation authority conditions pass
+- stopping after a green seam requires a canon-valid blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback`
+- every seam must remain in the same workstream or active authority record, same phase, same branch class, same risk class, and same subsystem family or tightly coupled chain
+- Branch Readiness may use planning, admission, or tightly coupled governance-repair seams, but not product/runtime implementation
+- Workstream uses the full seam pipeline for safe same-risk execution
+- Hardening and Live Validation may use constrained validation or evidence-digestion loops, but they must not become hidden feature lanes
+- PR Readiness uses readiness gates, not product implementation seams
+- Release Readiness remains analysis-only and file-frozen
 
 Stop the workflow immediately if validation fails, regression appears, scope drifts, risk class changes, governance drift appears, manual validation becomes blocking, or branch truth no longer matches the authority record.
 

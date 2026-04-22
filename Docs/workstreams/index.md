@@ -27,6 +27,7 @@ Use `Docs/validation_helper_registry.md` for durable root `dev/` helper naming, 
 - backlog remains the identity registry and points here through `Canonical Workstream Doc`
 - roadmap consumes this layer for sequencing but does not duplicate its full execution story
 - repo-wide phase, timeout, proof-authority, seam, stop-loss, validation-helper, and desktop UI audit rules live in `Docs/phase_governance.md`, not in individual workstream docs
+- operator-facing PR and release output contracts live in `Docs/phase_governance.md`; workstream docs may provide the underlying implemented work, validation, release scope, and post-merge truth, but final operator PR summaries and release notes must use inclusion-only copy blocks and must not add exclusion lists or `Not Included` sections
 - for active desktop workstreams, the default canonical repo-level `UTS` artifact is the `## User Test Summary` section inside the workstream doc unless that doc explicitly declares a different repo path
 - for relevant desktop slices, `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` is the required user-facing exported copy unless an explicit documented exception applies
 - response-level `## User Test Summary` text does not replace the workstream-owned repo artifact
@@ -77,17 +78,18 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-None after FB-039 merge-target readiness. The repo returns to `No Active Branch` while FB-039 remains merged-unreleased release debt until `v1.5.0-prebeta` release handling clears it.
+None. FB-040 merge-target canon resolves to merged-unreleased release debt and `No Active Branch` after PR merge.
 
 ### Merged / Release Debt Owners
 
 Merged / Release Debt Owners are promoted implementation workstreams whose implementation branch is merge-target complete but whose public release packaging has not yet cleared release debt.
 These records are not active implementation branch owners after merge.
 
-- `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
+- `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`
 
 ### Closed
 
+- `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
 - `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
 - `Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md`
 - `Docs/workstreams/FB-041_deterministic_callable_group_execution_layer.md`

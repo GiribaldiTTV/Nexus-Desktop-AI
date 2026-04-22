@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `Merged Unreleased`
+- `Released (v1.5.0-prebeta)`
 
 ## Release Stage
 
@@ -27,25 +27,26 @@
 
 ## Current Phase
 
-- Phase: `Release Readiness`
+- None. FB-039 is `Closed` after `v1.5.0-prebeta`; no active execution phase remains for this workstream.
 
 ## Phase Status
 
-- `No Active Branch`
-- PR #69 merged `feature/fb-039-external-trigger-plugin-integration-architecture` into `main`; FB-039 is now the merged-unreleased release-debt owner.
-- Release Readiness is analysis-only and consumes the inherited release target, release scope, release artifacts, and post-release truth below without file mutation.
+- `Closed historical workstream record`
+- PR #69 merged `feature/fb-039-external-trigger-plugin-integration-architecture` into `main`; FB-039 release execution completed as `v1.5.0-prebeta`.
+- historical Release Readiness consumed inherited release target, release scope, release artifacts, and post-release truth without file mutation.
 - historical branch: `feature/fb-039-external-trigger-plugin-integration-architecture`
 - historical branch was created from updated `main` after FB-038 release/post-release confirmation green
 - FB-038 remains `Released (v1.4.1-prebeta)` / `Closed`
 - FB-038 release debt is clear
-- FB-039 release debt remains open until `v1.5.0-prebeta` release handling clears it.
+- FB-039 release debt is clear after `v1.5.0-prebeta`
+- FB-040 Branch Readiness is now active on `feature/fb-040-monitoring-thermals-performance-hud-surface`
 - no external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10/WS-13/WS-16/WS-19/WS-22/WS-25/WS-28 boundary code
 - WS-31 Workstream completion evaluation is recorded; WS-32 and WS-33 were not executed because another same-layer runtime seam would not add bounded value before Hardening
 - H-1, H-2, and H-3 Hardening are recorded; no runtime/product code changed during Hardening
 - LV-1, LV-2, and LV-3 Live Validation are recorded; no runtime/product code changed during Live Validation
 - LV-R1, LV-R2, and LV-R3 corrective Live Validation repair are recorded; no runtime/product code changed during repair
 - PR-1 through PR-3 are admitted to complete merge-target canon, governance drift audit, successor selection, branch-creation gate validation, and PR-ready output packaging.
-- Post-merge main-facing canon is shaped as merged-unreleased release debt for FB-039 and `No Active Branch` until release handling or later Branch Readiness admission.
+- historical post-merge main-facing canon was shaped as merged-unreleased release debt for FB-039 and `No Active Branch` until `v1.5.0-prebeta` release handling cleared release debt.
 - PR-R1 through PR-R3 repaired PR Readiness green-state criteria so PR package readiness cannot be collapsed into PR Readiness GREEN before PR creation and PR validation.
 - PR #69 live validation resolved the pre-merge PR creation/state blockers historically; those blockers are not current Release Readiness blockers.
 
@@ -1785,8 +1786,8 @@ LV-R3 decision:
 
 ## Exit Criteria
 
-- FB-039 is represented as the merged-unreleased release-debt owner in backlog, roadmap, workstreams index, and this workstream record for post-merge truth.
-- PR Readiness has selected FB-040 as the next workstream with `Branch: Not created` and no successor branch creation before updated-main Branch Readiness.
+- Historical PR Readiness exit represented FB-039 as the merged-unreleased release-debt owner in backlog, roadmap, workstreams index, and this workstream record for post-merge truth; this is superseded by `v1.5.0-prebeta` release closure.
+- Historical PR Readiness selected FB-040 as the next workstream with `Branch: Not created`; this is superseded by active FB-040 Branch Readiness after updated-main admission.
 - Release target semantics are explicit and correct from latest public prerelease `v1.4.1-prebeta` plus `Release Floor: minor prerelease`, yielding `Release Target: v1.5.0-prebeta`.
 - PR package readiness completed historically; PR #69 existed, matched the expected base/head, and merged the expected head commit before Release Readiness.
 - This workstream record contains the required phase authority fields.
@@ -1832,7 +1833,7 @@ LV-R3 decision:
 - LV-R3 User Test Summary waiver handling is re-evaluated and validated.
 - User-facing shortcut validation and User Test Summary results are waived with explicit no-meaningful-manual-test rationale.
 - FB-038 remains released/closed and release debt remains clear.
-- Repo state after merge is `No Active Branch` while FB-039 remains merged-unreleased release debt until release handling clears it.
+- Historical repo state after merge was `No Active Branch` while FB-039 remained merged-unreleased release debt; that state is superseded by `v1.5.0-prebeta` release closure and active FB-040 Branch Readiness.
 - No external-facing, user-facing, or product-integration runtime implementation has started beyond the admitted internal-only WS-6/WS-7/WS-10 boundary code, WS-13 in-memory decision evidence snapshots, WS-16 in-memory state snapshots, WS-19 read-only readiness inspection, WS-22 read-only registry readiness sweep, WS-25 read-only registry readiness summary, and WS-28 read-only registry readiness detail snapshot.
 
 ## Rollback Target
@@ -1841,7 +1842,7 @@ LV-R3 decision:
 
 ## Next Legal Phase
 
-- `Release Readiness`
+- Historical/superseded: `Release Readiness` completed before `v1.5.0-prebeta` release execution; the next active repo phase is FB-040 `Branch Readiness`.
 
 ## Governance Drift Audit
 
@@ -1849,7 +1850,7 @@ Governance Drift Found: Yes, repaired during PR Readiness.
 
 - Drift Type: PR Readiness canon completeness drift.
 - Finding: Live Validation was green, but PR Readiness initially found `Next Workstream Undefined` because no successor workstream carried `Next Workstream: Selected`, no roadmap selected-next section named the successor with `Branch: Not created`, and FB-039 merge-target canon was still shaped like active Live Validation truth.
-- Repair: FB-039 is now encoded as merged-unreleased release debt for post-merge truth, FB-040 is selected as the next workstream with minimal Branch Readiness scope, successor branch creation remains blocked, release target semantics are explicit, and PR Readiness output packaging can be generated from durable canon.
+- Historical repair at PR Readiness: FB-039 was encoded as merged-unreleased release debt for post-merge truth, FB-040 was selected as the next workstream with minimal Branch Readiness scope, successor branch creation remained blocked, release target semantics were explicit, and PR Readiness output packaging could be generated from durable canon. This posture is superseded by `v1.5.0-prebeta` release closure and active FB-040 Branch Readiness.
 - Governance Drift Found After Repair: No unresolved drift remains.
 - PR Readiness Scope Missed: Clear.
 - Between-Branch Canon Repair Attempt: Clear.
@@ -1860,22 +1861,25 @@ Governance Drift Found: Yes, repaired during PR-R1 through PR-R3.
 - Drift Type: PR Readiness phase-completion drift.
 - Finding: PR Readiness was previously reported GREEN after local package/canon readiness, before a GitHub PR existed and before PR conflict/comment state could be validated.
 - Repair: canon now distinguishes `PR package ready` from `PR Readiness GREEN`; PR creation and PR validation are part of PR Readiness completion.
-- Current State After Repair: PR package readiness is historical; PR #69 creation and validation resolved the PR creation/state blockers, and FB-039 now stands as merged-unreleased release debt for Release Readiness.
+- Current State After Repair: PR package readiness is historical; PR #69 creation and validation resolved the PR creation/state blockers, and FB-039 later released as `v1.5.0-prebeta`.
 
-## Post-Merge State
+## Released-State Closure
 
-Merged-Unreleased Release-Debt Owner: FB-039 External trigger and plugin integration architecture
-Repo State: No Active Branch
+Released Workstream: FB-039 External trigger and plugin integration architecture
+Historical Repo State At FB-039 Release Closure: No Active Branch
+Latest Public Prerelease: v1.5.0-prebeta
+Release Title: Pre-Beta v1.5.0
+Release URL: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.5.0-prebeta
 Release Target: v1.5.0-prebeta
 Release Floor: minor prerelease
-Version Rationale: FB-039 creates the external trigger and plugin integration architecture lane with an internal trigger intake boundary, so it is a new pre-Beta capability lane rather than patch-only UX, sequencing, or governance repair.
+Version Rationale: FB-039 created the external trigger and plugin integration architecture lane with an internal trigger intake boundary, so it was a new pre-Beta capability lane rather than patch-only UX, sequencing, or governance repair.
 Release Scope: Internal-only external trigger intake architecture and runtime boundary, including source map, ownership vocabulary, lifecycle/trust framing, in-memory registration, bounded invocation follow-through, lifecycle transitions, decision evidence, boundary snapshots, readiness inspection, readiness sweep, readiness summary, and readiness detail snapshot.
-Release Artifacts: Tag v1.5.0-prebeta; release title Pre-Beta v1.5.0; release notes summarize the FB-039 internal-only trigger intake milestone, validation evidence, Live Validation waivers, and explicit non-includes.
-Post-Release Truth: FB-039 becomes Released / Closed in v1.5.0-prebeta; release debt clears; repo remains No Active Branch until FB-040 Branch Readiness admission.
-Selected Next Workstream: FB-040 Monitoring, thermals, and performance HUD surface
-Next-Branch Creation Gate: FB-040 remains selected-only and Branch: Not created until FB-039 merge/release debt is resolved on updated main and Branch Readiness admits the next implementation branch.
+Release Artifacts: Tag v1.5.0-prebeta; release title Pre-Beta v1.5.0; inclusion-only release notes summarize the FB-039 internal-only trigger intake milestone, capabilities, system behavior, validation evidence, and Live Validation waivers.
+Post-Release Truth: FB-039 is `Closed` / `Released (v1.5.0-prebeta)`, release debt is clear, roadmap latest public prerelease is `v1.5.0-prebeta`, and FB-040 Branch Readiness is admitted on `feature/fb-040-monitoring-thermals-performance-hud-surface`.
+Selected Next Workstream: FB-040 Monitoring, thermals, and performance HUD surface.
+Historical Next-Branch Creation Gate: FB-040 remained selected-only and `Branch: Not created` until FB-039 release debt cleared and updated `main` admitted FB-040 Branch Readiness.
 
-- Successor branch handling: the selected FB-040 implementation branch is deferred and must not be created during FB-039 PR Readiness, Release Readiness, or release execution.
+- Successor branch handling: FB-040 has now been admitted for Branch Readiness; this supersedes the historical selected-only gate.
 - Helper retention: `dev/orin_external_trigger_intake_validation.py` remains registered as a reusable validation helper for the external trigger intake family.
 - User-facing validation: desktop shortcut validation and User Test Summary results remain waived because this milestone has no user-facing setup, invocation, launcher, tray, overlay, plugin-host, transport, settings, or operator-facing path.
 

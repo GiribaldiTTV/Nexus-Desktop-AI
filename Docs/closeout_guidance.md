@@ -84,7 +84,7 @@ The public GitHub prerelease title format for Nexus `pre-Beta` releases is:
 
 - `Pre-Beta v<major>.<minor>.<patch>`
 
-Milestone names, user-facing scope, evidence roots, and implementation details belong in the release notes, not in the GitHub release title.
+Milestone names, user-facing scope, capabilities, system behavior, evidence roots, and implementation details belong in inclusion-only release notes, not in the GitHub release title.
 Post-release confirmation must treat that concise `Pre-Beta v<major>.<minor>.<patch>` title as the expected published title when it matches the tag and release notes carry the scoped summary.
 
 ## Current Policy

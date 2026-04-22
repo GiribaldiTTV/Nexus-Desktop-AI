@@ -155,7 +155,12 @@ MULTI_SEAM_CONTRACT_DOCS = (
     Path("Docs/codex_user_guide.md"),
 )
 
-MULTI_SEAM_CONTRACT_PHRASE = "bounded multi-seam workflow"
+MULTI_SEAM_CONTRACT_PHRASES = (
+    "bounded multi-seam workflow",
+    "Next-Seam Continuation Required",
+    "entry seam, not a terminal boundary",
+    "Single-Seam Fallback",
+)
 
 MULTI_SEAM_PROMPT_DOCS = (
     Path("Docs/orin_task_template.md"),
@@ -165,6 +170,9 @@ MULTI_SEAM_PROMPT_DOCS = (
 MULTI_SEAM_PROMPT_PHRASES = (
     "Seam Sequence",
     "continue-or-stop",
+    "Next-Seam Continuation Required",
+    "entry seam, not a terminal boundary",
+    "Single-Seam Fallback",
 )
 
 WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS = (
@@ -303,14 +311,32 @@ PR_READINESS_RESPONSE_CONTRACT_PHRASES = (
     "Selected Next Implementation Branch:",
     "May Create Now: YES / NO",
     "## PR Creation Details",
-    "### Title",
-    "### Base / Head",
-    "### Summary",
-    "### Validation",
-    "### Governance / Canon",
-    "### Post-Merge Truth",
-    "### Next Branch",
-    "### Not Included",
+    "### PR Title",
+    "### Base Branch",
+    "### Head Branch",
+    "### PR Summary",
+    "inclusion-only",
+    "defensive scope language",
+)
+
+RELEASE_OPERATOR_OUTPUT_CONTRACT_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+)
+
+RELEASE_OPERATOR_OUTPUT_CONTRACT_PHRASES = (
+    "## Release Package Details",
+    "### Release Title",
+    "### Release Tag",
+    "### Target Commit",
+    "### Release Notes",
+    "inclusion-only",
+    "what was built",
+    "what capabilities exist",
+    "how the system behaves",
+    "defensive wording",
 )
 
 PR_LIVE_STATE_DOCS = (
@@ -499,7 +525,7 @@ RELEASE_TITLE_FORMAT_DOCS = (
 
 RELEASE_TITLE_FORMAT_PHRASES = (
     PREBETA_RELEASE_TITLE_TEMPLATE,
-    "release notes",
+    "inclusion-only release notes",
 )
 
 NON_RELEASE_BRANCH_MARKER = "Release Branch: No"
@@ -678,6 +704,10 @@ def _highest_local_prebeta_tag() -> str:
 
 def _workstream_target_version(workstream_text: str) -> str:
     return _clean_release_value(_extract_first_backtick_value(_section(workstream_text, "Target Version")))
+
+
+def _release_debt_owner_claim(workstream_id: str) -> str:
+    return f"merged-unreleased release-debt owner: {workstream_id.casefold()}"
 
 
 def _parse_workstream_doc(text: str) -> dict[str, object]:
@@ -1343,10 +1373,11 @@ def main() -> int:
 
     for relative_path in MULTI_SEAM_CONTRACT_DOCS:
         text = _read_text(relative_path)
-        require(
-            MULTI_SEAM_CONTRACT_PHRASE in text,
-            f"{relative_path}: canonical bounded multi-seam workflow contract is missing",
-        )
+        for required_phrase in MULTI_SEAM_CONTRACT_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: canonical bounded multi-seam workflow contract is missing '{required_phrase}'",
+            )
 
     for relative_path in MULTI_SEAM_PROMPT_DOCS:
         text = _read_text(relative_path)
@@ -1454,6 +1485,14 @@ def main() -> int:
             require(
                 required_phrase in text,
                 f"{relative_path}: PR Readiness response contract is missing '{required_phrase}'",
+            )
+
+    for relative_path in RELEASE_OPERATOR_OUTPUT_CONTRACT_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in RELEASE_OPERATOR_OUTPUT_CONTRACT_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: Release operator output contract is missing '{required_phrase}'",
             )
 
     for relative_path in PR_LIVE_STATE_DOCS:
@@ -1607,6 +1646,159 @@ def main() -> int:
                 f"Release Title: {FB038_RELEASE_TITLE}" in fb038_text,
                 f"{FB038_CANONICAL_PATH}: released-state canon must record release title '{FB038_RELEASE_TITLE}'",
             )
+
+    if highest_local_prebeta_tag:
+        expected_latest_title = _expected_prebeta_release_title(highest_local_prebeta_tag)
+        latest_release_owner_entries = [
+            entry
+            for entry in backlog_entries
+            if _clean_release_value(_extract_colon_value(entry["block"], "Target Version"))
+            == highest_local_prebeta_tag
+        ]
+        for entry in latest_release_owner_entries:
+            workstream_id = entry["id"]
+            canonical_path = entry["canonical_path"]
+            normalized_status = _normalize_status(entry["status"])
+            require(
+                entry["record_state"] == "Closed",
+                (
+                    "Post-release canon closure drift: "
+                    f"{workstream_id} targets published tag {highest_local_prebeta_tag} "
+                    f"but backlog Record State is '{entry['record_state']}', not 'Closed'"
+                ),
+            )
+            require(
+                normalized_status == "released",
+                (
+                    "Post-release canon closure drift: "
+                    f"{workstream_id} targets published tag {highest_local_prebeta_tag} "
+                    f"but backlog Status is '{entry['status']}', not Released"
+                ),
+            )
+            release_title = _clean_release_value(_extract_colon_value(entry["block"], "Release Title"))
+            if release_title:
+                require(
+                    release_title == expected_latest_title,
+                    (
+                        "Post-release canon closure drift: "
+                        f"{workstream_id} Release Title '{release_title}' must be "
+                        f"'{expected_latest_title}' for {highest_local_prebeta_tag}"
+                    ),
+                )
+            require(
+                bool(canonical_path),
+                f"Post-release canon closure drift: {workstream_id} is missing Canonical Workstream Doc",
+            )
+            if not canonical_path:
+                continue
+
+            require(
+                canonical_path in closed_index_paths,
+                (
+                    "Post-release canon closure drift: "
+                    f"{canonical_path} must be listed under Closed after {highest_local_prebeta_tag}"
+                ),
+            )
+            require(
+                canonical_path not in release_debt_index_paths,
+                (
+                    "Post-release canon closure drift: "
+                    f"{canonical_path} must not remain under Merged / Release Debt Owners "
+                    f"after {highest_local_prebeta_tag}"
+                ),
+            )
+            require(
+                canonical_path not in active_index_paths,
+                (
+                    "Post-release canon closure drift: "
+                    f"{canonical_path} must not remain under Active after {highest_local_prebeta_tag}"
+                ),
+            )
+
+            release_debt_claim = _release_debt_owner_claim(workstream_id)
+            for source_name, source_text in (
+                ("Docs/feature_backlog.md", backlog_text),
+                ("Docs/prebeta_roadmap.md", roadmap_text),
+            ):
+                require(
+                    release_debt_claim not in source_text.casefold(),
+                    (
+                        "Post-release canon closure drift: "
+                        f"{source_name} still claims {workstream_id} as merged-unreleased release debt "
+                        f"after {highest_local_prebeta_tag}"
+                    ),
+                )
+
+            workstream_path = ROOT_DIR / Path(canonical_path)
+            require(
+                workstream_path.is_file(),
+                f"Post-release canon closure drift: {canonical_path} does not exist",
+            )
+            if workstream_path.is_file():
+                workstream_text = _read_text(Path(canonical_path))
+                workstream_info = _parse_workstream_doc(workstream_text)
+                require(
+                    workstream_info["record_state"] == "Closed",
+                    (
+                        "Post-release canon closure drift: "
+                        f"{canonical_path} Record State must be Closed after {highest_local_prebeta_tag}"
+                    ),
+                )
+                require(
+                    _normalize_status(str(workstream_info["status"])) == "released",
+                    (
+                        "Post-release canon closure drift: "
+                        f"{canonical_path} Status must be Released after {highest_local_prebeta_tag}"
+                    ),
+                )
+                require(
+                    f"Latest Public Prerelease: {highest_local_prebeta_tag}" in workstream_text,
+                    (
+                        "Post-release canon closure drift: "
+                        f"{canonical_path} must record Latest Public Prerelease: {highest_local_prebeta_tag}"
+                    ),
+                )
+                require(
+                    f"Release Title: {expected_latest_title}" in workstream_text,
+                    (
+                        "Post-release canon closure drift: "
+                        f"{canonical_path} must record Release Title: {expected_latest_title}"
+                    ),
+                )
+                require(
+                    release_debt_claim not in workstream_text.casefold(),
+                    (
+                        "Post-release canon closure drift: "
+                        f"{canonical_path} still claims {workstream_id} as merged-unreleased release debt "
+                        f"after {highest_local_prebeta_tag}"
+                    ),
+                )
+
+            roadmap_section = _roadmap_section_for_id(roadmap_text, workstream_id)
+            require(
+                bool(roadmap_section),
+                (
+                    "Post-release canon closure drift: "
+                    f"Docs/prebeta_roadmap.md is missing released section for {workstream_id}"
+                ),
+            )
+            if roadmap_section:
+                roadmap_status = _extract_first_backtick_value(roadmap_section)
+                require(
+                    _normalize_status(roadmap_status) == "released",
+                    (
+                        "Post-release canon closure drift: "
+                        f"Docs/prebeta_roadmap.md status for {workstream_id} must be released"
+                    ),
+                )
+                require(
+                    canonical_path in roadmap_section,
+                    (
+                        "Post-release canon closure drift: "
+                        f"Docs/prebeta_roadmap.md released section for {workstream_id} "
+                        f"must cite {canonical_path}"
+                    ),
+                )
 
     if pr_readiness_gate:
         _run_pr_readiness_gate(require, backlog_entries, roadmap_text)

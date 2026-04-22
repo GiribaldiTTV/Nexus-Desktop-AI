@@ -74,33 +74,14 @@ For system analysis, post-release review, branch-start planning, or source-of-tr
 
 Do not narrow the docs set before the system structure, drift, and authority boundaries are understood.
 
-## Canonical Startup Contract
+## ChatGPT Loader Contract
 
-Before planning, patching, reviewing, or recommending the next move, Codex must follow this startup contract:
+For prompt generation and new-chat bootstrapping, use `Docs/nexus_startup_contract.md` as the compact loader map.
 
-1. read `Docs/Main.md`
-2. read `Docs/development_rules.md`
-3. read `Docs/phase_governance.md`
-4. read `Docs/codex_modes.md`
-5. add the directly relevant authority docs for the task, including `Docs/feature_backlog.md` when the task maps to a tracked item
-6. determine the tracked item's `Record State` when one exists
-7. validate current branch truth and whether the branch is the correct execution base
-8. if the item is `Promoted` or `Closed`, load the canonical workstream doc and treat it as the durable lane-specific execution and traceability record
-9. if the task does not map to a promoted backlog workstream but does map to an approved non-backlog branch, load the relevant branch authority record under `Docs/branch_records/`
-10. choose the reuse baseline in this order:
-   - the relevant canonical workstream doc for branch-local traceability, artifact reuse, seam history, and "what worked" notes
-   - the relevant branch authority record for approved non-backlog branch truth
-   - `Docs/incident_patterns.md` only for generalized cross-branch lessons
-11. state the next safe move before narrowing scope for execution
-
-The startup assessment should make these items explicit:
-
-- `Source-of-Truth`
-- `Record State`
-- `Branch Truth`
-- `Canonical Workstream`
-- `Reuse Baseline`
-- `Next Safe Move`
+That file is ChatGPT-facing and interface-only.
+It helps generate complete prompts that load the correct source-of-truth without pasting the full governance stack.
+It does not own Codex execution behavior, phase transitions, seam continuation, durability, validation, release rules, or branch authority.
+Codex execution remains governed by the owning canon documents listed in this index, especially `Docs/development_rules.md`, `Docs/phase_governance.md`, `Docs/codex_modes.md`, and the active workstream or branch authority record.
 
 If repo truth resolves to blocked `No Active Branch`, `Next Safe Move` must report the blocking repair path instead of inventing a later phase.
 If repo truth resolves to steady-state `No Active Branch`, `Next Safe Move` may truthfully say that no branch should open yet or may name a release-packaging branch whose admission rules pass.
@@ -112,6 +93,7 @@ Governance-only branches are not used for new Nexus work.
 
 Use these for workflow posture, prompt framing, lifecycle rules, and execution scaffolding:
 
+- `Docs/nexus_startup_contract.md`
 - `Docs/development_rules.md`
 - `Docs/phase_governance.md`
 - `Docs/Main.md`
@@ -120,6 +102,8 @@ Use these for workflow posture, prompt framing, lifecycle rules, and execution s
 - `Docs/codex_user_guide.md`
 
 Repo-wide validation-helper rules also live in this governance layer.
+Use `Docs/nexus_startup_contract.md` as the compact ChatGPT/new-chat loader map only.
+Do not treat it as execution authority.
 Use `Docs/phase_governance.md` for the exact phase enum, blocker rules, branch classes, phase resolver, validation helper contract, proof hierarchy, default-budget closeout rule, and desktop UI audit rule instead of recreating those rules inside a workstream doc.
 
 ### Product And Boundary Truth
@@ -151,6 +135,7 @@ Rules:
 Use these for promoted work that needs a stable feature-state, branch-local validation/evidence record, active seam trail, durable artifact/reuse history, and closure history:
 
 - `Docs/workstreams/index.md`
+- `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`
 - `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
 - `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
 - `Docs/workstreams/FB-037_built_in_actions_and_settings_expansion.md`
@@ -235,7 +220,8 @@ These are reference layers, not active workstream or roadmap owners.
   5. `PR Readiness`
   6. `Release Readiness`
 - `Branch Readiness` must plan the whole branch at phase level before Workstream begins, including objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam or seam sequence
-- during `Workstream`, `bounded multi-seam workflow` is the primary model for coherent same-risk seam chains; execute one active seam at a time, validate it, record evidence, and report `continue` or `stop` before the next seam
+- during `Workstream`, `bounded multi-seam workflow` is the primary model for coherent same-risk seam chains; execute one active seam at a time, validate it, record evidence, report `continue` or `stop`, and continue by default when `Next-Seam Continuation Required` applies
+- when a prompt names an active seam inside an approved seam sequence, treat it as the entry seam, not a terminal boundary; stopping after a green seam requires a canon-valid blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback`
 - single-seam fallback is required for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem changes, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation
 - `Workstream` completion does not imply PR readiness; the normal next legal phase is `Hardening`, followed by `Live Validation` and then `PR Readiness`
 - `Post-Release Canon Repair` is not a normal phase or branch; escaped canon repair must ride the prior legal branch or the next active branch's `Branch Readiness`, never direct `main`
@@ -263,6 +249,7 @@ These are reference layers, not active workstream or roadmap owners.
   13. run the normal branch governance validator and the PR-readiness gate mode
   14. report `PR package ready`, create the PR, and validate the live PR state before reporting `PR READY: YES`
   15. only after the PR exists, has no conflicts, has no unresolved Codex comments/issues, and matches merge-target canon may the branch report `PR Readiness GREEN`
+- PR creation details must use the operator copy-block contract from `Docs/phase_governance.md`: separate copy-ready blocks for `PR Title`, `Base Branch`, `Head Branch`, and `PR Summary`; the summary reports included implementation and validation truth only
 - PR Readiness also owns `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early`; none may be deferred into Release Readiness or a later side branch
 - PR Readiness also owns `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown`; `PR package ready` is not `PR Readiness GREEN`
 - PR Readiness also owns the merged-unreleased release-debt owner contract when a branch will merge unreleased implementation work; the merge-target canon must already contain `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:` before PR green
@@ -275,6 +262,7 @@ These are reference layers, not active workstream or roadmap owners.
   5. never use the non-release waiver for `implementation` or `release packaging` branches
   6. never let the waiver clear `Release Debt`, weaken post-merge truth, weaken validation, or permit premature next-workstream branch creation
 - Release Readiness is not a docs-sync phase and not a file-mutation phase; it is analysis-only for repository files and is restricted to release-target validation, release-scope validation, release-artifact validation, GitHub release package information, final release-execution authorization or confirmation, and release-state confirmation after release execution
+- Release package details must use the operator copy-block contract from `Docs/phase_governance.md`: separate copy-ready blocks for `Release Title`, `Release Tag`, `Target Commit`, and `Release Notes`; release notes are detailed, user-facing, and inclusion-only
 - Release Readiness must not edit, stage, commit, generate, or refresh source, docs, canon, validator, helper, release-note, or handoff files; if such work is discovered before merge, return to `PR Readiness`, and if discovered after merge, defer it to the next active branch's `Branch Readiness`
 - tracked file changes while the authority record says `Release Readiness` are blocked as `Release Readiness File Mutation Attempt`
 - a post-release canon repair must not mutate `main`; if merged canon is stale, carry the repair on the still-available prior branch or block the next active branch's `Branch Readiness`
@@ -306,11 +294,13 @@ These are reference layers, not active workstream or roadmap owners.
 
 If you are unsure what to include in a future Nexus Desktop AI prompt:
 
-1. start with `Docs/Main.md`
-2. add `Docs/development_rules.md`
-3. add `Docs/phase_governance.md`
-4. add `Docs/codex_modes.md`
-5. add the directly relevant authority docs for the active question
-6. add live repo evidence only where the truth could have changed or drifted
+1. start with `Docs/nexus_startup_contract.md`
+2. treat it as a loader map, not execution authority
+3. add `Docs/Main.md`
+4. add `Docs/development_rules.md`
+5. add `Docs/phase_governance.md`
+6. add `Docs/codex_modes.md`
+7. add the directly relevant authority docs for the active question
+8. add live repo evidence only where the truth could have changed or drifted
 
 Only after that full scan should scope be narrowed for execution.

@@ -2,7 +2,9 @@ param(
     [ValidateSet("Backup", "Repair", "BackupAndRepair")]
     [string]$Mode = "Backup",
     [string]$OutputDirectory = [Environment]::GetFolderPath("Desktop"),
-    [switch]$SkipPackageState
+    [switch]$SkipPackageState,
+    [switch]$ForceCloseCodex,
+    [switch]$ResetClipboard
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,6 +20,26 @@ function Assert-CodexClosed {
         $details = ($running | Sort-Object ProcessName, Id | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "
         throw "Codex must be fully closed before this utility runs. Still running: $details"
     }
+}
+
+function Stop-CodexIfRequested {
+    param([bool]$Force)
+
+    if (-not $Force) {
+        Assert-CodexClosed
+        return
+    }
+
+    $running = Get-Process | Where-Object { $_.ProcessName -like "*Codex*" -or $_.ProcessName -like "codex" }
+    if (-not $running) {
+        return
+    }
+
+    $details = ($running | Sort-Object ProcessName, Id | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "
+    Write-Step "Closing Codex processes: $details"
+    $running | Stop-Process -Force
+    Start-Sleep -Seconds 2
+    Assert-CodexClosed
 }
 
 function Ensure-Directory {
@@ -120,8 +142,45 @@ $actionBlock
 Repair scope:
 - Removed transient sqlite WAL/SHM files so Codex can rebuild them cleanly.
 - Cleared temp/cache folders that are safe to regenerate.
+- Cleared Electron renderer, code, GPU, and WebGPU caches that can contribute to UI stalls.
+- Optionally reset Windows clipboard state when requested.
 - Did not delete your primary .codex sessions, memories, auth, config, plugins, or skills.
 "@ | Set-Content -LiteralPath $Path -Encoding UTF8
+}
+
+function Invoke-ClipboardReset {
+    param([System.Collections.Generic.List[string]]$Actions)
+
+    try {
+        powershell -NoProfile -STA -Command "Add-Type -AssemblyName System.Windows.Forms; [Windows.Forms.Clipboard]::Clear()"
+        if ($LASTEXITCODE -eq 0) {
+            $Actions.Add("cleared current Windows clipboard contents") | Out-Null
+        } else {
+            $Actions.Add("attempted clipboard clear, but the STA clipboard helper returned exit code $LASTEXITCODE") | Out-Null
+        }
+    } catch {
+        $Actions.Add("clipboard clear failed: $($_.Exception.Message)") | Out-Null
+    }
+
+    $clipboardServices = Get-Service | Where-Object { $_.Name -like "cbdhsvc_*" }
+    foreach ($service in $clipboardServices) {
+        try {
+            Restart-Service -Name $service.Name -Force -ErrorAction Stop
+            $Actions.Add("restarted clipboard service $($service.Name)") | Out-Null
+        } catch {
+            $Actions.Add("clipboard service restart skipped for $($service.Name): $($_.Exception.Message)") | Out-Null
+        }
+    }
+
+    $textInputHosts = Get-Process -Name TextInputHost -ErrorAction SilentlyContinue
+    foreach ($process in $textInputHosts) {
+        try {
+            Stop-Process -Id $process.Id -Force -ErrorAction Stop
+            $Actions.Add("restarted TextInputHost process $($process.Id)") | Out-Null
+        } catch {
+            $Actions.Add("TextInputHost restart skipped for $($process.Id): $($_.Exception.Message)") | Out-Null
+        }
+    }
 }
 
 function New-BackupBundle {
@@ -176,7 +235,10 @@ function New-BackupBundle {
 }
 
 function Invoke-SafeRepair {
-    param([string]$DesktopPath)
+    param(
+        [string]$DesktopPath,
+        [bool]$ResetClipboardState
+    )
 
     $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $repairRoot = Join-Path $DesktopPath "Codex_Repair_Report_$stamp"
@@ -199,7 +261,14 @@ function Invoke-SafeRepair {
     $transientDirs = @(
         "C:\Users\anden\.codex\.tmp",
         "C:\Users\anden\.codex\tmp",
-        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\TempState"
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\TempState",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\AC\Temp",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\Cache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\Code Cache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\GPUCache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\DawnGraphiteCache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\DawnWebGPUCache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\Shared Dictionary\cache"
     )
 
     foreach ($dir in $transientDirs) {
@@ -221,6 +290,10 @@ function Invoke-SafeRepair {
         }
     }
 
+    if ($ResetClipboardState) {
+        Invoke-ClipboardReset -Actions $actions
+    }
+
     New-RepairReport -Path (Join-Path $repairRoot "REPAIR_REPORT.txt") -Actions $actions.ToArray()
 
     return @{
@@ -229,7 +302,7 @@ function Invoke-SafeRepair {
     }
 }
 
-Assert-CodexClosed
+Stop-CodexIfRequested -Force:$ForceCloseCodex
 Ensure-Directory -Path $OutputDirectory
 
 $includePackageState = -not $SkipPackageState
@@ -243,13 +316,13 @@ switch ($Mode) {
     }
     "Repair" {
         Write-Step "Running safe Codex repair."
-        $repairResult = Invoke-SafeRepair -DesktopPath $OutputDirectory
+        $repairResult = Invoke-SafeRepair -DesktopPath $OutputDirectory -ResetClipboardState:$ResetClipboard
     }
     "BackupAndRepair" {
         Write-Step "Creating recovery bundle before repair."
         $backupResult = New-BackupBundle -DesktopPath $OutputDirectory -IncludePackageState:$includePackageState
         Write-Step "Running safe Codex repair."
-        $repairResult = Invoke-SafeRepair -DesktopPath $OutputDirectory
+        $repairResult = Invoke-SafeRepair -DesktopPath $OutputDirectory -ResetClipboardState:$ResetClipboard
     }
 }
 
