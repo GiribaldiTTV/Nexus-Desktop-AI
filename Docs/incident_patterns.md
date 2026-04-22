@@ -147,6 +147,23 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
   - `Docs/phase_governance.md`
   - `dev/orin_branch_governance_validation.py`
 
+## Pattern: UTS Waivers Must Live In The Exact Canonical Artifact
+
+- symptom:
+  Live Validation or PR Readiness records `User Test Summary Results: WAIVED` or `User-Facing Shortcut Validation: WAIVED`, but the waiver lives in recap prose, `## User Test Summary Strategy`, or a validation-contract paragraph rather than the exact canonical `## User Test Summary` section
+- layer:
+  workstream-owned validation evidence, response contract, and branch governance validation
+- root-cause pattern:
+  the branch has a valid no-meaningful-manual-test rationale, but validator parsing trusts loose markers outside the canonical UTS artifact, allowing the response/output contract to drift
+- fix pattern:
+  require an exact `## User Test Summary` section for active `Live Validation` and `PR Readiness` workstreams; require `User Test Summary Waiver Reason:` for UTS waivers and `User-Facing Shortcut Waiver Reason:` for shortcut waivers
+- validation pattern:
+  run `python dev/orin_branch_governance_validation.py`; it must fail if `## User Test Summary Strategy` is present but the exact canonical `## User Test Summary` section lacks the required result and waiver-reason markers
+- source references:
+  - `Docs/phase_governance.md`
+  - `Docs/development_rules.md`
+  - `dev/orin_branch_governance_validation.py`
+
 ## Pattern: Desktop Shortcut Gate Must Precede User Test Summary Handoff
 
 - symptom:

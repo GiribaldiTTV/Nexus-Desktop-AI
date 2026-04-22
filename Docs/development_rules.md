@@ -539,6 +539,7 @@ That checklist must include:
 A recap-style summary is not sufficient when manual validation is relevant.
 
 If no meaningful manual test exists for the change, Codex must say so explicitly under `## User Test Summary` and explain why manual validation is not materially relevant for that slice.
+`## User Test Summary Strategy` is planning context only; it does not satisfy the canonical repo-level `## User Test Summary` artifact.
 
 For active desktop workstreams, the default canonical repo-level `UTS` artifact is the `## User Test Summary` section in the relevant canonical workstream doc unless that doc explicitly declares a different repo path.
 
@@ -554,7 +555,7 @@ For bounded multi-seam Workstream execution, User Test Summary handling is incre
 
 If required user-facing desktop shortcut evidence is outstanding, the active authority record must carry the hard blocker `User-Facing Shortcut Validation Pending`.
 
-The shortcut blocker lifts only after `User-Facing Shortcut Validation: PASS` is recorded with evidence from the declared shortcut path, or `User-Facing Shortcut Validation: WAIVED` is recorded with a reason proving the branch is not desktop/user-facing or the shortcut path is explicitly unavailable.
+The shortcut blocker lifts only after `User-Facing Shortcut Validation: PASS` is recorded with evidence from the declared shortcut path, or `User-Facing Shortcut Validation: WAIVED` is recorded with `User-Facing Shortcut Waiver Reason:` proving the branch is not desktop/user-facing or the shortcut path is explicitly unavailable.
 If `User-Facing Shortcut Validation: FAIL`, keep an explicit blocker and route back to `Workstream` or `Hardening` instead of exporting the branch as final-green.
 
 If a required User Test Summary handoff is outstanding, the active authority record must carry the hard blocker `User Test Summary Results Pending`.
@@ -566,6 +567,7 @@ Expected reporting model:
 - Final phase advancement is BLOCKED until the filled User Test Summary is submitted and digested.
 
 The blocker lifts only after the filled User Test Summary is submitted or a documented waiver exists, the returned results or waiver are digested into the active authority record, and blockers are reevaluated.
+When a waiver is used, the active authority record must include `User Test Summary Results: WAIVED` and `User Test Summary Waiver Reason:` inside the exact `## User Test Summary` section.
 
 Completing a User Test Summary update does not move the branch directly from `Workstream` to `PR Readiness`.
 The normal next phase after Workstream completion remains `Hardening`.
@@ -580,7 +582,7 @@ unless it explicitly explains why the desktop export is not relevant or is being
 
 The ownership hierarchy is:
 
-- workstream doc `## User Test Summary` section = canonical repo source of truth
+- workstream doc exact `## User Test Summary` section = canonical repo source of truth
 - desktop `User Test Summary.txt` = required user-facing exported copy when relevant
 - response-level `## User Test Summary` = current handoff text only
 

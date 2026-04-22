@@ -164,6 +164,8 @@ Workflow mode should usually return:
 - when returned User Test Summary results are still outstanding, the explicit blocker output: `Automated validators and live helper evidence: GREEN.`, `User Test Summary Results: PENDING.`, and `Final phase advancement is BLOCKED until the filled User Test Summary is submitted and digested.`
 - when meaningful desktop UI changed and closeout posture matters, a distinct summary of the live launched-process UI audit results and evidence
 - an explicit statement under `## User Test Summary` when no meaningful manual test exists and why
+- if `User Test Summary Results: WAIVED` is used, the response-level `## User Test Summary` section and the canonical workstream `## User Test Summary` artifact must include `User Test Summary Waiver Reason:`
+- if `User-Facing Shortcut Validation: WAIVED` is used, the response-level `## User Test Summary` section and the canonical workstream `## User Test Summary` artifact must include `User-Facing Shortcut Waiver Reason:`
 - remaining drift or known gaps
 - whether the approved phase is complete
 
@@ -386,7 +388,7 @@ When release-dependent truth changes:
 For desktop workstreams, response-level `## User Test Summary` output and the canonical repo-level `UTS` artifact are related but not interchangeable:
 
 - the response section is the current handoff copy
-- the workstream-owned repo artifact is the durable canonical record unless the workstream explicitly declares another repo path
+- the workstream-owned repo artifact is the exact `## User Test Summary` section, not `## User Test Summary Strategy`, unless the workstream explicitly declares another repo path
 - the desktop `User Test Summary.txt` file is the required user-facing exported copy when relevant, but it is not the default canonical repo record
 
 If a required User Test Summary handoff is outstanding, `User Test Summary Results Pending` is a hard blocker. Codex must not report final phase green or PR-ready while the filled results are missing; it must digest submitted results, update the authority record, reevaluate blockers, and route backward to `Workstream` or `Hardening` if the results expose a mismatch, regression, ambiguity, cleanup issue, or scope drift.

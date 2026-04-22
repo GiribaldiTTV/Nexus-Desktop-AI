@@ -40,6 +40,7 @@
 - WS-31 Workstream completion evaluation is recorded; WS-32 and WS-33 were not executed because another same-layer runtime seam would not add bounded value before Hardening
 - H-1, H-2, and H-3 Hardening are recorded; no runtime/product code changed during Hardening
 - LV-1, LV-2, and LV-3 Live Validation are recorded; no runtime/product code changed during Live Validation
+- LV-R1, LV-R2, and LV-R3 corrective Live Validation repair are recorded; no runtime/product code changed during repair
 
 ## Branch Class
 
@@ -282,8 +283,8 @@
 
 ## Active Seam
 
-- Active seam: `None after LV-3 completion`.
-- Last executed seam: `LV-3 Live Validation Completion Evaluation For PR Readiness Admission`.
+- Active seam: `None after LV-R3 completion`.
+- Last executed seam: `LV-R3 User Test Summary Waiver Handling And Live Validation Re-evaluation`.
 - WS-1 status: complete and durable as architecture-only documentation.
 - WS-2 status: complete and durable as architecture-only documentation.
 - WS-3 status: complete and durable as architecture-only documentation.
@@ -321,6 +322,9 @@
 - LV-1 status: complete and durable as live repo posture and internal trigger intake boundary correctness validation.
 - LV-2 status: complete and durable as user-facing applicability and User Test Summary classification.
 - LV-3 status: complete and durable as Live Validation completion evaluation for PR Readiness admission.
+- LV-R1 status: complete and durable as governance/output drift repair for Live Validation waiver handling.
+- LV-R2 status: complete and durable as launcher-path and User-Facing Shortcut Validation waiver re-evaluation.
+- LV-R3 status: complete and durable as User Test Summary waiver handling re-evaluation and Live Validation green restoration.
 - Next runtime implementation seam: not active; Live Validation is green for the current internal-only milestone.
 
 ## WS-1 External Trigger Source Map
@@ -701,9 +705,13 @@ Reusable validation helper:
 
 ## User Test Summary
 
-- Current classification: no meaningful manual User Test Summary applies for WS-1 through WS-31 or H-1 through H-3.
-- Reason: the current FB-039 implementation remains internal-only and has no user-visible setup, trigger invocation surface, tray/overlay prompt, notification, settings UI, desktop shortcut flow, or external device integration.
-- Desktop UTS export: not required for H-3.
+- Current classification: no meaningful manual User Test Summary applies for WS-1 through WS-31, H-1 through H-3, LV-1 through LV-3, or LV-R1 through LV-R3.
+- User-Facing Shortcut Path: `Not applicable - no user-facing desktop entrypoint exists for the current internal-only FB-039 milestone.`
+- User-Facing Shortcut Validation: `WAIVED`
+- User-Facing Shortcut Waiver Reason: `The current FB-039 milestone is internal-only and has no launcher, shortcut, tray, overlay, settings, plugin-host, protocol, transport, or operator-facing invocation path to exercise.`
+- User Test Summary Results: `WAIVED`
+- User Test Summary Waiver Reason: `The current FB-039 milestone remains internal-only, in-memory, and validator-proven; a filled manual User Test Summary would not materially validate behavior because no user-visible setup or invocation surface exists.`
+- Desktop UTS export: not required for LV-R3 because no user-facing desktop path exists.
 - Future trigger: the first seam that adds user-visible setup, operator-facing trigger invocation, external integration setup, desktop-visible prompt, notification, tray/overlay change, settings UI, or manual trigger workflow must create a meaningful User Test Summary handoff and follow the returned-results blocker model before Live Validation or PR Readiness can advance.
 
 ## WS-8 Execution Record
@@ -1583,8 +1591,9 @@ User Test Summary classification:
 
 - User-Facing Shortcut Path: `Not applicable - no user-facing desktop entrypoint exists for the current internal-only FB-039 milestone.`
 - User-Facing Shortcut Validation: `WAIVED`
+- User-Facing Shortcut Waiver Reason: `The current FB-039 milestone is internal-only and has no launcher, shortcut, tray, overlay, settings, plugin-host, protocol, transport, or operator-facing invocation path to exercise.`
 - User Test Summary Results: `WAIVED`
-- Waiver reason: the branch does not introduce user-facing or operator-facing behavior, so desktop shortcut validation and filled User Test Summary handoff would not materially validate the changed boundary.
+- User Test Summary Waiver Reason: `The current FB-039 milestone remains internal-only, in-memory, and validator-proven; a filled manual User Test Summary would not materially validate behavior because no user-visible setup or invocation surface exists.`
 
 LV-2 decision:
 
@@ -1609,9 +1618,65 @@ Live Validation decision:
 - Next legal phase is `PR Readiness`.
 - PR Readiness must perform the governance drift audit, merge-target canon review, helper-retention review, next-workstream selection, and final dirty-branch gate before PR creation.
 
+## LV-R1 Governance/Output Drift Repair For Live Validation Waiver Handling
+
+LV-R1 found that the prior Live Validation waiver was behaviorally correct but under-enforced. The workstream already had a canonical `## User Test Summary` section, but the current Live Validation waiver markers were recorded outside that exact artifact and the validator could parse loose markers without proving waiver reasons inside the canonical UTS section.
+
+Drift finding:
+
+- Governance/output drift existed because `User Test Summary Results: WAIVED` and `User-Facing Shortcut Validation: WAIVED` were not machine-checked against an exact canonical `## User Test Summary` section with labeled waiver reasons.
+- The validator accepted markers from broader workstream prose, which could let `## User Test Summary Strategy` or a validation-contract recap appear sufficient.
+- This drift would block PR Readiness until repaired because PR Readiness must not inherit ambiguous UTS or shortcut waiver truth.
+
+LV-R1 repair:
+
+- `dev/orin_branch_governance_validation.py` now treats only the exact `## User Test Summary` section as the canonical UTS artifact.
+- Active `Live Validation` and `PR Readiness` workstreams must include that exact section.
+- `User Test Summary Results: WAIVED` now requires `User Test Summary Waiver Reason:`.
+- `User-Facing Shortcut Validation: WAIVED` now requires `User-Facing Shortcut Waiver Reason:` when the shortcut gate applies.
+
+LV-R1 decision:
+
+- Continue to LV-R2 because the waiver criteria had to be re-evaluated after tightening the machine-checkable contract.
+
+## LV-R2 User-Facing Shortcut Validation Waiver Re-evaluation
+
+LV-R2 re-evaluated the launcher-path and shortcut waiver against the corrected contract.
+
+Shortcut waiver basis:
+
+- The current FB-039 milestone has no launcher, desktop shortcut, tray, overlay, settings UI, plugin host, protocol, transport, Stream Deck surface, or operator-facing invocation path.
+- Running the Nexus desktop shortcut would not exercise FB-039 because the admitted milestone is internal-only intake state and readback logic.
+- Creating a manual shortcut path for this milestone would invent user-facing product behavior outside scope.
+
+LV-R2 decision:
+
+- `User-Facing Shortcut Validation: WAIVED` remains valid.
+- The waiver reason is now recorded inside `## User Test Summary`.
+- No `User-Facing Shortcut Validation Pending` blocker applies.
+
+## LV-R3 User Test Summary Waiver Handling And Live Validation Re-evaluation
+
+LV-R3 re-evaluated User Test Summary handling after LV-R1/LV-R2. The filled User Test Summary handoff remains not meaningful because no user-visible or operator-facing behavior exists for the current internal-only milestone.
+
+User Test Summary waiver basis:
+
+- Repo-side validators prove the internal trigger intake boundary.
+- There is no user-visible setup, invocation, prompt, launcher, tray, overlay, settings, external device integration, or manual operator path.
+- A filled manual UTS would not add material evidence without inventing a product surface.
+
+LV-R3 decision:
+
+- `User Test Summary Results: WAIVED` remains valid.
+- The waiver reason is now recorded inside `## User Test Summary`.
+- No `User Test Summary Results Pending` blocker applies.
+- Corrected Live Validation is `GREEN`.
+- Next legal phase remains `PR Readiness`.
+
 ## Scope
 
 - Record LV-1 through LV-3 Live Validation when validation remains green.
+- Record LV-R1 through LV-R3 corrective Live Validation waiver-handling repair when validation remains green.
 - Preserve H-1 through H-3 as complete and durable Hardening pressure-test, validator tightening, and completion evaluation.
 - Preserve WS-1 as complete and durable architecture-only source map and ownership vocabulary.
 - Preserve WS-2 as complete and durable architecture-only lifecycle ownership and trust/safety boundary contract.
@@ -1655,10 +1720,11 @@ Live Validation decision:
 - No durable helper creation beyond the reusable external trigger intake validator coverage recorded by WS-8, WS-11, WS-14, WS-17, WS-20, WS-23, WS-26, and WS-29.
 - No FB-040 monitoring, thermals, or HUD scope.
 - No trust/safety enforcement logic, transport payload schema detail, user-facing settings/UI, runtime plugin lifecycle implementation, PR packaging, or release work in LV-1/LV-2/LV-3.
+- No runtime/product code, helper creation, PR packaging, or release work in LV-R1/LV-R2/LV-R3.
 
 ## Validation Contract
 
-- Live Validation LV-1/LV-2/LV-3 validation:
+- Live Validation LV-1/LV-2/LV-3 and LV-R1/LV-R2/LV-R3 validation:
   - `python dev\orin_branch_governance_validation.py`
   - `python dev\orin_external_trigger_intake_validation.py`
   - `python -m compileall desktop\external_trigger_intake.py dev\orin_external_trigger_intake_validation.py`
@@ -1667,10 +1733,12 @@ Live Validation decision:
   - `python dev\orin_interaction_baseline_validation.py`
   - `git diff --check`
   - `git status --short --branch`
-- LV-1/LV-2/LV-3 introduce no user-visible desktop behavior; no desktop `User Test Summary.txt` export is required.
+- LV-1/LV-2/LV-3 and LV-R1/LV-R2/LV-R3 introduce no user-visible desktop behavior; no desktop `User Test Summary.txt` export is required.
 - User-Facing Shortcut Path: `Not applicable - no user-facing desktop entrypoint exists for the current internal-only FB-039 milestone.`
 - User-Facing Shortcut Validation: `WAIVED`
+- User-Facing Shortcut Waiver Reason: `The current FB-039 milestone is internal-only and has no launcher, shortcut, tray, overlay, settings, plugin-host, protocol, transport, or operator-facing invocation path to exercise.`
 - User Test Summary Results: `WAIVED`
+- User Test Summary Waiver Reason: `The current FB-039 milestone remains internal-only, in-memory, and validator-proven; a filled manual User Test Summary would not materially validate behavior because no user-visible setup or invocation surface exists.`
 - Future runtime seams must be activated by a later bounded pass with explicit source-of-truth reconstruction, affected files, validation gates, cleanup expectations, and User Test Summary classification.
 - Reuse existing validator families and `Docs/validation_helper_registry.md` guidance first.
 - Additional new helpers are blocked until a concrete validation gap exists, the helper purpose is branch-scoped or reusable by design, and registry status/consolidation rules are satisfied.
@@ -1679,6 +1747,7 @@ Live Validation decision:
 ## Stop Conditions
 
 - Stop if FB-039 scope expands beyond Live Validation repo-side/internal boundary proof, user-facing applicability classification, and Live Validation completion evaluation during LV-1/LV-2/LV-3.
+- Stop if LV-R1/LV-R2/LV-R3 changes runtime/product behavior or widens beyond waiver-handling governance/output repair and re-evaluation.
 - Stop if LV-1/LV-2/LV-3 starts defining trust/safety enforcement logic, protocol mechanics, payload schemas, settings UI, installer flow, plugin host, action/callable-group execution, persistence, audit log format, runtime marker schema, serialized evidence format, or product runtime behavior.
 - Stop if a downstream seam cannot be stated as the same workstream, same phase, same branch class, same risk class, and same subsystem family or tightly coupled architecture chain.
 - Stop if reusable registry readiness detail proof cannot demonstrate deterministic readback, defer-only follow-through, no registry mutation, and no execution routing.
@@ -1728,6 +1797,9 @@ Live Validation decision:
 - LV-1 live repo posture and internal trigger intake boundary correctness is recorded and validated.
 - LV-2 user-facing applicability and User Test Summary classification is recorded and validated.
 - LV-3 Live Validation completion evaluation for PR Readiness admission is recorded and validated.
+- LV-R1 governance/output drift repair for Live Validation waiver handling is recorded and validated.
+- LV-R2 User-Facing Shortcut Validation waiver criteria is re-evaluated and validated.
+- LV-R3 User Test Summary waiver handling is re-evaluated and validated.
 - User-facing shortcut validation and User Test Summary results are waived with explicit no-meaningful-manual-test rationale.
 - FB-038 remains released/closed and release debt remains clear.
 - Repo state is no longer `No Active Branch`; active branch truth is `feature/fb-039-external-trigger-plugin-integration-architecture`.
@@ -1743,4 +1815,4 @@ Live Validation decision:
 
 ## Branch Readiness Notes
 
-Branch Readiness durability is complete, WS-1 through WS-5 are durable, WS-6 is recorded as the first internal-only runtime skeleton, WS-7 is recorded as the in-memory registration plus bounded invocation follow-through layer, WS-8 is recorded as reusable validation plus no-UTS classification alignment, WS-9 is recorded as post-follow-through runtime boundary review, WS-10 is recorded as internal-only lifecycle state transitions, WS-11 is recorded as validation tightening and runtime-boundary confirmation, WS-12 is recorded as follow-on boundary review, WS-13 is recorded as an internal-only decision evidence snapshot, WS-14 is recorded as validation tightening and runtime-boundary confirmation for decision evidence snapshots, WS-15 is recorded as follow-on boundary review, WS-16 is recorded as an internal-only boundary state snapshot, WS-17 is recorded as validation tightening and runtime-boundary confirmation for state snapshots, WS-18 is recorded as follow-on boundary review, WS-19 is recorded as an internal-only readiness inspection, WS-20 is recorded as validation tightening and runtime-boundary confirmation for readiness inspections, WS-21 is recorded as follow-on boundary review, WS-22 is recorded as an internal-only registry readiness sweep, WS-23 is recorded as validation tightening and runtime-boundary confirmation for registry readiness sweeps, WS-24 is recorded as follow-on boundary review, WS-25 is recorded as an internal-only registry readiness summary, WS-26 is recorded as validation tightening and runtime-boundary confirmation for registry readiness summaries, WS-27 is recorded as follow-on boundary review, WS-28 is recorded as an internal-only registry readiness detail snapshot, WS-29 is recorded as validation tightening and runtime-boundary confirmation for registry readiness detail snapshots, WS-30 is recorded as follow-on boundary review, WS-31 is recorded as Workstream completion evaluation, H-1 through H-3 are recorded as Hardening green, and LV-1 through LV-3 are recorded as Live Validation green with PR Readiness as the next legal phase.
+Branch Readiness durability is complete, WS-1 through WS-5 are durable, WS-6 is recorded as the first internal-only runtime skeleton, WS-7 is recorded as the in-memory registration plus bounded invocation follow-through layer, WS-8 is recorded as reusable validation plus no-UTS classification alignment, WS-9 is recorded as post-follow-through runtime boundary review, WS-10 is recorded as internal-only lifecycle state transitions, WS-11 is recorded as validation tightening and runtime-boundary confirmation, WS-12 is recorded as follow-on boundary review, WS-13 is recorded as an internal-only decision evidence snapshot, WS-14 is recorded as validation tightening and runtime-boundary confirmation for decision evidence snapshots, WS-15 is recorded as follow-on boundary review, WS-16 is recorded as an internal-only boundary state snapshot, WS-17 is recorded as validation tightening and runtime-boundary confirmation for state snapshots, WS-18 is recorded as follow-on boundary review, WS-19 is recorded as an internal-only readiness inspection, WS-20 is recorded as validation tightening and runtime-boundary confirmation for readiness inspections, WS-21 is recorded as follow-on boundary review, WS-22 is recorded as an internal-only registry readiness sweep, WS-23 is recorded as validation tightening and runtime-boundary confirmation for registry readiness sweeps, WS-24 is recorded as follow-on boundary review, WS-25 is recorded as an internal-only registry readiness summary, WS-26 is recorded as validation tightening and runtime-boundary confirmation for registry readiness summaries, WS-27 is recorded as follow-on boundary review, WS-28 is recorded as an internal-only registry readiness detail snapshot, WS-29 is recorded as validation tightening and runtime-boundary confirmation for registry readiness detail snapshots, WS-30 is recorded as follow-on boundary review, WS-31 is recorded as Workstream completion evaluation, H-1 through H-3 are recorded as Hardening green, LV-1 through LV-3 are recorded as Live Validation green, and LV-R1 through LV-R3 are recorded as corrective waiver-handling repair with PR Readiness as the next legal phase.

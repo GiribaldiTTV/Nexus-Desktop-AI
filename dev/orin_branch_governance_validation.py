@@ -330,6 +330,7 @@ UTS_RESULTS_BLOCKER_PHRASES = (
 
 UTS_RESULTS_BLOCKER = "User Test Summary Results Pending"
 UTS_RESULT_LABEL = "User Test Summary Results:"
+UTS_WAIVER_REASON_LABEL = "User Test Summary Waiver Reason:"
 UTS_RESULT_VALUES = ("PENDING", "PASS", "FAIL", "WAIVED")
 UTS_CLEAR_RESULT_VALUES = ("PASS", "WAIVED")
 
@@ -353,6 +354,7 @@ USER_FACING_SHORTCUT_GATE_PHRASES = (
 USER_FACING_SHORTCUT_BLOCKER = "User-Facing Shortcut Validation Pending"
 USER_FACING_SHORTCUT_RESULT_LABEL = "User-Facing Shortcut Validation:"
 USER_FACING_SHORTCUT_PATH_LABEL = "User-Facing Shortcut Path:"
+USER_FACING_SHORTCUT_WAIVER_REASON_LABEL = "User-Facing Shortcut Waiver Reason:"
 USER_FACING_SHORTCUT_RESULT_VALUES = ("PENDING", "PASS", "FAIL", "WAIVED")
 USER_FACING_SHORTCUT_CLEAR_VALUES = ("PASS", "WAIVED")
 
@@ -679,17 +681,38 @@ def _parse_workstream_doc(text: str) -> dict[str, object]:
     }
 
 
+def _user_test_summary_section(text: str) -> str:
+    return _section(text, "User Test Summary")
+
+
+def _extract_marker_value(block: str, label: str) -> str:
+    matches = re.findall(
+        rf"^\s*(?:-\s*)?{re.escape(label)}\s*`?(.+?)`?\s*$",
+        block,
+        flags=re.M,
+    )
+    if not matches:
+        return ""
+    return matches[-1].strip().strip("`").strip()
+
+
 def _parse_uts_result_state(text: str) -> str:
-    matches = re.findall(rf"{re.escape(UTS_RESULT_LABEL)}\s*`?([A-Za-z]+)`?", text)
+    section = _user_test_summary_section(text)
+    matches = re.findall(rf"{re.escape(UTS_RESULT_LABEL)}\s*`?([A-Za-z]+)`?", section)
     if not matches:
         return ""
     return matches[-1].strip().upper()
 
 
+def _parse_uts_waiver_reason(text: str) -> str:
+    return _extract_marker_value(_user_test_summary_section(text), UTS_WAIVER_REASON_LABEL)
+
+
 def _parse_user_facing_shortcut_state(text: str) -> str:
+    section = _user_test_summary_section(text)
     matches = re.findall(
         rf"{re.escape(USER_FACING_SHORTCUT_RESULT_LABEL)}\s*`?([A-Za-z]+)`?",
-        text,
+        section,
     )
     if not matches:
         return ""
@@ -697,23 +720,27 @@ def _parse_user_facing_shortcut_state(text: str) -> str:
 
 
 def _parse_user_facing_shortcut_path(text: str) -> str:
-    matches = re.findall(
-        rf"{re.escape(USER_FACING_SHORTCUT_PATH_LABEL)}\s*`?([^\r\n`]+)`?",
-        text,
+    return _extract_marker_value(_user_test_summary_section(text), USER_FACING_SHORTCUT_PATH_LABEL)
+
+
+def _parse_user_facing_shortcut_waiver_reason(text: str) -> str:
+    return _extract_marker_value(
+        _user_test_summary_section(text),
+        USER_FACING_SHORTCUT_WAIVER_REASON_LABEL,
     )
-    if not matches:
-        return ""
-    return matches[-1].strip()
 
 
 def _has_user_test_summary(text: str) -> bool:
-    return "## User Test Summary" in text
+    return bool(_user_test_summary_section(text))
 
 
 def _requires_user_facing_shortcut_gate(text: str) -> bool:
-    if not _has_user_test_summary(text):
+    section = _user_test_summary_section(text)
+    if not section:
         return False
-    text_lower = text.casefold()
+    if USER_FACING_SHORTCUT_RESULT_LABEL in section or USER_FACING_SHORTCUT_PATH_LABEL in section:
+        return True
+    section_lower = section.casefold()
     desktop_surface_markers = (
         "desktop",
         "tray",
@@ -722,7 +749,7 @@ def _requires_user_facing_shortcut_gate(text: str) -> bool:
         "launcher",
         "user-facing",
     )
-    return any(marker in text_lower for marker in desktop_surface_markers)
+    return any(marker in section_lower for marker in desktop_surface_markers)
 
 
 def _collect_active_index_paths(text: str) -> set[str]:
@@ -864,13 +891,19 @@ def _run_uts_results_pr_gate(require, backlog_entries: list[dict[str, str]]) -> 
             continue
 
         workstream_text = _read_text(workstream_path)
-        if not _has_user_test_summary(workstream_text):
-            continue
 
         workstream_info = _parse_workstream_doc(workstream_text)
         current_phase = str(workstream_info["current_phase"])
         if current_phase not in {"Live Validation", "PR Readiness"}:
             continue
+
+        require(
+            _has_user_test_summary(workstream_text),
+            (
+                "PR readiness gate: User Test Summary Results Pending blocker is active; "
+                f"{canonical_path} must include an exact '## User Test Summary' section before PR READY: YES"
+            ),
+        )
 
         uts_result = _parse_uts_result_state(workstream_text)
         blockers = list(workstream_info["blockers"])
@@ -894,6 +927,14 @@ def _run_uts_results_pr_gate(require, backlog_entries: list[dict[str, str]]) -> 
                         "before PR READY: YES"
                     ),
                 )
+                if shortcut_result == "WAIVED":
+                    require(
+                        bool(_parse_user_facing_shortcut_waiver_reason(workstream_text)),
+                        (
+                            "PR readiness gate: User-Facing Shortcut Validation waiver is incomplete; "
+                            f"{canonical_path} must declare '{USER_FACING_SHORTCUT_WAIVER_REASON_LABEL}'"
+                        ),
+                    )
 
         require(
             bool(uts_result),
@@ -913,6 +954,14 @@ def _run_uts_results_pr_gate(require, backlog_entries: list[dict[str, str]]) -> 
                 "must be submitted or waived, digested, and reevaluated before PR READY: YES"
             ),
         )
+        if uts_result == "WAIVED":
+            require(
+                bool(_parse_uts_waiver_reason(workstream_text)),
+                (
+                    "PR readiness gate: User Test Summary waiver is incomplete; "
+                    f"{canonical_path} must declare '{UTS_WAIVER_REASON_LABEL}'"
+                ),
+            )
 
 
 def _run_next_workstream_gate(require, backlog_entries: list[dict[str, str]], roadmap_text: str) -> None:
@@ -1585,12 +1634,20 @@ def main() -> int:
                 f"{canonical_path}: Active Seam section must clearly identify the active seam",
             )
 
-        if current_phase in {"Live Validation", "PR Readiness"} and _has_user_test_summary(workstream_text):
+        if current_phase in {"Live Validation", "PR Readiness"}:
+            require(
+                _has_user_test_summary(workstream_text),
+                (
+                    f"{canonical_path}: active '{current_phase}' workstream must include an exact "
+                    "'## User Test Summary' section; '## User Test Summary Strategy' is not the "
+                    "canonical UTS artifact"
+                ),
+            )
             uts_result = _parse_uts_result_state(workstream_text)
             require(
                 bool(uts_result),
                 (
-                    f"{canonical_path}: active user-facing '{current_phase}' workstream must declare "
+                    f"{canonical_path}: active '{current_phase}' workstream must declare "
                     f"'{UTS_RESULT_LABEL}'"
                 ),
             )
@@ -1631,6 +1688,14 @@ def main() -> int:
                         (
                             f"{canonical_path}: {UTS_RESULTS_BLOCKER} must clear after "
                             f"{UTS_RESULT_LABEL} {uts_result}"
+                        ),
+                    )
+                if uts_result == "WAIVED":
+                    require(
+                        bool(_parse_uts_waiver_reason(workstream_text)),
+                        (
+                            f"{canonical_path}: {UTS_RESULT_LABEL} WAIVED requires "
+                            f"'{UTS_WAIVER_REASON_LABEL}' in the exact '## User Test Summary' section"
                         ),
                     )
                 if current_phase == "PR Readiness":
@@ -1699,6 +1764,15 @@ def main() -> int:
                         (
                             f"{canonical_path}: {USER_FACING_SHORTCUT_BLOCKER} must clear after "
                             f"{USER_FACING_SHORTCUT_RESULT_LABEL} {shortcut_result}"
+                        ),
+                    )
+                if shortcut_result == "WAIVED":
+                    require(
+                        bool(_parse_user_facing_shortcut_waiver_reason(workstream_text)),
+                        (
+                            f"{canonical_path}: {USER_FACING_SHORTCUT_RESULT_LABEL} WAIVED requires "
+                            f"'{USER_FACING_SHORTCUT_WAIVER_REASON_LABEL}' in the exact "
+                            "'## User Test Summary' section"
                         ),
                     )
                 uts_result_for_shortcut = _parse_uts_result_state(workstream_text)

@@ -490,6 +490,7 @@ Machine-checkable authority-record markers:
 - `User-Facing Shortcut Validation: PASS`
 - `User-Facing Shortcut Validation: FAIL`
 - `User-Facing Shortcut Validation: WAIVED`
+- `User-Facing Shortcut Waiver Reason:`
 
 Required proof:
 
@@ -501,7 +502,7 @@ Required proof:
 
 Lift condition:
 
-- `User-Facing Shortcut Validation: PASS` is recorded with evidence from the declared shortcut path, or `User-Facing Shortcut Validation: WAIVED` is recorded with a reason showing the branch is not desktop/user-facing or the shortcut path is explicitly unavailable
+- `User-Facing Shortcut Validation: PASS` is recorded with evidence from the declared shortcut path, or `User-Facing Shortcut Validation: WAIVED` is recorded with `User-Facing Shortcut Waiver Reason:` showing the branch is not desktop/user-facing or the shortcut path is explicitly unavailable
 - the blocker state is reevaluated after the result is digested
 
 Routing:
@@ -526,11 +527,12 @@ Required status model:
 
 Machine-checkable authority-record markers:
 
+- the active authority record must include an exact `## User Test Summary` section; `## User Test Summary Strategy` is planning context and is not the canonical `UTS` artifact
 - while pending, the active authority record must include `User Test Summary Results: PENDING`
 - while pending, the active authority record must list `User Test Summary Results Pending` under `## Blockers`
 - while pending, `## Next Legal Phase` must not advance beyond the current phase
 - when passing returned results are digested, the active authority record must include `User Test Summary Results: PASS` and a digest of the returned results before the blocker can clear
-- when a waiver is used, the active authority record must include `User Test Summary Results: WAIVED` and a documented waiver reason before the blocker can clear
+- when a waiver is used, the active authority record must include `User Test Summary Results: WAIVED` and `User Test Summary Waiver Reason:` before the blocker can clear
 - when returned results fail or expose ambiguity, the active authority record must keep or replace the blocker with the appropriate Workstream or Hardening blocker and route backward rather than advancing
 
 Lift condition:
