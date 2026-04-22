@@ -2,7 +2,8 @@ param(
     [ValidateSet("Backup", "Repair", "BackupAndRepair")]
     [string]$Mode = "Backup",
     [string]$OutputDirectory = [Environment]::GetFolderPath("Desktop"),
-    [switch]$SkipPackageState
+    [switch]$SkipPackageState,
+    [switch]$ForceCloseCodex
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,6 +19,26 @@ function Assert-CodexClosed {
         $details = ($running | Sort-Object ProcessName, Id | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "
         throw "Codex must be fully closed before this utility runs. Still running: $details"
     }
+}
+
+function Stop-CodexIfRequested {
+    param([bool]$Force)
+
+    if (-not $Force) {
+        Assert-CodexClosed
+        return
+    }
+
+    $running = Get-Process | Where-Object { $_.ProcessName -like "*Codex*" -or $_.ProcessName -like "codex" }
+    if (-not $running) {
+        return
+    }
+
+    $details = ($running | Sort-Object ProcessName, Id | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "
+    Write-Step "Closing Codex processes: $details"
+    $running | Stop-Process -Force
+    Start-Sleep -Seconds 2
+    Assert-CodexClosed
 }
 
 function Ensure-Directory {
@@ -120,6 +141,7 @@ $actionBlock
 Repair scope:
 - Removed transient sqlite WAL/SHM files so Codex can rebuild them cleanly.
 - Cleared temp/cache folders that are safe to regenerate.
+- Cleared Electron renderer, code, GPU, and WebGPU caches that can contribute to UI stalls.
 - Did not delete your primary .codex sessions, memories, auth, config, plugins, or skills.
 "@ | Set-Content -LiteralPath $Path -Encoding UTF8
 }
@@ -199,7 +221,14 @@ function Invoke-SafeRepair {
     $transientDirs = @(
         "C:\Users\anden\.codex\.tmp",
         "C:\Users\anden\.codex\tmp",
-        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\TempState"
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\TempState",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\AC\Temp",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\Cache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\Code Cache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\GPUCache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\DawnGraphiteCache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\DawnWebGPUCache",
+        "C:\Users\anden\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Roaming\Codex\Shared Dictionary\cache"
     )
 
     foreach ($dir in $transientDirs) {
@@ -229,7 +258,7 @@ function Invoke-SafeRepair {
     }
 }
 
-Assert-CodexClosed
+Stop-CodexIfRequested -Force:$ForceCloseCodex
 Ensure-Directory -Path $OutputDirectory
 
 $includePackageState = -not $SkipPackageState
