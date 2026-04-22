@@ -32,7 +32,9 @@ Workflow mode exists to execute approved work without silent scope drift.
 
 ## Required Startup Assessment
 
-Before planning, patching, reviewing, or recommending the next move in either mode, Codex must run the startup contract from `Docs/Main.md`.
+Before planning, patching, reviewing, or recommending the next move in either mode, Codex must run the startup contract from `Docs/nexus_startup_contract.md`.
+
+That startup contract is the compact Codex and ChatGPT loader entrypoint. It routes to the owning canon docs instead of requiring every new prompt to paste the whole governance stack.
 
 That startup assessment should explicitly answer:
 

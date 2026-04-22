@@ -108,7 +108,9 @@ Record-state meaning:
 
 ## Required Startup Contract
 
-Before planning, patching, reviewing, or recommending the next move, Codex must follow the canonical startup contract in `Docs/Main.md`.
+Before planning, patching, reviewing, or recommending the next move, Codex must follow the canonical startup contract in `Docs/nexus_startup_contract.md`.
+
+That compact loader contract routes back through `Docs/Main.md`, `Docs/development_rules.md`, `Docs/phase_governance.md`, and `Docs/codex_modes.md` so new chats do not need the full governance stack pasted into the prompt.
 
 That startup pass must make explicit:
 
