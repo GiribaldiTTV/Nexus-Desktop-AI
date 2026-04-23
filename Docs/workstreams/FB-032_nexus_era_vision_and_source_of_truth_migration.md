@@ -27,23 +27,28 @@
 
 ## Current Phase
 
-- Phase: `Live Validation`
+- Phase: `PR Readiness`
 
 ## Phase Status
 
-- `LV-1 complete / PR Readiness admission ready`
+- `PR-1 merge-target canon and selected-next package in progress`
 - FB-031 is released and closed in `v1.6.1-prebeta`.
 - Latest public prerelease truth is `v1.6.1-prebeta`.
-- Release debt is clear.
-- FB-032 Branch Readiness is complete and this record is the active Live Validation authority.
+- Release debt is clear before FB-032 merge.
+- FB-032 Branch Readiness is complete and this record is the active PR Readiness authority.
 - WS-1 current-vs-historical source-of-truth inventory and naming policy is complete.
 - GOV-WS1 bounded multi-seam continuation repair is complete after the WS-1 pass stopped before acting on the admitted WS-2 continuation.
 - WS-2 classification and mapping of canonical vs historical surfaces is complete.
 - WS-3 validation and admission contract for controlled migration execution is complete.
 - H-1 pressure test of the source-of-truth migration frame, naming policy, surface classification, and migration admission contract is complete.
 - LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, and architecture-only waiver handling are complete.
+- GOV-PR1 backlog-selection governance repair is complete and durably recorded at `ce93a2212d8b3360fad69dfae208d9ec58f88500`.
+- PR-1 merge-target canon, release-debt target, selected-next workstream, and PR package details are in progress.
+- PR-2 durable branch truth, PR-readiness gate, and clean branch confirmation are pending.
+- PR-3 live PR creation and validation are pending.
 - No FB-032 wording migration, persona work, runtime behavior, UI implementation, rebrand execution, release work, or source-of-truth migration implementation has started.
-- The FB-032 Live Validation pass is complete and the next legal phase is PR Readiness.
+- FB-032 remains architecture-only and canon-only.
+- The next legal phase is Release Readiness after PR merge.
 
 ## Branch Class
 
@@ -151,7 +156,7 @@ Seam 3: Validation and admission contract for controlled migration execution
 
 ## Active Seam
 
-Active seam: LV-1 Live Validation repo-truth and applicability classification is complete; FB-032 Live Validation is complete and the next legal phase is PR Readiness.
+Active seam: PR-1 PR Readiness merge-target canon and package validation is in progress.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-032, define branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and the first Workstream seam.
@@ -177,13 +182,16 @@ Active seam: LV-1 Live Validation repo-truth and applicability classification is
 - GOV-PR1 Status: Completed / executed.
 - GOV-PR1 Boundary: repair backlog-selection governance drift so open backlog selection is priority-led, `Target Version` is excluded from open-candidate selection, deferred entries carry when/why/unblock context, and validator coverage enforces the rule.
 - GOV-PR1 Non-Includes: no runtime behavior, no UI implementation, no persona implementation, no controlled migration execution, no release target assignment, no selected-next workstream decision, no branch creation, and no PR creation.
+- PR-1 Status: In progress.
+- PR-1 Boundary: merge-target canon completeness, release-debt target semantics, selected-next workstream, branch-creation deferral, and PR package details.
+- PR-1 Non-Includes: no implementation, no runtime behavior, no UI implementation, no persona implementation, no controlled migration execution, no release tag, no release publication, and no successor branch creation.
 
 ## Seam Continuation Decision
 
-Continue Decision: `stop`
-Next Active Seam: `PR-1 PR Readiness merge-target canon and package validation`
-Stop Condition: `Phase boundary reached`
-Continuation Action: FB-032 Live Validation is complete after LV-1; the next legal phase is PR Readiness, not another Live Validation seam.
+Continue Decision: `continue`
+Next Active Seam: `PR-2 PR Readiness governance gate and durable branch truth`
+Stop Condition: `None while PR Readiness blockers are being cleared`
+Continuation Action: Complete PR-1, then continue to PR-2 and PR-3 inside PR Readiness before reporting PR-ready.
 
 ## WS-1 Execution Record
 
@@ -392,6 +400,45 @@ LV-1 validated the completed FB-032 architecture-only milestone against live rep
 - User Test Summary Results: WAIVED
 - User Test Summary Waiver Reason: The milestone remains architecture-only and validator-proven through repo/canon checks; a filled manual UTS would not materially validate behavior because no user-visible setup, display, runtime UI, source-of-truth migration execution, wording migration, persona behavior, or invocation surface exists.
 
+## Post-Merge State
+
+Merged-Unreleased Release-Debt Owner: FB-032 Nexus-era vision and source-of-truth migration.
+Repo State: No Active Branch after PR merge until FB-032 release debt clears.
+Release Target: v1.6.2-prebeta.
+Release Floor: patch prerelease.
+Version Rationale: FB-032 is architecture-only and canon-only source-of-truth migration planning, naming policy, surface classification, admission-contract, governance repair, hardening, Live Validation waiver, and PR Readiness merge-target work with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning and admission work advances by patch prerelease from `v1.6.1-prebeta` to `v1.6.2-prebeta`.
+Release Scope: Architecture-only Nexus-era source-of-truth inventory, current-vs-historical naming policy, canonical-vs-historical surface classification, controlled migration admission contract, bounded multi-seam continuation governance repair, release-note governance repair, backlog-selection governance repair, hardening pressure test, Live Validation waiver truth, and PR Readiness merge-target canon.
+Release Artifacts: Tag v1.6.2-prebeta; release title Pre-Beta v1.6.2; inclusion-only release notes summarize the FB-032 source-of-truth migration frame, naming and historical-preservation policy, controlled migration admission contract, governance repairs, hardening result, Live Validation waivers, selected-next deferral, and clean PR history.
+Post-Release Truth: FB-032 is Released / Closed in v1.6.2-prebeta; release debt is clear; FB-004 may enter Branch Readiness only after the FB-032 release is published, `main` is updated and revalidated, and the repo-level admission gate passes.
+Selected Next Workstream: FB-004 Future boot orchestrator layer.
+Next-Branch Creation Gate: Do not create the FB-004 branch during FB-032 PR Readiness; successor branch creation is deferred to FB-004 Branch Readiness after PR merge, FB-032 release execution, updated-main revalidation, and release-debt clearance.
+
+## PR Readiness Package Record
+
+PR-1 through PR-3 prepare and validate the FB-032 PR package for the architecture-only `v1.6.2-prebeta` release-debt milestone.
+
+### PR Readiness Findings
+
+- Merge-Target Canon: FB-032 post-merge truth is encoded as the merged-unreleased release-debt owner with repo state `No Active Branch` until release debt clears.
+- Release Target Semantics: release target is `v1.6.2-prebeta` from latest public prerelease `v1.6.1-prebeta` plus `Release Floor: patch prerelease`.
+- Release Scope: architecture-only Nexus-era source-of-truth inventory, current-vs-historical naming policy, canonical-vs-historical surface classification, controlled migration admission contract, governance repairs, hardening pressure test, Live Validation waiver classification, and PR Readiness merge-target canon.
+- Helper Posture: no FB-032 root `dev/` helper, live helper, harness, runtime probe, screenshot probe, desktop export, or temporary validation artifact was created; GOV-PR1 extended the existing governance validator.
+- User Test Summary: exact waiver markers are present in `## User Test Summary`.
+- Selected Next Workstream: FB-004 Future boot orchestrator layer.
+- Selected Next Basis: FB-004 is a High-priority open backlog candidate with deferred-context fields present; `Target Version` was not used to rank, select, defer, or skip open candidates. FB-029 is also High priority, but its own selection/unblock text requires explicit product/legal approval that is outside this FB-032 PR Readiness task.
+- Branch-Creation Gate: no local or remote FB-004 branch exists; successor branch creation is deferred to FB-004 Branch Readiness after FB-032 merge, `v1.6.2-prebeta` release execution, updated-main revalidation, and release-debt clearance.
+- Governance Drift Audit: no unresolved governance drift remains after GOV-PR1; backlog-selection drift was repaired before selecting the next workstream.
+- PR Package: title, base branch, head branch, and inclusion-only summary are prepared for a non-draft PR targeting `main`.
+- Live PR State: pending PR creation.
+
+### PR Readiness Completion Decision
+
+- PR-1 Result: Pending final validation.
+- PR-2 Result: Pending final validation.
+- PR-3 Result: Pending live PR creation and validation.
+- Validation Layer: documentation, governance validation, branch truth, and live GitHub PR state.
+- Continue/Stop Decision: continue inside PR Readiness until PR creation and authenticated live PR validation are complete.
+
 ## Reuse Baseline
 
 - Reuse the existing governance validator `dev/orin_branch_governance_validation.py`.
@@ -399,6 +446,7 @@ LV-1 validated the completed FB-032 architecture-only milestone against live rep
 - Reuse FB-031's architecture-only admission pattern for docs/canon planning seams, while keeping FB-032's identity/source-of-truth scope distinct from UI/UX implementation planning.
 - Do not create a new helper during WS-1 through WS-3, H-1, or LV-1.
 - GOV-PR1 extended the existing governance validator rather than creating a new helper; future backlog-selection governance checks should reuse `dev/orin_branch_governance_validation.py`.
+- Reuse GitHub CLI authenticated state for PR creation and live PR validation; no repo validation helper is created for PR state checks.
 
 ## Exit Criteria
 
@@ -409,18 +457,21 @@ LV-1 validated the completed FB-032 architecture-only milestone against live rep
 - H-1 pressure test findings and corrections are recorded.
 - LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are recorded.
 - GOV-PR1 backlog-selection governance drift repair is recorded.
-- `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` identify FB-032 as the active Live Validation-phase authority.
+- PR-1 merge-target canon, release target, release scope, release artifacts, post-release truth, selected-next workstream, and branch-creation deferral are recorded.
+- PR-2 governance validator, PR-readiness gate, diff hygiene, and clean branch truth pass.
+- PR-3 live PR creation and validation pass.
+- `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` identify FB-032 as the active PR Readiness authority and prepare the post-merge release-debt truth.
 - No implementation work is admitted beyond the planned docs/canon seam sequence.
-- Live Validation may advance to PR Readiness after LV-1 is complete and green.
+- PR Readiness may advance to Release Readiness after PR merge.
 - Governance validation and diff hygiene pass for the current seam.
 
 ## Rollback Target
 
-- `Live Validation`
+- `PR Readiness`
 
 ## Next Legal Phase
 
-- `PR Readiness`
+- `Release Readiness`
 
 ## Governance Drift Audit
 
@@ -437,6 +488,8 @@ Governance Drift Found: Yes, repaired during GOV-WS1.
 - LV-1 found no repo-truth mismatch, shortcut blocker, User Test Summary blocker, desktop export requirement, runtime evidence requirement, or cleanup gap after current-state canon was advanced to Live-Validation-complete / PR-Readiness-next truth.
 - GOV-PR1 found backlog-selection drift: open backlog entries carried `Target Version`, and deferred candidate entries did not all explain when, why, and how to unblock selection.
 - GOV-PR1 repair: backlog, governance, prompt-contract docs, and the governance validator now require open backlog selection to use `Priority` plus deferred-context readiness; open entries no longer carry `Target Version`, and deferred entries carry `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:`.
+- PR-1 found no merge-target canon blocker after FB-032 release-debt target, release floor, version rationale, release scope, release artifacts, post-release truth, selected-next workstream, and branch-creation gate were recorded.
+- PR-1 selected FB-004 by priority-led backlog selection and deferred-context readiness; no selected-next branch exists locally or remotely.
 - Finding: the WS-1 pass correctly recorded WS-2 as next, but stopped after returning `Next Safe Move` instead of acting on the required bounded multi-seam continuation.
 - Repair: governance, prompt scaffolds, and validator enforcement now require that reporting `Next Safe Move` is not a substitute for execution and that a `continue` decision must be acted on immediately by starting the next admitted seam.
 
@@ -471,3 +524,4 @@ Governance Drift Found: Yes, repaired during GOV-WS1.
 - GOV-PR1 validation: `python dev\orin_branch_governance_validation.py` PASS, 916 checks.
 - GOV-PR1 diff hygiene: `git diff --check` PASS with line-ending normalization warnings only and no whitespace errors.
 - GOV-PR1 changed docs/canon and extended existing governance validator coverage only; no runtime, UI, persona behavior, release artifact, selected-next workstream, branch creation, PR creation, or release target assignment changed.
+- PR-1 validation pending.

@@ -90,10 +90,10 @@ Release Floor: patch prerelease
 Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work used patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
 Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, PR Readiness merge-target canon, and PR-R1 release-floor validator repair.
 Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, clean branch history, and PR-R1 validator repair.
-Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; repo proceeds through the FB-032 PR Readiness path after Live Validation.
+Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; repo proceeds through the FB-032 PR Readiness path after Live Validation, with FB-032 preparing `v1.6.2-prebeta` release-debt truth.
 Successor Workstream: FB-032 Nexus-era vision and source-of-truth migration
 Successor Branch: feature/fb-032-nexus-era-vision-source-of-truth-migration
-Successor Admission State: Live Validation complete; PR Readiness is the next legal phase after FB-032 LV-1 validation is green and durable.
+Successor Admission State: FB-032 PR Readiness is active; FB-004 is selected next, branch creation is deferred, and Release Readiness becomes the next legal phase only after FB-032 PR merge.
 
 ## Scope
 
