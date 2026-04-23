@@ -27,17 +27,18 @@
 
 ## Phase Status
 
-- `Workstream active; WS-1 complete; WS-2 next`
+- `Workstream active; WS-1 through WS-3 complete; Hardening next`
 - FB-004 is released and closed in `v1.6.3-prebeta`.
 - Latest public prerelease truth is `v1.6.3-prebeta`.
 - Release debt is clear.
 - FB-015 is now the active promoted workstream on `feature/fb-015-boot-desktop-phase-boundary-model`.
 - Branch Readiness is complete.
 - WS-1 current boot/desktop boundary inventory and ownership map is complete.
-- WS-2 lifecycle and phase-boundary state framing is admitted next.
-- A narrow supporting canon sync for released FB-040 Sensor HUD beta admission may ride on this branch only as docs/governance-only source-of-truth maintenance; it does not reopen FB-040, change FB-015 runtime scope, or replace WS-1 as the next admitted FB-015 seam.
-- A requested future-lane admission for `FB-042 Stream Deck Integration via Elgato MCP` was reviewed and explicitly deferred because backlog identity, roadmap sequencing, and new auxiliary planning-reference canon for that lane would exceed the current FB-015 branch boundary and remains out of scope for WS-1.
-- No FB-015 runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, or release work has started.
+- WS-2 lifecycle and phase-boundary state framing is complete.
+- WS-3 validation and admission contract for future boot/desktop boundary implementation is complete.
+- A narrow supporting canon sync for released FB-040 Sensor HUD beta admission remained bounded to docs/governance-only source-of-truth maintenance; it did not reopen FB-040, change FB-015 runtime scope, or alter the admitted FB-015 seam chain.
+- A requested future-lane admission for `FB-042 Stream Deck Integration via Elgato MCP` was reviewed and explicitly deferred because backlog identity, roadmap sequencing, and new auxiliary planning-reference canon for that lane would exceed the current FB-015 branch boundary and remains out of scope for the completed FB-015 Workstream seam chain.
+- No FB-015 runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, helper-code, or release work has started.
 
 ## Branch Class
 
@@ -101,24 +102,24 @@ None.
 - Confirm `Docs/Main.md` routes this workstream record.
 - Confirm `Docs/feature_backlog.md` marks FB-015 as `Promoted`, `Active`, and cites this doc.
 - Confirm `Docs/workstreams/index.md` lists FB-015 under Active.
-- Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` record FB-015 as the active Workstream with WS-1 complete and WS-2 next.
+- Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` record FB-015 as the active Workstream with WS-1 through WS-3 complete and Hardening next.
 - Confirm FB-004 remains Released / Closed in `v1.6.3-prebeta`.
 - Confirm the previously recorded supporting canon sync remains limited to active FB-015 branch authority wording, `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`, and `Docs/validation_helper_registry.md`, and does not reopen FB-040 or change the admitted FB-015 seam chain.
 - Confirm requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred on this branch and does not add backlog, roadmap, workstream, or auxiliary planning-reference canon.
-- Confirm no runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1.
+- Confirm no runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3.
 
 ## Branch Readiness Validation Results
 
 - `python dev\orin_branch_governance_validation.py`: PASS, 916 checks.
 - `git diff --check`: PASS; no whitespace errors.
 - Scope validation: PASS; this follow-up docs-only clarification changes only the active FB-015 branch authority wording and does not add backlog, roadmap, workstream, auxiliary planning-reference, phase-governance, runtime, or helper-file changes.
-- Admission validation: PASS; FB-015 remains the active promoted workstream, WS-1 current boot/desktop boundary inventory and ownership map remains next, FB-040 is not reactivated, and requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred on this branch.
+- Admission validation: PASS; FB-015 remained the active promoted workstream at Branch Readiness closeout, WS-1 current boot/desktop boundary inventory and ownership map was the admitted next seam at that point, FB-040 was not reactivated, and requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remained deferred on this branch.
 - Boundary validation: PASS; no backlog, roadmap, workstream, or auxiliary planning-reference canon is added on this branch, and future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission is preserved as a later legal-surface task.
 
 ## User Test Summary Strategy
 
-- Branch Readiness and WS-1 are docs/canon only and do not change user-facing behavior.
-- No desktop shortcut validation, desktop export, or manual User Test Summary handoff is required during Branch Readiness or WS-1.
+- Branch Readiness and WS-1 through WS-3 are docs/canon only and do not change user-facing behavior.
+- No desktop shortcut validation, desktop export, or manual User Test Summary handoff is required during Branch Readiness or WS-1 through WS-3.
 - If a later seam changes startup, launcher, shortcut, visible startup state, user-facing copy, UI, installer behavior, or another operator-facing path, FB-015 must add the exact `## User Test Summary` artifact and desktop export required by governance before Live Validation can advance.
 
 ## Later-Phase Expectations
@@ -140,21 +141,21 @@ Seam 1: Current boot/desktop boundary inventory and ownership map
 
 Seam 2: Lifecycle and phase-boundary state framing
 
-- Status: Admitted next.
+- Status: Completed.
 - Goal: define the lifecycle states and handoff boundaries between dev-only boot framing, production desktop launch control, renderer readiness, desktop-settled state, failure, recovery, and rollback.
 - Scope: docs/canon lifecycle vocabulary, phase-boundary state framing, ownership handoff notes, ambiguity capture, and implementation-readiness risks.
 - Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no source tree reorganization, no release work, and no public release editing.
 
 Seam 3: Validation and admission contract for future boot/desktop boundary implementation
 
-- Status: Planned / not yet admitted beyond WS-2.
+- Status: Completed.
 - Goal: define the proof and admission contract required before future seams can change startup, launcher, renderer, shortcut, diagnostics, persisted-state, or user-facing boot/desktop surfaces.
 - Scope: validation gates, shortcut/User Test Summary triggers, rollback proof, helper reuse posture, implementation-admission checklist, and later-phase evidence expectations.
 - Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no source tree reorganization, no release work, and no public release editing.
 
 ## Active Seam
 
-Active seam: WS-1 current boot/desktop boundary inventory and ownership map is complete; WS-2 lifecycle and phase-boundary state framing is admitted next.
+Active seam: none after WS-3 completion; the next legal phase is Hardening.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-015 and define the branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam.
@@ -162,16 +163,19 @@ Active seam: WS-1 current boot/desktop boundary inventory and ownership map is c
 - WS-1 Status: Completed / executed.
 - WS-1 Boundary: docs/canon current boot/desktop boundary inventory and ownership map only.
 - WS-1 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no source tree reorganization, no release work, and no public release editing.
-- WS-2 Status: Admitted next / not executed.
+- WS-2 Status: Completed / executed.
 - WS-2 Boundary: docs/canon lifecycle and phase-boundary state framing only.
 - WS-2 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no source tree reorganization, no release work, and no public release editing.
+- WS-3 Status: Completed / executed.
+- WS-3 Boundary: docs/canon validation and admission contract for future boot/desktop boundary implementation only.
+- WS-3 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no source tree reorganization, no release work, and no public release editing.
 
 ## Seam Continuation Decision
 
-Continue Decision: `continue`
-Next Active Seam: `WS-2 lifecycle and phase-boundary state framing`
-Stop Condition: `stop only if scope, phase authority, or validation truth breaks`
-Continuation Action: execute FB-015 Workstream WS-2 after WS-1 validation is green and durably committed.
+Continue Decision: `stop`
+Next Active Seam: `Hardening`
+Stop Condition: `Phase boundary reached`
+Continuation Action: execute FB-015 Hardening after WS-1 through WS-3 validation is green and durably committed.
 
 ## WS-1 Execution Record
 
@@ -262,9 +266,209 @@ Evidence and state-root boundary:
 - Cleanup: no programs, helper processes, windows, temporary files, probes, or runtime artifacts were created.
 - Continue/Stop Decision: continue to WS-2 under the admitted bounded Workstream chain.
 
+## WS-2 Execution Record
+
+WS-2 is docs/canon only. It defines the lifecycle and phase-boundary state framing that future FB-015 seams must use when reasoning about current production desktop launch, the dev-only boot prototype, renderer readiness, desktop-settled state, failure/recovery handling, and shared relaunch primitives.
+
+### Lifecycle Families
+
+Production launcher-controlled desktop lifecycle:
+
+1. `launch_orin_desktop.vbs` launches `desktop/orin_desktop_launcher.pyw` as the current user-facing production entry surface.
+2. The launcher negotiates single-instance ownership, prepares runtime evidence roots, resets launcher-owned status and startup-abort artifacts, and opens the runtime control envelope.
+3. The launcher starts a renderer attempt, spawns `desktop/orin_desktop_main.py`, passes the runtime-log and startup-abort paths, and begins startup observation.
+4. The renderer creates the Qt application, resolves the visual HTML, constructs `DesktopRuntimeWindow`, initializes tray and hotkey services, and keeps window show deferred until core-visualization readiness is reached.
+5. `DesktopRuntimeWindow` emits core-visualization-ready and first-visible signals; the renderer requests window show only after readiness, then emits `RENDERER_MAIN|CORE_VISUALIZATION_FIRST_VISIBLE`.
+6. The renderer emits `RENDERER_MAIN|STARTUP_READY`, requests passive visual handoff to `state=dormant`, and continues running inside the desktop presentation boundary.
+7. The launcher observes readiness, but it remains the owner of final runtime outcome, relaunch handling, startup abort, recovery sequencing, diagnostics finalization, crash classification, and finalized history.
+
+Production launcher failure/recovery lifecycle:
+
+1. If `RENDERER_MAIN|STARTUP_READY` is not observed inside the launcher observe window, the launcher records warning-state startup observation drift.
+2. If readiness still does not arrive inside the stall-confirm window, the launcher records stall confirmation and may request cooperative startup abort through `renderer_startup_abort.signal`.
+3. A cooperative startup-abort result may re-enter the bounded recovery loop, while repeated startup aborts, repeated identical crash outcomes, or exhausted attempts escalate to launcher-owned failure finalization.
+4. Diagnostics UI launch, failure voice, crash evidence, incident summary, and finalized runtime history remain launcher-owned after the failure boundary is crossed.
+
+Dev-only boot-transition lifecycle:
+
+1. `main.py` starts with a selected boot profile and audio mode, resolves boot runtime log paths under `dev/logs/...`, and emits `BOOT_MAIN|START|...`.
+2. The dev boot prototype validates monitor topology, constructs the boot windows plus a `DesktopRuntimeWindow`, and emits boot-window and topology markers.
+3. The boot prototype runs the staged command/import flow, then emits `BOOT_MAIN|TRANSITION_BEGIN|import_home=...` when handoff begins.
+4. The boot prototype requests desktop handoff, emits `BOOT_MAIN|HANDOFF_SIGNAL_EMITTED`, requests desktop show, hides boot windows, emits `BOOT_MAIN|DESKTOP_VISIBLE`, commits `state=dormant`, and then emits `BOOT_MAIN|DESKTOP_SETTLED|state=dormant`.
+5. This lifecycle is a dev-only boot/handoff evidence path. It is not the current production desktop-launch authority and does not replace launcher-owned final runtime truth.
+
+### Phase-Boundary State Vocabulary
+
+Launch-initiation and boot-framing states:
+
+- `launch requested`: the user or Windows shell invoked a boot or desktop entry surface.
+- `boot prototype active`: dev-only `main.py` owns the current session framing before handoff begins.
+- `boot transition pending`: dev-only boot framing is still gathering input, topology, or staged command decisions before handoff.
+- `boot handoff emitted`: the dev-only boot prototype has requested desktop handoff but still owns proof of the boot-side transition.
+
+Launcher-control states:
+
+- `desktop control envelope active`: `desktop/orin_desktop_launcher.pyw` owns the production runtime attempt.
+- `single-instance negotiation`: launcher-owned conflict handling and relaunch-request processing are in progress.
+- `renderer startup pending`: the launcher has spawned the renderer and is waiting for readiness proof.
+- `startup warning`: readiness has not arrived inside the initial observation window, but the renderer attempt is still live.
+- `startup stall confirmed`: readiness has still not arrived inside the stall-confirm window and the launcher may request cooperative startup abort.
+- `recovery active`: the launcher is inside a bounded recovery attempt or cooldown path.
+- `failure finalization`: the launcher is writing diagnostics, crash, or finalized history truth after recovery has failed.
+
+Renderer-presentation states:
+
+- `renderer constructed`: the Qt application, visual path, and `DesktopRuntimeWindow` are constructed.
+- `first-visible pending`: the renderer has not yet shown the desktop surface because core visualization is not ready.
+- `desktop first visible`: the core visualization is visible and the renderer has crossed the first-visible boundary.
+- `renderer ready`: `RENDERER_MAIN|STARTUP_READY` has been emitted.
+- `passive dormant handoff`: the renderer has requested visual state `dormant` as the steady desktop presentation baseline.
+- `shutdown requested`: the renderer is tearing down because of relaunch, startup-abort, or normal shutdown flow.
+
+Desktop-settled and evidence states:
+
+- `desktop settled`: a surface has reached the expected post-handoff dormant desktop state for its own lifecycle.
+- `live runtime truth`: launcher-owned runtime logs, crash artifacts, status files, startup-abort files, and finalized history are authoritative for the production path.
+- `dev transition proof`: `BOOT_MAIN|...` markers under `dev/logs/<lane>/...` are authoritative only for the dev boot prototype path.
+
+### Ownership Handoff Rules
+
+- Current production desktop authority begins at `desktop/orin_desktop_launcher.pyw`; there is no admitted production boot-phase owner ahead of it.
+- `launch_orin_desktop.vbs` owns process launch handoff only. It does not own startup readiness, runtime success, recovery, or failure classification.
+- Renderer first-visible proof is not the same as renderer-ready proof, and renderer-ready proof is not the same as launcher-owned final runtime success.
+- Dev-only `BOOT_MAIN|DESKTOP_SETTLED|state=dormant` is not equivalent to production `RENDERER_MAIN|STARTUP_READY` or launcher `STARTUP_READY_OBSERVED`.
+- `state=dormant` is a presentation state, not a release, trust, shortcut, recovery, or success-state claim by itself.
+- `Local\JarvisRuntimeSingletonV1` and `Local\JarvisRuntimeRelaunchRequestV1` are shared primitives. Shared primitive reuse does not collapse ownership between the launcher path and the dev-only boot prototype.
+- Live runtime logs, crash reports, startup-abort/status files, and finalized history remain launcher-owned until a later admitted implementation seam explicitly changes that contract.
+
+### Transition Ambiguities Captured For Later Seams
+
+- `main.py` directly constructs `DesktopRuntimeWindow`, while the production path delegates through launcher to renderer. Future work must choose or preserve those models explicitly instead of blending them by implication.
+- `DesktopRuntimeWindow` is shared by the production renderer and the dev-only boot prototype. Shared class reuse does not imply shared phase ownership.
+- Current production truth has `RENDERER_MAIN|STARTUP_READY` and launcher observation markers, while the dev-only boot prototype has `BOOT_MAIN|DESKTOP_SETTLED|state=dormant`. Future validation must not substitute one proof family for the other without an admitted product-path change.
+- Launcher-owned live evidence defaults to root `logs/`, while dev boot-transition proof belongs under `dev/logs/<lane>/...`. Future seams must preserve that evidence-root split unless they explicitly change ownership and rollback.
+- `dev/orin_desktop_launcher_regression_harness.py` still contains stale legacy-path assumptions. Later launcher-regression claims must repair, replace, or explicitly bypass that harness with recorded rationale.
+
+### WS-2 Completion Decision
+
+- WS-2 Result: Complete / green.
+- Validation Layer: docs/canon plus live repo marker and entrypoint inspection.
+- User Test Summary Applicability: not applicable for WS-2 because this seam changes docs/canon only and adds no user-visible behavior.
+- Cleanup: no programs, helper processes, windows, temporary files, probes, or runtime artifacts were created.
+- Continue/Stop Decision: continue to WS-3 under `Next-Seam Continuation Required`; WS-3 remains inside the same approved Workstream, phase, branch class, and docs/canon validation surface.
+
+### WS-2 Validation Results
+
+- `python dev\orin_branch_governance_validation.py`: PASS, 963 checks.
+- `git diff --check`: PASS with line-ending normalization warnings only and no whitespace errors.
+- WS-2 continuation-state scan: PASS; current authority surfaces report WS-1 and WS-2 complete, WS-3 complete, and Hardening next.
+- WS-2 scope validation: PASS; the seam changed docs/canon only in the FB-015 workstream record, backlog, roadmap, and workstream index.
+- WS-2 changed no runtime behavior, launcher behavior, renderer behavior, desktop shortcut behavior, UI, installer behavior, helper code, release artifact, or desktop export.
+
+## WS-3 Execution Record
+
+WS-3 is docs/canon only. It defines the validation and admission contract required before any later FB-015 implementation seam may change boot, launcher, renderer, shortcut, diagnostics, persisted-state, or other boot/desktop boundary surfaces.
+
+### Implementation Admission Checklist
+
+Before any later FB-015 implementation seam may edit runtime or user-facing surfaces, it must record:
+
+- affected surface class: launch shim, production desktop launcher, production renderer, `DesktopRuntimeWindow`, dev boot prototype, shared single-instance/relaunch primitive, desktop shortcut, diagnostics evidence root, persisted history/state, or validation helper
+- ownership class: launch-initiation, launcher-control, renderer-presentation, dev-only boot framing, shared infrastructure primitive, live evidence/state root, or user-facing entry surface
+- exact before/after phase-boundary states and the runtime markers expected to prove them
+- exact rollback target and revert scope for the touched surface
+- expected signal files, log roots, persisted files, cleanup behavior, and historical-state handling before and after the change
+- helper reuse decision from `Docs/validation_helper_registry.md`
+- desktop shortcut applicability and `User Test Summary` applicability
+- explicit non-includes that stop adjacent launcher, renderer, tray, overlay, shortcut, installer, release, or source-tree work from entering by inertia
+
+If an implementation seam cannot answer those items before edits begin, it is not admitted.
+
+### Required Proof By Surface Class
+
+Docs/canon-only seams:
+
+- `python dev\orin_branch_governance_validation.py`
+- `git diff --check`
+- source-of-truth sweep confirming backlog, roadmap, workstream index, and this workstream record agree on phase, seam state, blockers, and next legal phase
+
+Production desktop-launch or renderer-readiness seams:
+
+- `dev/orin_desktop_entrypoint_validation.py` unless the seam records a stronger replacement
+- runtime marker review for `RENDERER_MAIN|START`, `QAPPLICATION_CREATED`, `VISUAL_HTML_RESOLVED`, `WINDOW_CONSTRUCTED`, `WINDOW_SHOW_DEFERRED_UNTIL_CORE_READY`, `WINDOW_SHOW_REQUESTED|reason=core_visualization_ready`, `CORE_VISUALIZATION_FIRST_VISIBLE`, `STARTUP_READY`, and `PASSIVE_DEFAULT_HANDOFF_REQUESTED|state=dormant`
+- no regression in tray identity, discovery cue, command-overlay routing, relaunch handling, or passive dormant handoff when those surfaces are affected
+
+Launcher startup, recovery, diagnostics, or state-root seams:
+
+- `dev/orin_desktop_launcher_healthy_validation.py` for healthy launcher-to-renderer startup proof
+- failure/recovery coverage only through a current, repaired, or explicitly admitted harness path
+- runtime marker review for single-instance negotiation, renderer spawn, startup observation, startup-abort request/observation, normal exit, failure flow, signal/status cleanup, and crash-history behavior
+- crash report and finalized-history evidence review when failure classification, diagnostics, or persisted-state behavior is affected
+
+Boot-transition or dev boot-prototype seams:
+
+- `dev/orin_boot_monitor_preflight.py` when monitor topology assumptions matter
+- `dev/orin_boot_transition_verification.py` for marker-order proof
+- `dev/orin_boot_transition_capture.py` when visual handoff evidence is materially required
+- explicit proof that dev-only `BOOT_MAIN|...` markers do not replace production launcher/renderer readiness proof unless the seam admits that product-path change
+
+Shared single-instance or relaunch-primitive seams:
+
+- proof across both the production launcher path and the dev-only boot prototype path that mutex, relaunch-signal, and replace-session semantics remain consistent
+- proof that relaunch dialogs, relaunch-request cleanup, and shutdown initiation leave no stale live artifacts behind
+
+Desktop shortcut, visible startup, or other operator-facing seams:
+
+- launch through the declared user-facing desktop shortcut or equivalent production entrypoint during Live Validation
+- record `User-Facing Shortcut Path:` and `User-Facing Shortcut Validation:` in this workstream record before User Test Summary handoff
+- add and export the canonical User Test Summary when the completed delta changes user-visible startup, shortcut behavior, visible runtime behavior, prompts, tray/overlay behavior, voice behavior, or another operator-facing path
+
+### Helper Reuse And Repair Contract
+
+- Reuse-first selection from `Docs/validation_helper_registry.md` is mandatory before any new helper is created.
+- Later seams should extend the current boot/desktop proof families first: `dev/orin_desktop_entrypoint_validation.py`, `dev/orin_desktop_launcher_healthy_validation.py`, `dev/orin_boot_transition_verification.py`, and `dev/orin_boot_transition_capture.py`.
+- New durable root `dev/` helpers must follow the registry naming pattern and be registered immediately.
+- Workstream-scoped helpers require owner, non-reuse reason, consolidation target, and promotion decision point before PR Readiness.
+- Temporary probes must stay under ignored evidence roots and must be deleted or promoted before closeout-grade proof.
+- `dev/orin_desktop_launcher_regression_harness.py` currently points at stale legacy launcher paths. It must be repaired, replaced by a current registered helper, or explicitly bypassed with documented rationale before launcher regression coverage can be claimed.
+
+### User Test Summary Admission Rules
+
+- WS-1 through WS-3 are docs/canon only and do not require User Test Summary handoff.
+- A later implementation seam that changes startup behavior, launcher behavior, desktop shortcut behavior, visible startup state, desktop UI behavior, tray behavior, overlay behavior, prompts, voice behavior, installer/OS integration, or another operator-facing path must add the exact `## User Test Summary` section before Live Validation.
+- If User Test Summary is required, the desktop export at `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` must also be refreshed unless an explicit documented exception applies.
+- If a later completed delta remains non-user-facing, Live Validation may waive User Test Summary only with a recorded waiver reason.
+
+### Rollback And Cleanup Contract
+
+Any later implementation seam must prove rollback and cleanup at the same surface it changed:
+
+- launch-shim changes must roll back to the current `launch_orin_desktop.vbs` semantics that target `desktop/orin_desktop_launcher.pyw` with no new authority above it
+- launcher changes must roll back to the current single-instance, startup-observation, startup-abort, recovery, diagnostics, runtime-log, and finalized-history model
+- renderer changes must roll back to deferred-first-visible startup, tray/hotkey initialization, `STARTUP_READY`, passive dormant handoff, and clean event-loop shutdown behavior
+- dev boot-prototype changes must roll back to the current dev-only `main.py` handoff path and must not silently become production-launch truth
+- evidence/state changes must roll back the current split between live root `logs/` truth and dev `dev/logs/<lane>/...` proof, plus cleanup of status/abort artifacts and preserved history files
+- helper changes must leave no unregistered durable helper, stale temporary probe, or unexplained cleanup residue behind
+
+### WS-3 Completion Decision
+
+- WS-3 Result: Complete / green.
+- Validation Layer: docs/canon plus live repo entrypoint and helper-surface inspection.
+- User Test Summary Applicability: not applicable for WS-3 because this seam changes docs/canon only and adds no user-visible behavior.
+- Cleanup: no programs, helper processes, windows, temporary files, probes, or runtime artifacts were created.
+- Continue/Stop Decision: stop at the Workstream phase boundary because the approved WS-1 through WS-3 docs/canon seam chain is complete. The next legal phase is `Hardening`.
+
+### WS-3 Validation Results
+
+- `python dev\orin_branch_governance_validation.py`: PASS, 963 checks.
+- `git diff --check`: PASS with line-ending normalization warnings only and no whitespace errors.
+- WS-3 phase-boundary scan: PASS; current authority surfaces report FB-015 Workstream complete and Hardening as the next legal phase.
+- WS-3 scope validation: PASS; the seam changed docs/canon only in the FB-015 workstream record, backlog, roadmap, and workstream index.
+- WS-3 changed no runtime behavior, launcher behavior, renderer behavior, desktop shortcut behavior, UI, installer behavior, helper code, release artifact, or desktop export.
+
 ## Supporting Canon Sync
 
-This active branch may carry tightly scoped supporting canon sync when the change stays docs/governance-only, preserves FB-015 as the active workstream, and does not widen into runtime or branch-selection churn.
+This branch carried tightly scoped supporting canon sync earlier in Workstream when the change stayed docs/governance-only, preserved FB-015 as the active workstream, and did not widen into runtime or branch-selection churn.
 
 Admitted supporting canon sync for this pass:
 
@@ -279,7 +483,7 @@ Non-includes for this supporting canon sync:
 - no backlog, roadmap, or workstreams-index selection changes
 - no `Docs/phase_governance.md` policy expansion
 - no runtime code, helper-file, installer, shortcut, tray, overlay, or UI changes
-- no change to the admitted next FB-015 seam; WS-1 remains next
+- no change to the admitted FB-015 seam chain or later Hardening admission posture
 
 ## Reuse Baseline
 
@@ -290,25 +494,37 @@ Non-includes for this supporting canon sync:
 - `Docs/workstreams/index.md`
 - `Docs/phase_governance.md`
 - `dev/orin_branch_governance_validation.py`
+- `main.py`
+- `desktop/orin_desktop_launcher.pyw`
+- `desktop/orin_desktop_main.py`
+- `desktop/desktop_renderer.py`
+- `desktop/single_instance.py`
+- `dev/orin_boot_transition_capture.py`
+- `dev/orin_boot_transition_verification.py`
+- `dev/orin_desktop_entrypoint_validation.py`
+- `dev/orin_desktop_launcher_healthy_validation.py`
 
 ## Exit Criteria
 
 - WS-1 current boot and desktop phase boundaries are recorded.
+- WS-2 lifecycle families, phase-boundary states, and ownership handoff rules for production desktop launch, launcher failure/recovery, and the dev-only boot prototype are recorded.
+- WS-3 validation and admission rules for future boot/desktop boundary implementation are recorded.
 - The ownership map across the current user-facing launch shim, production launcher, production renderer, dev-only boot prototype, shared single-instance primitives, and evidence/state roots is recorded.
-- `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the active promoted Workstream with WS-1 complete and WS-2 next.
+- `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the active promoted Workstream with WS-1 through WS-3 complete and Hardening next.
 - FB-004 remains Released / Closed and release debt remains clear.
-- No runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1.
+- Requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred and no out-of-scope backlog, roadmap, workstream, or auxiliary planning-reference canon was added on this branch.
+- No runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3.
 - Validation is green.
 
 ## Rollback Target
 
-- `Branch Readiness`
-- Revert the FB-015 Branch Readiness canon commit and return FB-015 to selected-only / registry-only after FB-004 release closure.
+- `Workstream`
+- Revert the WS-2 and WS-3 docs/canon commits and return FB-015 to the WS-1-complete / WS-2-next state if Workstream-complete truth must be withdrawn.
 
 ## Next Legal Phase
 
-- `Workstream`
+- `Hardening`
 
 ## User Test Summary
 
-Not applicable during WS-1. FB-015 WS-1 is docs/canon only and does not change user-facing behavior.
+Not applicable during WS-1 through WS-3. FB-015 Workstream remains docs/canon only and does not change user-facing behavior.
