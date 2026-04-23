@@ -78,7 +78,9 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-None. FB-031 is released and closed in `v1.6.1-prebeta`; FB-032 remains selected-only / `Registry-only` during Branch Readiness until promotion and implementation admission are complete.
+- `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
+
+FB-032 is the current promoted Branch Readiness authority. No FB-032 implementation, wording migration, runtime behavior, UI implementation, persona work, rebrand execution, or release work is admitted by promotion alone.
 
 ### Merged / Release Debt Owners
 

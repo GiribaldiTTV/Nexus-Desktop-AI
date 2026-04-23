@@ -36,7 +36,7 @@
 - FB-040 is released and closed in `v1.6.0-prebeta`.
 - Latest public prerelease truth is `v1.6.1-prebeta`.
 - FB-031 release debt is clear after the published `v1.6.1-prebeta` prerelease.
-- FB-032 Branch Readiness is open on `feature/fb-032-nexus-era-vision-source-of-truth-migration` as a selected-only / `Registry-only` surface until admission completes.
+- FB-032 is promoted as the active Branch Readiness authority on `feature/fb-032-nexus-era-vision-source-of-truth-migration`.
 - FB-031 Workstream is admitted for architecture-only UI/UX source mapping, visual-language ownership planning, lifecycle/interaction-state framing, and validation/admission contract definition.
 - WS-1 Nexus-era UI/UX source map and visual-language ownership vocabulary is complete.
 - WS-2 lifecycle and interaction-state framing for UI surfaces is complete.
@@ -90,10 +90,10 @@ Release Floor: patch prerelease
 Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work used patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
 Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, PR Readiness merge-target canon, and PR-R1 release-floor validator repair.
 Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, clean branch history, and PR-R1 validator repair.
-Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; repo proceeds through FB-032 Branch Readiness before any FB-032 implementation begins.
+Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; repo proceeds through the promoted FB-032 Branch Readiness authority before any FB-032 implementation begins.
 Successor Workstream: FB-032 Nexus-era vision and source-of-truth migration
 Successor Branch: feature/fb-032-nexus-era-vision-source-of-truth-migration
-Successor Admission State: Branch Readiness only; selected-only / Registry-only until Branch Readiness completes.
+Successor Admission State: Promoted Branch Readiness authority; WS-1 is the next legal seam after FB-032 Branch Readiness validation is green and durable.
 
 ## Scope
 

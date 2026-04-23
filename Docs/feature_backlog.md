@@ -26,13 +26,13 @@ Historical note:
 
 ## Promoted Canonical Workstreams
 
-None. FB-032 remains selected-only / `Registry-only` during Branch Readiness until promotion and implementation admission are explicitly completed.
+- `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
 
 ## Active Promoted Workstream
 
-None after FB-031 release closure.
+FB-032 Nexus-era vision and source-of-truth migration is the current promoted Branch Readiness authority on `feature/fb-032-nexus-era-vision-source-of-truth-migration`.
 
-Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, release debt is clear, and FB-032 remains selected-only on its Branch Readiness branch until admission is complete.
+Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, release debt is clear, and FB-032 is promoted for Branch Readiness only. FB-032 Workstream admission is limited to the first recorded Workstream seam after Branch Readiness validation is green and durable.
 FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
@@ -42,8 +42,8 @@ None. FB-031 release debt cleared when `v1.6.1-prebeta` was tagged and published
 Repo State: FB-032 Branch Readiness surface only.
 Latest Public Prerelease: v1.6.1-prebeta.
 Release Title: Pre-Beta v1.6.1.
-Selected Next Workstream: FB-032 Nexus-era vision and source-of-truth migration.
-Next-Branch Creation Gate: FB-032 branch exists at `feature/fb-032-nexus-era-vision-source-of-truth-migration` for Branch Readiness only; FB-032 remains `Registry-only` / selected-only until Branch Readiness admission completes.
+Current Active Workstream: FB-032 Nexus-era vision and source-of-truth migration.
+Active Branch: `feature/fb-032-nexus-era-vision-source-of-truth-migration`.
 
 ## Registry Items
 
@@ -99,14 +99,14 @@ Why it matters: Voice identity should be intentional and should not piggyback on
 
 ### [ID: FB-032] Nexus-era vision and source-of-truth migration
 
-Status: Deferred
-Record State: Registry-only
+Status: Active
+Record State: Promoted
 Priority: Medium
 Release Stage: pre-Beta
 Target Version: TBD
-Next Workstream: Selected
 Branch: feature/fb-032-nexus-era-vision-source-of-truth-migration
-Branch Readiness: Open for post-release canon closure and admission planning only; no Workstream implementation is admitted yet.
+Canonical Workstream Doc: Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md
+Branch Readiness: Promoted for Branch Readiness authority; objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam are recorded before implementation admission.
 Branch Readiness Governance Repair: GitHub release notes across the live release history were standardized to Markdown release bodies with generated `## What's Changed` and `**Full Changelog**:` sections; Release Readiness governance and validator coverage now require that format before future release execution can be treated as complete.
 Minimal Scope: Branch Readiness must define the Nexus-era vision/source-of-truth migration boundary, current-vs-historical naming policy, AI/UI identity routing, canon migration admission rules, and explicit non-goals before any wording migration, persona work, runtime behavior, UI implementation, rebrand execution, or release work is considered.
 Summary: Track the broader Nexus-era vision and source-of-truth migration above the current phase-one canon foundation rebuild.
@@ -130,7 +130,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work used patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
 Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, PR Readiness merge-target canon, and PR-R1 release-floor validator repair.
 Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, clean branch history, and PR-R1 validator repair.
-Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; FB-032 remains selected-only on its Branch Readiness branch until admission completes.
+Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; FB-032 is promoted as the active Branch Readiness authority on `feature/fb-032-nexus-era-vision-source-of-truth-migration`.
 Summary: Preserved Nexus-era UI/UX overhaul planning as a deliberate design lane rather than piecemeal visual drift.
 Why it matters: The Nexus-era visual language should be planned coherently before any later UI implementation pass.
 
