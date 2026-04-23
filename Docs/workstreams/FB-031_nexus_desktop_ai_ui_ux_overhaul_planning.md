@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Workstream`
+- `Hardening`
 
 ## Release Stage
 
@@ -27,7 +27,7 @@
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `Hardening`
 
 ## Phase Status
 
@@ -38,7 +38,9 @@
 - WS-1 Nexus-era UI/UX source map and visual-language ownership vocabulary is complete.
 - WS-2 lifecycle and interaction-state framing for UI surfaces is complete.
 - WS-3 validation and admission contract for UI implementation seams is complete.
-- The initial architecture-only Workstream seam sequence is complete and ready for Hardening evaluation.
+- The initial architecture-only Workstream seam sequence is complete.
+- H-1 UI/UX architecture and admission-contract pressure test is complete and green.
+- No FB-031 UI implementation, launcher work, settings work, tray/taskbar work, overlay/HUD work, shortcut work, voice work, plugin work, installer work, asset work, helper creation, or runtime behavior change has started.
 
 ## Branch Class
 
@@ -128,7 +130,7 @@ Seam 3: validation and User Test Summary admission contract for future UI implem
 
 ## Active Seam
 
-Active seam: None after WS-3 completion; the next legal phase is Hardening.
+Active seam: None after H-1 completion; the next legal phase is Live Validation.
 
 - BR-1 Status: Completed in this pass; FB-040 post-release canon drift repaired.
 - BR-2 Status: Completed in this pass; post-release closure and version-advancement governance/validator hardening added.
@@ -144,6 +146,9 @@ Active seam: None after WS-3 completion; the next legal phase is Hardening.
 - WS-3 Status: Completed / executed.
 - WS-3 Boundary: architecture-only validation, live UI audit, User Test Summary, cleanup, and implementation-admission rules for future UI implementation seams.
 - WS-3 Non-Includes: no helper creation, no screenshot capture, no UI implementation, no runtime behavior, and no release work.
+- H-1 Status: Completed / executed.
+- H-1 Boundary: docs/canon-only pressure test of UI/UX architecture, lifecycle and interaction-state framing, validation/admission contract, ambiguity, contradiction, scope, and implementation-readiness risk.
+- H-1 Non-Includes: no UI implementation, no assets, no helper creation, no screenshot capture, no runtime behavior, no launcher/settings/tray/overlay/HUD/shortcut/voice/plugin/installer work, and no release work.
 
 ## WS-1 Execution Record
 
@@ -290,6 +295,28 @@ Before a future FB-031 UI implementation seam may edit product/runtime UI code, 
 - Cleanup: no programs, helper processes, windows, temporary files, probes, assets, screenshots, or runtime artifacts were created.
 - Continue/Stop Decision: stop at the Workstream phase boundary because the approved WS-1 through WS-3 architecture sequence is complete. The next legal phase is `Hardening`.
 
+## H-1 Hardening Record
+
+H-1 pressure-tested the completed FB-031 UI/UX architecture, lifecycle and interaction-state framing, and implementation admission contract for governance gaps, validation gaps, ambiguity, contradiction, scope drift, and implementation-readiness risk. This hardening record is docs/canon-only and does not admit UI implementation, assets, helpers, screenshots, launcher behavior, settings behavior, tray/taskbar behavior, overlay/HUD behavior, shortcut behavior, voice behavior, plugin behavior, installer behavior, runtime behavior, PR packaging, or release work.
+
+### Hardening Findings
+
+- Governance Gap: the active prompt correctly entered Hardening after WS-1 through WS-3 completed, but the workstream record still carried Workstream-era phase and status wording. This record corrects FB-031 to `Hardening` and moves the next legal phase to Live Validation after H-1.
+- Source-of-Truth Gap: no duplicate source-of-truth owner is needed. The backlog owns FB-031 identity and minimal scope, the roadmap owns sequencing posture, and this workstream doc owns the branch-local UI/UX architecture, lifecycle/state framing, validation/admission contract, and H-1 hardening evidence.
+- Validation Gap: no new validator, harness, live helper, screenshot audit, or runtime proof is required for this architecture-only milestone. Future UI implementation seams remain blocked until they add or reuse the smallest reliable surface-specific validation required by WS-3 and repo governance.
+- Ambiguity Check: WS-1 through WS-3 distinguish UI/UX planning vocabulary, lifecycle/interaction-state vocabulary, and future implementation admission requirements. They do not authorize broad redesign, restyling, asset work, component work, CSS/style-token edits, launcher behavior, settings behavior, tray/taskbar changes, overlay/HUD work, shortcut behavior, voice behavior, plugin behavior, installer behavior, or runtime UI changes.
+- Contradiction Check: FB-031 remains an active promoted workstream on its canonical implementation branch, release debt is clear after `v1.6.0-prebeta`, and the architecture-only milestone remains compatible with the patch-floor release-governance rule for non-user-facing planning/admission work.
+- Scope Check: no Nexus UI surface was created or modified by WS-1 through WS-3 or H-1. The current milestone is branch-local canon and admission truth only.
+- Implementation-Readiness Finding: the branch is not ready to start UI implementation by inertia. Any future FB-031 implementation seam must first restate the target surface family, exact Nexus-owned surface, lifecycle and interaction states affected, entry/exit/cancel/recovery paths, affected files, explicit non-includes, accessibility/readability expectations, validation gates, cleanup expectations, and User Test Summary applicability.
+
+### H-1 Completion Decision
+
+- H-1 Result: Complete / green.
+- Validation Layer: documentation and governance validation only.
+- Cleanup: no programs, helper processes, windows, temporary files, probes, assets, screenshots, helpers, harnesses, runtime artifacts, or session-scoped evidence files were created.
+- User Test Summary Applicability: not applicable for H-1 because it hardens architecture-only records and adds no user-visible behavior.
+- Continue/Stop Decision: stop at the Hardening phase boundary after validation because the current architecture-only milestone has no runtime or user-facing surface to further harden. The next legal phase is `Live Validation`.
+
 ## Validation Contract
 
 - `python dev\orin_branch_governance_validation.py`
@@ -320,6 +347,7 @@ Before a future FB-031 UI implementation seam may edit product/runtime UI code, 
 - WS-1 Nexus-era UI/UX source map and visual-language ownership vocabulary is complete and durably recorded.
 - WS-2 lifecycle and interaction-state framing for UI surfaces is complete and durably recorded.
 - WS-3 validation and admission contract for UI implementation seams is complete and durably recorded.
+- H-1 pressure test of UI/UX architecture, lifecycle/state framing, validation/admission contract, ambiguity, contradiction, scope, and implementation-readiness risk is complete and green.
 
 ## Rollback Target
 
@@ -327,7 +355,7 @@ Before a future FB-031 UI implementation seam may edit product/runtime UI code, 
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Live Validation`
 
 ## Governance Drift Audit
 

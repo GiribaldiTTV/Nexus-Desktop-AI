@@ -67,13 +67,13 @@ Current merged truth indicates:
 - latest public prerelease title: `Pre-Beta v1.6.0`
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestone is FB-040 monitoring, thermals, and performance HUD surface in `v1.6.0-prebeta`
-- current phase after FB-031 Workstream admission: `Workstream`
+- current phase after FB-031 Hardening: `Hardening`
 - phase status after FB-040 post-release canon repair: `Active Branch`
 - blocker after FB-040 release: none; release debt is clear
 - current active workstream: FB-031 Nexus Desktop AI UI/UX overhaul planning
 - current branch: `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`
 - merged-unreleased release-debt owner: none
-- next concern: begin FB-031 Hardening after the architecture-only WS-1 through WS-3 Workstream sequence is complete.
+- next concern: begin FB-031 Live Validation after the architecture-only WS-1 through WS-3 Workstream sequence and H-1 Hardening pressure test are complete.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, and the released FB-040 monitoring/thermal architecture milestone are now part of the current public shared pre-Beta baseline.
 
@@ -85,12 +85,12 @@ None. FB-040 is released and closed in `v1.6.0-prebeta`; release debt is clear.
 
 ### FB-031 Nexus Desktop AI UI/UX Overhaul Planning
 
-- status: `Workstream`
+- status: `Hardening`
 - record state: `Promoted`
 - branch: `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`
 - canonical workstream doc: `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`
 - minimal scope: Define the Nexus-era UI/UX overhaul planning boundary, source map, visual-language ownership, lifecycle/interaction-state framing, validation contract, and explicit non-goals before any UI implementation, runtime behavior, settings work, launcher work, or release work is considered.
-- admission note: FB-031 Branch Readiness is complete; the architecture-only Workstream sequence records source map, visual-language ownership, lifecycle/interaction-state framing, and validation/admission truth without UI implementation.
+- admission note: FB-031 Branch Readiness is complete; the architecture-only Workstream sequence records source map, visual-language ownership, lifecycle/interaction-state framing, and validation/admission truth without UI implementation, and H-1 Hardening has pressure-tested the architecture and implementation-admission contract.
 
 ## Selected Next Workstream
 
@@ -250,7 +250,7 @@ Current merged truth indicates:
   - FB-038 for taskbar or tray quick-task UX including Create Custom Task, now released and closed in `v1.4.1-prebeta` with H3/H4 startup visibility re-entry green, `User-Facing Shortcut Validation: PASS`, and UTS handling resolved by documented waiver
   - FB-039 for external trigger and plugin integration architecture, now released and closed in `v1.5.0-prebeta`
   - FB-040 for monitoring, thermals, and performance HUD surfaces, released and closed in `v1.6.0-prebeta`
-  - FB-031 for Nexus Desktop AI UI/UX overhaul planning, active in Workstream on `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`
+  - FB-031 for Nexus Desktop AI UI/UX overhaul planning, active in Hardening on `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
 - FB-037 Branch Readiness does not imply automatic continuation into any remaining candidate lane
 
