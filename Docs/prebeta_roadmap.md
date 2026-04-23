@@ -68,26 +68,26 @@ Current merged truth indicates:
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestone is FB-004 Future boot orchestrator layer in `v1.6.3-prebeta`
 - current phase after FB-004 release closure: `PR Readiness`
-- phase status after FB-004 release closure: FB-015 PR Readiness is package-ready; WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 are complete; no FB-015 implementation is admitted beyond the docs/canon-only milestone
-- blocker after FB-004 release: release debt is clear; PR-3 live PR creation and validation must complete before PR Readiness is green
+- phase status after FB-004 release closure: FB-015 PR Readiness is complete; WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 are complete; PR #75 is open/non-draft/mergeable clean and the milestone remains docs/canon-only
+- blocker after FB-004 release: release debt is clear; merge PR #75 to move the workstream into Release Readiness for `v1.6.4-prebeta`
 - current active workstream: FB-015 Boot and desktop phase-boundary model
 - current branch after FB-004 release: `feature/fb-015-boot-desktop-phase-boundary-model`
 - selected next workstream: FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening
-- next concern: create the live FB-015 PR, validate its authenticated state, and then merge to unblock Release Readiness for `v1.6.4-prebeta`.
+- next concern: merge PR #75 and then execute Release Readiness for `v1.6.4-prebeta` on updated `main`.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, the released FB-032 source-of-truth migration milestone, and the released FB-004 future boot-orchestrator architecture milestone are now part of the current public shared pre-Beta baseline.
 
 ## Current Release Debt Owner
 
 Merged-Unreleased Release-Debt Owner: None.
-Repo State: FB-015 PR Readiness package-ready on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 are complete, and PR-3 live PR creation and validation are next.
+Repo State: FB-015 PR Readiness is complete on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 are complete, and PR #75 is open/non-draft/mergeable clean.
 
 Latest Public Prerelease: v1.6.3-prebeta
 Latest Public Release Commit: 9f5ae9a78c7dbff79322089bca370fa49da38598
 Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.3-prebeta
 Latest Public Prerelease Title: Pre-Beta v1.6.3
 Release Debt: Clear after FB-004 release execution and live release validation.
-Post-Release Truth: FB-004 is Released / Closed in v1.6.3-prebeta; release debt is clear; FB-015 is the active promoted workstream with WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 complete, and PR-3 live PR creation and validation next.
+Post-Release Truth: FB-004 is Released / Closed in v1.6.3-prebeta; release debt is clear; FB-015 is the active promoted workstream with WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 complete, and Release Readiness next after PR merge.
 Selected Next Workstream: FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening.
 Next-Branch Creation Gate: FB-029 remains planning-only and no branch may be created until FB-015 merges, `v1.6.4-prebeta` is published and validated, updated `main` is revalidated, and explicit product/legal approval admits FB-029 Branch Readiness.
 Current active workstream: FB-015 Boot and desktop phase-boundary model
@@ -96,7 +96,7 @@ Active Branch Before Release: `feature/fb-004-future-boot-orchestrator-layer`
 
 ## Current Active Workstream
 
-FB-015 Boot and desktop phase-boundary model is the active promoted workstream on `feature/fb-015-boot-desktop-phase-boundary-model`. PR Readiness is package-ready; WS-1 current boot/desktop boundary inventory and ownership map, WS-2 lifecycle and phase-boundary state framing, WS-3 validation and admission contract for future boot/desktop boundary implementation, H-1 hardening, LV-1 Live Validation, PR-1 merge-target canon completeness, and PR-2 selected-next workstream selection are complete, and PR-3 live PR creation and validation are next. No runtime behavior, launcher behavior, desktop shortcut behavior, renderer lifecycle behavior, UI behavior, installer behavior, source movement, release packaging, tag creation, or public release editing has started.
+FB-015 Boot and desktop phase-boundary model is the active promoted workstream on `feature/fb-015-boot-desktop-phase-boundary-model`. PR Readiness is complete; WS-1 current boot/desktop boundary inventory and ownership map, WS-2 lifecycle and phase-boundary state framing, WS-3 validation and admission contract for future boot/desktop boundary implementation, H-1 hardening, LV-1 Live Validation, PR-1 merge-target canon completeness, PR-2 selected-next workstream selection, and PR-3 live PR creation plus authenticated PR state validation are complete. PR #75 is open/non-draft/mergeable clean, and Release Readiness is next after merge. No runtime behavior, launcher behavior, desktop shortcut behavior, renderer lifecycle behavior, UI behavior, installer behavior, source movement, release packaging, tag creation, or public release editing has started.
 
 ## Backlog Priority Review
 
@@ -104,7 +104,7 @@ The 2026-04-23 FB-015 priority reading is updated during PR-2 successor selectio
 
 - FB-004 is released and closed in `v1.6.3-prebeta`; it is no longer an active or selected-next branch candidate.
 - FB-029 remains `High` and is now the selected-next planning lane because it is the highest-priority remaining open candidate after FB-015; branch creation and Branch Readiness admission remain blocked until explicit product/legal approval is given.
-- FB-015 remains `High`, is promoted, and is the active PR Readiness lane with WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 complete after FB-004.
+- FB-015 remains `High`, is promoted, and is the active PR Readiness lane with WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 complete after FB-004.
 - FB-030 remains `Medium` and requires an explicit voice/audio design goal before selection.
 - FB-005 remains `Low` and requires explicit path-sensitive workspace approval before selection.
 
@@ -128,8 +128,8 @@ Creation Gate: After FB-015 merges, `v1.6.4-prebeta` is published and validated,
 - canonical workstream doc: `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`
 - selection basis: selected during FB-004 PR Readiness after GOV-PR0 raised FB-015 to High and confirmed it is the clearest routine technical successor after the FB-004 boot-orchestrator architecture frame; FB-029 remains High but product/legal-gated, FB-030 remains Medium and voice/audio-gated, and FB-005 remains Low and workspace/path-gated.
 - branch: `feature/fb-015-boot-desktop-phase-boundary-model`
-- phase status: PR Readiness package-ready; Branch Readiness is complete; WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 are complete.
-- next legal seam: PR-3 live PR creation and validation.
+- phase status: PR Readiness complete; Branch Readiness is complete; WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 are complete.
+- next legal seam: merge PR #75, then Release Readiness on updated `main`.
 - Minimal Scope: Complete the bounded docs/canon seam chain for current boot/desktop phase-boundary ambiguity, starting with current boundary inventory and ownership mapping before lifecycle framing or implementation-admission rules are extended.
 
 ## Latest Released Workstream Context

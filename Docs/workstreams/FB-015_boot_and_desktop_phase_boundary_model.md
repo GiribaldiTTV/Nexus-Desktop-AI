@@ -27,7 +27,7 @@
 
 ## Phase Status
 
-- `PR Readiness package-ready; PR-3 live PR creation and validation next`
+- `PR Readiness complete; Release Readiness next after merge`
 - FB-004 is released and closed in `v1.6.3-prebeta`.
 - Latest public prerelease truth is `v1.6.3-prebeta`.
 - Release debt is clear.
@@ -40,7 +40,7 @@
 - LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete.
 - PR-1 merge-target canon completeness is complete.
 - PR-2 selected-next workstream selection is complete with FB-029 planning-only and unbranched.
-- PR-3 live PR creation and validation is pending.
+- PR-3 live PR creation and validation is complete.
 - Hardening clarified launcher-owned `STARTUP_READY_OBSERVED`, `normal exit complete`, and `failure flow complete` as explicit boundary states and tightened later shortcut-proof classification so direct repository launch-shim invocation is not treated as real user-facing shortcut proof by default.
 - Live Validation confirmed the completed FB-015 delta remains docs/canon only, so user-facing shortcut validation and User Test Summary results are both waived for this milestone.
 - PR Readiness derived `v1.6.4-prebeta` / `Pre-Beta v1.6.4` as the semantic post-merge release target because FB-015 remains a docs/canon-only architecture/admission milestone with `patch prerelease` release-floor semantics.
@@ -55,8 +55,7 @@
 
 ## Blockers
 
-- `PR Creation Pending`
-- `PR Validation Pending`
+None.
 
 ## Entry Basis
 
@@ -170,7 +169,7 @@ Seam 3: Validation and admission contract for future boot/desktop boundary imple
 
 ## Active Seam
 
-Active seam: PR-3 live PR creation and validation.
+Active seam: none after PR-3 completion; the next legal phase is Release Readiness after merge.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-015 and define the branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam.
@@ -196,16 +195,16 @@ Active seam: PR-3 live PR creation and validation.
 - PR-2 Status: Completed / executed.
 - PR-2 Boundary: next-workstream selection, deferred-context validation, branch-containment validation, and successor branch-creation gate recording.
 - PR-2 Non-Includes: no successor branch creation, no runtime code edits, no launcher behavior changes, no desktop shortcut behavior changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no helper-code repair, no release publication, and no public release editing.
-- PR-3 Status: In progress / package-ready.
+- PR-3 Status: Completed / executed.
 - PR-3 Boundary: live PR creation, authenticated PR state validation, authenticated review-thread validation, final PR-state canon sync, and clean pushed branch truth.
 - PR-3 Non-Includes: no merge execution, no release publication, no runtime code edits, no launcher behavior changes, no desktop shortcut behavior changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no helper-code repair, and no public release editing.
 
 ## Seam Continuation Decision
 
-Continue Decision: `continue`
-Next Active Seam: `PR-3 live PR creation and validation`
-Stop Condition: `PR live-state validation pending`
-Continuation Action: create the FB-015 GitHub PR, validate authenticated PR and review-thread state, record PR-3 completion, and then stop at the PR Readiness phase boundary.
+Continue Decision: `stop`
+Next Active Seam: `Release Readiness`
+Stop Condition: `Phase boundary reached`
+Continuation Action: merge PR #75 to `main`, then execute file-frozen Release Readiness for `v1.6.4-prebeta` on updated `main`.
 
 ## WS-1 Execution Record
 
@@ -634,20 +633,22 @@ PR Readiness validates the completed docs/canon-only FB-015 milestone for merge 
 - Base Branch: `main`
 - Head Branch: `feature/fb-015-boot-desktop-phase-boundary-model`
 - PR Summary: Promote the docs/canon-only FB-015 boot/desktop phase-boundary model, including the current boundary inventory, ownership map, lifecycle/state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next FB-029 branch gate, and post-merge `v1.6.4-prebeta` release-debt path.
-- PR URL: Not created yet.
-- Current PR State: PR package ready only; live PR creation and authenticated PR validation are still pending.
+- PR URL: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/pull/75
+- PR State: OPEN, non-draft, base `main`, head `feature/fb-015-boot-desktop-phase-boundary-model`.
+- Review Thread State: PASS. Authenticated PR validation found no unresolved blocking Codex review-thread state.
+- Merge Readiness: PASS. GitHub reports `MERGEABLE` with merge state `CLEAN` and no blocking review decision.
 
 ### PR Readiness Completion Decision
 
 - PR-1 Result: Complete / green.
 - PR-2 Result: Complete / green.
-- PR-3 Result: Package-ready / pending live PR creation and validation.
+- PR-3 Result: Complete / green.
 - User-facing impact: none. FB-015 remains docs/canon-only.
-- Next legal action: create the live FB-015 PR, validate authenticated PR state plus review-thread state, and then stop at PR Readiness green.
+- Next legal action: merge PR #75 to `main`, then execute file-frozen Release Readiness for `v1.6.4-prebeta`.
 
 ### PR Readiness Validation Results
 
-- `python dev\orin_branch_governance_validation.py`: PASS before live PR creation.
+- `python dev\orin_branch_governance_validation.py`: PASS before live PR creation and again after PR-state canon sync.
 - `git diff --check`: PASS before live PR creation with line-ending normalization warnings only and no whitespace errors.
 - User-facing shortcut gate: WAIVED with exact markers in `## User Test Summary`.
 - User Test Summary results gate: WAIVED with exact markers in `## User Test Summary`.
@@ -688,7 +689,7 @@ PR Readiness validates the completed docs/canon-only FB-015 milestone for merge 
 - PR-3 live PR creation and validation is recorded before merge.
 - The ownership map across the current user-facing launch shim, production launcher, production renderer, dev-only boot prototype, shared single-instance primitives, and evidence/state roots is recorded.
 - `## User Test Summary` records `User-Facing Shortcut Validation: WAIVED`, `User-Facing Shortcut Waiver Reason:`, `User Test Summary Results: WAIVED`, and `User Test Summary Waiver Reason:` for the docs/canon-only milestone.
-- `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the active promoted branch with WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 complete and PR-3 next.
+- `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the active promoted branch with WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 complete.
 - Backlog and roadmap record FB-029 as the selected next workstream with `Minimal Scope:` and `Branch: Not created`.
 - FB-004 remains Released / Closed and release debt remains clear.
 - Requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred and no out-of-scope backlog, roadmap, workstream, or auxiliary planning-reference canon was added on this branch.
@@ -702,7 +703,7 @@ PR Readiness validates the completed docs/canon-only FB-015 milestone for merge 
 
 ## Next Legal Phase
 
-- `PR Readiness`
+- `Release Readiness`
 
 ## User Test Summary
 

@@ -37,26 +37,26 @@ Historical note:
 
 FB-015 Boot and desktop phase-boundary model is the active promoted workstream on `feature/fb-015-boot-desktop-phase-boundary-model`.
 
-Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, FB-004 is released and closed in `v1.6.3-prebeta`, and release debt is clear. FB-015 is now in PR Readiness on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3, H-1, LV-1, PR-1 merge-target canon completeness, and PR-2 selected-next workstream selection are complete, and PR-3 live PR creation and validation are next.
+Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, FB-004 is released and closed in `v1.6.3-prebeta`, and release debt is clear. FB-015 is now PR Readiness-complete on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 are complete, PR #75 is open/non-draft/mergeable clean, and Release Readiness is next after merge.
 FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
 ## Merged-Unreleased Release-Debt Owner
 
 Merged-Unreleased Release-Debt Owner: None.
-Repo State: FB-015 PR Readiness package-ready on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 are complete, and PR-3 live PR creation and validation are next.
+Repo State: FB-015 PR Readiness is complete on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 are complete, and PR #75 is open/non-draft/mergeable clean.
 Latest Public Prerelease: v1.6.3-prebeta.
 Latest Public Release Commit: 9f5ae9a78c7dbff79322089bca370fa49da38598.
 Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.3-prebeta.
 Latest Public Prerelease Title: Pre-Beta v1.6.3.
 Release Debt: Clear after FB-004 release execution and live release validation.
-Post-Release Truth: FB-004 is Released / Closed in v1.6.3-prebeta; release debt is clear; FB-015 is the active promoted workstream with WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 complete, and PR-3 live PR creation and validation next.
+Post-Release Truth: FB-004 is Released / Closed in v1.6.3-prebeta; release debt is clear; FB-015 is the active promoted workstream with WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 complete, and Release Readiness next after PR merge.
 Selected Next Workstream: FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening.
 Next-Branch Creation Gate: FB-029 remains planning-only and no branch may be created until FB-015 merges, `v1.6.4-prebeta` is published and validated, updated `main` is revalidated, and explicit product/legal approval admits FB-029 Branch Readiness.
 
 ## Backlog Governance Sync
 
-Last Reviewed: 2026-04-23 during FB-015 PR-2.
+Last Reviewed: 2026-04-23 during FB-015 PR-3.
 
 Open-candidate priority review:
 
@@ -98,7 +98,7 @@ Branch Readiness: Complete. The branch objective, target end-state, seam familie
 Workstream: WS-1 current boot/desktop boundary inventory and ownership map, WS-2 lifecycle and phase-boundary state framing, and WS-3 validation and admission contract for future boot/desktop boundary implementation are complete.
 Hardening: H-1 pressure test of the boot/desktop boundary inventory and ownership map, lifecycle and phase-boundary state framing, and future implementation admission contract is complete.
 Live Validation: LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete.
-PR Readiness: PR-1 merge-target canon completeness and PR-2 selected-next workstream selection are complete; PR-3 live PR creation and validation are next.
+PR Readiness: PR-1 merge-target canon completeness, PR-2 selected-next workstream selection, and PR-3 live PR creation plus authenticated PR state validation are complete.
 Minimal Scope: Complete the bounded docs/canon seam chain for current boot/desktop phase-boundary ambiguity, starting with current boundary inventory and ownership mapping before lifecycle framing or implementation-admission rules are extended.
 Summary: Preserve the future boot and desktop phase-boundary model above the already-closed milestone taxonomy work.
 Why it matters: Keeps boot-versus-desktop ownership planning explicit without reopening the closed taxonomy milestone by inertia.
