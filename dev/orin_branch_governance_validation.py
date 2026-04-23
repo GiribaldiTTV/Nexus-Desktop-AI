@@ -615,6 +615,8 @@ NON_RELEASE_WAIVER_BRANCH_CLASSES = (
     "emergency canon repair",
 )
 
+EMERGENCY_CANON_REPAIR_BRANCH_CLASS = "emergency canon repair"
+
 BRANCH_RECORD_INDEX = Path("Docs/branch_records/index.md")
 
 NEXT_WORKSTREAM_SELECTION_MARKER = "Next Workstream: Selected"
@@ -872,12 +874,14 @@ def _count_field_occurrences(block: str, label: str) -> int:
     return len(re.findall(rf"^{re.escape(label)}:\s*.+$", block, flags=re.M))
 
 
-def _branch_record_branch_class_map(
+def _branch_record_branch_sets(
     active_branch_record_paths: set[str],
     historical_branch_record_paths: set[str],
     current_branch: str,
-) -> dict[str, str]:
+) -> tuple[dict[str, str], set[str], set[str]]:
     branch_class_map: dict[str, str] = {}
+    all_repair_branch_names: set[str] = set()
+    active_repair_branch_names: set[str] = set()
     for branch_record_path in active_branch_record_paths | historical_branch_record_paths:
         record_path = ROOT_DIR / Path(branch_record_path)
         if not record_path.is_file():
@@ -887,16 +891,23 @@ def _branch_record_branch_class_map(
         branch_class = str(_parse_workstream_doc(record_text)["branch_class"])
         if not branch_name or not branch_class:
             continue
+        prefixed_branch_name = f"origin/{branch_name}"
+        if branch_class == EMERGENCY_CANON_REPAIR_BRANCH_CLASS:
+            all_repair_branch_names.add(branch_name)
+            all_repair_branch_names.add(prefixed_branch_name)
+            if branch_record_path in active_branch_record_paths:
+                active_repair_branch_names.add(branch_name)
+                active_repair_branch_names.add(prefixed_branch_name)
         if branch_record_path not in active_branch_record_paths:
             if not (
                 current_branch
-                and branch_class == "emergency canon repair"
+                and branch_class == EMERGENCY_CANON_REPAIR_BRANCH_CLASS
                 and branch_name == current_branch
             ):
                 continue
         branch_class_map[branch_name] = branch_class
-        branch_class_map[f"origin/{branch_name}"] = branch_class
-    return branch_class_map
+        branch_class_map[prefixed_branch_name] = branch_class
+    return branch_class_map, all_repair_branch_names, active_repair_branch_names
 
 
 def _user_test_summary_section(text: str) -> str:
@@ -1143,10 +1154,20 @@ def _next_workstream_roadmap_section(roadmap_text: str) -> str:
     return _section(roadmap_text, "Selected Next Workstream")
 
 
+def _selected_next_ignored_branch_names(
+    current_branch: str,
+    all_repair_branch_names: set[str],
+    active_repair_branch_names: set[str],
+) -> set[str]:
+    if current_branch == "main" or current_branch in active_repair_branch_names:
+        return set(all_repair_branch_names)
+    return set()
+
+
 def _branch_names_for_workstream(
     branch_names: list[str],
     workstream_id: str,
-    branch_class_map: dict[str, str] | None = None,
+    ignored_branch_names: set[str] | None = None,
 ) -> list[str]:
     canonical = workstream_id.casefold()
     compact = canonical.replace("-", "")
@@ -1155,12 +1176,12 @@ def _branch_names_for_workstream(
         for branch_name in branch_names
         if canonical in branch_name.casefold() or compact in branch_name.casefold().replace("-", "")
     ]
-    if not branch_class_map:
+    if not ignored_branch_names:
         return matching
     return [
         branch_name
         for branch_name in matching
-        if branch_class_map.get(branch_name) != "emergency canon repair"
+        if branch_name not in ignored_branch_names
     ]
 
 
@@ -1276,7 +1297,7 @@ def _run_next_workstream_gate(
     require,
     backlog_entries: list[dict[str, str]],
     roadmap_text: str,
-    branch_class_map: dict[str, str],
+    ignored_branch_names: set[str],
 ) -> None:
     selected_entries = _selected_next_workstream_entries(backlog_entries)
     require(
@@ -1352,7 +1373,7 @@ def _run_next_workstream_gate(
         not branch_error,
         f"PR readiness gate: could not inspect branch names for selected next workstream: {branch_error}",
     )
-    matching_branches = _branch_names_for_workstream(branch_names, selected_id, branch_class_map)
+    matching_branches = _branch_names_for_workstream(branch_names, selected_id, ignored_branch_names)
     require(
         not matching_branches,
         (
@@ -1485,7 +1506,7 @@ def _run_pr_readiness_gate(
     require,
     backlog_entries: list[dict[str, str]],
     roadmap_text: str,
-    branch_class_map: dict[str, str],
+    ignored_branch_names: set[str],
 ) -> None:
     status_output = _git_status_porcelain()
     require(
@@ -1496,7 +1517,7 @@ def _run_pr_readiness_gate(
         ),
     )
     _run_uts_results_pr_gate(require, backlog_entries)
-    _run_next_workstream_gate(require, backlog_entries, roadmap_text, branch_class_map)
+    _run_next_workstream_gate(require, backlog_entries, roadmap_text, ignored_branch_names)
     _run_pr_live_state_gate(require)
 
 
@@ -1825,10 +1846,16 @@ def main() -> int:
     release_debt_index_paths = _collect_release_debt_index_paths(index_text)
     active_branch_record_paths = _collect_branch_record_paths(branch_record_index_text, "Active Branch Authority Records")
     historical_branch_record_paths = _collect_branch_record_paths(branch_record_index_text, "Historical Branch Authority Records")
-    branch_record_class_map = _branch_record_branch_class_map(
+    current_git_branch = _git_current_branch()
+    branch_record_class_map, all_repair_branch_names, active_repair_branch_names = _branch_record_branch_sets(
         active_branch_record_paths,
         historical_branch_record_paths,
-        _git_current_branch(),
+        current_git_branch,
+    )
+    ignored_selected_next_branch_names = _selected_next_ignored_branch_names(
+        current_git_branch,
+        all_repair_branch_names,
+        active_repair_branch_names,
     )
 
     backlog_entries = _parse_backlog_sections(backlog_text)
@@ -2064,7 +2091,7 @@ def main() -> int:
                 )
 
     if pr_readiness_gate:
-        _run_pr_readiness_gate(require, backlog_entries, roadmap_text, branch_record_class_map)
+        _run_pr_readiness_gate(require, backlog_entries, roadmap_text, ignored_selected_next_branch_names)
 
     selected_entries = _selected_next_workstream_entries(backlog_entries)
     if len(selected_entries) == 1 and not pr_readiness_gate:
@@ -2077,9 +2104,13 @@ def main() -> int:
             f"Selected next workstream branch check: could not inspect branch names: {branch_error}",
         )
         if not branch_error and roadmap_section:
-            matching_branches = _branch_names_for_workstream(branch_names, selected_id, branch_record_class_map)
+            matching_branches = _branch_names_for_workstream(
+                branch_names,
+                selected_id,
+                ignored_selected_next_branch_names,
+            )
             if matching_branches:
-                current_branch = _git_current_branch()
+                current_branch = current_git_branch
                 roadmap_lower = roadmap_section.casefold()
                 claims_not_created = any(
                     phrase.casefold() in roadmap_lower
@@ -2107,8 +2138,6 @@ def main() -> int:
                         f"{selected_id} branch exists but Branch Readiness-only admission state is not explicit"
                     ),
                 )
-
-    current_git_branch = _git_current_branch()
 
     promoted_entries = [
         entry

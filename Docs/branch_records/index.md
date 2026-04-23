@@ -42,7 +42,7 @@ Do not use this layer to replace:
 
 ## Active Branch Authority Records
 
-- None
+- `Docs/branch_records/feature_fb_030_successor_branch_truth_repair.md`
 
 ## Historical Branch Authority Records
 
