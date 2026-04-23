@@ -8,9 +8,9 @@
 
 ## Purpose / Why It Exists
 
-This branch exists because `v1.6.5-prebeta` is published and validated, FB-030 post-release canon closure must ride the next legal branch surface, and FB-005 remains the selected-next planning-only lane after release debt cleared.
+This record is now preserved as historical traceability for the selected-only FB-005 pre-promotion phase on `feature/fb-005-workspace-path-planning`.
 
-FB-005 remains selected-only / `Registry-only` on this branch. This branch is limited to post-release canon closure plus Branch Readiness blocker assessment and must not admit workspace movement, file relocation, import rewiring, launcher-route changes, log-root changes, or broader restructuring until explicit path-sensitive workspace approval exists.
+Live execution authority moved to `Docs/workstreams/FB-005_workspace_and_folder_organization.md` once explicit path-sensitive workspace approval admitted the first bounded slice and FB-005 was promoted into a canonical workstream.
 
 ## Current Phase
 
@@ -18,15 +18,11 @@ FB-005 remains selected-only / `Registry-only` on this branch. This branch is li
 
 ## Phase Status
 
-- Current execution surface is `Active Branch`.
-- branch was created from updated `main` at `7c2933d6427feb08a1139ba7f5ba2393eb61f1e1`
-- `v1.6.5-prebeta` is live at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.5-prebeta` on target commit `7c2933d6427feb08a1139ba7f5ba2393eb61f1e1`
-- FB-030 is Released / Closed in `v1.6.5-prebeta`, latest public prerelease truth is `v1.6.5-prebeta`, and merged-unreleased release debt is clear
-- FB-005 remains selected-next planning-only / `Registry-only`
-- Branch Readiness is active on `feature/fb-005-workspace-path-planning`, but Workstream is not admitted
-- explicit path-sensitive workspace approval remains unresolved
-- no bounded FB-005 workspace/path slice is admitted yet
-- no workspace movement, import rewiring, launcher-path change, log-root change, or user-facing path change has started
+- Historical selected-only / pre-promotion branch-readiness trace only.
+- This record no longer owns current execution truth.
+- `v1.6.5-prebeta` is live at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.5-prebeta` on target commit `7c2933d6427feb08a1139ba7f5ba2393eb61f1e1`.
+- Explicit path-sensitive workspace approval was recorded for `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`.
+- FB-005 is now promoted in `Docs/workstreams/FB-005_workspace_and_folder_organization.md`, where live authority records the admitted WS-1 slice and the Workstream handoff.
 
 ## Branch Class
 
@@ -34,8 +30,7 @@ FB-005 remains selected-only / `Registry-only` on this branch. This branch is li
 
 ## Blockers
 
-- `Explicit Path-Sensitive Workspace Approval Missing`
-- `Bounded Workspace/Path Slice Not Yet Admitted`
+None.
 
 ## Entry Basis
 
@@ -49,10 +44,9 @@ FB-005 remains selected-only / `Registry-only` on this branch. This branch is li
 
 - latest public prerelease truth is advanced to `v1.6.5-prebeta` across canon
 - FB-030 is durably Released / Closed and merged-unreleased release debt is clear in canon
-- FB-005 remains truthfully selected-only / `Registry-only` unless Branch Readiness completes
 - explicit path-sensitive workspace approval is recorded
 - one bounded FB-005 workspace/path slice is admitted with exact file/path ownership, migration limits, validation coverage, and rollback instructions
-- only then may FB-005 promote and advance to `Workstream`
+- FB-005 is promoted and live execution authority moves to the canonical workstream doc
 
 ## Rollback Target
 
@@ -60,4 +54,4 @@ FB-005 remains selected-only / `Registry-only` on this branch. This branch is li
 
 ## Next Legal Phase
 
-- `Branch Readiness`
+- `Workstream`
