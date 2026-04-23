@@ -110,9 +110,9 @@ None.
 - Run `git diff --check`.
 - Confirm `Docs/Main.md` routes this promoted FB-004 workstream record.
 - Confirm `Docs/feature_backlog.md` marks FB-004 as `Promoted`, `Active`, and cites this canonical workstream doc.
-- Confirm `Docs/workstreams/index.md` lists FB-004 under Active and not under Closed or Merged / Release Debt Owners.
-- Confirm `Docs/prebeta_roadmap.md` records FB-004 as the active PR Readiness workstream and does not leave selected-only, registry-only, Branch Readiness-only, Workstream-only, Hardening-only, Hardening-next, Live-Validation-next, or PR-Readiness-next truth behind.
-- Confirm `Docs/feature_backlog.md` and `Docs/prebeta_roadmap.md` record FB-015 as the selected next workstream with branch creation deferred.
+- Confirm `Docs/workstreams/index.md` lists FB-004 under Closed and not under Active or Merged / Release Debt Owners after release closure.
+- Confirm `Docs/prebeta_roadmap.md` records FB-004 as Released / Closed in `v1.6.3-prebeta` and does not leave active, merged-unreleased, PR-Readiness-next, or release-debt truth behind.
+- Confirm `Docs/feature_backlog.md` and `Docs/prebeta_roadmap.md` record FB-015 as the selected next workstream with Branch Readiness branch creation limited to the blocker-clearing Branch Readiness surface.
 - Run `python dev\orin_branch_governance_validation.py --pr-readiness-gate` after the branch is clean, pushed, and a live non-draft PR exists.
 - Confirm this PR Readiness pass changes only docs/canon surfaces.
 - Confirm no runtime, launcher, shortcut, UI, installer, release, helper code, or desktop export artifact changed during WS-1 through WS-3, H-1, LV-1, GOV-PR0, or PR Readiness.
