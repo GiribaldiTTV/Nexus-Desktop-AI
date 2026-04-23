@@ -355,7 +355,7 @@ Branch Class: implementation
 Read first:
 - Docs/nexus_startup_contract.md
 
-Use the loader map to load owning canon. Validate branch truth, authority-record phase truth, clean durable branch state, merge-target canon, next-workstream selection, helper retention, PR creation requirements, and PR validation requirements from owning canon.
+Use the loader map to load owning canon. Validate branch truth, authority-record phase truth, clean durable branch state, merge-target canon, next-workstream selection, release-window audit truth, helper retention, PR creation requirements, and PR validation requirements from owning canon.
 
 Task:
 <PR Readiness task>
@@ -366,6 +366,8 @@ Constraints:
 - Do not execute release work.
 - Do not create the next branch.
 - Do not report PR Readiness GREEN until PR creation and PR validation requirements are satisfied by canon and live PR truth.
+- If the branch is inside an unreleased release window, do not report PR Readiness GREEN until the active branch records a `Release Window Audit` with either no remaining known blockers or an explicit user-approved split waiver.
+- The default green posture for that audit is `Remaining Known Release Blockers: None`, `Another Pre-Release Repair PR Required: NO`, and `Release Window Split Waiver: None`; otherwise keep `Release Window Audit Incomplete` active.
 
 Stop if PR state, branch truth, post-merge canon, next-workstream truth, or required validation is unknown.
 
@@ -377,6 +379,7 @@ Return:
 - Reuse Baseline
 - Files Changed
 - Governance Drift Found
+- Release Window Audit
 - Validation Results
 - Ready-To-Commit Decision
 - Whether PR Readiness is GREEN

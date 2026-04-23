@@ -276,6 +276,12 @@ That means:
 - no PR-ready without docs-sync and drift-audit completion:
   - docs sync, Governance Drift Audit, validator alignment, and required post-merge wording must be complete and mutually consistent
   - run the branch governance validator and its PR-readiness gate mode before reporting `PR READY: YES`
+- no PR-ready with an incomplete release-window audit:
+  - if the branch is operating inside an unreleased release window, PR Readiness must record a `Release Window Audit`
+  - the normal green posture is `Remaining Known Release Blockers: None`, `Another Pre-Release Repair PR Required: NO`, and `Release Window Split Waiver: None`
+  - do not knowingly land one blocker-clearing PR while another blocker-clearing PR is already known to be required in the same unreleased window by default
+  - the only allowed exception is an explicit user-approved `Release Window Split Waiver`, recorded with a reason
+  - missing or incomplete proof keeps the named blocker `Release Window Audit Incomplete` active
 - no PR-ready without user-facing desktop-shortcut validation:
   - for relevant desktop user-facing workstreams, `User-Facing Shortcut Live Validation Gate` must pass or be explicitly waived before PR Readiness can report green
   - the active authority record must declare `User-Facing Shortcut Path:` and `User-Facing Shortcut Validation:` before User Test Summary handoff

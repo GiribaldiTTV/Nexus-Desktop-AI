@@ -249,6 +249,7 @@ The default named blockers are:
 - `PR Validation Pending`
 - `PR State Unknown`
 - `PR Readiness Scope Missed`
+- `Release Window Audit Incomplete`
 - `Release Readiness Scope Drift`
 - `Prior Branch Canon Unresolved`
 - `Between-Branch Canon Repair Attempt`
@@ -482,6 +483,8 @@ Hard blockers:
   PR Readiness cannot be green if Codex cannot inspect the PR state, mergeability/conflict state, base/head alignment, or Codex review-thread state.
 - `PR Readiness Scope Missed`:
   PR Readiness cannot be green if branch-authority cleanup, merge-target canon, post-merge truth, next-workstream selection, next-branch deferral, or release-debt routing is incomplete or being deferred to Release Readiness, updated `main`, or a later governance-only branch
+- `Release Window Audit Incomplete`:
+  PR Readiness cannot be green inside an unreleased release window until the active branch has audited that window, listed the currently known blocker set, and either clears those blockers on the same branch or records an explicit split waiver with user approval. Do not merge one blocker-clearing PR while already knowing that another blocker-clearing PR is queued behind it in the same unreleased window by default.
 - `Between-Branch Canon Repair Attempt`:
   PR Readiness cannot rely on any canon repair that is planned between branches rather than committed on the active branch before merge
 - `Next Branch Created Too Early`:
@@ -751,6 +754,35 @@ If Release Readiness discovers missing PR-owned canon or docs work, stop immedia
 If the branch has not merged, return to `PR Readiness` and repair the miss there before any Release Readiness output can be treated as green.
 If the branch has already merged, the next active branch's `Branch Readiness` must repair the miss before implementation begins and must update governance or validator coverage so the miss cannot recur.
 
+### Release Window Audit
+
+Inside `PR Readiness`, any branch that is preparing, repairing, or validating truth inside an unreleased release window must run a formal `Release Window Audit` before it may report PR green.
+
+The audit must explicitly answer:
+
+- `Release Window Audit: PASS`
+- `Window Scope`
+- `Known Window Blockers Reviewed`
+- `Remaining Known Release Blockers`
+- `Another Pre-Release Repair PR Required`
+- `Release Window Split Waiver`
+
+Normal green posture is:
+
+- `Remaining Known Release Blockers: None`
+- `Another Pre-Release Repair PR Required: NO`
+- `Release Window Split Waiver: None`
+
+If the branch already knows another blocker-clearing PR will be required before release, do not call PR Readiness green by default.
+The only allowed exception is an explicit user-approved split:
+
+- `Release Window Split Waiver: APPROVED`
+- `Release Window Split Waiver Reason: <why the split is intentional>`
+- `Another Pre-Release Repair PR Required: YES`
+
+Without that explicit split waiver, the branch is blocked by `Release Window Audit Incomplete`.
+This rule exists to prevent serial blocker-clearing PR chains inside one unreleased window when one repair branch could have cleared the full currently known blocker set.
+
 ### Governance Drift Audit
 
 Inside `PR Readiness`, the branch must run a formal Governance Drift Audit before it may advance to `Release Readiness`.
@@ -771,6 +803,7 @@ The audit must explicitly check whether the branch exposed:
 - a weak source-of-truth ownership rule
 - stale prompt scaffolding or stale operator examples
 - a missing validator requirement
+- a serial release-window repair pattern that should be consolidated onto the current branch instead of landing as another pre-release PR
 
 If governance drift is found and unresolved, the branch is blocked by `Governance Drift`.
 
