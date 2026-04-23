@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Hardening`
+- `Live Validation`
 
 ## Release Stage
 
@@ -27,7 +27,7 @@
 
 ## Current Phase
 
-- Phase: `Hardening`
+- Phase: `Live Validation`
 
 ## Phase Status
 
@@ -40,6 +40,9 @@
 - WS-3 validation and admission contract for UI implementation seams is complete.
 - The initial architecture-only Workstream seam sequence is complete.
 - H-1 UI/UX architecture and admission-contract pressure test is complete and green.
+- LV-1 repo-truth and branch-truth alignment check is complete and green.
+- LV-2 user-facing shortcut and User Test Summary applicability classification is complete with waivers recorded.
+- LV-3 Live Validation completion evaluation is complete and green.
 - No FB-031 UI implementation, launcher work, settings work, tray/taskbar work, overlay/HUD work, shortcut work, voice work, plugin work, installer work, asset work, helper creation, or runtime behavior change has started.
 
 ## Branch Class
@@ -130,7 +133,7 @@ Seam 3: validation and User Test Summary admission contract for future UI implem
 
 ## Active Seam
 
-Active seam: None after H-1 completion; the next legal phase is Live Validation.
+Active seam: None after LV-3 completion; the next legal phase is PR Readiness.
 
 - BR-1 Status: Completed in this pass; FB-040 post-release canon drift repaired.
 - BR-2 Status: Completed in this pass; post-release closure and version-advancement governance/validator hardening added.
@@ -149,6 +152,15 @@ Active seam: None after H-1 completion; the next legal phase is Live Validation.
 - H-1 Status: Completed / executed.
 - H-1 Boundary: docs/canon-only pressure test of UI/UX architecture, lifecycle and interaction-state framing, validation/admission contract, ambiguity, contradiction, scope, and implementation-readiness risk.
 - H-1 Non-Includes: no UI implementation, no assets, no helper creation, no screenshot capture, no runtime behavior, no launcher/settings/tray/overlay/HUD/shortcut/voice/plugin/installer work, and no release work.
+- LV-1 Status: Completed / executed.
+- LV-1 Boundary: repo-truth, branch-truth, and architecture-only milestone alignment validation.
+- LV-1 Non-Includes: no runtime launch, no UI exercise, no helper creation, no screenshot capture, no product behavior, no PR packaging, and no release work.
+- LV-2 Status: Completed / executed.
+- LV-2 Boundary: user-facing shortcut applicability and User Test Summary applicability classification for the current architecture-only milestone.
+- LV-2 Non-Includes: no desktop shortcut execution, no manual UTS handoff, no desktop export, and no UI audit because no user-facing surface was implemented.
+- LV-3 Status: Completed / executed.
+- LV-3 Boundary: Live Validation completion decision and PR Readiness admission posture.
+- LV-3 Non-Includes: no PR creation, no release packaging, no next-workstream selection, and no successor branch creation.
 
 ## WS-1 Execution Record
 
@@ -317,6 +329,36 @@ H-1 pressure-tested the completed FB-031 UI/UX architecture, lifecycle and inter
 - User Test Summary Applicability: not applicable for H-1 because it hardens architecture-only records and adds no user-visible behavior.
 - Continue/Stop Decision: stop at the Hardening phase boundary after validation because the current architecture-only milestone has no runtime or user-facing surface to further harden. The next legal phase is `Live Validation`.
 
+## Live Validation Record
+
+LV-1 through LV-3 validated the completed FB-031 architecture-only milestone against live repo truth, branch truth, and user-facing/manual validation applicability. The branch remains documentation/canon-only for this milestone: no UI surface, launcher path, settings path, tray/taskbar path, overlay/HUD path, shortcut path, voice path, plugin path, installer path, asset, validation helper, runtime behavior, or operator-facing invocation behavior has been added.
+
+### Live Validation Findings
+
+- Repo Truth Alignment: FB-031 remains `Promoted`, active on `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`, and FB-040 remains released/closed in `v1.6.0-prebeta` with release debt clear.
+- Branch Truth Alignment: the checked-out branch is the canonical FB-031 branch and carries completed BR-1 through BR-3, GOV-S1 through GOV-S3, WS-1 through WS-3, and H-1 records.
+- User-Facing Shortcut Applicability: no user-facing desktop shortcut or equivalent entrypoint exists for the current milestone because FB-031 has not implemented launcher, shortcut, tray, overlay, settings, HUD, runtime UI, plugin, protocol, transport, voice, installer, or operator-facing invocation behavior.
+- Manual Validation Applicability: no meaningful manual User Test Summary exists for the current milestone because the deliverable is architecture, vocabulary, lifecycle/state framing, and implementation-admission truth only; manual testing cannot exercise behavior that does not exist.
+- Runtime Evidence Applicability: no runtime/helper evidence is required or meaningful for this milestone because no runtime product surface was created.
+- Desktop Export Applicability: no desktop `User Test Summary.txt` export is required for this Live Validation pass because there is no user-facing desktop path or manual checklist to hand off.
+- Cleanup: no programs, helper processes, windows, temporary files, probes, assets, screenshots, helpers, harnesses, runtime artifacts, desktop exports, or session-scoped evidence files were created.
+
+### Live Validation Completion Decision
+
+- LV-1 Result: Complete / green.
+- LV-2 Result: Complete / green with user-facing shortcut and User Test Summary waivers recorded.
+- LV-3 Result: Complete / green.
+- Validation Layer: documentation and governance validation only.
+- Continue/Stop Decision: stop at the Live Validation phase boundary after validation because FB-031 Live Validation proof is green and the next normal phase is `PR Readiness`; PR Readiness must still prove merge-target canon, next-workstream selection, branch-history scope, dirty-branch status, PR package creation, and live PR validation before reporting PR-ready.
+
+## User Test Summary
+
+- User-Facing Shortcut Path: Not applicable - no user-facing desktop entrypoint exists for the current architecture-only FB-031 milestone.
+- User-Facing Shortcut Validation: WAIVED
+- User-Facing Shortcut Waiver Reason: FB-031 has no launcher, shortcut, tray, overlay, settings, HUD, runtime UI, plugin, protocol, transport, voice, installer, or operator-facing invocation path to exercise.
+- User Test Summary Results: WAIVED
+- User Test Summary Waiver Reason: The milestone remains architecture-only and validator-proven through repo/canon checks; a filled manual UTS would not materially validate behavior because no user-visible setup, display, runtime UI, or invocation surface exists.
+
 ## Validation Contract
 
 - `python dev\orin_branch_governance_validation.py`
@@ -348,14 +390,16 @@ H-1 pressure-tested the completed FB-031 UI/UX architecture, lifecycle and inter
 - WS-2 lifecycle and interaction-state framing for UI surfaces is complete and durably recorded.
 - WS-3 validation and admission contract for UI implementation seams is complete and durably recorded.
 - H-1 pressure test of UI/UX architecture, lifecycle/state framing, validation/admission contract, ambiguity, contradiction, scope, and implementation-readiness risk is complete and green.
+- LV-1 through LV-3 Live Validation repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, and completion checks are complete and green.
+- `## User Test Summary` records `User-Facing Shortcut Validation: WAIVED`, `User-Facing Shortcut Waiver Reason:`, `User Test Summary Results: WAIVED`, and `User Test Summary Waiver Reason:`.
 
 ## Rollback Target
 
-- `Workstream`
+- `Hardening`
 
 ## Next Legal Phase
 
-- `Live Validation`
+- `PR Readiness`
 
 ## Governance Drift Audit
 
