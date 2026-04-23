@@ -46,6 +46,7 @@
 - LV-2 user-facing shortcut and User Test Summary applicability classification is complete with waivers recorded.
 - LV-3 Live Validation completion evaluation is complete and green.
 - PR Readiness merge-target canon, FB-032 selected-next truth, and successor branch deferral are recorded for post-merge truth.
+- PR-R1 minor-release rationale negation validation repair is complete after live PR review.
 - No FB-031 UI implementation, launcher work, settings work, tray/taskbar work, overlay/HUD work, shortcut work, voice work, plugin work, installer work, asset work, helper creation, or runtime behavior change has started.
 
 ## Branch Class
@@ -186,6 +187,9 @@ Active seam: None after PR-3 completion; the next legal phase is Release Readine
 - PR-3 Status: Completed / executed.
 - PR-3 Boundary: PR package creation basis, live PR validation gate, and final post-merge Release Readiness admission posture.
 - PR-3 Non-Includes: no merge execution, no release execution, no tag creation, no release-note publication, and no file mutation after Release Readiness starts.
+- PR-R1 Status: Completed / executed.
+- PR-R1 Boundary: repair live PR review finding that minor-release capability rationale parsing accepted negated capability wording.
+- PR-R1 Non-Includes: no release target change, no release execution, no successor branch creation, no product/runtime behavior, and no UI implementation.
 
 ## WS-1 Execution Record
 
@@ -397,13 +401,15 @@ PR-1 through PR-3 completed the FB-031 PR Readiness pass and prepared the pre-re
 - User Test Summary: exact waiver markers are present in `## User Test Summary`.
 - Selected Next Workstream: FB-032 Nexus-era vision and source-of-truth migration.
 - Branch-Creation Gate: FB-032 remains selected-only with Branch: Not created until FB-031 release debt clears and updated main revalidates Branch Readiness admission.
+- Live PR Review Repair: PR-R1 tightened `dev/orin_branch_governance_validation.py` so negated capability wording such as no executable, runtime, operator-facing, user-facing, or materially expanded product capability does not satisfy the `minor prerelease` rationale gate.
 - Governance Drift Audit: no unresolved governance drift remains after this PR Readiness pass.
 
 ### PR Readiness Completion Decision
 
 - PR-1 Result: Complete / green.
 - PR-2 Result: Complete / green.
-- PR-3 Result: Complete / package-ready pending live PR validation.
+- PR-3 Result: Complete / package-ready with live PR validation blocked by authenticated review-thread resolution until PR-R1 can be revalidated through `gh`.
+- PR-R1 Result: Complete / green locally; live PR thread resolution remains blocked by expired connector auth and missing local `gh` auth.
 - Validation Layer: documentation and governance validation only.
 - Continue/Stop Decision: stop at PR Readiness after the live PR creation and validation gate is complete; Release Readiness is the next legal phase after PR merge and must remain file-frozen.
 
@@ -447,6 +453,7 @@ PR-1 through PR-3 completed the FB-031 PR Readiness pass and prepared the pre-re
 - `## User Test Summary` records `User-Facing Shortcut Validation: WAIVED`, `User-Facing Shortcut Waiver Reason:`, `User Test Summary Results: WAIVED`, and `User Test Summary Waiver Reason:`.
 - FB-031 merge-target canon records `v1.6.1-prebeta` as the patch prerelease target, release debt owner, post-release truth, and selected-next branch gate.
 - FB-032 is selected as the next workstream with `Branch: Not created` and no successor branch exists.
+- PR-R1 validator repair proves negated capability wording no longer satisfies the minor-release rationale gate.
 
 ## Rollback Target
 
@@ -471,3 +478,10 @@ Governance Drift Found: No unresolved drift during FB-031 PR Readiness.
 - PR Readiness Scope Missed: Clear.
 - Between-Branch Canon Repair Attempt: Clear.
 - Next Branch Created Too Early: Clear.
+
+Governance Drift Found: Yes, repaired during FB-031 PR-R1 live PR review repair.
+
+- Drift Type: release-floor validator semantic gap.
+- Finding: `_minor_release_rationale_has_capability` accepted capability tokens inside negated wording, so text stating no executable, runtime, operator-facing, user-facing, or materially expanded product capability could incorrectly satisfy a `minor prerelease` rationale check.
+- Repair: minor-release rationale parsing now removes common negated capability clauses before matching positive capability patterns.
+- Governance Drift Found After Repair: No unresolved local validator drift remains; authenticated PR thread resolution remains external-auth blocked.

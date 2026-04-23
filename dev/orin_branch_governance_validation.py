@@ -535,6 +535,24 @@ MINOR_RELEASE_CAPABILITY_MARKERS = (
     "materially expanded product capability",
     "product behavior expansion",
 )
+MINOR_RELEASE_CAPABILITY_NEGATION_RE = re.compile(
+    r"\b(?:no|not|without|lacks?|lacking|neither|nor|does not|doesn't|did not|didn't|must not|cannot|can't)\b"
+    r"[^.;:\n]{0,220}"
+    r"\b(?:executable|runtime(?: capability| behavior| implementation)?|operator-facing|user-facing|"
+    r"materially expanded product capability|product behavior expansion|capability lane)\b"
+    r"[^.;:\n]*"
+)
+MINOR_RELEASE_CAPABILITY_POSITIVE_PATTERNS = (
+    r"\bnew\s+(?:pre-beta\s+)?capability lane\b",
+    r"\b(?:adds?|delivers?|creates?|introduces?)\s+[^.;:\n]{0,80}?\bcapability lane\b",
+    r"\b(?:new|added|delivered|introduced)\s+[^.;:\n]{0,40}?\bexecutable\b",
+    r"\bexecutable\s+(?:capability|product behavior|lane)\b",
+    r"\bruntime\s+(?:capability|implementation|behavior|boundary|lane)\b",
+    r"\boperator-facing\b[^.;:\n]{0,80}\b(?:capability|surface|behavior|workflow|path|feature|lane)\b",
+    r"\buser-facing\b[^.;:\n]{0,80}\b(?:capability|surface|behavior|workflow|path|feature|lane)\b",
+    r"\bmaterially expanded product capability\b",
+    r"\bproduct behavior expansion\b",
+)
 PATCH_FLOOR_DEFAULT_MARKERS = (
     "architecture-only",
     "planning",
@@ -759,7 +777,14 @@ def _workstream_target_version(workstream_text: str) -> str:
 
 def _minor_release_rationale_has_capability(rationale_text: str) -> bool:
     lowered = rationale_text.casefold()
-    return any(marker in lowered for marker in MINOR_RELEASE_CAPABILITY_MARKERS)
+    rationale_without_negated_capabilities = MINOR_RELEASE_CAPABILITY_NEGATION_RE.sub(
+        " ",
+        lowered.replace("non-user-facing", " "),
+    )
+    return any(
+        re.search(pattern, rationale_without_negated_capabilities)
+        for pattern in MINOR_RELEASE_CAPABILITY_POSITIVE_PATTERNS
+    )
 
 
 def _release_debt_owner_claim(workstream_id: str) -> str:
