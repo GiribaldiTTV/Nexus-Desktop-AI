@@ -46,7 +46,7 @@
 - PR-1 merge-target canon completeness is complete.
 - PR-2 selected-next workstream selection is complete with FB-029 planning-only.
 - PR-3 live PR creation and validation is complete, and PR #75 is now merged.
-- `feature/fb-029-orin-identity-licensing-hardening` is now the promoted FB-029 PR Readiness authority; the bounded docs/canon-only WS-1 through WS-3 seam chain plus H-1 plus LV-1 are complete there, PR-1, PR-2, and PR-3 are complete, PR #76 is open/non-draft/mergeable clean, and explicit product/legal approval still blocks any implementation-facing naming, licensing, release, runtime, or persona-surface work.
+- FB-029 merged through PR #76 into `main` at `0897fab768dc07385f83fab81434ba7926ecc4a1` and is now merged-unreleased inside the inherited `v1.6.4-prebeta` package; it no longer owns active implementation truth, and explicit product/legal approval still blocks any implementation-facing naming, licensing, release, runtime, or persona-surface work.
 - Hardening clarified launcher-owned `STARTUP_READY_OBSERVED`, `normal exit complete`, and `failure flow complete` as explicit boundary states and tightened later shortcut-proof classification so direct repository launch-shim invocation is not treated as real user-facing shortcut proof by default.
 - Live Validation confirmed the completed FB-015 delta remains docs/canon only, so user-facing shortcut validation and User Test Summary results are both waived for this milestone.
 - PR Readiness derived `v1.6.4-prebeta` / `Pre-Beta v1.6.4` as the semantic post-merge release target because FB-015 remains a docs/canon-only architecture/admission milestone with `patch prerelease` release-floor semantics.
@@ -119,8 +119,8 @@
 - Confirm `Docs/workstreams/index.md` lists FB-015 under Merged / Release Debt Owners and not under Active.
 - Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` record FB-015 as the merged-unreleased release-debt owner with `Repo State: No Active Branch`.
 - Confirm `Docs/prebeta_roadmap.md` records `merged unreleased non-doc implementation debt exists: yes` and `current active workstream: none`.
-- Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, `Docs/workstreams/index.md`, and `Docs/Main.md` route FB-029 as `Promoted`, `Active`, Workstream-complete-through-WS-3 truth on `feature/fb-029-orin-identity-licensing-hardening` with a canonical workstream doc.
-- Confirm FB-029 Hardening is the next legal phase, while the milestone remains docs/canon-only and implementation-facing admission stays explicitly product/legal-gated.
+- Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, `Docs/workstreams/index.md`, and `Docs/Main.md` route FB-029 as `Promoted`, `Merged unreleased`, and included in the inherited `v1.6.4-prebeta` package with no active implementation truth.
+- Confirm blocker-clearing FB-030 Branch Readiness is active on `feature/fb-030-orin-voice-audio-direction-refinement` through `Docs/branch_records/feature_fb_030_orin_voice_audio_direction_refinement.md` while FB-030 remains selected-only / `Registry-only`.
 - Confirm the validator rejects active implementation workstream truth on `main` when the canonical branch is not `main`.
 - Confirm FB-004 remains Released / Closed in `v1.6.3-prebeta`.
 - Confirm the previously recorded supporting canon sync remains limited to active FB-015 branch authority wording, `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`, and `Docs/validation_helper_registry.md`, and does not reopen FB-040 or change the admitted FB-015 seam chain.
@@ -616,15 +616,15 @@ Release Floor: patch prerelease
 Version Rationale: FB-015 remains a docs/canon-only boot and desktop phase-boundary architecture plus admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
 Release Scope: FB-015 boot and desktop phase-boundary inventory, ownership map, lifecycle and state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR Readiness package history, post-merge canon repair, and merged-unreleased release-debt framing, plus the FB-029 identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, and PR Readiness package history
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta after publication and validation; release debt then clears, and FB-030 Branch Readiness may continue on a later branch after updated-main revalidation and an explicit voice/audio design goal with affected-surface map admits the lane
+Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta after publication and validation; release debt then clears, and FB-030 Branch Readiness may resume beyond blocker-clearing repair on `feature/fb-030-orin-voice-audio-direction-refinement` only after updated-main revalidation and an explicit voice/audio design goal with affected-surface map admits promotion
 Selected Next Workstream: FB-030 ORIN voice/audio direction refinement
-Next-Branch Creation Gate: After FB-029 merges, `v1.6.4-prebeta` is published and validated, updated `main` is revalidated, and an explicit voice/audio design goal with affected-surface map admits FB-030 Branch Readiness
+Next-Branch Creation Gate: Satisfied only for blocker-clearing Branch Readiness on `feature/fb-030-orin-voice-audio-direction-refinement` after updated-main revalidation. FB-030 remains selected-only and must not be promoted or admitted for Workstream until `v1.6.4-prebeta` is published and validated and an explicit voice/audio design goal with affected-surface map is recorded
 
 ## Post-Merge State
 
 - PR #75 merged cleanly into `main` at `3e821e07ff91d814fd7aba9b50819f97d700a301`, and FB-015 is now the merged-unreleased release-debt owner for `v1.6.4-prebeta`.
 - After merge, repo state is `No Active Branch` until `v1.6.4-prebeta` is published, validated, and post-release canon closure is completed on the next legal branch surface.
-- FB-029 is the selected next workstream; `feature/fb-029-orin-identity-licensing-hardening` now carries promoted Workstream truth with WS-1 through WS-3 plus H-1 plus LV-1 complete, PR Readiness next, and explicit product/legal approval still controls any later implementation-facing admission.
+- FB-029 is merged-unreleased inside the inherited `v1.6.4-prebeta` package after PR #76 merged into `main`, and blocker-clearing FB-030 Branch Readiness now rides on `feature/fb-030-orin-voice-audio-direction-refinement` while FB-030 remains selected-only and explicit product/legal approval still controls any later implementation-facing admission.
 
 ## PR Readiness Record
 
@@ -716,7 +716,7 @@ PR Readiness validates the completed docs/canon-only FB-015 milestone for merge 
 - The ownership map across the current user-facing launch shim, production launcher, production renderer, dev-only boot prototype, shared single-instance primitives, and evidence/state roots is recorded.
 - `## User Test Summary` records `User-Facing Shortcut Validation: WAIVED`, `User-Facing Shortcut Waiver Reason:`, `User Test Summary Results: WAIVED`, and `User Test Summary Waiver Reason:` for the docs/canon-only milestone.
 - `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the merged-unreleased release-debt owner with `Repo State: No Active Branch`, `Release Target: v1.6.4-prebeta`, and no stale active-workstream truth.
-- Backlog, roadmap, and workstreams index route FB-029 as the promoted Workstream authority on `feature/fb-029-orin-identity-licensing-hardening` with WS-1 through WS-3 plus H-1 plus LV-1 complete and PR Readiness next for the docs/canon-only milestone.
+- Backlog, roadmap, and workstreams index route FB-029 as promoted and merged-unreleased inside the inherited `v1.6.4-prebeta` package, with no stale active implementation truth remaining after PR #76 merged.
 - FB-004 remains Released / Closed, and the latest public prerelease remains `v1.6.3-prebeta`.
 - Requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred and no out-of-scope backlog, roadmap, workstream, or auxiliary planning-reference canon was added on this branch.
 - No runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3, H-1, or LV-1.
