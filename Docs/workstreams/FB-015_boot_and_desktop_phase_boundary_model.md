@@ -618,7 +618,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-015 remains a docs/canon-only boot and desktop phase-boundary architecture plus admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
 Release Scope: FB-015 boot and desktop phase-boundary inventory, ownership map, lifecycle and state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR Readiness package history, post-merge canon repair, and historical release-debt framing, plus the FB-029 identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, and PR Readiness package history
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta, release debt is clear, and FB-030 now owns active Branch Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`
+Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta, release debt is clear, and FB-030 now owns active Workstream truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 complete and WS-2 admitted next
 
 ## Post-Merge State
 

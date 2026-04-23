@@ -80,7 +80,7 @@ That may be an executable branch owner or another explicitly promoted current-tr
 
 - `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 
-FB-030 now owns active branch execution truth on `feature/fb-030-orin-voice-audio-direction-refinement`. `v1.6.4-prebeta` is live, release debt is clear, and this branch is the legal active implementation surface.
+FB-030 now owns active branch execution truth on `feature/fb-030-orin-voice-audio-direction-refinement`. `v1.6.4-prebeta` is live, release debt is clear, WS-1 current voice/audio surface inventory and ownership map is complete, and WS-2 lifecycle and persona-state framing for voice/audio transitions is the admitted next seam.
 
 ### Merged / Release Debt Owners
 

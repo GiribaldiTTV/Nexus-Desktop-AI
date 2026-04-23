@@ -55,14 +55,14 @@ Active Branch: feature/fb-030-orin-voice-audio-direction-refinement.
 
 ## Backlog Governance Sync
 
-Last Reviewed: 2026-04-23 during FB-030 Branch Readiness.
+Last Reviewed: 2026-04-23 during FB-030 WS-1.
 
 Open-candidate priority review:
 
 - FB-004 is released and closed in `v1.6.3-prebeta`; it is no longer an active or selected-next branch candidate.
 - FB-015 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
 - FB-029 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
-- FB-030 remains `Medium`, is now promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and Branch Readiness has recorded the explicit voice/audio design goal plus affected-surface map needed to admit WS-1 next.
+- FB-030 remains `Medium`, is now promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and WS-1 has recorded the current voice/audio ownership map, trigger surfaces, playback authorities, telemetry lanes, and conflict inventory needed to admit WS-2 next.
 - FB-005 remains `Low` because remaining workspace movement is path-sensitive and requires explicit workspace/path approval.
 
 Current-branch clarity: FB-030 is the active promoted implementation workstream on `feature/fb-030-orin-voice-audio-direction-refinement`; no selected-next implementation branch is currently held open in canon while this branch owns execution truth.
@@ -107,7 +107,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-015 remains a docs/canon-only boundary inventory, ownership, lifecycle, and implementation-admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Boot and desktop phase-boundary inventory, ownership map, lifecycle/state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, post-merge canon repair, and merged-unreleased release-debt truth.
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and governance results without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-015 is Released / Closed in v1.6.4-prebeta; release debt is clear; FB-029 is also Released / Closed in the same package; and FB-030 now owns active Branch Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`.
+Post-Release Truth: FB-015 is Released / Closed in v1.6.4-prebeta; release debt is clear; FB-029 is also Released / Closed in the same package; and FB-030 now owns active Workstream truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 complete and WS-2 admitted next.
 Minimal Scope: Complete the bounded docs/canon seam chain for current boot/desktop phase-boundary ambiguity, starting with current boundary inventory and ownership mapping before lifecycle framing or implementation-admission rules are extended.
 Summary: Preserve the future boot and desktop phase-boundary model above the already-closed milestone taxonomy work.
 Why it matters: Keeps boot-versus-desktop ownership planning explicit without reopening the closed taxonomy milestone by inertia.
@@ -137,7 +137,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-029 remains a docs/canon-only identity, persona-option, and licensing-planning milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, merged-unreleased package-state repair, and post-merge current-state cleanup.
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-029 is Released / Closed in v1.6.4-prebeta; release debt is clear; FB-015 is also Released / Closed in the same package; and FB-030 now owns active Branch Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`.
+Post-Release Truth: FB-029 is Released / Closed in v1.6.4-prebeta; release debt is clear; FB-015 is also Released / Closed in the same package; and FB-030 now owns active Workstream truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 complete and WS-2 admitted next.
 Minimal Scope: Define the Branch Readiness frame for legal-safe ORIN naming, optional future ARIA persona posture, and repo licensing hardening before any naming, licensing, release, runtime, or persona-facing edits begin; Workstream remains docs/canon only unless a later legal surface explicitly widens scope.
 Summary: Track future ORIN-era naming, persona, and licensing hardening work without treating the local rebrand overlay as merged truth.
 Why it matters: Product identity, legal posture, and repo ownership still need durable future treatment, but not by accidental carry-forward.
@@ -154,8 +154,8 @@ Selection / Unblock: Admitted. The canonical workstream doc now records the expl
 Branch: feature/fb-030-orin-voice-audio-direction-refinement
 Canonical Workstream Doc: Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md
 Branch Readiness: Complete. The branch objective, target end-state, voice/audio design goal, affected-surface map, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam are recorded in the canonical workstream doc.
-Workstream: Not started. WS-1 current voice/audio surface inventory and ownership map is admitted next.
-Minimal Scope: Define the Branch Readiness frame for ORIN voice/audio direction, persona-facing affected surfaces, validation boundaries, and explicit non-goals before any runtime voice behavior, shutdown voice behavior, or public voice-persona change begins.
+Workstream: Active. WS-1 current voice/audio surface inventory and ownership map is complete, and WS-2 lifecycle and persona-state framing for voice/audio transitions is admitted next.
+Minimal Scope: Inventory current voice/audio trigger surfaces, playback authorities, transcript/history lanes, telemetry sinks, persona/tone sources, and conflict zones before lifecycle framing or runtime voice/audio changes are considered.
 Summary: Preserve future ORIN voice-direction refinement as its own bounded persona-facing lane.
 Why it matters: Voice identity should be intentional and should not piggyback on unrelated runtime or canon work.
 
