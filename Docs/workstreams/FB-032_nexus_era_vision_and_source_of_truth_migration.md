@@ -31,12 +31,13 @@
 
 ## Phase Status
 
-- `WS-1 complete / WS-2 admission ready`
+- `WS-1 complete / GOV-WS1 complete / WS-2 continuation required`
 - FB-031 is released and closed in `v1.6.1-prebeta`.
 - Latest public prerelease truth is `v1.6.1-prebeta`.
 - Release debt is clear.
 - FB-032 Branch Readiness is complete and this record is the active Workstream authority.
 - WS-1 current-vs-historical source-of-truth inventory and naming policy is complete.
+- GOV-WS1 bounded multi-seam continuation repair is complete after the WS-1 pass stopped before acting on the admitted WS-2 continuation.
 - No FB-032 wording migration, persona work, runtime behavior, UI implementation, rebrand execution, release work, or source-of-truth migration implementation has started.
 - Workstream continuation is limited to WS-2 classification and mapping of canonical vs historical surfaces.
 
@@ -146,7 +147,7 @@ Seam 3: migration sequencing and validation-readiness map
 
 ## Active Seam
 
-Active seam: WS-1 current-vs-historical source-of-truth inventory and naming policy is complete; WS-2 classification and mapping of canonical vs historical surfaces is the next admitted Workstream seam after this WS-1 pass is validated and durable.
+Active seam: GOV-WS1 bounded multi-seam continuation governance repair is complete; WS-2 classification and mapping of canonical vs historical surfaces is the next active Workstream seam and must start after repair durability.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-032, define branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and the first Workstream seam.
@@ -154,7 +155,17 @@ Active seam: WS-1 current-vs-historical source-of-truth inventory and naming pol
 - WS-1 Status: Completed / executed.
 - WS-1 Boundary: docs/canon inventory and naming policy only.
 - WS-1 Non-Includes: no source code edits, no runtime behavior, no UI implementation, no persona implementation, no public wording migration, no release work, and no historical rewrite that destroys traceability.
+- GOV-WS1 Status: Completed / executed.
+- GOV-WS1 Boundary: repair governance and validator enforcement so a green bounded multi-seam `continue` decision is acted on by starting the next seam instead of being reported as a future optional move.
+- GOV-WS1 Non-Includes: no source code behavior changes, no runtime behavior, no UI implementation, no persona implementation, no public wording migration, no release work, and no execution of WS-2 before the governance repair validates.
 - WS-2 Admission: allowed after WS-1 validation is green and branch truth is durable.
+
+## Seam Continuation Decision
+
+Continue Decision: `continue`
+Next Active Seam: `WS-2 classification and mapping of canonical vs historical surfaces`
+Stop Condition: `None`
+Continuation Action: GOV-WS1 must validate and commit the bounded multi-seam governance repair, then start WS-2 immediately; reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
 
 ## WS-1 Execution Record
 
@@ -234,13 +245,15 @@ Use this policy before any later FB-032 classification, mapping, or migration se
 
 ## Governance Drift Audit
 
-Governance Drift Found: No.
+Governance Drift Found: Yes, repaired during GOV-WS1.
 
 - Release Readiness drift found before FB-032 promotion was repaired by standardizing live GitHub release notes and updating release governance/validator requirements.
 - FB-031 post-release canon closure is complete.
 - FB-032 Branch Readiness no longer has selected-only / registry-only drift after this promotion record.
 - No contradiction remains between backlog, roadmap, workstream index, and main routing for FB-032.
 - WS-1 found no reason to reinterpret historical Jarvis records as current Nexus truth and no reason to rename current legacy-named runtime paths without a later admitted implementation seam.
+- Finding: the WS-1 pass correctly recorded WS-2 as next, but stopped after returning `Next Safe Move` instead of acting on the required bounded multi-seam continuation.
+- Repair: governance, prompt scaffolds, and validator enforcement now require that reporting `Next Safe Move` is not a substitute for execution and that a `continue` decision must be acted on immediately by starting the next admitted seam.
 
 ## Validation Results
 
@@ -249,3 +262,6 @@ Governance Drift Found: No.
 - WS-1 diff hygiene: `git diff --check` PASS with line-ending normalization warnings only and no whitespace errors.
 - WS-1 targeted drift scan across current authority surfaces: PASS; no active FB-032 Branch Readiness-only or selected-only claim remains in current-state surfaces.
 - WS-1 changed docs/canon only; no runtime, UI, persona behavior, source code, release artifact, desktop shortcut behavior, broad wording migration, or historical rewrite changed.
+- GOV-WS1 validation: `python dev\orin_branch_governance_validation.py` PASS, 884 checks.
+- GOV-WS1 diff hygiene: `git diff --check` PASS with line-ending normalization warnings only and no whitespace errors.
+- GOV-WS1 changed governance/docs/validator/workstream canon only; no runtime, UI, persona behavior, source code behavior, release artifact, desktop shortcut behavior, broad wording migration, or historical rewrite changed.

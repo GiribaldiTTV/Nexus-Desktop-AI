@@ -113,6 +113,10 @@ Add `Seam Sequence` when the Workstream prompt may use bounded multi-seam workfl
 If `Seam Sequence` is present, Codex must execute one active seam at a time, validate after each seam, and report a continue-or-stop decision before starting the next seam.
 If a prompt names an active seam inside that sequence, treat it as the entry seam, not a terminal boundary.
 After a green seam, `Next-Seam Continuation Required` applies by default when continuation authority conditions pass.
+reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
+reporting Next Safe Move is not a substitute for execution when continuation authority passes.
+A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
+continue decision must be acted on immediately by starting the next seam in the approved sequence.
 Do not encode a single-seam stop unless a bounded stop condition, phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback` applies.
 For `Release Readiness`, a release-bearing branch must include `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` before green status is allowed.
 For `PR Readiness`, release-bearing merge-target canon must prove the target is semantically correct from the latest public prerelease and declared release floor before green status is allowed.
@@ -344,9 +348,10 @@ If the task includes interactive validation, the validation plan should also sta
 1. Perform only the approved execution work.
 2. For bounded multi-seam workflow, perform exactly one seam, verify it, record evidence, and decide `continue` or `stop` before starting the next seam.
 3. Continue by default to the next planned seam after a green seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass.
-4. Stop the workflow immediately on validation failure, regression, scope drift, unplanned risk expansion, governance drift, unresolved manual-validation blocker, branch-truth inconsistency, phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback`.
-5. Clean up session-scoped side effects from the pass unless there is an explicit reason to preserve them.
-6. Report what changed, what was verified, the per-seam continue-or-stop decisions, and what was cleaned up or intentionally left in place.
+4. Reporting `Next Safe Move` is not a substitute for execution when continuation authority passes; A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
+5. Stop the workflow immediately on validation failure, regression, scope drift, unplanned risk expansion, governance drift, unresolved manual-validation blocker, branch-truth inconsistency, phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback`.
+6. Clean up session-scoped side effects from the pass unless there is an explicit reason to preserve them.
+7. Report what changed, what was verified, the per-seam continue-or-stop decisions, and what was cleaned up or intentionally left in place.
 
 ## Verification Requirements
 

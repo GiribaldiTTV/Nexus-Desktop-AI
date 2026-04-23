@@ -161,6 +161,8 @@ MULTI_SEAM_CONTRACT_PHRASES = (
     "entry seam, not a terminal boundary",
     "bounded stop condition",
     "Single-Seam Fallback",
+    "reporting `Next Safe Move` is not a substitute for execution",
+    "A `continue` decision must be acted on immediately",
 )
 
 MULTI_SEAM_PRIMARY_REPAIR_PHRASES = (
@@ -187,6 +189,15 @@ MULTI_SEAM_PROMPT_PHRASES = (
     "Next-Seam Continuation Required",
     "entry seam, not a terminal boundary",
     "Single-Seam Fallback",
+    "reporting Next Safe Move is not a substitute for execution",
+    "continue decision must be acted on immediately",
+)
+
+REQUIRED_WORKSTREAM_CONTINUATION_MARKERS = (
+    "Continue Decision:",
+    "Next Active Seam:",
+    "Stop Condition:",
+    "Continuation Action:",
 )
 
 WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS = (
@@ -2116,6 +2127,18 @@ def main() -> int:
                 "Active seam:" in active_seam_section,
                 f"{canonical_path}: Active Seam section must clearly identify the active seam",
             )
+
+        if current_phase == "Workstream":
+            continuation_section = _section(workstream_text, "Seam Continuation Decision")
+            require(
+                bool(continuation_section),
+                f"{canonical_path}: active Workstream record must include '## Seam Continuation Decision'",
+            )
+            for marker in REQUIRED_WORKSTREAM_CONTINUATION_MARKERS:
+                require(
+                    marker in continuation_section,
+                    f"{canonical_path}: Seam Continuation Decision is missing '{marker}'",
+                )
 
         if current_phase in {"Live Validation", "PR Readiness"}:
             require(

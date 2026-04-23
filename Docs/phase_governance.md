@@ -1028,6 +1028,11 @@ Codex must not stop merely because:
 - durability commit and push completed
 - one seam was successfully recorded
 
+reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
+A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
+Durability commit/push after a green seam is a checkpoint, not a stop.
+Do not send a final closeout response after a green entry seam while the next seam remains admitted and no bounded stop condition exists.
+
 Stopping after a green seam requires a recorded bounded stop condition from this contract.
 
 A prompt-level `execute only <seam>` request does not override this continuation duty unless the request is paired with a bounded stop condition or another named blocker from this contract.
@@ -1068,6 +1073,7 @@ After each seam, Codex must:
 - verify cleanup for artifacts the pass created or opened
 - decide and report `continue` or `stop`
 - continue by default to the next planned seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass
+- act on a `continue` decision by starting the next seam before final closeout
 
 ### Continuation Authority
 

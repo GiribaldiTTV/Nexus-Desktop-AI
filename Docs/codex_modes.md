@@ -137,6 +137,8 @@ In Workflow mode, Codex should:
 - when the approved Workstream boundary contains an approved seam chain, use bounded multi-seam workflow as the primary model while executing one active seam at a time
 - when a prompt names an active seam inside an approved sequence, treat it as the entry seam, not a terminal boundary
 - after a green entry seam, apply `Next-Seam Continuation Required` and continue by default when the continuation authority conditions pass
+- reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
+- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 - use `Single-Seam Fallback` only when source-of-truth records a bounded stop condition or continuation blocker
 - when the approved boundary is continuous validation inside the current workstream, keep iterating only while the governing phase rules, validation, and stop-loss contract remain green
 
@@ -356,6 +358,8 @@ That means:
 - PR Readiness uses readiness-gate seams for PR package, PR creation, and PR validation rather than implementation continuation
 - Release Readiness is review-only and file-frozen; it must not mutate repository files through a seam
 - the output must report the per-seam validation result and `continue` or `stop` decision
+- reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
+- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 - a validation failure, regression, scope drift, unplanned risk expansion, governance drift, unresolved manual-validation blocker, branch-truth contradiction, phase boundary, stop-loss trigger, or other bounded stop condition stops the workflow
 
 `Single-Seam Fallback` is a bounded stop decision, not a category shortcut.

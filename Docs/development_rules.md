@@ -390,6 +390,9 @@ Bounded multi-seam workflow means:
 - multiple seams may execute in sequence within one approved phase boundary only when phase governance allows it
 - each seam still has one active owner, exact boundary, explicit non-includes, validation gate, cleanup expectation, and continue-or-stop decision
 - Codex must continue by default to the next planned seam when the continuation authority conditions pass
+- reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
+- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
+- durability commit/push after a green seam is a checkpoint, not a stop
 - stopping after a green seam requires a bounded stop condition from `Docs/phase_governance.md`, a phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback`
 - every seam must remain in the same workstream or active authority record, same phase, same branch class, same approved scope, and same subsystem family or tightly coupled implementation, validation, or governance chain
 - Branch Readiness may use planning, admission, or tightly coupled governance-repair seams, but not product/runtime implementation
