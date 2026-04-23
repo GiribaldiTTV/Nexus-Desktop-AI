@@ -394,7 +394,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-029 remains a docs/canon-only identity, persona-option, and licensing-planning milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
 Release Scope: FB-015 boot and desktop phase-boundary inventory, ownership map, lifecycle and state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, historical release-debt framing, plus the FB-029 identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, and historical merged-package-state repair
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta, release debt is clear, and FB-030 now owns active Hardening truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3 and H-1 complete and Live Validation next
+Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta, release debt is clear, and FB-030 now owns active PR Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 complete and PR-3 next
 
 ## Post-Merge State
 

@@ -23,11 +23,11 @@
 
 ## Current Phase
 
-- Phase: `Live Validation`
+- Phase: `PR Readiness`
 
 ## Phase Status
 
-- `Live Validation is active on feature/fb-030-orin-voice-audio-direction-refinement after H-1 hardening completed green.`
+- `PR Readiness is active on feature/fb-030-orin-voice-audio-direction-refinement after LV-1 Live Validation completed green.`
 - FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`.
 - Latest public prerelease truth is `v1.6.4-prebeta`.
 - Release debt is clear after `v1.6.4-prebeta` publication, validation, and post-release canon closure.
@@ -39,7 +39,10 @@
 - WS-3 validation and admission contract for future voice/audio implementation is complete and durably recorded below.
 - H-1 hardening pressure test is complete and durably recorded below.
 - LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete and durably recorded below.
-- PR Readiness is the next legal phase.
+- PR-1 merge-target canon completeness is complete and durably recorded below.
+- PR-2 selected-next workstream selection is complete and durably recorded below.
+- PR-3 live PR creation plus validation are pending.
+- Release Readiness is the next legal phase after live PR validation.
 - No runtime voice behavior, shutdown voice behavior, recovery voice behavior, persona default, public copy, audio asset, or release-note wording change has started.
 
 ## Branch Class
@@ -72,7 +75,7 @@ None.
 
 ## Next Legal Phase
 
-- `PR Readiness`
+- `Release Readiness`
 
 ## Branch Objective
 
@@ -216,9 +219,9 @@ Seam 3: Validation and admission contract for future voice/audio implementation
 
 ## Active Seam
 
-Active seam: none. The admitted WS-1 through WS-3 Workstream seam chain is complete, Hardening is complete, and Live Validation is the active phase.
+Active seam: none. The admitted WS-1 through WS-3 Workstream seam chain, H-1 hardening, and LV-1 Live Validation are complete, and PR Readiness is the active phase.
 
-- Workstream result: complete and green; Hardening is complete and LV-1 Live Validation is complete.
+- Workstream result: complete and green; Hardening and Live Validation are complete, and PR Readiness is active.
 - WS-1 Status: Completed / executed.
 - WS-1 Boundary: docs/canon current voice/audio surface inventory and ownership mapping only.
 - WS-1 Non-Includes: no runtime code edits, no prompt changes, no audio asset changes, no UI changes, no persona-default changes, no diagnostics implementation changes, no release edits, and no public release editing.
@@ -614,12 +617,96 @@ LV-1 validated the completed FB-030 docs/canon-only milestone against live repo 
 - User Test Summary Results: WAIVED
 - User Test Summary Waiver Reason: The milestone remains docs/canon-only and validator-proven through repo/canon checks; a filled manual User Test Summary would not materially validate behavior because no user-visible setup, display, runtime, shortcut, launcher, renderer, installer, or invocation surface changed.
 
+## Governance Drift Audit
+
+Governance Drift Found: No.
+
+- Current-state canon entered PR Readiness aligned on FB-030 Live Validation complete and PR Readiness next across backlog, roadmap, workstream index, and this workstream record.
+- The only PR Readiness blocker at entry was successor-selection truth: no backlog entry had yet declared `Next Workstream: Selected`, and roadmap had not yet recorded the selected-next planning lane.
+- Repair: PR-2 selects FB-005 as the next planning-only workstream, records the required machine-checkable selected-next markers, and preserves the explicit path-sensitive workspace approval gate on branch creation and Branch Readiness admission.
+- No unresolved contradiction remains across backlog priority, deferred-context fields, semantic release-target derivation, docs/canon-only validation posture, or selected-next branch-deferral rules.
+
+## Historical PR Package State
+
+Historical Merged-Unreleased Release-Debt Owner At PR Package Time: FB-030 ORIN voice/audio direction refinement
+Historical Repo State At PR Package Time: No Active Branch
+Latest Public Prerelease: v1.6.4-prebeta
+Release Debt: Active after merge until `v1.6.5-prebeta` is published, validated, and post-release canon closure completes
+Release Target: v1.6.5-prebeta
+Release Title: Pre-Beta v1.6.5
+Release Floor: patch prerelease
+Version Rationale: FB-030 remains a docs/canon-only voice/audio planning and admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
+Release Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history
+Release Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
+Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; release debt is clear; FB-005 remains selected next planning-only; and FB-005 Branch Readiness may begin only after updated-main revalidation and explicit path-sensitive workspace approval admits a bounded workspace/path slice
+
+## Post-Merge State
+
+- Historical post-merge state before release execution: repo state becomes `No Active Branch` because FB-030 will own merged-unreleased release debt on `main` for `v1.6.5-prebeta`.
+- Historical pending-package state: the pending release scope contains the completed FB-030 docs/canon-only voice/audio planning milestone only.
+- Historical successor state: FB-005 remains selected next planning-only, and its implementation branch remains not created until release debt clears and explicit path-sensitive workspace approval admits Branch Readiness.
+
+## PR Readiness Record
+
+PR Readiness validates the completed docs/canon-only FB-030 milestone for merge to `main`. This record aligns the `v1.6.5-prebeta` release-debt package, selects the next planning lane, prepares durable PR package details, and then records live PR validation before reporting green.
+
+### PR-1 Merge-Target Canon Findings
+
+- Merge Target: `main`.
+- Head Branch: `feature/fb-030-orin-voice-audio-direction-refinement`.
+- Source-of-Truth Alignment: PASS. `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, `Docs/workstreams/index.md`, `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`, `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`, and this workstream record align on FB-030 as the active PR Readiness authority.
+- Release-Debt Framing: PASS. `v1.6.4-prebeta` is the latest public prerelease; after merge, FB-030 becomes the merged-unreleased release-debt owner for `v1.6.5-prebeta`.
+- Release Target: `v1.6.5-prebeta`.
+- Release Title: `Pre-Beta v1.6.5`.
+- Release Floor: `patch prerelease`.
+- Version Rationale: `patch prerelease` remains required because the delivered FB-030 delta is still docs/canon-only planning and governance work with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
+- Release Scope: voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history.
+- Release Artifacts: Tag `v1.6.5-prebeta`; release title `Pre-Beta v1.6.5`; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+- Post-Release Truth: FB-030 is Released / Closed in `v1.6.5-prebeta` after publication and validation; release debt then clears, and FB-005 Branch Readiness may begin only after updated `main` is revalidated and explicit path-sensitive workspace approval admits a bounded workspace/path slice.
+
+### PR-2 Selected-Next Workstream Findings
+
+- Selected Next Workstream: FB-005 Workspace and folder organization.
+- Selected Next Basis: FB-005 is the only remaining open backlog candidate after FB-030, and it is preserved as planning-only because explicit path-sensitive workspace approval still blocks branch creation and Branch Readiness admission.
+- Selected Next Record State At PR Package Time: `Registry-only`.
+- Selected Next Implementation Branch At PR Package Time: Not created.
+- Branch Creation Gate At PR Package Time: After FB-030 merges, `v1.6.5-prebeta` is published and validated, updated `main` is revalidated, and explicit path-sensitive workspace approval admits FB-005 Branch Readiness.
+- Branch Containment At PR Package Time: PASS. No local or remote branch exists for FB-005.
+
+### PR-3 PR Package Details
+
+- PR Title: `FB-030 ORIN Voice/Audio Direction Refinement`
+- Base Branch: `main`
+- Head Branch: `feature/fb-030-orin-voice-audio-direction-refinement`
+- PR Summary: Promote the docs/canon-only FB-030 voice/audio direction planning milestone, including the current trigger and ownership inventory, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, and the selected-next FB-005 workspace/path planning gate.
+- PR URL: pending live creation
+- PR State: pending live creation
+- Review Thread State: pending live PR creation
+- Merge Readiness: pending live PR creation
+
+### PR Readiness Completion Decision
+
+- PR-1 Result: Complete / green.
+- PR-2 Result: Complete / green.
+- PR-3 Result: Pending live PR creation and validation.
+- User-facing impact: none. FB-030 remains docs/canon-only.
+- Continue/Stop Decision: continue inside PR Readiness. The package is ready, but PR green still requires live PR creation plus state validation.
+
+### PR Readiness Validation Results
+
+- `python dev\orin_branch_governance_validation.py --pr-readiness-gate`: pending final rerun after live PR creation.
+- `git diff --check`: pending final rerun after PR package sync commit.
+- User-facing shortcut gate: WAIVED with exact markers in `## User Test Summary`.
+- User Test Summary results gate: WAIVED with exact markers in `## User Test Summary`.
+- Next-workstream selection gate: package-ready after FB-005 selected-next markers were recorded.
+- Live PR state: pending live creation.
+
 ## Seam Continuation Decision
 
 Continue Decision: `stop`
 Next Active Seam: `none`
-Stop Condition: `Live Validation complete; next legal phase is PR Readiness`
-Continuation Action: execute PR Readiness to validate merge-target canon completeness, confirm clean branch truth, select and record the next workstream, prepare the PR package, create the PR, and validate live PR state.
+Stop Condition: `PR-3 live PR creation and validation pending`
+Continuation Action: complete PR-3 by creating the live PR, validating the live PR state, and then hand off to Release Readiness on updated `main` after merge.
 
 ## Reuse Baseline
 

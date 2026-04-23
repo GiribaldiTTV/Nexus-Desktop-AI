@@ -55,17 +55,17 @@ Active Branch: feature/fb-030-orin-voice-audio-direction-refinement.
 
 ## Backlog Governance Sync
 
-Last Reviewed: 2026-04-23 during FB-030 Live Validation.
+Last Reviewed: 2026-04-23 during FB-030 PR Readiness.
 
 Open-candidate priority review:
 
 - FB-004 is released and closed in `v1.6.3-prebeta`; it is no longer an active or selected-next branch candidate.
 - FB-015 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
 - FB-029 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
-- FB-030 remains `Medium`, is now promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and WS-1 through WS-3 plus H-1 and LV-1 now record the ownership map, lifecycle/persona-state framing, implementation-admission contract, hardening corrections, and Live Validation waivers needed to advance into PR Readiness next.
-- FB-005 remains `Low` because remaining workspace movement is path-sensitive and requires explicit workspace/path approval.
+- FB-030 remains `Medium`, is now promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and WS-1 through WS-3 plus H-1, LV-1, PR-1, and PR-2 now record the ownership map, lifecycle/persona-state framing, implementation-admission contract, hardening corrections, Live Validation waivers, merge-target package truth, and selected-next gate needed to complete PR creation and validation.
+- FB-005 remains `Low`, is selected next planning-only, and still requires explicit path-sensitive workspace approval before Branch Readiness admission or branch creation.
 
-Current-branch clarity: FB-030 is the active promoted implementation workstream on `feature/fb-030-orin-voice-audio-direction-refinement`; no selected-next implementation branch is currently held open in canon while this branch owns execution truth.
+Current-branch clarity: FB-030 is the active promoted implementation workstream on `feature/fb-030-orin-voice-audio-direction-refinement`; FB-005 is selected next planning-only; and the selected-next implementation branch remains not created while this branch owns execution truth.
 
 ## Registry Items
 
@@ -78,6 +78,8 @@ Release Stage: Slice-staged
 Deferred Since: v2.0 closeout after the Step 4 workspace slice; the earlier first workspace slice is preserved in v1.9.0 closeout history.
 Deferred Because: remaining workspace movement is path-sensitive and can break imports, launcher routes, logs, or user-facing entrypoints if treated as casual cleanup.
 Selection / Unblock: Select only when the next approved lane is a bounded workspace/path slice with exact file/path ownership, migration limits, validation coverage, and rollback instructions.
+Next Workstream: Selected
+Minimal Scope: Define one bounded workspace/path slice with exact file/path ownership, migration limits, validation coverage, and rollback instructions before any workspace movement or branch admission begins.
 Summary: Continue workspace organization only through explicitly approved path-sensitive slices.
 Why it matters: Keeps folder and ownership cleanup deliberate instead of letting it blur into unrelated feature work.
 
@@ -107,7 +109,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-015 remains a docs/canon-only boundary inventory, ownership, lifecycle, and implementation-admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Boot and desktop phase-boundary inventory, ownership map, lifecycle/state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, post-merge canon repair, and merged-unreleased release-debt truth.
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and governance results without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-015 is Released / Closed in v1.6.4-prebeta; release debt is clear; FB-029 is also Released / Closed in the same package; and FB-030 now owns active Live Validation truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3, H-1, and LV-1 complete and PR Readiness next.
+Post-Release Truth: FB-015 is Released / Closed in v1.6.4-prebeta; release debt is clear; FB-029 is also Released / Closed in the same package; and FB-030 now owns active PR Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 complete and PR-3 next.
 Minimal Scope: Complete the bounded docs/canon seam chain for current boot/desktop phase-boundary ambiguity, starting with current boundary inventory and ownership mapping before lifecycle framing or implementation-admission rules are extended.
 Summary: Preserve the future boot and desktop phase-boundary model above the already-closed milestone taxonomy work.
 Why it matters: Keeps boot-versus-desktop ownership planning explicit without reopening the closed taxonomy milestone by inertia.
@@ -137,7 +139,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-029 remains a docs/canon-only identity, persona-option, and licensing-planning milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, merged-unreleased package-state repair, and post-merge current-state cleanup.
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-029 is Released / Closed in v1.6.4-prebeta; release debt is clear; FB-015 is also Released / Closed in the same package; and FB-030 now owns active Live Validation truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3, H-1, and LV-1 complete and PR Readiness next.
+Post-Release Truth: FB-029 is Released / Closed in v1.6.4-prebeta; release debt is clear; FB-015 is also Released / Closed in the same package; and FB-030 now owns active PR Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 complete and PR-3 next.
 Minimal Scope: Define the Branch Readiness frame for legal-safe ORIN naming, optional future ARIA persona posture, and repo licensing hardening before any naming, licensing, release, runtime, or persona-facing edits begin; Workstream remains docs/canon only unless a later legal surface explicitly widens scope.
 Summary: Track future ORIN-era naming, persona, and licensing hardening work without treating the local rebrand overlay as merged truth.
 Why it matters: Product identity, legal posture, and repo ownership still need durable future treatment, but not by accidental carry-forward.
@@ -157,6 +159,14 @@ Branch Readiness: Complete. The branch objective, target end-state, voice/audio 
 Workstream: Active. WS-1 current voice/audio surface inventory and ownership map, WS-2 lifecycle and persona-state framing for voice/audio transitions, and WS-3 validation and admission contract for future voice/audio implementation are complete.
 Hardening: H-1 pressure test of the voice/audio ownership map, lifecycle/persona-state framing, implementation-admission contract, duplicate-trigger risks, and cross-path conflicts is complete.
 Live Validation: LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete.
+PR Readiness: PR-1 merge-target canon completeness and PR-2 selected-next workstream selection are complete; PR-3 live PR creation and validation are pending.
+Release Target: v1.6.5-prebeta
+Release Title: Pre-Beta v1.6.5
+Release Floor: patch prerelease
+Version Rationale: FB-030 remains a docs/canon-only voice/audio planning and admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
+Release Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history.
+Release Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; release debt is clear; FB-005 remains selected next planning-only; and FB-005 Branch Readiness may begin only after updated-main revalidation and explicit path-sensitive workspace approval admits a bounded workspace/path slice.
 Minimal Scope: Complete the bounded docs/canon voice/audio planning seam chain: current surface inventory and ownership mapping, lifecycle/persona-state framing, and the implementation admission contract before runtime voice/audio changes are considered.
 Summary: Preserve future ORIN voice-direction refinement as its own bounded persona-facing lane.
 Why it matters: Voice identity should be intentional and should not piggyback on unrelated runtime or canon work.
