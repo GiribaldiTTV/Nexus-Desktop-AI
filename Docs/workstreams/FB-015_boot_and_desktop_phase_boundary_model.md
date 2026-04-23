@@ -23,11 +23,11 @@
 
 ## Current Phase
 
-- Phase: `Hardening`
+- Phase: `Live Validation`
 
 ## Phase Status
 
-- `Hardening complete; Live Validation next`
+- `Live Validation complete; PR Readiness next`
 - FB-004 is released and closed in `v1.6.3-prebeta`.
 - Latest public prerelease truth is `v1.6.3-prebeta`.
 - Release debt is clear.
@@ -37,7 +37,9 @@
 - WS-2 lifecycle and phase-boundary state framing is complete.
 - WS-3 validation and admission contract for future boot/desktop boundary implementation is complete.
 - H-1 pressure test of the boot/desktop boundary inventory and ownership map, lifecycle and phase-boundary state framing, and future implementation admission contract is complete.
+- LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete.
 - Hardening clarified launcher-owned `STARTUP_READY_OBSERVED`, `normal exit complete`, and `failure flow complete` as explicit boundary states and tightened later shortcut-proof classification so direct repository launch-shim invocation is not treated as real user-facing shortcut proof by default.
+- Live Validation confirmed the completed FB-015 delta remains docs/canon only, so user-facing shortcut validation and User Test Summary results are both waived for this milestone.
 - A narrow supporting canon sync for released FB-040 Sensor HUD beta admission remained bounded to docs/governance-only source-of-truth maintenance; it did not reopen FB-040, change FB-015 runtime scope, or alter the admitted FB-015 seam chain.
 - A requested future-lane admission for `FB-042 Stream Deck Integration via Elgato MCP` was reviewed and explicitly deferred because backlog identity, roadmap sequencing, and new auxiliary planning-reference canon for that lane would exceed the current FB-015 branch boundary and remains out of scope for the completed FB-015 Workstream seam chain.
 - No FB-015 runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, helper-code, or release work has started.
@@ -104,11 +106,11 @@ None.
 - Confirm `Docs/Main.md` routes this workstream record.
 - Confirm `Docs/feature_backlog.md` marks FB-015 as `Promoted`, `Active`, and cites this doc.
 - Confirm `Docs/workstreams/index.md` lists FB-015 under Active.
-- Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` record FB-015 as the active promoted branch with Hardening complete and Live Validation next.
+- Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` record FB-015 as the active promoted branch with Live Validation complete and PR Readiness next.
 - Confirm FB-004 remains Released / Closed in `v1.6.3-prebeta`.
 - Confirm the previously recorded supporting canon sync remains limited to active FB-015 branch authority wording, `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`, and `Docs/validation_helper_registry.md`, and does not reopen FB-040 or change the admitted FB-015 seam chain.
 - Confirm requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred on this branch and does not add backlog, roadmap, workstream, or auxiliary planning-reference canon.
-- Confirm no runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3 or H-1.
+- Confirm no runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3, H-1, or LV-1.
 
 ## Branch Readiness Validation Results
 
@@ -120,8 +122,8 @@ None.
 
 ## User Test Summary Strategy
 
-- Branch Readiness, WS-1 through WS-3, and H-1 are docs/canon only and do not change user-facing behavior.
-- No desktop shortcut validation, desktop export, or manual User Test Summary handoff is required during Branch Readiness, WS-1 through WS-3, or H-1.
+- Branch Readiness, WS-1 through WS-3, H-1, and LV-1 are docs/canon only and do not change user-facing behavior.
+- No desktop shortcut validation, desktop export, or manual User Test Summary handoff is required during Branch Readiness, WS-1 through WS-3, H-1, or LV-1.
 - If a later seam changes startup, launcher, shortcut, visible startup state, user-facing copy, UI, installer behavior, or another operator-facing path, FB-015 must add the exact `## User Test Summary` artifact and desktop export required by governance before Live Validation can advance.
 
 ## Later-Phase Expectations
@@ -157,7 +159,7 @@ Seam 3: Validation and admission contract for future boot/desktop boundary imple
 
 ## Active Seam
 
-Active seam: none after H-1 completion; the next legal phase is Live Validation.
+Active seam: none after LV-1 completion; the next legal phase is PR Readiness.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-015 and define the branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam.
@@ -174,13 +176,16 @@ Active seam: none after H-1 completion; the next legal phase is Live Validation.
 - H-1 Status: Completed / executed.
 - H-1 Boundary: docs/canon pressure test of the boot/desktop boundary inventory and ownership map, lifecycle and phase-boundary state framing, future implementation admission contract, governance gaps, validation gaps, ambiguity, contradiction, scope issues, and boundary-readiness risks.
 - H-1 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no helper-code repair, no source tree reorganization, no release work, and no public release editing.
+- LV-1 Status: Completed / executed.
+- LV-1 Boundary: docs/canon repo-truth alignment, branch-truth alignment, user-facing shortcut applicability classification, User Test Summary applicability classification, desktop export applicability classification, cleanup posture, and PR Readiness admission posture.
+- LV-1 Non-Includes: no runtime validation, no shortcut launch, no manual User Test Summary handoff, no desktop export, no runtime code edits, no launcher behavior changes, no desktop shortcut behavior changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no helper-code repair, no release work, and no public release editing.
 
 ## Seam Continuation Decision
 
 Continue Decision: `stop`
-Next Active Seam: `Live Validation`
+Next Active Seam: `PR Readiness`
 Stop Condition: `Phase boundary reached`
-Continuation Action: execute FB-015 Live Validation after H-1 validation is green and durably committed.
+Continuation Action: execute FB-015 PR Readiness after LV-1 validation is green and durably committed.
 
 ## WS-1 Execution Record
 
@@ -511,6 +516,38 @@ H-1 is docs/canon only. It pressure-tests whether the WS-1 through WS-3 boot/des
 - H-1 scope validation: PASS; changed files are docs/canon surfaces only.
 - H-1 changed no runtime behavior, launcher behavior, renderer behavior, desktop shortcut behavior, UI, installer behavior, helper code, release artifact, or desktop export.
 
+## Live Validation Record
+
+LV-1 validated the completed FB-015 docs/canon-only milestone against live repo truth, branch truth, and user-facing/manual validation applicability. The branch remains docs/canon-only for this milestone: no runtime boot/desktop boundary implementation, launcher behavior change, renderer lifecycle change, desktop shortcut change, visible startup change, UI surface, tray/overlay path, installer path, source layout change, helper code, release artifact, or operator-facing invocation behavior has been added.
+
+### Live Validation Findings
+
+- Repo Truth Alignment: FB-015 remains `Promoted`, active on `feature/fb-015-boot-desktop-phase-boundary-model`, and FB-004 remains released/closed in `v1.6.3-prebeta` with release debt clear.
+- Branch Truth Alignment: the checked-out branch is the canonical FB-015 branch and carries completed Branch Readiness, WS-1 through WS-3, and H-1 records at the durable hardening baseline.
+- User-Facing Shortcut Applicability: waived for this milestone because the completed FB-015 delta is docs/canon only and does not add or change the user-facing desktop shortcut, equivalent production entrypoint behavior, launcher behavior, renderer behavior, visible startup state, UI behavior, installer behavior, or another operator-facing path. Exercising the existing shortcut would not validate the FB-015 delta.
+- Manual Validation Applicability: waived for this milestone because the deliverable is boundary inventory, ownership mapping, lifecycle/state framing, implementation-admission governance, hardening correction, and repo-truth validation only; a filled manual User Test Summary would not materially validate behavior that did not change.
+- Runtime Evidence Applicability: no runtime/helper evidence is required or meaningful for this milestone because no runtime product surface, helper, harness, launcher behavior, renderer behavior, shortcut behavior, installer behavior, or user-facing artifact was created.
+- Desktop Export Applicability: no desktop `User Test Summary.txt` export is required for this Live Validation pass because there is no user-facing desktop path or manual checklist to hand off.
+- Cleanup: no programs, helper processes, windows, temporary files, probes, assets, screenshots, helpers, harnesses, runtime artifacts, desktop exports, release artifacts, or session-scoped evidence files were created.
+
+### Live Validation Completion Decision
+
+- LV-1 Result: Complete / green with repo-truth alignment and applicability waivers recorded.
+- User-facing shortcut gate: waived with exact markers in `## User Test Summary`.
+- User Test Summary results gate: waived with exact markers in `## User Test Summary`.
+- Validation Layer: documentation, branch truth, targeted repo-truth scan, and governance validation only.
+- Continue/Stop Decision: stop at the Live Validation phase boundary after validation because FB-015 Live Validation proof is green and the next normal phase is `PR Readiness`; PR Readiness must still prove merge-target canon, clean branch truth, successor selection, PR package creation, and live PR validation before reporting PR-ready.
+
+### LV-1 Validation Results
+
+- `python dev\orin_branch_governance_validation.py`: PASS, 968 checks.
+- `git diff --check`: PASS with line-ending normalization warnings only and no whitespace errors.
+- LV-1 phase-state scan: PASS; current authority surfaces report FB-015 Live Validation complete and PR Readiness as the next legal phase.
+- LV-1 user-facing shortcut gate: WAIVED with exact markers in `## User Test Summary`.
+- LV-1 User Test Summary results gate: WAIVED with exact markers in `## User Test Summary`; no desktop export was required.
+- LV-1 scope validation: PASS; changed files are docs/canon surfaces only.
+- LV-1 changed no runtime behavior, launcher behavior, renderer behavior, desktop shortcut behavior, UI, installer behavior, helper code, release artifact, or desktop export.
+
 ## Supporting Canon Sync
 
 This branch carried tightly scoped supporting canon sync earlier in Workstream when the change stayed docs/governance-only, preserved FB-015 as the active workstream, and did not widen into runtime or branch-selection churn.
@@ -558,22 +595,28 @@ Non-includes for this supporting canon sync:
 - WS-2 lifecycle families, phase-boundary states, and ownership handoff rules for production desktop launch, launcher failure/recovery, and the dev-only boot prototype are recorded.
 - WS-3 validation and admission rules for future boot/desktop boundary implementation are recorded.
 - H-1 pressure test findings and corrections are recorded.
+- LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are recorded.
 - The ownership map across the current user-facing launch shim, production launcher, production renderer, dev-only boot prototype, shared single-instance primitives, and evidence/state roots is recorded.
-- `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the active promoted branch with WS-1 through WS-3 and H-1 complete and Live Validation next.
+- `## User Test Summary` records `User-Facing Shortcut Validation: WAIVED`, `User-Facing Shortcut Waiver Reason:`, `User Test Summary Results: WAIVED`, and `User Test Summary Waiver Reason:` for the docs/canon-only milestone.
+- `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the active promoted branch with WS-1 through WS-3, H-1, and LV-1 complete and PR Readiness next.
 - FB-004 remains Released / Closed and release debt remains clear.
 - Requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred and no out-of-scope backlog, roadmap, workstream, or auxiliary planning-reference canon was added on this branch.
-- No runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3 or H-1.
+- No runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3, H-1, or LV-1.
 - Validation is green.
 
 ## Rollback Target
 
-- `Workstream`
-- Revert the H-1 docs/canon commit and return FB-015 to the Workstream-complete / Hardening-next state with WS-1 through WS-3 recorded and no implementation admitted.
+- `Hardening`
+- Revert the LV-1 docs/canon commit and return FB-015 to the Hardening-complete / Live-Validation-next state with WS-1 through WS-3 and H-1 recorded and no implementation admitted.
 
 ## Next Legal Phase
 
-- `Live Validation`
+- `PR Readiness`
 
 ## User Test Summary
 
-Not applicable during Branch Readiness, WS-1 through WS-3, or H-1. FB-015 remains docs/canon only and does not change user-facing behavior.
+- User-Facing Shortcut Path: Not applicable - FB-015 Live Validation is docs/canon only and does not change any user-facing desktop shortcut, equivalent production entrypoint behavior, launcher behavior, or visible startup path.
+- User-Facing Shortcut Validation: WAIVED
+- User-Facing Shortcut Waiver Reason: FB-015 LV-1 validates docs/canon only. The completed milestone changes no user-facing desktop shortcut behavior, equivalent production entrypoint behavior, launcher behavior, renderer behavior, visible startup state, UI behavior, installer behavior, or other operator-facing invocation path, so exercising the existing shortcut would not validate the FB-015 delta.
+- User Test Summary Results: WAIVED
+- User Test Summary Waiver Reason: The milestone remains docs/canon-only and validator-proven through repo/canon checks; a filled manual User Test Summary would not materially validate behavior because no user-visible setup, display, runtime, shortcut, launcher, renderer, installer, or invocation surface changed.
