@@ -26,27 +26,28 @@ Historical note:
 
 ## Promoted Canonical Workstreams
 
-- `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`
+- `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`
 
 ## Active Promoted Workstream
 
-None after FB-040 merge-target canon.
+None after FB-031 merge-target canon.
 
-Main-facing canon is shaped for post-merge PR Readiness truth: FB-039 is released and closed in `v1.5.0-prebeta`, FB-040 becomes the merged-unreleased release-debt owner after merge, and repo state resolves to `No Active Branch` until FB-040 release handling clears release debt.
+Main-facing canon is shaped for post-merge PR Readiness truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 becomes the merged-unreleased release-debt owner after merge, and repo state resolves to `No Active Branch` until FB-031 release handling clears release debt.
+FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
 ## Merged-Unreleased Release-Debt Owner
 
-Merged-Unreleased Release-Debt Owner: FB-040 Monitoring, thermals, and performance HUD surface.
+Merged-Unreleased Release-Debt Owner: FB-031 Nexus Desktop AI UI/UX overhaul planning.
 Repo State: No Active Branch.
-Release Target: v1.6.0-prebeta.
-Release Floor: minor prerelease.
-Version Rationale: FB-040 opens the monitoring, thermals, and performance HUD architecture lane, so it is a new pre-Beta capability lane rather than patch-only UX, sequencing, bug-fix, or governance repair.
-Release Scope: Architecture-only monitoring and thermal source mapping, ownership vocabulary, lifecycle/trust-safety framing, validation/admission contract definition, hardening pressure test, and Live Validation waiver truth for the current non-user-facing milestone.
-Release Artifacts: Tag v1.6.0-prebeta; release title Pre-Beta v1.6.0; inclusion-only release notes summarize the FB-040 monitoring and thermal architecture milestone, source-map boundaries, lifecycle/trust-safety handling, validation/admission contract, hardening result, and Live Validation waivers.
-Post-Release Truth: FB-040 becomes Released / Closed in v1.6.0-prebeta; release debt clears; repo remains No Active Branch until FB-031 Branch Readiness admission is explicitly opened.
-Selected Next Workstream: FB-031 Nexus Desktop AI UI/UX overhaul planning.
-Next-Branch Creation Gate: FB-031 remains selected-only with Branch: Not created until FB-040 release debt clears and updated main revalidates Branch Readiness admission.
+Release Target: v1.6.1-prebeta.
+Release Floor: patch prerelease.
+Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work uses patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
+Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, and PR Readiness merge-target canon.
+Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, and clean branch history.
+Post-Release Truth: FB-031 becomes Released / Closed in v1.6.1-prebeta; release debt clears; repo remains No Active Branch until FB-032 Branch Readiness admission is explicitly opened.
+Selected Next Workstream: FB-032 Nexus-era vision and source-of-truth migration.
+Next-Branch Creation Gate: FB-032 remains selected-only with Branch: Not created until FB-031 release debt clears and updated main revalidates Branch Readiness admission.
 
 ## Registry Items
 
@@ -102,13 +103,20 @@ Why it matters: Voice identity should be intentional and should not piggyback on
 
 ### [ID: FB-031] Nexus Desktop AI UI/UX overhaul planning
 
-Status: Deferred
-Record State: Registry-only
+Status: Merged Unreleased
+Record State: Promoted
 Priority: Medium
 Release Stage: pre-Beta
-Target Version: TBD
-Next Workstream: Selected
-Minimal Scope: Branch Readiness must define the Nexus-era UI/UX overhaul planning boundary, source map, visual-language ownership, validation contract, and explicit non-goals before any UI implementation, runtime behavior, settings work, launcher work, or release work is considered.
+Target Version: v1.6.1-prebeta
+Branch: feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning
+Canonical Workstream Doc: Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md
+Minimal Scope: Define the Nexus-era UI/UX overhaul planning boundary, source map, visual-language ownership, lifecycle/interaction-state framing, validation contract, and explicit non-goals before any UI implementation, runtime behavior, settings work, launcher work, or release work is considered.
+Release Target: v1.6.1-prebeta
+Release Floor: patch prerelease
+Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work uses patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
+Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, and PR Readiness merge-target canon.
+Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, and clean branch history.
+Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; FB-032 remains selected-only until Branch Readiness admission after release.
 Summary: Preserve future UI/UX overhaul planning as a deliberate design lane rather than piecemeal visual drift.
 Why it matters: The Nexus-era visual language should be planned coherently when the repo is ready for that design pass.
 
@@ -119,29 +127,32 @@ Record State: Registry-only
 Priority: Medium
 Release Stage: pre-Beta
 Target Version: TBD
+Next Workstream: Selected
+Minimal Scope: Branch Readiness must define the Nexus-era vision/source-of-truth migration boundary, current-vs-historical naming policy, AI/UI identity routing, canon migration admission rules, and explicit non-goals before any wording migration, persona work, runtime behavior, UI implementation, rebrand execution, or release work is considered.
 Summary: Track the broader Nexus-era vision and source-of-truth migration above the current phase-one canon foundation rebuild.
 Why it matters: The repo still needs deeper identity and wording normalization after the foundation layer is rebuilt.
 
+## Closed Canonical Workstreams
+
 ### [ID: FB-040] Monitoring, thermals, and performance HUD surface
 
-Status: Merged Unreleased
-Record State: Promoted
+Status: Released (v1.6.0-prebeta)
+Record State: Closed
 Priority: Medium
 Release Stage: pre-Beta
 Target Version: v1.6.0-prebeta
+Release Title: Pre-Beta v1.6.0
 Branch: feature/fb-040-monitoring-thermals-performance-hud-surface
 Canonical Workstream Doc: Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md
-Minimal Scope: Architecture-only monitoring and thermal source mapping, ownership vocabulary, lifecycle/trust-safety framing, and validation/admission contract definition are complete; no telemetry plumbing, sensor polling, HUD UI, plugin integration, installer work, settings work, or release work is admitted for this milestone.
 Release Target: v1.6.0-prebeta
-Release Floor: minor prerelease
-Version Rationale: FB-040 opens the monitoring, thermals, and performance HUD architecture lane, so it is a new pre-Beta capability lane rather than patch-only UX, sequencing, bug-fix, or governance repair.
+Release Floor: minor prerelease (historical published tag; future architecture-only milestones must not use minor solely because they define a planning lane)
+Version Rationale: FB-040 was published as `v1.6.0-prebeta`; post-release repair records the live release as canonical while governance now treats architecture-only, non-user-facing planning/admission milestones as patch-floor by default unless they deliver an executable or user-facing capability lane.
 Release Scope: Architecture-only monitoring and thermal source mapping, ownership vocabulary, lifecycle/trust-safety framing, validation/admission contract definition, hardening pressure test, and Live Validation waiver truth for the current non-user-facing milestone.
 Release Artifacts: Tag v1.6.0-prebeta; release title Pre-Beta v1.6.0; inclusion-only release notes summarize the FB-040 monitoring and thermal architecture milestone, source-map boundaries, lifecycle/trust-safety handling, validation/admission contract, hardening result, and Live Validation waivers.
-Post-Release Truth: FB-040 is Released / Closed in v1.6.0-prebeta; release debt is clear; FB-031 remains selected-only until Branch Readiness admission after release.
+Post-Release Truth: FB-040 is Released / Closed in v1.6.0-prebeta; release debt is clear; FB-031 Branch Readiness is admitted on `feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning`.
+Version Drift Note: FB-040 advanced the public prerelease from `v1.5.0-prebeta` to `v1.6.0-prebeta`; because the delivered milestone was architecture-only and non-user-facing, future equivalent milestones must use patch prerelease advancement unless a true runtime, executable, or user-facing capability lane is delivered.
 Summary: Track future runtime monitoring and HUD surfaces for GPU / CPU thermals and performance, including possible plugin-fed telemetry inputs.
 Why it matters: Monitoring overlays are a separate runtime and status surface and should not be bolted onto the saved-action system without an explicit product boundary.
-
-## Closed Canonical Workstreams
 
 ### [ID: FB-039] External trigger and plugin integration architecture
 

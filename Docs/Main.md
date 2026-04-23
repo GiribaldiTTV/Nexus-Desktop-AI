@@ -135,6 +135,7 @@ Rules:
 Use these for promoted work that needs a stable feature-state, branch-local validation/evidence record, active seam trail, durable artifact/reuse history, and closure history:
 
 - `Docs/workstreams/index.md`
+- `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`
 - `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`
 - `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`
 - `Docs/workstreams/FB-038_taskbar_tray_quick_task_ux.md`
@@ -220,9 +221,9 @@ These are reference layers, not active workstream or roadmap owners.
   5. `PR Readiness`
   6. `Release Readiness`
 - `Branch Readiness` must plan the whole branch at phase level before Workstream begins, including objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam or seam sequence
-- during `Workstream`, `bounded multi-seam workflow` is the primary model for coherent same-risk seam chains; execute one active seam at a time, validate it, record evidence, report `continue` or `stop`, and continue by default when `Next-Seam Continuation Required` applies
-- when a prompt names an active seam inside an approved seam sequence, treat it as the entry seam, not a terminal boundary; stopping after a green seam requires a canon-valid blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback`
-- single-seam fallback is required for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem changes, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation
+- during `Workstream`, `bounded multi-seam workflow` is the primary model for approved seam chains; execute one active seam at a time, validate it, record evidence, report `continue` or `stop`, and continue by default when `Next-Seam Continuation Required` applies
+- when a prompt names an active seam inside an approved seam sequence, treat it as the entry seam, not a terminal boundary; stopping after a green seam requires a bounded stop condition from `Docs/phase_governance.md`, such as failed validation, drift, phase boundary, stop-loss trigger, unsafe continuation, or canon-valid `Single-Seam Fallback`
+- category labels such as bug fix, hotfix, high-risk, cross-subsystem, settings, protocol, launcher, or UI-model work require smaller seams and stronger gates; they are not automatic stop authority when the next seam remains admitted and green
 - `Workstream` completion does not imply PR readiness; the normal next legal phase is `Hardening`, followed by `Live Validation` and then `PR Readiness`
 - `Post-Release Canon Repair` is not a normal phase or branch; escaped canon repair must ride the prior legal branch or the next active branch's `Branch Readiness`, never direct `main`
 - before any next implementation branch may enter `Branch Readiness`, the repo-level admission gate from `Docs/phase_governance.md` must pass on updated `main`

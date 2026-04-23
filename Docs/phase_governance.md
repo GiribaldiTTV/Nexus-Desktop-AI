@@ -387,7 +387,23 @@ PR Readiness must derive the target from the latest public prerelease and the de
 - `patch prerelease` increments only the patch number, for example `v1.4.0-prebeta` -> `v1.4.1-prebeta`
 - `minor prerelease` increments the minor number and resets patch to zero, for example `v1.4.0-prebeta` -> `v1.5.0-prebeta`
 
+Release floor ownership:
+
+- `patch prerelease` is the default floor for bug fixes, UX polish, governance fixes, documentation/canon repair, architecture-only planning, admission contracts, validation-only work, and non-user-facing milestones that do not add executable product behavior.
+- `minor prerelease` is allowed only when the release delivers a new executable, runtime, operator-facing, user-facing, or materially expanded product capability lane.
+- Opening a future planning lane, writing architecture, defining vocabulary, or creating an admission contract is not enough by itself to justify `minor prerelease`.
+- If a public tag has already been published with a larger bump than the corrected law would choose, do not rewrite the public tag; record the published tag as latest release truth, classify the mismatch as version-advancement drift, and harden future `Release Floor:` validation.
+
 If the declared target, artifacts, or post-release truth do not match the semantic release floor, keep `Release Target Undefined` active and repair the mismatch in PR Readiness before Release Readiness.
+
+Post-release closure is mandatory after release execution:
+
+- once a public prerelease tag exists for a merged-unreleased release-debt owner, durable canon must move that workstream to Released / Closed
+- `Docs/prebeta_roadmap.md` must advance latest public prerelease truth to the published tag
+- `Docs/feature_backlog.md` must mark the owner `Record State: Closed` and `Status: Released`
+- `Docs/workstreams/index.md` must remove the owner from `Merged / Release Debt Owners` and list it under `Closed`
+- the canonical workstream doc must record `Latest Public Prerelease:`, `Release Title:`, released/closed state, and cleared release debt
+- if this closure is missed after merge or release, the next active branch's `Branch Readiness` is blocked until the closure is repaired and validator coverage is updated so the miss cannot recur
 
 ### Successor Lane Lock Gate
 
@@ -967,7 +983,7 @@ Codex must derive continuation, stopping, fallback, and phase movement from sour
 Seam workflow applies differently by phase:
 
 - `Branch Readiness` may use planning, admission, or tightly coupled governance-repair seams, but it must not execute product/runtime implementation.
-- `Workstream` uses the full bounded multi-seam pipeline as the primary execution model when a coherent same-risk seam chain is safe.
+- `Workstream` uses the full bounded multi-seam pipeline as the primary execution model when an approved seam chain remains inside its governed boundary and validation stays green.
 - `Hardening` may use a constrained continuous validation loop when the branch is already inside an approved hardening boundary.
 - `Live Validation` may use validation, evidence-digestion, waiver, or output-contract seams; it must not become a hidden implementation phase.
 - `PR Readiness` uses readiness-gate seams for merge-target canon, drift audit, PR creation, and PR validation; it is not a product implementation seam pipeline.
@@ -976,17 +992,18 @@ Seam workflow applies differently by phase:
 ### Bounded Multi-Seam Workflow
 
 A bounded multi-seam workflow is an ordered sequence of seams executed inside one approved phase boundary.
-It is allowed only when every seam in the sequence stays within:
+It is the default execution model for any governed pass that names an approved seam sequence.
+Every seam in the sequence must stay within:
 
 - the same workstream or equivalent active authority record
 - the same normal phase
 - the same branch class
-- the same risk class
-- the same subsystem family or a tightly coupled implementation, validation, or governance chain
-- a validation surface strong enough to support safe continuation
+- the same approved scope or tightly coupled governance/validation repair scope
+- a validation surface strong enough to prove the seam before continuation
 
 Multi-seam does not mean batch execution.
-It means Codex may continue across a planned seam sequence without requiring a new operator prompt after every seam, but only while it executes exactly one active seam at a time.
+It means Codex continues across a planned seam sequence without requiring a new operator prompt after every seam, while still executing exactly one active seam at a time.
+Risky categories such as UI, launcher, settings, protocol, cross-subsystem, or policy work require sharper per-seam boundaries and stronger validation, not an automatic stop.
 
 ### Default Continuation Duty
 
@@ -1001,21 +1018,9 @@ Codex must not stop merely because:
 - durability commit and push completed
 - one seam was successfully recorded
 
-Stopping after a green seam requires one of these recorded reasons:
+Stopping after a green seam requires a recorded bounded stop condition from this contract.
 
-- a validation failure
-- a regression
-- scope drift
-- risk-class change
-- governance drift
-- branch-truth contradiction
-- unresolved manual-validation blocker
-- stop-loss trigger
-- phase boundary
-- weaker validation would be required for the next seam
-- `Single-Seam Fallback` is canon-valid for the pass
-
-A prompt-level `execute only <seam>` request does not override this continuation duty unless the request is paired with a canon-valid `Single-Seam Fallback` reason or another named blocker from this contract.
+A prompt-level `execute only <seam>` request does not override this continuation duty unless the request is paired with a bounded stop condition or another named blocker from this contract.
 If Codex stops after a green seam without one of the recorded reasons above, classify that stop as `Governance Drift` and repair the source-of-truth or validator gap before treating the workflow as healthy.
 
 ### Seam Stages
@@ -1061,7 +1066,7 @@ Continuation is allowed only when:
 - validation passes
 - no regression is detected
 - no scope drift is detected
-- no risk-class change is detected
+- no unplanned risk-class expansion is detected
 - no governance drift is detected
 - no unresolved manual-validation blocker is present
 - branch truth remains consistent with the authority record
@@ -1069,22 +1074,41 @@ Continuation is allowed only when:
 - the next seam remains inside the same permitted phase scope
 
 If any continuation condition fails, the whole workflow stops immediately and the next safe move must be reported from the blocking truth.
-If continuation would require broader authority, a different phase, a different risk class, or weaker validation, Codex must stop and report the blocker rather than treating the downstream seam as activated.
+If continuation would require broader authority, a different phase, unplanned risk expansion, or weaker validation, Codex must stop and report the blocker rather than treating the downstream seam as activated.
 If all continuation conditions pass and the next planned seam remains inside the approved sequence, continuation is required under `Next-Seam Continuation Required`; do not downgrade a safe continuation into an optional stop.
+
+### Bounded Stop Conditions
+
+A bounded multi-seam workflow may end before phase completion only when one of these serious stop conditions is recorded:
+
+- validation failure
+- regression or failed evidence review
+- scope drift or attempted work outside the approved seam chain
+- unplanned risk-class expansion that requires a new admission decision
+- governance drift that must be repaired before continuation
+- branch-truth contradiction or dirty-state contradiction that changes phase authority
+- unresolved manual-validation, User Test Summary, or live-evidence blocker
+- missing source-of-truth, unreadable authority, or conflicting authority ownership
+- stop-loss trigger, timeout/freeze risk, or unsafe tool/process state
+- phase boundary reached, phase completion reached, or next seam belongs to a different phase
+- the next seam would require weaker validation than the current seam
+- explicit operator stop, pause, or waiver that does not conflict with protected-main, Release Readiness, or durability law
+
+Category labels are not stop conditions by themselves.
+Bug fix, hotfix, UI-model, launcher, settings, protocol, policy, cross-subsystem, or high-risk labels may require smaller seams and stronger gates, but they do not cancel bounded multi-seam continuation when the next seam remains admitted and green.
 
 ## Single-Seam Fallback Rule
 
-Single-seam execution remains required for:
+`Single-Seam Fallback` is not a category shortcut.
+It is a bounded stop decision after one seam, allowed only when the pass records one of the bounded stop conditions above or when source-of-truth admits exactly one seam and no next seam exists.
 
-- bug fixes
-- hotfixes
-- unclear or high-risk seams
-- cross-subsystem changes
-- settings, protocol, launcher-policy, or UI-model changes
-- any pass where validation cannot support safe continuation
+When `Single-Seam Fallback` is used, the output or authority record must name:
 
-Single-seam fallback means only one active seam may be selected for that pass.
-It does not authorize phase skipping or a direct readiness claim.
+- the bounded stop condition
+- why continuation would be unsafe, invalid, or outside phase authority
+- the lift condition or next legal phase
+
+It does not authorize phase skipping, readiness claims, or stopping a green approved seam chain merely because the work is high-risk.
 
 ## Continuous Validation Loop Rule
 
@@ -1184,7 +1208,7 @@ The canonical rule is narrower:
 ## Phase Transition Rule
 
 - `Branch Readiness` -> `Workstream` only after branch base, branch class, authority record, branch objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam or initial seam sequence are explicit
-- `Workstream` -> `Hardening` only after the approved same-risk Workstream seam sequence is complete, direct validation is green, User Test Summary obligations are current for user-facing changes, and no same-slice correctness gap remains
+- `Workstream` -> `Hardening` only after the approved Workstream seam sequence is complete, direct validation is green, User Test Summary obligations are current for user-facing changes, and no same-slice correctness gap remains
 - `Hardening` -> `Live Validation` only after repo-side hardening proof is sufficient for interactive or manual closeout work
 - `Live Validation` -> `PR Readiness` only after branch-local proof is sufficient for closeout, returned evidence has been digested into the authority record, and `User Test Summary Results Pending` is absent or cleared by a documented waiver
 - `PR Readiness` -> `Release Readiness` only after merge-target canon completeness passes, the Governance Drift Audit passes, the next-workstream selection gate passes, branch creation remains deferred to `Branch Readiness`, and any release target/scope/artifact truth needed for release review is already available without file mutation
@@ -1251,7 +1275,7 @@ Purpose:
 
 - execute the approved bounded implementation or bounded governance/docs work
 - run normal repo-side regression validation inside that boundary
-- use bounded multi-seam workflow as the primary model when a coherent same-risk seam chain is safe
+- use bounded multi-seam workflow as the primary model when an approved seam chain remains inside its governed boundary and validation stays green
 
 Allowed:
 

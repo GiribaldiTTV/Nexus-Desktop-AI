@@ -134,10 +134,10 @@ In Workflow mode, Codex should:
 - verify the changed behavior or changed docs
 - report any drift or remaining gaps honestly
 - when the approved boundary contains a seam chain, treat prompt-provided seams as structure only and use `Docs/phase_governance.md` as the continuation authority
-- when the approved Workstream boundary contains a coherent same-risk seam chain, use bounded multi-seam workflow as the primary model while executing one active seam at a time
+- when the approved Workstream boundary contains an approved seam chain, use bounded multi-seam workflow as the primary model while executing one active seam at a time
 - when a prompt names an active seam inside an approved sequence, treat it as the entry seam, not a terminal boundary
 - after a green entry seam, apply `Next-Seam Continuation Required` and continue by default when the continuation authority conditions pass
-- use `Single-Seam Fallback` only when source-of-truth records a canon-valid fallback reason or continuation blocker
+- use `Single-Seam Fallback` only when source-of-truth records a bounded stop condition or continuation blocker
 - when the approved boundary is continuous validation inside the current workstream, keep iterating only while the governing phase rules, validation, and stop-loss contract remain green
 
 ### What Codex Must Not Do
@@ -339,22 +339,23 @@ That means:
 
 ### Bounded Multi-Seam Workflow
 
-For coherent Workstream implementation, bounded multi-seam workflow is the primary execution model.
+For approved Workstream execution, bounded multi-seam workflow is the primary execution model.
 `Docs/phase_governance.md` owns the exact seam workflow contract; this mode doc mirrors the collaboration posture only.
 
 That means:
 
 - prompts may name a seam chain and active seam, but source-of-truth and validation decide continuation
 - Branch Readiness should plan the branch objective, target end-state, expected seam families, risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam sequence
-- Workstream may execute multiple planned seams in one pass only when they share the same workstream, phase, branch class, risk class, and subsystem family or tightly coupled chain
+- Workstream may execute multiple planned seams in one pass when they share the same workstream, phase, branch class, approved scope, and subsystem family or tightly coupled implementation, validation, or governance chain
 - each seam is still analyzed, bounded, executed, validated, recorded, and judged before the next seam starts
 - Hardening and Live Validation may continue through constrained validation or evidence-digestion seams only when their phase rules allow it
 - PR Readiness uses readiness-gate seams for PR package, PR creation, and PR validation rather than implementation continuation
 - Release Readiness is review-only and file-frozen; it must not mutate repository files through a seam
 - the output must report the per-seam validation result and `continue` or `stop` decision
-- a risk-class change, validation failure, scope drift, governance drift, unresolved manual-validation blocker, branch-truth contradiction, or stop-loss trigger stops the workflow
+- a validation failure, regression, scope drift, unplanned risk expansion, governance drift, unresolved manual-validation blocker, branch-truth contradiction, phase boundary, stop-loss trigger, or other bounded stop condition stops the workflow
 
-Single-seam fallback is required for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem work, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation.
+`Single-Seam Fallback` is a bounded stop decision, not a category shortcut.
+Bug fixes, hotfixes, unclear seams, high-risk seams, cross-subsystem work, settings, protocol, launcher, and UI-model changes require smaller seams and stronger gates; they do not stop a green approved seam chain unless a bounded stop condition is recorded.
 
 Completing Workstream seams does not make the branch PR-ready by itself.
 The normal next legal phase is `Hardening`, then `Live Validation`, then `PR Readiness`.
@@ -415,6 +416,9 @@ When release-dependent truth changes:
 
 - carry the canon sync on the active lane when that lane is still open
 - require merge-target canon completeness before PR so merged `main` does not become stale in the first place
+- after a public prerelease tag exists, require durable closure: latest public prerelease advances, released workstream moves to Released / Closed, release debt clears, and workstreams index moves the record to Closed
+- classify any missed durable closure as a Branch Readiness blocker on the next legal active branch before implementation
+- treat architecture-only planning, admission contracts, validation-only work, documentation/canon repair, governance repair, and non-user-facing milestones as `patch prerelease` by default unless a new executable, runtime, operator-facing, user-facing, or materially expanded product capability lane is delivered
 - do not use Release Readiness as a docs-sync phase
 - do not use Release Readiness as a file-mutation phase; release package information may be generated as response text only
 - do not open a governance-only branch or between-branch repair window

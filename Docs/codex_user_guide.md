@@ -358,9 +358,9 @@ Use this when:
 - the operator wants Codex to keep moving through a coherent seam sequence without a new prompt after every seam
 - per-seam validation and evidence recording remain mandatory
 
-Do not use prompt wording such as `execute WS-1` to mean `stop after WS-1` unless the prompt also records a canon-valid `Single-Seam Fallback`, phase boundary, stop-loss trigger, or explicit blocker.
+Do not use prompt wording such as `execute WS-1` to mean `stop after WS-1` unless the prompt also records a bounded stop condition, phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback`.
 
-Do not use this recipe for bug fixes, hotfixes, unclear or high-risk seams, cross-subsystem changes, settings/protocol/launcher/UI-model changes, or any pass where validation cannot support safe continuation.
+High-risk categories such as bug fixes, hotfixes, unclear seams, cross-subsystem changes, settings, protocol, launcher, or UI-model work require smaller seams and stronger gates; they do not automatically cancel bounded multi-seam continuation after a green admitted seam.
 
 When the sequence completes, the normal next phase is `Hardening`.
 Do not prompt Codex to treat Workstream completion as direct `PR Readiness`.
