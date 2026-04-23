@@ -68,10 +68,10 @@ Current merged truth indicates:
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestones are FB-015 Boot and desktop phase-boundary model and FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening in `v1.6.4-prebeta`
 - current phase after `v1.6.4-prebeta` release closure: `PR Readiness`
-- phase status after `v1.6.4-prebeta` release closure: FB-015 and FB-029 are Released / Closed in `v1.6.4-prebeta`; release debt is clear; FB-030 now owns active PR Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3, H-1, LV-1, PR-1, and PR-2 complete and PR-3 live PR creation plus validation next
+- phase status after `v1.6.4-prebeta` release closure: FB-015 and FB-029 are Released / Closed in `v1.6.4-prebeta`; release debt is clear; FB-030 now owns active PR Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3, H-1, LV-1, PR-1, PR-2, and PR-3 complete on open PR #81
 - current active workstream: FB-030 ORIN voice/audio direction refinement
 - current branch after `v1.6.4-prebeta` release closure: `feature/fb-030-orin-voice-audio-direction-refinement`
-- next concern: create the live FB-030 PR, validate its live state, and keep voice/audio direction scoped to planning/admission only and out of runtime implementation by inertia
+- next concern: merge live PR #81, preserve the docs/canon-only voice/audio planning boundary, and hand off to file-frozen Release Readiness on updated `main`
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, the released FB-032 source-of-truth migration milestone, the released FB-004 future boot-orchestrator architecture milestone, and the released FB-015 plus FB-029 planning milestones are now part of the current public shared pre-Beta baseline.
 
@@ -94,7 +94,7 @@ Active Branch Before Release: `feature/fb-015-boot-desktop-phase-boundary-model`
 
 FB-030 ORIN voice/audio direction refinement on `feature/fb-030-orin-voice-audio-direction-refinement`.
 
-PR Readiness is active on this branch. Branch Readiness is complete, WS-1 current voice/audio surface inventory and ownership map is durably recorded, WS-2 lifecycle and persona-state framing for voice/audio transitions is complete, WS-3 validation and admission contract for future voice/audio implementation is complete, H-1 hardening is complete, LV-1 Live Validation is complete, PR-1 merge-target canon completeness is complete, and PR-2 selected-next workstream selection is complete. PR-3 live PR creation and validation are next. No runtime voice/audio implementation, audio-asset changes, persona-default changes, or public voice-copy changes are admitted yet.
+PR Readiness is active on this branch. Branch Readiness is complete, WS-1 current voice/audio surface inventory and ownership map is durably recorded, WS-2 lifecycle and persona-state framing for voice/audio transitions is complete, WS-3 validation and admission contract for future voice/audio implementation is complete, H-1 hardening is complete, LV-1 Live Validation is complete, and PR-1 through PR-3 are complete. PR #81 is open, non-draft, `MERGEABLE`, and `CLEAN`. No runtime voice/audio implementation, audio-asset changes, persona-default changes, or public voice-copy changes are admitted yet.
 
 ### FB-030 ORIN voice/audio direction refinement
 
@@ -103,8 +103,8 @@ PR Readiness is active on this branch. Branch Readiness is complete, WS-1 curren
 - priority: `Medium`
 - canonical workstream doc: `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 - branch: `feature/fb-030-orin-voice-audio-direction-refinement`
-- phase status: PR Readiness is active; Branch Readiness is complete; WS-1 current voice/audio surface inventory and ownership map, WS-2 lifecycle and persona-state framing for voice/audio transitions, WS-3 validation and admission contract for future voice/audio implementation, H-1 hardening, LV-1 Live Validation, PR-1 merge-target canon completeness, and PR-2 selected-next workstream selection are complete; PR-3 live PR creation and validation are next; and no runtime voice/audio implementation is admitted yet.
-- next legal seam: PR-3 live PR creation and validation for the completed docs/canon-only voice/audio planning milestone.
+- phase status: PR Readiness is active; Branch Readiness is complete; WS-1 current voice/audio surface inventory and ownership map, WS-2 lifecycle and persona-state framing for voice/audio transitions, WS-3 validation and admission contract for future voice/audio implementation, H-1 hardening, LV-1 Live Validation, and PR-1 through PR-3 are complete; PR #81 is open, non-draft, `MERGEABLE`, and `CLEAN`; and no runtime voice/audio implementation is admitted yet.
+- next legal seam: merge PR #81, then execute file-frozen Release Readiness on updated `main`.
 - Minimal Scope: Complete the bounded docs/canon voice/audio planning seam chain: current surface inventory and ownership mapping, lifecycle/persona-state framing, and the implementation admission contract before runtime voice, shutdown voice, recovery voice, persona-default, or public voice-copy change begins.
 
 ## Backlog Priority Review
@@ -114,7 +114,7 @@ The 2026-04-23 priority reading is updated during FB-030 PR Readiness:
 - FB-004 is released and closed in `v1.6.3-prebeta`; it is no longer an active or selected-next branch candidate.
 - FB-015 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
 - FB-029 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
-- FB-030 remains `Medium`, is now promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and WS-1 through WS-3 plus H-1, LV-1, PR-1, and PR-2 now record the ownership map, lifecycle/persona-state framing, implementation-admission contract, hardening corrections, Live Validation waivers, merge-target package truth, and selected-next gate needed to complete PR creation and validation.
+- FB-030 remains `Medium`, is now promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and WS-1 through WS-3 plus H-1, LV-1, and PR-1 through PR-3 now record the ownership map, lifecycle/persona-state framing, implementation-admission contract, hardening corrections, Live Validation waivers, merge-target package truth, selected-next gate, and live PR validation needed to complete PR Readiness cleanly.
 - FB-005 remains `Low`, is selected next planning-only, and still requires explicit path-sensitive workspace approval before Branch Readiness admission or branch creation.
 
 Current-branch clarity: FB-030 is the active promoted implementation workstream on `feature/fb-030-orin-voice-audio-direction-refinement`; FB-005 is selected next planning-only; and the selected-next implementation branch remains not created while this branch owns execution truth.

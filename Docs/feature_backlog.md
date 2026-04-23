@@ -62,7 +62,7 @@ Open-candidate priority review:
 - FB-004 is released and closed in `v1.6.3-prebeta`; it is no longer an active or selected-next branch candidate.
 - FB-015 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
 - FB-029 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
-- FB-030 remains `Medium`, is now promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and WS-1 through WS-3 plus H-1, LV-1, PR-1, and PR-2 now record the ownership map, lifecycle/persona-state framing, implementation-admission contract, hardening corrections, Live Validation waivers, merge-target package truth, and selected-next gate needed to complete PR creation and validation.
+- FB-030 remains `Medium`, is now promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and WS-1 through WS-3 plus H-1, LV-1, PR-1, PR-2, and PR-3 now record the ownership map, lifecycle/persona-state framing, implementation-admission contract, hardening corrections, Live Validation waivers, merge-target package truth, selected-next gate, and live PR validation needed to complete PR Readiness cleanly.
 - FB-005 remains `Low`, is selected next planning-only, and still requires explicit path-sensitive workspace approval before Branch Readiness admission or branch creation.
 
 Current-branch clarity: FB-030 is the active promoted implementation workstream on `feature/fb-030-orin-voice-audio-direction-refinement`; FB-005 is selected next planning-only; and the selected-next implementation branch remains not created while this branch owns execution truth.
@@ -159,7 +159,7 @@ Branch Readiness: Complete. The branch objective, target end-state, voice/audio 
 Workstream: Active. WS-1 current voice/audio surface inventory and ownership map, WS-2 lifecycle and persona-state framing for voice/audio transitions, and WS-3 validation and admission contract for future voice/audio implementation are complete.
 Hardening: H-1 pressure test of the voice/audio ownership map, lifecycle/persona-state framing, implementation-admission contract, duplicate-trigger risks, and cross-path conflicts is complete.
 Live Validation: LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete.
-PR Readiness: PR-1 merge-target canon completeness and PR-2 selected-next workstream selection are complete; PR-3 live PR creation and validation are pending.
+PR Readiness: PR-1 merge-target canon completeness, PR-2 selected-next workstream selection, and PR-3 live PR creation plus authenticated PR state validation are complete; PR #81 is open, non-draft, `MERGEABLE`, and `CLEAN`.
 Release Target: v1.6.5-prebeta
 Release Title: Pre-Beta v1.6.5
 Release Floor: patch prerelease
