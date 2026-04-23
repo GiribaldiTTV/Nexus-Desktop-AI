@@ -23,15 +23,18 @@
 
 ## Current Phase
 
-- Phase: `Branch Readiness`
+- Phase: `Workstream`
 
 ## Phase Status
 
-- `Branch Readiness GREEN / Workstream admission ready`
+- `WS-1 complete / WS-2 admitted next`
 - FB-032 is released and closed in `v1.6.2-prebeta`.
 - Latest public prerelease truth is `v1.6.2-prebeta`.
 - Release debt is clear.
-- FB-004 is promoted from selected-only registry truth into this canonical workstream record.
+- FB-004 is promoted and active in this canonical workstream record.
+- Branch Readiness is complete.
+- WS-1 current boot-to-desktop source map and ownership boundary is complete.
+- WS-2 lifecycle and orchestration-state framing for boot and desktop transitions is admitted next.
 - No FB-004 implementation, runtime behavior, launcher behavior, desktop shortcut behavior, UI change, installer change, release work, or tag work has started.
 
 ## Branch Class
@@ -108,7 +111,7 @@ None.
 - `python dev\orin_branch_governance_validation.py`: PASS, 921 checks.
 - `git diff --check`: PASS; no whitespace errors.
 - Scope validation: PASS; Branch Readiness changed docs/canon routing and the new FB-004 workstream record only.
-- Admission validation: PASS; FB-004 is promoted and WS-1 current boot-to-desktop source map and ownership boundary is admitted next.
+- Admission validation: PASS; FB-004 was promoted and WS-1 current boot-to-desktop source map and ownership boundary was admitted next.
 
 ## User Test Summary Strategy
 
@@ -131,28 +134,142 @@ None.
 
 Seam 1: Current boot-to-desktop source map and ownership boundary
 
-- Status: Admitted next.
+- Status: Completed.
 - Goal: inventory the current boot-to-desktop entrypoints, launcher and renderer startup ownership, diagnostics evidence roots, and rollback boundaries before any orchestrator implementation is considered.
 - Scope: docs/canon source map, ownership vocabulary, current entrypoint inventory, lifecycle boundary notes, validation trigger classification, rollback boundary, and implementation admission checklist for later seams.
 - Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no source tree reorganization, no release work, and no public release editing.
 
+Seam 2: Lifecycle and orchestration-state framing for boot and desktop transitions
+
+- Status: Admitted next.
+- Goal: define the lifecycle states and transition ownership between future boot framing, current desktop launcher authority, renderer readiness, failure/recovery states, and desktop-settled outcomes.
+- Scope: docs/canon lifecycle vocabulary, state-transition framing, ownership handoff boundaries, ambiguity capture, and implementation-readiness risks.
+- Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no release work, and no public release editing.
+
+Seam 3: Validation and admission contract for orchestrator implementation seams
+
+- Status: Pending after WS-2.
+- Goal: define the proof and admission contract required before any future boot orchestrator implementation can change launcher, renderer, shortcut, startup, diagnostics, or user-facing surfaces.
+- Scope: validation gates, shortcut/User Test Summary triggers, rollback proof, helper reuse requirements, implementation admission checklist, and later-phase evidence expectations.
+- Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no release work, and no public release editing.
+
 ## Active Seam
 
-Active seam: BR-1 Branch Readiness admission planning is complete; WS-1 current boot-to-desktop source map and ownership boundary is admitted next.
+Active seam: WS-1 current boot-to-desktop source map and ownership boundary is complete; WS-2 lifecycle and orchestration-state framing for boot and desktop transitions is admitted next.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-004, define branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and the first Workstream seam.
 - BR-1 Non-Includes: no runtime behavior, launcher behavior, desktop shortcut behavior, UI implementation, service/autostart work, installer work, source tree reorganization, release packaging, tag creation, or public release editing.
-- WS-1 Status: Admitted next.
+- WS-1 Status: Completed / executed.
 - WS-1 Boundary: docs/canon source map and ownership boundary only.
 - WS-1 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no source tree reorganization, no release work, and no public release editing.
+- WS-2 Status: Admitted next.
+- WS-2 Boundary: docs/canon lifecycle and orchestration-state framing only.
+- WS-2 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no release work, and no public release editing.
 
 ## Seam Continuation Decision
 
-Continue Decision: `stop`
-Next Active Seam: `WS-1 current boot-to-desktop source map and ownership boundary`
-Stop Condition: `Phase boundary reached`
-Continuation Action: FB-004 Branch Readiness is complete after validation; begin Workstream with WS-1 on the same branch.
+Continue Decision: `continue`
+Next Active Seam: `WS-2 lifecycle and orchestration-state framing for boot and desktop transitions`
+Stop Condition: `none`
+Continuation Action: WS-1 is complete after validation; continue to WS-2 on the same branch because the approved seam chain remains inside Workstream scope.
+
+## WS-1 Execution Record
+
+WS-1 is docs/canon only. It inventories the current boot-to-desktop source map and records the ownership, evidence, and rollback boundaries that later FB-004 seams must preserve before any orchestrator implementation is admitted.
+
+### Current Boot-To-Desktop Entrypoint Inventory
+
+Current production desktop-launch path:
+
+- `launch_orin_desktop.vbs` is the Windows-facing repository-root launch shim. It resolves the repository root from the script location, resolves `desktop\orin_desktop_launcher.pyw`, and starts it through the configured `pythonw.exe` path with a hidden window.
+- `desktop/orin_desktop_launcher.pyw` is the current desktop launcher and orchestration authority. Its default renderer target is `desktop/orin_desktop_main.py`; harness-only environment overrides may replace the target script or log root for validation.
+- `desktop/orin_desktop_main.py` is the current desktop renderer/runtime entrypoint. It receives launcher-passed `--runtime-log` and `--startup-abort-signal` arguments, emits `RENDERER_MAIN|...` milestones, creates the Qt application/window/tray/hotkey surfaces, and reports startup readiness through the launcher-owned runtime log.
+
+Current dev-only boot/handoff surfaces:
+
+- `main.py` contains a boot-interface and desktop-handoff prototype with `--boot-profile manual` and `--boot-profile auto_handoff_skip_import` modes. It emits `BOOT_MAIN|...` markers under `dev/logs/boot_manual_flow` or `dev/logs/boot_auto_handoff_skip_import` and constructs a `DesktopRuntimeWindow` directly for boot-transition validation.
+- `dev/launchers/launch_orin_main_dev.vbs` and `dev/launchers/launch_orin_main_auto_handoff_skip_import.vbs` launch `main.py` for dev-only manual or auto-handoff flows.
+- `dev/orin_boot_transition_capture.py` and `dev/orin_boot_transition_verification.py` exercise the `main.py` boot-transition path and write proof under `dev/logs/boot_transition_capture` or `dev/logs/boot_transition_verification`.
+- These boot/handoff surfaces are planning and validation references only. They do not replace the current production desktop-launch path and do not own launcher final-state truth.
+
+Current validation and support entrypoints:
+
+- `dev/orin_desktop_entrypoint_validation.py` validates non-live desktop renderer startup, tray identity, overlay routing, and expected `RENDERER_MAIN|...` milestones.
+- `dev/orin_desktop_launcher_healthy_validation.py` validates launcher-to-renderer healthy startup, launcher observation of renderer readiness, clean shutdown markers, and contained cleanup under a dev log root.
+- `dev/launchers/launch_orin_desktop_safe.ps1` starts `desktop/orin_desktop_launcher.pyw` through `pythonw.exe` as a dev-safe launcher wrapper with optional overlay trace.
+- Manual validation launchers under `dev/launchers/` may set `JARVIS_HARNESS_TARGET_SCRIPT`, `JARVIS_HARNESS_LOG_ROOT`, or related harness flags before invoking the launcher. Those are validation entrypoints, not production boot ownership.
+
+Validation-helper boundary note:
+
+- `dev/orin_desktop_launcher_regression_harness.py` is still registered as reusable launcher regression coverage, but its current constants point at legacy `jarvis_*` paths that are absent in this workspace. WS-1 does not repair helper code. A later validation/admission seam must either repair or explicitly bypass that harness before treating it as current FB-004 proof.
+
+### Launcher Startup Ownership Boundaries
+
+`desktop/orin_desktop_launcher.pyw` owns the current desktop startup control layer:
+
+- single-instance acquisition and relaunch signaling through `Local\JarvisRuntimeSingletonV1` and `Local\JarvisRuntimeRelaunchRequestV1`
+- renderer process spawning through `pythonw()` and the current target script
+- startup observation, including `RENDERER_MAIN|STARTUP_READY`, startup-abort detection, and confirmed-startup-stall handling
+- recovery attempt sequencing and terminal failure classification
+- diagnostics UI launch, failure voice routing, runtime incident summaries, crash report generation, and finalized runtime/crash truth
+- cleanup of launcher-owned status, stop, and startup-abort signal files when the flow exits normally, aborts, relaunches, or finalizes failure
+
+The launcher does not own renderer presentation internals after the renderer is running. It owns the control envelope and final classification around that renderer.
+
+### Renderer Startup Ownership Boundaries
+
+`desktop/orin_desktop_main.py` owns the current desktop presentation and readiness layer:
+
+- Qt application creation and desktop runtime window construction
+- tray identity, tray discovery cue, overlay routing, Create Custom Task tray routing, and global hotkey startup
+- cooperative response to launcher-passed startup-abort and relaunch signals
+- `RENDERER_MAIN|...` milestone emission into the launcher-owned runtime log
+- startup-ready emission after the core visualization becomes visible
+- passive default handoff to the dormant desktop state after readiness
+- renderer event-loop exit and clean renderer shutdown markers
+
+The renderer does not own retry policy, crash classification, recovery escalation, diagnostics finalization, or final runtime outcome truth. Those remain launcher-owned.
+
+### Diagnostics Evidence Roots
+
+Current live launcher/runtime evidence:
+
+- launcher default runtime log root: `<runtime root>/logs` through `DEFAULT_LOG_DIR`
+- launcher runtime logs: `Runtime_<timestamp>_<token>.txt`
+- launcher crash reports: `<log root>/crash/Crash_<timestamp>_<token>.txt`
+- launcher status/control files: `<log root>/diagnostics_status.txt`, `<log root>/diagnostics_stop.signal`, and `<log root>/renderer_startup_abort.signal`
+- historical runtime state: `%LOCALAPPDATA%/Nexus Desktop AI/state/jarvis_history_v1.jsonl` during normal runtime, with harness log-root override behavior confined to validation contexts
+
+Current dev and harness evidence:
+
+- desktop entrypoint validation: `dev/logs/desktop_entrypoint_validation/...`
+- desktop launcher healthy validation: `dev/logs/desktop_launcher_healthy_validation/...`
+- boot transition capture: `dev/logs/boot_transition_capture/...`
+- boot transition verification: `dev/logs/boot_transition_verification/...`
+- boot auto handoff runtime logs: `dev/logs/boot_auto_handoff_skip_import/...`
+- startup snapshot validation: `dev/logs/startup_snapshot_harness_validation/...`
+
+Evidence-root boundary:
+
+- Root `logs/` is ignored runtime evidence and must not be used for new dev or harness evidence by default.
+- Dev, boot-transition, toolkit, and harness proof belongs under `dev/logs/<lane>/...`.
+- Future FB-004 implementation must not create a new diagnostics evidence root, promote a dev root to live truth, or move launcher-owned state without an explicit admitted implementation seam and rollback plan.
+
+### Rollback Boundaries
+
+WS-1 rollback:
+
+- Revert the WS-1 docs/canon commit and return this record to the post-Branch-Readiness state where WS-1 is admitted but not executed.
+
+Future runtime rollback baseline:
+
+- The safe current desktop baseline remains `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`.
+- Any later change to the launch shim must roll back without changing launcher target semantics.
+- Any later launcher change must roll back to the current default target, retry/recovery model, signal-file cleanup, single-instance/relaunch behavior, and runtime/crash evidence roots.
+- Any later renderer change must roll back to renderer-owned startup milestone emission, tray/hotkey initialization, startup-ready timing, passive dormant handoff, and clean event-loop shutdown behavior.
+- Any later boot-orchestrator implementation must remain above the launcher until an explicit seam admits a delegation-boundary change; rollback must restore launcher-owned final-state truth.
+- Dev-only `main.py` boot-transition behavior must not become production boot ownership by accident; any promotion from dev prototype to product path requires separate implementation admission and user-facing validation.
 
 ## Reuse Baseline
 

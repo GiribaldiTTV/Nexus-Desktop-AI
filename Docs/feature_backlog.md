@@ -37,20 +37,20 @@ Historical note:
 
 FB-004 Future boot orchestrator layer is the active promoted workstream on `feature/fb-004-future-boot-orchestrator-layer`.
 
-Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, and release debt is clear. FB-004 Future boot orchestrator layer has completed Branch Readiness planning and is admitted next for WS-1 current boot-to-desktop source map and ownership boundary.
+Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, and release debt is clear. FB-004 Future boot orchestrator layer has completed WS-1 current boot-to-desktop source map and ownership boundary and is admitted next for WS-2 lifecycle and orchestration-state framing.
 FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
 ## Merged-Unreleased Release-Debt Owner
 
 Merged-Unreleased Release-Debt Owner: None.
-Repo State: FB-004 Branch Readiness is complete on `feature/fb-004-future-boot-orchestrator-layer`; FB-004 is the active promoted workstream and WS-1 is admitted next.
+Repo State: FB-004 Workstream is active on `feature/fb-004-future-boot-orchestrator-layer`; WS-1 is complete and WS-2 is admitted next.
 Latest Public Prerelease: v1.6.2-prebeta.
 Latest Public Release Commit: e282072769ec25694928293ce51e144d6a37f611.
 Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.2-prebeta.
 Latest Public Prerelease Title: Pre-Beta v1.6.2.
 Release Debt: Clear after FB-032 release execution and live release validation.
-Post-Release Truth: FB-032 is Released / Closed in v1.6.2-prebeta; release debt is clear; FB-004 Branch Readiness is complete and Workstream is the next legal phase.
+Post-Release Truth: FB-032 is Released / Closed in v1.6.2-prebeta; release debt is clear; FB-004 Workstream is active.
 Selected Next Workstream: None; FB-004 is now the active promoted workstream.
 Next-Branch Creation Gate: Not applicable while FB-004 is active; successor selection belongs to PR Readiness.
 
@@ -68,7 +68,7 @@ Deferred Since: v2.0 closeout; carried forward again by later closeout truth as 
 Deferred Because: boot-orchestrator planning groundwork is preserved, but no runtime boot-orchestrator delivery has been admitted.
 Selection / Unblock: Select only after the current active workstream closes and boot-to-desktop orchestration is the highest-priority next lane; Branch Readiness must define the smallest implementation-facing slice, non-goals, proof path, and rollback boundary.
 Branch Readiness: Complete. The branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam are recorded in the canonical workstream doc.
-Workstream: WS-1 current boot-to-desktop source map and ownership boundary is admitted next. No runtime implementation, launcher behavior, desktop shortcut behavior, UI change, installer change, release work, or tag work is admitted by Branch Readiness.
+Workstream: WS-1 current boot-to-desktop source map and ownership boundary is complete. WS-2 lifecycle and orchestration-state framing for boot and desktop transitions is admitted next. No runtime implementation, launcher behavior, desktop shortcut behavior, UI change, installer change, release work, or tag work is admitted by WS-1.
 Minimal Scope: Define the smallest implementation-facing boot-orchestrator Branch Readiness plan above the desktop launcher, including boot-to-desktop ownership, non-goals, validation proof path, rollback boundary, and explicit protection against runtime delivery by inertia.
 Summary: Preserve the future top-level boot-orchestrator direction above the desktop launcher without authorizing runtime delivery yet.
 Why it matters: Keeps the longer-term boot-to-desktop product direction explicit while current desktop and diagnostics work stays bounded.
