@@ -73,7 +73,7 @@ Current merged truth indicates:
 - current active workstream: FB-004 Future boot orchestrator layer
 - current branch after FB-032 release: `feature/fb-004-future-boot-orchestrator-layer`
 - selected next workstream: FB-015 Boot and desktop phase-boundary model
-- next concern: merge the FB-004 PR after live PR validation, then execute file-frozen Release Readiness for `v1.6.3-prebeta` before any FB-015 branch is created.
+- next concern: merge PR #74, then execute file-frozen Release Readiness for `v1.6.3-prebeta` before any FB-015 branch is created.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, and the released FB-032 source-of-truth migration milestone are now part of the current public shared pre-Beta baseline.
 
@@ -158,10 +158,10 @@ Next-branch clarity: PR Readiness selects FB-015 as the routine next-workstream 
 - hardening: H-1 pressure test is complete; diagnostics-root canon is aligned to runtime-root launcher truth and stale launcher regression helper reuse is repair-gated.
 - live validation: LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete.
 - backlog governance sync: GOV-PR0 priority review is complete; FB-015 is the clear routine successor candidate unless explicit product/legal, voice, or workspace approval supersedes it during PR Readiness.
-- pr readiness: merge-target canon, post-merge release-debt truth, selected-next workstream truth, and PR package details are recorded; live PR validation is required before merge.
+- pr readiness: merge-target canon, post-merge release-debt truth, selected-next workstream truth, PR package details, live PR state, review-thread state, and merge readiness are recorded for PR #74.
 - release target: `v1.6.3-prebeta`
 - release floor: `patch prerelease`
-- next phase: merge the validated PR, then Release Readiness.
+- next phase: merge PR #74, then Release Readiness.
 
 ## Prior Released Workstream Context
 
