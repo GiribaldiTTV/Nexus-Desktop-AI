@@ -23,11 +23,11 @@
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `Hardening`
 
 ## Phase Status
 
-- `Workstream active; WS-1 through WS-3 complete; Hardening next`
+- `Hardening complete; Live Validation next`
 - FB-004 is released and closed in `v1.6.3-prebeta`.
 - Latest public prerelease truth is `v1.6.3-prebeta`.
 - Release debt is clear.
@@ -36,6 +36,8 @@
 - WS-1 current boot/desktop boundary inventory and ownership map is complete.
 - WS-2 lifecycle and phase-boundary state framing is complete.
 - WS-3 validation and admission contract for future boot/desktop boundary implementation is complete.
+- H-1 pressure test of the boot/desktop boundary inventory and ownership map, lifecycle and phase-boundary state framing, and future implementation admission contract is complete.
+- Hardening clarified launcher-owned `STARTUP_READY_OBSERVED`, `normal exit complete`, and `failure flow complete` as explicit boundary states and tightened later shortcut-proof classification so direct repository launch-shim invocation is not treated as real user-facing shortcut proof by default.
 - A narrow supporting canon sync for released FB-040 Sensor HUD beta admission remained bounded to docs/governance-only source-of-truth maintenance; it did not reopen FB-040, change FB-015 runtime scope, or alter the admitted FB-015 seam chain.
 - A requested future-lane admission for `FB-042 Stream Deck Integration via Elgato MCP` was reviewed and explicitly deferred because backlog identity, roadmap sequencing, and new auxiliary planning-reference canon for that lane would exceed the current FB-015 branch boundary and remains out of scope for the completed FB-015 Workstream seam chain.
 - No FB-015 runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, helper-code, or release work has started.
@@ -102,11 +104,11 @@ None.
 - Confirm `Docs/Main.md` routes this workstream record.
 - Confirm `Docs/feature_backlog.md` marks FB-015 as `Promoted`, `Active`, and cites this doc.
 - Confirm `Docs/workstreams/index.md` lists FB-015 under Active.
-- Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` record FB-015 as the active Workstream with WS-1 through WS-3 complete and Hardening next.
+- Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` record FB-015 as the active promoted branch with Hardening complete and Live Validation next.
 - Confirm FB-004 remains Released / Closed in `v1.6.3-prebeta`.
 - Confirm the previously recorded supporting canon sync remains limited to active FB-015 branch authority wording, `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`, and `Docs/validation_helper_registry.md`, and does not reopen FB-040 or change the admitted FB-015 seam chain.
 - Confirm requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred on this branch and does not add backlog, roadmap, workstream, or auxiliary planning-reference canon.
-- Confirm no runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3.
+- Confirm no runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3 or H-1.
 
 ## Branch Readiness Validation Results
 
@@ -118,8 +120,8 @@ None.
 
 ## User Test Summary Strategy
 
-- Branch Readiness and WS-1 through WS-3 are docs/canon only and do not change user-facing behavior.
-- No desktop shortcut validation, desktop export, or manual User Test Summary handoff is required during Branch Readiness or WS-1 through WS-3.
+- Branch Readiness, WS-1 through WS-3, and H-1 are docs/canon only and do not change user-facing behavior.
+- No desktop shortcut validation, desktop export, or manual User Test Summary handoff is required during Branch Readiness, WS-1 through WS-3, or H-1.
 - If a later seam changes startup, launcher, shortcut, visible startup state, user-facing copy, UI, installer behavior, or another operator-facing path, FB-015 must add the exact `## User Test Summary` artifact and desktop export required by governance before Live Validation can advance.
 
 ## Later-Phase Expectations
@@ -155,7 +157,7 @@ Seam 3: Validation and admission contract for future boot/desktop boundary imple
 
 ## Active Seam
 
-Active seam: none after WS-3 completion; the next legal phase is Hardening.
+Active seam: none after H-1 completion; the next legal phase is Live Validation.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-015 and define the branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam.
@@ -169,13 +171,16 @@ Active seam: none after WS-3 completion; the next legal phase is Hardening.
 - WS-3 Status: Completed / executed.
 - WS-3 Boundary: docs/canon validation and admission contract for future boot/desktop boundary implementation only.
 - WS-3 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no source tree reorganization, no release work, and no public release editing.
+- H-1 Status: Completed / executed.
+- H-1 Boundary: docs/canon pressure test of the boot/desktop boundary inventory and ownership map, lifecycle and phase-boundary state framing, future implementation admission contract, governance gaps, validation gaps, ambiguity, contradiction, scope issues, and boundary-readiness risks.
+- H-1 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no helper-code repair, no source tree reorganization, no release work, and no public release editing.
 
 ## Seam Continuation Decision
 
 Continue Decision: `stop`
-Next Active Seam: `Hardening`
+Next Active Seam: `Live Validation`
 Stop Condition: `Phase boundary reached`
-Continuation Action: execute FB-015 Hardening after WS-1 through WS-3 validation is green and durably committed.
+Continuation Action: execute FB-015 Live Validation after H-1 validation is green and durably committed.
 
 ## WS-1 Execution Record
 
@@ -313,8 +318,11 @@ Launcher-control states:
 - `renderer startup pending`: the launcher has spawned the renderer and is waiting for readiness proof.
 - `startup warning`: readiness has not arrived inside the initial observation window, but the renderer attempt is still live.
 - `startup stall confirmed`: readiness has still not arrived inside the stall-confirm window and the launcher may request cooperative startup abort.
+- `startup ready observed`: the launcher has observed renderer readiness proof and now owns runtime-attempt success classification beyond the renderer's own emission.
 - `recovery active`: the launcher is inside a bounded recovery attempt or cooldown path.
 - `failure finalization`: the launcher is writing diagnostics, crash, or finalized history truth after recovery has failed.
+- `normal exit complete`: the renderer exited normally and the launcher cleaned status/signal artifacts.
+- `failure flow complete`: the launcher wrote final incident/crash evidence and finalized failure history.
 
 Renderer-presentation states:
 
@@ -335,7 +343,7 @@ Desktop-settled and evidence states:
 
 - Current production desktop authority begins at `desktop/orin_desktop_launcher.pyw`; there is no admitted production boot-phase owner ahead of it.
 - `launch_orin_desktop.vbs` owns process launch handoff only. It does not own startup readiness, runtime success, recovery, or failure classification.
-- Renderer first-visible proof is not the same as renderer-ready proof, and renderer-ready proof is not the same as launcher-owned final runtime success.
+- Renderer first-visible proof is not the same as renderer-ready proof, renderer-ready proof is not the same as launcher-owned `startup ready observed`, and launcher-owned readiness observation is not the same as final runtime success.
 - Dev-only `BOOT_MAIN|DESKTOP_SETTLED|state=dormant` is not equivalent to production `RENDERER_MAIN|STARTUP_READY` or launcher `STARTUP_READY_OBSERVED`.
 - `state=dormant` is a presentation state, not a release, trust, shortcut, recovery, or success-state claim by itself.
 - `Local\JarvisRuntimeSingletonV1` and `Local\JarvisRuntimeRelaunchRequestV1` are shared primitives. Shared primitive reuse does not collapse ownership between the launcher path and the dev-only boot prototype.
@@ -379,7 +387,7 @@ Before any later FB-015 implementation seam may edit runtime or user-facing surf
 - exact rollback target and revert scope for the touched surface
 - expected signal files, log roots, persisted files, cleanup behavior, and historical-state handling before and after the change
 - helper reuse decision from `Docs/validation_helper_registry.md`
-- desktop shortcut applicability and `User Test Summary` applicability
+- desktop shortcut applicability, declared user-facing entrypoint class, and `User Test Summary` applicability
 - explicit non-includes that stop adjacent launcher, renderer, tray, overlay, shortcut, installer, release, or source-tree work from entering by inertia
 
 If an implementation seam cannot answer those items before edits begin, it is not admitted.
@@ -420,6 +428,8 @@ Shared single-instance or relaunch-primitive seams:
 Desktop shortcut, visible startup, or other operator-facing seams:
 
 - launch through the declared user-facing desktop shortcut or equivalent production entrypoint during Live Validation
+- record whether the declared user-facing entrypoint is a Windows shortcut, another equivalent production entrypoint, or the repository launch shim used only as supporting proof
+- direct invocation of `launch_orin_desktop.vbs` is supporting evidence by default and does not count as real user-facing desktop-shortcut proof unless the seam explicitly records why that path is the true operator-facing entry surface
 - record `User-Facing Shortcut Path:` and `User-Facing Shortcut Validation:` in this workstream record before User Test Summary handoff
 - add and export the canonical User Test Summary when the completed delta changes user-visible startup, shortcut behavior, visible runtime behavior, prompts, tray/overlay behavior, voice behavior, or another operator-facing path
 
@@ -466,6 +476,41 @@ Any later implementation seam must prove rollback and cleanup at the same surfac
 - WS-3 scope validation: PASS; the seam changed docs/canon only in the FB-015 workstream record, backlog, roadmap, and workstream index.
 - WS-3 changed no runtime behavior, launcher behavior, renderer behavior, desktop shortcut behavior, UI, installer behavior, helper code, release artifact, or desktop export.
 
+## H-1 Hardening Record
+
+H-1 is docs/canon only. It pressure-tests whether the WS-1 through WS-3 boot/desktop boundary frame is coherent enough to move into Live Validation without admitting runtime, launcher, shortcut, renderer, or helper implementation.
+
+### Hardening Findings
+
+- Governance Gap: the active workstream record still carried Workstream-complete / Hardening-next phase truth after the bounded WS-1 through WS-3 seam chain had already finished. H-1 corrects current-state canon to Hardening-complete / Live-Validation-next truth.
+- Ownership/State Framing Gap: WS-2 recorded renderer-ready and launcher failure handling, but it did not yet name launcher-owned `startup ready observed` as a separate boundary between renderer readiness emission and launcher outcome classification. H-1 records that boundary and the launcher terminal states `normal exit complete` and `failure flow complete` so later seams do not collapse renderer proof, launcher observation, and finalized outcome into one claim.
+- Validation/Shortcut Gap: WS-3 required shortcut applicability classification, but it left too much room to blur a real desktop shortcut with direct repository launch-shim invocation. H-1 tightens the admission contract so future seams must classify whether proof comes from a Windows shortcut, another equivalent production entrypoint, or a repository-local shim used only as supporting evidence.
+- Source-Of-Truth Pressure Test: `Docs/architecture.md`, `Docs/orchestration.md`, the current launcher/runtime entrypoints, and `Docs/validation_helper_registry.md` agree that production desktop authority begins at `desktop/orin_desktop_launcher.pyw`, live evidence stays launcher-owned under the runtime root, and `dev/orin_desktop_launcher_regression_harness.py` remains repair-gated. No source-of-truth contradiction blocks Live Validation.
+- Scope Check: WS-1 through WS-3 and H-1 changed docs/canon only. No runtime behavior, launcher behavior, desktop shortcut behavior, renderer behavior, UI, installer behavior, source layout, helper code, release artifact, or desktop export changed.
+- Boundary-Readiness Risk: FB-015 is ready for repo-truth and applicability validation, but it is not ready for implementation by inertia. Any later runtime or operator-facing seam still requires explicit affected surface class, boundary states, proof markers, rollback target, helper reuse decision, user-facing entrypoint classification, and User Test Summary applicability.
+
+### Hardening Corrections
+
+- Current-state canon is updated from Workstream-complete / Hardening-next wording to Hardening-complete / Live-Validation-next wording.
+- WS-2 lifecycle framing now explicitly separates renderer-ready, launcher-owned `startup ready observed`, `normal exit complete`, and `failure flow complete`.
+- WS-3 admission contract now requires explicit user-facing entrypoint classification and prevents direct repository launch-shim invocation from counting as desktop-shortcut proof by default.
+- No new helper, validator, runtime artifact, desktop artifact, release artifact, or User Test Summary export was created.
+
+### H-1 Completion Decision
+
+- H-1 Result: Complete / green.
+- User-facing impact: none. This pass changed docs/canon only.
+- Next legal phase: Live Validation.
+- Stop condition: phase boundary reached; Hardening is complete after H-1.
+
+### H-1 Validation Results
+
+- `python dev\orin_branch_governance_validation.py`: PASS, 958 checks.
+- `git diff --check`: PASS with line-ending normalization warnings only and no whitespace errors.
+- H-1 phase-state scan: PASS; current authority surfaces report FB-015 Hardening complete and Live Validation as the next legal phase.
+- H-1 scope validation: PASS; changed files are docs/canon surfaces only.
+- H-1 changed no runtime behavior, launcher behavior, renderer behavior, desktop shortcut behavior, UI, installer behavior, helper code, release artifact, or desktop export.
+
 ## Supporting Canon Sync
 
 This branch carried tightly scoped supporting canon sync earlier in Workstream when the change stayed docs/governance-only, preserved FB-015 as the active workstream, and did not widen into runtime or branch-selection churn.
@@ -492,7 +537,10 @@ Non-includes for this supporting canon sync:
 - `Docs/feature_backlog.md`
 - `Docs/prebeta_roadmap.md`
 - `Docs/workstreams/index.md`
+- `Docs/architecture.md`
+- `Docs/orchestration.md`
 - `Docs/phase_governance.md`
+- `Docs/validation_helper_registry.md`
 - `dev/orin_branch_governance_validation.py`
 - `main.py`
 - `desktop/orin_desktop_launcher.pyw`
@@ -509,22 +557,23 @@ Non-includes for this supporting canon sync:
 - WS-1 current boot and desktop phase boundaries are recorded.
 - WS-2 lifecycle families, phase-boundary states, and ownership handoff rules for production desktop launch, launcher failure/recovery, and the dev-only boot prototype are recorded.
 - WS-3 validation and admission rules for future boot/desktop boundary implementation are recorded.
+- H-1 pressure test findings and corrections are recorded.
 - The ownership map across the current user-facing launch shim, production launcher, production renderer, dev-only boot prototype, shared single-instance primitives, and evidence/state roots is recorded.
-- `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the active promoted Workstream with WS-1 through WS-3 complete and Hardening next.
+- `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` route FB-015 as the active promoted branch with WS-1 through WS-3 and H-1 complete and Live Validation next.
 - FB-004 remains Released / Closed and release debt remains clear.
 - Requested future-lane `FB-042 Stream Deck Integration via Elgato MCP` admission remains deferred and no out-of-scope backlog, roadmap, workstream, or auxiliary planning-reference canon was added on this branch.
-- No runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3.
+- No runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, release, helper-code, or desktop-export surface changed during WS-1 through WS-3 or H-1.
 - Validation is green.
 
 ## Rollback Target
 
 - `Workstream`
-- Revert the WS-2 and WS-3 docs/canon commits and return FB-015 to the WS-1-complete / WS-2-next state if Workstream-complete truth must be withdrawn.
+- Revert the H-1 docs/canon commit and return FB-015 to the Workstream-complete / Hardening-next state with WS-1 through WS-3 recorded and no implementation admitted.
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Live Validation`
 
 ## User Test Summary
 
-Not applicable during WS-1 through WS-3. FB-015 Workstream remains docs/canon only and does not change user-facing behavior.
+Not applicable during Branch Readiness, WS-1 through WS-3, or H-1. FB-015 remains docs/canon only and does not change user-facing behavior.

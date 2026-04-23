@@ -80,7 +80,7 @@ That may be an executable branch owner or another explicitly promoted current-tr
 
 - `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`
 
-FB-015 is the active promoted workstream on `feature/fb-015-boot-desktop-phase-boundary-model`. Workstream is active; WS-1 current boot/desktop boundary inventory and ownership map, WS-2 lifecycle and phase-boundary state framing, and WS-3 validation and admission contract for future boot/desktop boundary implementation are complete, and Hardening is next. No FB-015 runtime behavior, launcher behavior, desktop shortcut behavior, renderer lifecycle behavior, UI work, installer work, source movement, release work, or public release editing has started.
+FB-015 is the active promoted workstream on `feature/fb-015-boot-desktop-phase-boundary-model`. Hardening is complete; WS-1 current boot/desktop boundary inventory and ownership map, WS-2 lifecycle and phase-boundary state framing, WS-3 validation and admission contract for future boot/desktop boundary implementation, and H-1 hardening are complete, and Live Validation is next. No FB-015 runtime behavior, launcher behavior, desktop shortcut behavior, renderer lifecycle behavior, UI work, installer work, source movement, release work, or public release editing has started.
 
 ### Merged / Release Debt Owners
 

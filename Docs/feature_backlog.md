@@ -37,32 +37,32 @@ Historical note:
 
 FB-015 Boot and desktop phase-boundary model is the active promoted workstream on `feature/fb-015-boot-desktop-phase-boundary-model`.
 
-Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, FB-004 is released and closed in `v1.6.3-prebeta`, and release debt is clear. FB-015 is now in Workstream on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3 are complete, and Hardening is next.
+Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, FB-004 is released and closed in `v1.6.3-prebeta`, and release debt is clear. FB-015 is now in Hardening on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3 and H-1 are complete, and Live Validation is next.
 FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
 ## Merged-Unreleased Release-Debt Owner
 
 Merged-Unreleased Release-Debt Owner: None.
-Repo State: FB-015 Workstream active on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3 are complete and Hardening is next.
+Repo State: FB-015 Hardening complete on `feature/fb-015-boot-desktop-phase-boundary-model`; WS-1 through WS-3 and H-1 are complete and Live Validation is next.
 Latest Public Prerelease: v1.6.3-prebeta.
 Latest Public Release Commit: 9f5ae9a78c7dbff79322089bca370fa49da38598.
 Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.3-prebeta.
 Latest Public Prerelease Title: Pre-Beta v1.6.3.
 Release Debt: Clear after FB-004 release execution and live release validation.
-Post-Release Truth: FB-004 is Released / Closed in v1.6.3-prebeta; release debt is clear; FB-015 is the active promoted Workstream with WS-1 through WS-3 complete.
+Post-Release Truth: FB-004 is Released / Closed in v1.6.3-prebeta; release debt is clear; FB-015 is the active promoted workstream with WS-1 through WS-3 and H-1 complete.
 Selected Next Workstream: None while FB-015 is active.
 Next-Branch Creation Gate: Not applicable while FB-015 is active; successor selection belongs to later PR Readiness.
 
 ## Backlog Governance Sync
 
-Last Reviewed: 2026-04-23 during FB-015 WS-2 and WS-3.
+Last Reviewed: 2026-04-23; priority reading carried forward during FB-015 H-1 truth sync.
 
 Open-candidate priority review:
 
 - FB-004 is released and closed in `v1.6.3-prebeta`; it is no longer an active or selected-next branch candidate.
 - FB-029 remains `High`, but its own selection/unblock rule requires explicit product/legal identity approval before it can be selected; it is not a routine next branch by priority alone.
-- FB-015 remains `High`, is promoted, and is the active Workstream with WS-1 through WS-3 complete because boot/desktop phase-boundary follow-through is the highest-priority routine technical successor after FB-004.
+- FB-015 remains `High`, is promoted, and is the active Hardening lane with WS-1 through WS-3 and H-1 complete because boot/desktop phase-boundary follow-through is the highest-priority routine technical successor after FB-004.
 - FB-030 remains `Medium` because it requires an explicit voice/audio design goal and must not enter as incidental persona or runtime cleanup.
 - FB-005 remains `Low` because remaining workspace movement is path-sensitive and requires explicit workspace/path approval.
 
@@ -96,6 +96,7 @@ Branch: feature/fb-015-boot-desktop-phase-boundary-model
 Canonical Workstream Doc: Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md
 Branch Readiness: Complete. The branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam are recorded in the canonical workstream doc.
 Workstream: WS-1 current boot/desktop boundary inventory and ownership map, WS-2 lifecycle and phase-boundary state framing, and WS-3 validation and admission contract for future boot/desktop boundary implementation are complete.
+Hardening: H-1 pressure test of the boot/desktop boundary inventory and ownership map, lifecycle and phase-boundary state framing, and future implementation admission contract is complete.
 Minimal Scope: Complete the bounded docs/canon seam chain for current boot/desktop phase-boundary ambiguity, starting with current boundary inventory and ownership mapping before lifecycle framing or implementation-admission rules are extended.
 Summary: Preserve the future boot and desktop phase-boundary model above the already-closed milestone taxonomy work.
 Why it matters: Keeps boot-versus-desktop ownership planning explicit without reopening the closed taxonomy milestone by inertia.
