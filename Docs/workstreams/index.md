@@ -80,7 +80,7 @@ That may be an executable branch owner or another explicitly promoted current-tr
 
 - `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
 
-FB-032 is the current promoted PR Readiness authority. WS-1 through WS-3, H-1, LV-1, and GOV-PR1 are docs/canon only and complete; PR Readiness is preparing merge-target release-debt canon, selected-next truth, PR package details, and live PR validation. No FB-032 implementation, wording migration, runtime behavior, UI implementation, persona work, rebrand execution, release work, shortcut validation requirement, or manual User Test Summary requirement is admitted by Workstream, Hardening, Live Validation, or PR Readiness completion alone.
+FB-032 is the current promoted PR Readiness authority. WS-1 through WS-3, H-1, LV-1, GOV-PR1, and PR-1 through PR-3 are docs/canon only and complete; PR #73 is open, non-draft, mergeable, and clean. No FB-032 implementation, wording migration, runtime behavior, UI implementation, persona work, rebrand execution, release work, shortcut validation requirement, or manual User Test Summary requirement is admitted by Workstream, Hardening, Live Validation, or PR Readiness completion alone.
 
 ### Merged / Release Debt Owners
 

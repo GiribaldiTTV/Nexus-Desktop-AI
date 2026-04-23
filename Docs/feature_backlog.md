@@ -130,7 +130,7 @@ Canonical Workstream Doc: Docs/workstreams/FB-032_nexus_era_vision_and_source_of
 Workstream: WS-1 current-vs-historical source-of-truth inventory and naming policy, WS-2 classification and mapping of canonical vs historical surfaces, and WS-3 validation and admission contract for controlled migration execution are complete.
 Hardening: H-1 source-of-truth migration frame pressure test is complete.
 Live Validation: LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete; PR Readiness is next.
-PR Readiness: PR-1 merge-target canon, release-debt target, selected-next workstream, and PR package validation are in progress.
+PR Readiness: PR-1 merge-target canon, PR-2 durable branch truth, and PR-3 live PR validation are complete; PR #73 is open, non-draft, mergeable, and clean.
 Post-Merge State: FB-032 becomes the merged-unreleased release-debt owner for `v1.6.2-prebeta`; repo state is `No Active Branch` until release debt clears.
 Branch Readiness Governance Repair: GitHub release notes across the live release history were standardized to Markdown release bodies with generated `## What's Changed` and `**Full Changelog**:` sections; Release Readiness governance and validator coverage now require that format before future release execution can be treated as complete.
 Minimal Scope: FB-032 must keep Nexus-era source-of-truth migration controlled by current-vs-historical naming policy, canonical vs historical surface classification, AI/UI identity routing, canon migration admission rules, and explicit non-goals before any wording migration, persona work, runtime behavior, UI implementation, rebrand execution, or release work is considered.
@@ -161,7 +161,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work used patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
 Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, PR Readiness merge-target canon, and PR-R1 release-floor validator repair.
 Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, clean branch history, and PR-R1 validator repair.
-Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; FB-032 Live Validation is complete on `feature/fb-032-nexus-era-vision-source-of-truth-migration`.
+Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; FB-032 PR Readiness is green on PR #73.
 Summary: Preserved Nexus-era UI/UX overhaul planning as a deliberate design lane rather than piecemeal visual drift.
 Why it matters: The Nexus-era visual language should be planned coherently before any later UI implementation pass.
 
