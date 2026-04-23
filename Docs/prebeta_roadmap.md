@@ -68,12 +68,12 @@ Current merged truth indicates:
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestone is FB-031 Nexus Desktop AI UI/UX overhaul planning in `v1.6.1-prebeta`
 - current phase after FB-031 release closure: `Workstream`
-- phase status after FB-031 release closure: FB-032 WS-1 and WS-2 complete; WS-3 next
+- phase status after FB-031 release closure: FB-032 Workstream complete after WS-1 through WS-3
 - blocker after FB-031 release: none for release debt; FB-032 implementation remains bounded by the recorded Workstream seam sequence
 - current active workstream: FB-032 Nexus-era vision and source-of-truth migration
 - current branch after FB-031 release: `feature/fb-032-nexus-era-vision-source-of-truth-migration`
 - selected next workstream: none while FB-032 is active
-- next concern: execute FB-032 WS-3 validation and admission contract only after WS-2 validation is green and durable.
+- next concern: execute FB-032 Hardening after Workstream validation is green and durable.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, and the released FB-031 UI/UX architecture milestone are now part of the current public shared pre-Beta baseline.
 
@@ -101,8 +101,8 @@ Active Branch: `feature/fb-032-nexus-era-vision-source-of-truth-migration`
 - release floor: TBD after Workstream scope is executed and validated
 - release state: `active delta`
 - minimal scope: define the Nexus-era vision/source-of-truth migration boundary, current-vs-historical naming policy, AI/UI identity routing, canon migration admission rules, and explicit non-goals before any wording migration, persona work, runtime behavior, UI implementation, rebrand execution, or release work is considered.
-- sequencing note: WS-1 records the current-vs-historical source-of-truth inventory and naming policy; WS-2 records canonical-vs-historical surface classification and mapping; WS-3 validation and admission contract is next.
-- next legal phase: `Workstream`
+- sequencing note: WS-1 records the current-vs-historical source-of-truth inventory and naming policy; WS-2 records canonical-vs-historical surface classification and mapping; WS-3 records validation and admission contract for controlled migration execution.
+- next legal phase: `Hardening`
 
 ## Selected Next Workstream
 
@@ -120,7 +120,7 @@ None while FB-032 is the active promoted workstream. The successor workstream mu
 - release title: `Pre-Beta v1.6.1`
 - canonical workstream doc: `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`
 - sequencing note: released the architecture-only UI/UX planning milestone, including source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, Hardening pressure test, Live Validation waivers, PR Readiness merge-target canon, and PR-R1 release-floor validator repair.
-- successor note: FB-032 is active in Workstream; WS-1 and WS-2 are complete and WS-3 is the next legal seam after validation is green and durable.
+- successor note: FB-032 Workstream is complete after WS-1 through WS-3; Hardening is the next legal phase after validation is green and durable.
 
 ## Prior Released Workstream Context
 

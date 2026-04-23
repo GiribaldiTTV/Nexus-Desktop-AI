@@ -32,7 +32,7 @@ Historical note:
 
 FB-032 Nexus-era vision and source-of-truth migration is the current promoted Workstream authority on `feature/fb-032-nexus-era-vision-source-of-truth-migration`.
 
-Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, release debt is clear, and FB-032 is active in Workstream. FB-032 WS-1 and WS-2 are docs/canon only and complete; WS-3 validation and admission contract is the next admitted seam.
+Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, release debt is clear, and FB-032 Workstream is complete after WS-1 through WS-3. The next legal phase is Hardening.
 FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
@@ -106,7 +106,7 @@ Release Stage: pre-Beta
 Target Version: TBD
 Branch: feature/fb-032-nexus-era-vision-source-of-truth-migration
 Canonical Workstream Doc: Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md
-Workstream: WS-1 current-vs-historical source-of-truth inventory and naming policy is complete; WS-2 classification and mapping of canonical vs historical surfaces is complete; WS-3 validation and admission contract for controlled migration execution is next.
+Workstream: WS-1 current-vs-historical source-of-truth inventory and naming policy, WS-2 classification and mapping of canonical vs historical surfaces, and WS-3 validation and admission contract for controlled migration execution are complete.
 Branch Readiness Governance Repair: GitHub release notes across the live release history were standardized to Markdown release bodies with generated `## What's Changed` and `**Full Changelog**:` sections; Release Readiness governance and validator coverage now require that format before future release execution can be treated as complete.
 Minimal Scope: FB-032 must keep Nexus-era source-of-truth migration controlled by current-vs-historical naming policy, canonical vs historical surface classification, AI/UI identity routing, canon migration admission rules, and explicit non-goals before any wording migration, persona work, runtime behavior, UI implementation, rebrand execution, or release work is considered.
 Summary: Track the broader Nexus-era vision and source-of-truth migration above the current phase-one canon foundation rebuild.
