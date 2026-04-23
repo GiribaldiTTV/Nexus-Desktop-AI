@@ -113,6 +113,7 @@ Add `Seam Sequence` when the Workstream prompt may use bounded multi-seam workfl
 If `Seam Sequence` is present, Codex must execute one active seam at a time, validate after each seam, and report a continue-or-stop decision before starting the next seam.
 If a prompt names an active seam inside that sequence, treat it as the entry seam, not a terminal boundary.
 After a green seam, `Next-Seam Continuation Required` applies by default when continuation authority conditions pass.
+Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
 reporting Next Safe Move is not a substitute for execution when continuation authority passes.
 A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
@@ -269,6 +270,7 @@ After analysis is complete and execution scope is approved, follow these discipl
 - execute exactly one active seam at a time and validate, record, and decide continue-or-stop before the next seam
 - treat a prompt-named seam inside an approved sequence as the entry seam, not a terminal boundary
 - continue by default after a green seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass
+- perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded
 - use `Single-Seam Mode Waiver` only when source-of-truth explicitly records a waiver that narrows an otherwise valid bounded multi-seam workflow to one seam; if source-of-truth admits exactly one seam and no next seam exists, that is a one-seam workflow rather than single-seam mode
 - preserve architecture boundaries
 - keep source-of-truth docs aligned with actual implemented state

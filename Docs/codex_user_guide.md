@@ -86,6 +86,7 @@ For bounded multi-seam Workstream execution, also include:
 - `Per-Seam Gate: validate, record evidence, and report continue-or-stop before the next seam`
 - `Entry Seam Rule: the prompt-named seam is the entry seam, not a terminal boundary`
 - `Continuation Rule: apply Next-Seam Continuation Required after a green seam when continuation authority conditions pass`
+- `All-Seams Rule: Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.`
 - `Execution Rule: reporting Next Safe Move is not a substitute for execution when continuation authority passes`
 - Execution Rule: reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
 - Execution Rule: A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
@@ -367,6 +368,7 @@ Use this when:
 - per-seam validation and evidence recording remain mandatory
 
 Do not use prompt wording such as `execute WS-1` to mean `stop after WS-1` unless the prompt also records an explicit `Single-Seam Mode Waiver` or another blocker from `Docs/phase_governance.md`.
+Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 A bounded stop condition blocks continuation; it does not create single-seam mode.
 reporting `Next Safe Move` is not a substitute for execution when continuation authority passes; A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
 

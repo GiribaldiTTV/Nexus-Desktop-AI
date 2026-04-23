@@ -137,6 +137,7 @@ In Workflow mode, Codex should:
 - when the approved Workstream boundary contains an approved seam chain, use bounded multi-seam workflow as the primary model while executing one active seam at a time
 - when a prompt names an active seam inside an approved sequence, treat it as the entry seam, not a terminal boundary
 - after a green entry seam, apply `Next-Seam Continuation Required` and continue by default when the continuation authority conditions pass
+- Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 - reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
 - A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 - treat legacy `Single-Seam Fallback` wording as `Single-Seam Mode Waiver`

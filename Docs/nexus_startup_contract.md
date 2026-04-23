@@ -317,6 +317,7 @@ Constraints:
 - If a Seam Sequence is present, treat the prompt-named seam as the entry seam, not a terminal boundary.
 - If a Seam Sequence is present, execute one active seam at a time, validate after each seam, and report a continue-or-stop decision before starting the next seam.
 - After a green seam, `Next-Seam Continuation Required` applies by default when continuation authority conditions pass.
+- Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 - reporting `Next Safe Move` is not a substitute for execution when continuation authority conditions pass.
 - reporting Next Safe Move is not a substitute for execution when continuation authority conditions pass.
 - A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
