@@ -863,6 +863,42 @@ def _parse_workstream_doc(text: str) -> dict[str, object]:
     }
 
 
+def _extract_branch_identity_branch(text: str) -> str:
+    match = re.search(r"^\s*-\s*Branch:\s*`([^`]+)`\s*$", text, flags=re.M)
+    return match.group(1).strip() if match else ""
+
+
+def _count_field_occurrences(block: str, label: str) -> int:
+    return len(re.findall(rf"^{re.escape(label)}:\s*.+$", block, flags=re.M))
+
+
+def _branch_record_branch_class_map(
+    active_branch_record_paths: set[str],
+    historical_branch_record_paths: set[str],
+    current_branch: str,
+) -> dict[str, str]:
+    branch_class_map: dict[str, str] = {}
+    for branch_record_path in active_branch_record_paths | historical_branch_record_paths:
+        record_path = ROOT_DIR / Path(branch_record_path)
+        if not record_path.is_file():
+            continue
+        record_text = _read_text(Path(branch_record_path))
+        branch_name = _extract_branch_identity_branch(record_text)
+        branch_class = str(_parse_workstream_doc(record_text)["branch_class"])
+        if not branch_name or not branch_class:
+            continue
+        if branch_record_path not in active_branch_record_paths:
+            if not (
+                current_branch
+                and branch_class == "emergency canon repair"
+                and branch_name == current_branch
+            ):
+                continue
+        branch_class_map[branch_name] = branch_class
+        branch_class_map[f"origin/{branch_name}"] = branch_class
+    return branch_class_map
+
+
 def _user_test_summary_section(text: str) -> str:
     return _section(text, "User Test Summary")
 
@@ -950,7 +986,7 @@ def _collect_release_debt_index_paths(text: str) -> set[str]:
 
 
 def _collect_branch_record_paths(text: str, heading_prefix: str) -> set[str]:
-    section = _subsection(text, heading_prefix)
+    section = _section(text, heading_prefix)
     return set(re.findall(r"Docs/branch_records/[A-Za-z0-9._-]+\.md", section))
 
 
@@ -1025,6 +1061,8 @@ def _gh_pr_view_for_branch(branch_name: str) -> tuple[dict[str, object] | None, 
         ("gh", "pr", "view", branch_name, "--json", fields),
         cwd=ROOT_DIR,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
@@ -1064,6 +1102,8 @@ query($id: ID!) {
         ("gh", "api", "graphql", "-f", f"query={query}", "-F", f"id={pr_node_id}"),
         cwd=ROOT_DIR,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
@@ -1103,13 +1143,24 @@ def _next_workstream_roadmap_section(roadmap_text: str) -> str:
     return _section(roadmap_text, "Selected Next Workstream")
 
 
-def _branch_names_for_workstream(branch_names: list[str], workstream_id: str) -> list[str]:
+def _branch_names_for_workstream(
+    branch_names: list[str],
+    workstream_id: str,
+    branch_class_map: dict[str, str] | None = None,
+) -> list[str]:
     canonical = workstream_id.casefold()
     compact = canonical.replace("-", "")
-    return [
+    matching = [
         branch_name
         for branch_name in branch_names
         if canonical in branch_name.casefold() or compact in branch_name.casefold().replace("-", "")
+    ]
+    if not branch_class_map:
+        return matching
+    return [
+        branch_name
+        for branch_name in matching
+        if branch_class_map.get(branch_name) != "emergency canon repair"
     ]
 
 
@@ -1221,7 +1272,12 @@ def _run_uts_results_pr_gate(require, backlog_entries: list[dict[str, str]]) -> 
             )
 
 
-def _run_next_workstream_gate(require, backlog_entries: list[dict[str, str]], roadmap_text: str) -> None:
+def _run_next_workstream_gate(
+    require,
+    backlog_entries: list[dict[str, str]],
+    roadmap_text: str,
+    branch_class_map: dict[str, str],
+) -> None:
     selected_entries = _selected_next_workstream_entries(backlog_entries)
     require(
         len(selected_entries) == 1,
@@ -1296,7 +1352,7 @@ def _run_next_workstream_gate(require, backlog_entries: list[dict[str, str]], ro
         not branch_error,
         f"PR readiness gate: could not inspect branch names for selected next workstream: {branch_error}",
     )
-    matching_branches = _branch_names_for_workstream(branch_names, selected_id)
+    matching_branches = _branch_names_for_workstream(branch_names, selected_id, branch_class_map)
     require(
         not matching_branches,
         (
@@ -1425,7 +1481,12 @@ def _run_pr_live_state_gate(require) -> None:
     )
 
 
-def _run_pr_readiness_gate(require, backlog_entries: list[dict[str, str]], roadmap_text: str) -> None:
+def _run_pr_readiness_gate(
+    require,
+    backlog_entries: list[dict[str, str]],
+    roadmap_text: str,
+    branch_class_map: dict[str, str],
+) -> None:
     status_output = _git_status_porcelain()
     require(
         not status_output,
@@ -1435,7 +1496,7 @@ def _run_pr_readiness_gate(require, backlog_entries: list[dict[str, str]], roadm
         ),
     )
     _run_uts_results_pr_gate(require, backlog_entries)
-    _run_next_workstream_gate(require, backlog_entries, roadmap_text)
+    _run_next_workstream_gate(require, backlog_entries, roadmap_text, branch_class_map)
     _run_pr_live_state_gate(require)
 
 
@@ -1447,6 +1508,7 @@ def main() -> int:
     backlog_text = _read_text(Path("Docs/feature_backlog.md"))
     roadmap_text = _read_text(Path("Docs/prebeta_roadmap.md"))
     index_text = _read_text(Path("Docs/workstreams/index.md"))
+    branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
     main_text = _read_text(Path("Docs/Main.md"))
     main_canonical_workstream_routes = _subsection(main_text, "Canonical Workstream Records")
 
@@ -1761,8 +1823,24 @@ def main() -> int:
     active_index_paths = _collect_active_index_paths(index_text)
     closed_index_paths = _collect_closed_index_paths(index_text)
     release_debt_index_paths = _collect_release_debt_index_paths(index_text)
+    active_branch_record_paths = _collect_branch_record_paths(branch_record_index_text, "Active Branch Authority Records")
+    historical_branch_record_paths = _collect_branch_record_paths(branch_record_index_text, "Historical Branch Authority Records")
+    branch_record_class_map = _branch_record_branch_class_map(
+        active_branch_record_paths,
+        historical_branch_record_paths,
+        _git_current_branch(),
+    )
 
     backlog_entries = _parse_backlog_sections(backlog_text)
+    for entry in backlog_entries:
+        post_release_truth_count = _count_field_occurrences(entry["block"], "Post-Release Truth")
+        require(
+            post_release_truth_count <= 1,
+            (
+                f"Docs/feature_backlog.md: {entry['id']} must not define multiple "
+                "`Post-Release Truth:` fields"
+            ),
+        )
     _run_open_backlog_selection_governance(require, backlog_entries)
     latest_public_prerelease = _latest_public_prerelease(roadmap_text)
     highest_known_prebeta_tag = _highest_known_prebeta_tag()
@@ -1986,7 +2064,7 @@ def main() -> int:
                 )
 
     if pr_readiness_gate:
-        _run_pr_readiness_gate(require, backlog_entries, roadmap_text)
+        _run_pr_readiness_gate(require, backlog_entries, roadmap_text, branch_record_class_map)
 
     selected_entries = _selected_next_workstream_entries(backlog_entries)
     if len(selected_entries) == 1 and not pr_readiness_gate:
@@ -1999,7 +2077,7 @@ def main() -> int:
             f"Selected next workstream branch check: could not inspect branch names: {branch_error}",
         )
         if not branch_error and roadmap_section:
-            matching_branches = _branch_names_for_workstream(branch_names, selected_id)
+            matching_branches = _branch_names_for_workstream(branch_names, selected_id, branch_record_class_map)
             if matching_branches:
                 current_branch = _git_current_branch()
                 roadmap_lower = roadmap_section.casefold()
@@ -2692,14 +2770,15 @@ def main() -> int:
         "Docs/phase_governance.md: Governance Validator section does not cite python dev/orin_branch_governance_validation.py",
     )
 
-    branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
     require(
         "Docs/branch_records/" in branch_record_index_text,
         "Docs/branch_records/index.md: expected branch-record paths in the index",
     )
-
-    active_branch_record_paths = _collect_branch_record_paths(branch_record_index_text, "Active Branch Authority Records")
-    historical_branch_record_paths = _collect_branch_record_paths(branch_record_index_text, "Historical Branch Authority Records")
+    all_branch_names, all_branch_name_error = _git_branch_names()
+    require(
+        not all_branch_name_error,
+        f"Could not inspect branch names for branch-record validation: {all_branch_name_error}",
+    )
 
     for branch_record_path in active_branch_record_paths | historical_branch_record_paths:
         record_path = ROOT_DIR / Path(branch_record_path)
@@ -2711,6 +2790,7 @@ def main() -> int:
             continue
 
         record_text = _read_text(Path(branch_record_path))
+        branch_name = _extract_branch_identity_branch(record_text)
         phase_status_section = _section(record_text, "Phase Status")
         for heading in REQUIRED_BRANCH_RECORD_HEADINGS:
             require(
@@ -2771,6 +2851,17 @@ def main() -> int:
             require(
                 "`Active Branch`" in phase_status_section,
                 f"{branch_record_path}: active branch record must declare `Active Branch` in Phase Status",
+            )
+            require(
+                bool(branch_name),
+                f"{branch_record_path}: active branch record must declare a Branch in Branch Identity",
+            )
+            require(
+                (branch_name in all_branch_names) or (f"origin/{branch_name}" in all_branch_names),
+                (
+                    f"{branch_record_path}: active branch record points to missing branch "
+                    f"'{branch_name}'"
+                ),
             )
         if branch_record_path in historical_branch_record_paths:
             require(

@@ -4,13 +4,13 @@
 
 - Branch: `feature/fb-030-orin-voice-audio-direction-refinement`
 - Workstream: `FB-030`
-- Branch Class: `implementation`
+- Branch Class: `emergency canon repair`
 
 ## Purpose / Why It Exists
 
-This branch exists because escaped FB-029 post-merge canon drift blocked `Release Readiness` for `v1.6.4-prebeta`, and governance routes that repair onto the next active branch's `Branch Readiness` before any new implementation begins.
+This branch existed because escaped FB-029 post-merge canon drift blocked `Release Readiness` for `v1.6.4-prebeta`, and governance routed that repair onto the next legal branch surface before any new implementation could begin.
 
-It keeps FB-030 selected-only / `Registry-only` while the blocker-clearing canon repair is made durable. This branch does not promote FB-030, define its full branch plan, or admit any runtime, release, naming, persona, licensing, or user-facing implementation.
+It kept FB-030 selected-only / `Registry-only` while the blocker-clearing canon repair was made durable. This branch did not promote FB-030, define its full branch plan, or admit any runtime, release, naming, persona, licensing, or user-facing implementation.
 
 ## Current Phase
 
@@ -18,20 +18,22 @@ It keeps FB-030 selected-only / `Registry-only` while the blocker-clearing canon
 
 ## Phase Status
 
-- `Active Branch`
-- branch created from updated `main` at `0897fab768dc07385f83fab81434ba7926ecc4a1`
-- PR #76 is merged, and FB-029 no longer owns active implementation truth
-- FB-015 remains the inherited merged-unreleased release-debt owner for `v1.6.4-prebeta`
-- this branch carries the required FB-029 post-merge canon repair before release packaging may resume
-- FB-030 remains selected-only / `Registry-only` on this branch, and no canonical FB-030 workstream doc exists yet
-- FB-030 promotion remains blocked until `v1.6.4-prebeta` is published and validated and an explicit voice/audio design goal with affected-surface map is recorded
-- no runtime, release, naming, persona, licensing, or other implementation-facing work is admitted on this branch
+- Historical traceability record for the superseded blocker-clearing repair branch.
+- branch was created from updated `main` at `0897fab768dc07385f83fab81434ba7926ecc4a1`
+- PR #76 merged, FB-029 no longer owned active implementation truth, and this branch carried the first required post-merge current-state repair
+- repo-level current-state canon intentionally remained `No Active Branch`; this branch did not create the selected-next FB-030 implementation branch or promote FB-030
+- branch no longer exists locally or on `origin`
+- later `Release Readiness` review found additional non-implementation drift on updated `main`, so repair responsibility moved to `feature/fb-030-release-readiness-canon-repair`
+- FB-015 remains the inherited merged-unreleased release-debt owner for `v1.6.4-prebeta` until release packaging clears
+- this record is preserved for historical traceability only and is not active execution authority
+
+## Branch Class
+
+- `emergency canon repair`
 
 ## Blockers
 
-- `Release Debt`
-- `Voice/Audio Design Goal Missing`
-- `Affected-Surface Map Missing`
+- None
 
 ## Entry Basis
 
@@ -39,7 +41,7 @@ It keeps FB-030 selected-only / `Registry-only` while the blocker-clearing canon
 - FB-029 merged through PR #76, but merged canon still treated FB-029 as an active PR Readiness workstream
 - `Release Readiness` for `v1.6.4-prebeta` is blocked until that escaped current-state drift is repaired on the next legal branch surface
 - FB-030 was already selected next in canon
-- governance routes the repair to this next active branch's `Branch Readiness` before any implementation begins
+- governance routed the repair to this temporary blocker-clearing branch before any later FB-030 implementation admission
 
 ## Exit Criteria
 
@@ -47,8 +49,8 @@ It keeps FB-030 selected-only / `Registry-only` while the blocker-clearing canon
 - FB-029 is represented as merged-unreleased scope inside the inherited `v1.6.4-prebeta` package
 - FB-015 remains the sole merged-unreleased release-debt owner
 - current release scope and release artifact truth still include both FB-015 and FB-029
-- this branch preserves FB-030 as selected-only / `Registry-only` with no promotion or implementation admission
-- the remaining blocker to full FB-030 Branch Readiness completion is explicitly limited to open release debt plus the missing voice/audio design goal and affected-surface map
+- FB-030 remains selected-only / `Registry-only` with no promotion or implementation admission
+- the repair branch is historicalized so merged truth does not keep a stale active branch-authority record
 
 ## Rollback Target
 
@@ -57,3 +59,5 @@ It keeps FB-030 selected-only / `Registry-only` while the blocker-clearing canon
 ## Next Legal Phase
 
 - `Branch Readiness`
+
+Release Branch: No

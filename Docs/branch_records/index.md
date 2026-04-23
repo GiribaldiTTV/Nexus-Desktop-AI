@@ -42,9 +42,11 @@ Do not use this layer to replace:
 
 ## Active Branch Authority Records
 
-- `Docs/branch_records/feature_fb_030_orin_voice_audio_direction_refinement.md`
+- None
 
 ## Historical Branch Authority Records
 
 - `Docs/branch_records/codex_fb_037_release_debt_packaging.md`
 - `Docs/branch_records/codex_no_active_branch_docs_governance_refinement.md`
+- `Docs/branch_records/feature_fb_030_orin_voice_audio_direction_refinement.md`
+- `Docs/branch_records/feature_fb_030_release_readiness_canon_repair.md`

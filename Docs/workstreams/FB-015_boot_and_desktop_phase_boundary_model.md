@@ -120,7 +120,7 @@
 - Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` record FB-015 as the merged-unreleased release-debt owner with `Repo State: No Active Branch`.
 - Confirm `Docs/prebeta_roadmap.md` records `merged unreleased non-doc implementation debt exists: yes` and `current active workstream: none`.
 - Confirm `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, `Docs/workstreams/index.md`, and `Docs/Main.md` route FB-029 as `Promoted`, `Merged unreleased`, and included in the inherited `v1.6.4-prebeta` package with no active implementation truth.
-- Confirm blocker-clearing FB-030 Branch Readiness is active on `feature/fb-030-orin-voice-audio-direction-refinement` through `Docs/branch_records/feature_fb_030_orin_voice_audio_direction_refinement.md` while FB-030 remains selected-only / `Registry-only`.
+- Confirm FB-030 remains selected-only / `Registry-only`, its selected-next implementation branch remains not created, and any temporary `emergency canon repair` branch is not misclassified as FB-030 implementation-branch creation.
 - Confirm the validator rejects active implementation workstream truth on `main` when the canonical branch is not `main`.
 - Confirm FB-004 remains Released / Closed in `v1.6.3-prebeta`.
 - Confirm the previously recorded supporting canon sync remains limited to active FB-015 branch authority wording, `Docs/workstreams/FB-040_monitoring_thermals_performance_hud_surface.md`, and `Docs/validation_helper_registry.md`, and does not reopen FB-040 or change the admitted FB-015 seam chain.
@@ -616,15 +616,15 @@ Release Floor: patch prerelease
 Version Rationale: FB-015 remains a docs/canon-only boot and desktop phase-boundary architecture plus admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
 Release Scope: FB-015 boot and desktop phase-boundary inventory, ownership map, lifecycle and state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR Readiness package history, post-merge canon repair, and merged-unreleased release-debt framing, plus the FB-029 identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, and PR Readiness package history
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta after publication and validation; release debt then clears, and FB-030 Branch Readiness may resume beyond blocker-clearing repair on `feature/fb-030-orin-voice-audio-direction-refinement` only after updated-main revalidation and an explicit voice/audio design goal with affected-surface map admits promotion
+Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta after publication and validation; release debt then clears, and FB-030 Branch Readiness may begin only after updated-main revalidation and an explicit voice/audio design goal with affected-surface map admits promotion. Temporary `emergency canon repair` branches do not satisfy or consume the selected-next implementation-branch gate
 Selected Next Workstream: FB-030 ORIN voice/audio direction refinement
-Next-Branch Creation Gate: Satisfied only for blocker-clearing Branch Readiness on `feature/fb-030-orin-voice-audio-direction-refinement` after updated-main revalidation. FB-030 remains selected-only and must not be promoted or admitted for Workstream until `v1.6.4-prebeta` is published and validated and an explicit voice/audio design goal with affected-surface map is recorded
+Next-Branch Creation Gate: FB-030 remains selected-only, and its selected-next implementation branch must remain not created until `v1.6.4-prebeta` is published and validated and an explicit voice/audio design goal with affected-surface map admits promotion. Temporary `emergency canon repair` branches may exist only to clear release-readiness blockers and do not count as selected-next implementation-branch creation
 
 ## Post-Merge State
 
 - PR #75 merged cleanly into `main` at `3e821e07ff91d814fd7aba9b50819f97d700a301`, and FB-015 is now the merged-unreleased release-debt owner for `v1.6.4-prebeta`.
 - After merge, repo state is `No Active Branch` until `v1.6.4-prebeta` is published, validated, and post-release canon closure is completed on the next legal branch surface.
-- FB-029 is merged-unreleased inside the inherited `v1.6.4-prebeta` package after PR #76 merged into `main`, and blocker-clearing FB-030 Branch Readiness now rides on `feature/fb-030-orin-voice-audio-direction-refinement` while FB-030 remains selected-only and explicit product/legal approval still controls any later implementation-facing admission.
+- FB-029 is merged-unreleased inside the inherited `v1.6.4-prebeta` package after PR #76 merged into `main`, and FB-030 remains selected-only while release debt plus its explicit voice/audio design-goal and affected-surface-map blockers still control any later Branch Readiness admission.
 
 ## PR Readiness Record
 

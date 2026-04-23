@@ -324,6 +324,8 @@ Branch admission is class-sensitive.
 - is preserved only as historical vocabulary
 - is not a normal branch lane in the current Nexus flow
 - does not authorize direct-main repair by Codex
+- when explicitly approved as a temporary blocker-clearing branch surface, it exists only to repair current-state or release-readiness drift
+- it does not promote the associated workstream and does not satisfy or consume selected-next implementation-branch creation
 - if escaped canon drift exists, the default repair is the still-available prior branch when legal, or the next active branch's `Branch Readiness`
 
 ### Merge-Target Canon Completeness Gate
@@ -442,6 +444,8 @@ When the exception applies, the branch must instead:
 - name the blocking admission item explicitly
 - keep the selected next workstream as canon planning only
 - avoid creating or executing the next implementation branch by inertia
+
+Temporary `emergency canon repair` branches that are explicitly recorded as repair-only must not be treated as the selected-next implementation branch for this gate. Validator and canon checks should distinguish those repair branches from real successor implementation-branch creation.
 
 If the next workstream is not selected, is not recorded in backlog and roadmap, lacks valid record state, or lacks minimal scope, the branch is blocked by `Next Workstream Undefined`.
 If a selected deferred workstream lacks deferred-context fields, the branch is blocked by `Deferred Selection Context Missing`.
