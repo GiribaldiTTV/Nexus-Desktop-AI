@@ -27,21 +27,22 @@
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `Hardening`
 
 ## Phase Status
 
-- `Workstream complete / Hardening admission ready`
+- `H-1 complete / Live Validation admission ready`
 - FB-031 is released and closed in `v1.6.1-prebeta`.
 - Latest public prerelease truth is `v1.6.1-prebeta`.
 - Release debt is clear.
-- FB-032 Branch Readiness is complete and this record is the active Workstream authority.
+- FB-032 Branch Readiness is complete and this record is the active Hardening authority.
 - WS-1 current-vs-historical source-of-truth inventory and naming policy is complete.
 - GOV-WS1 bounded multi-seam continuation repair is complete after the WS-1 pass stopped before acting on the admitted WS-2 continuation.
 - WS-2 classification and mapping of canonical vs historical surfaces is complete.
 - WS-3 validation and admission contract for controlled migration execution is complete.
+- H-1 pressure test of the source-of-truth migration frame, naming policy, surface classification, and migration admission contract is complete.
 - No FB-032 wording migration, persona work, runtime behavior, UI implementation, rebrand execution, release work, or source-of-truth migration implementation has started.
-- The FB-032 Workstream seam sequence is complete and the next legal phase is Hardening.
+- The FB-032 Hardening pass is complete and the next legal phase is Live Validation.
 
 ## Branch Class
 
@@ -106,7 +107,7 @@ None.
 - Confirm `Docs/feature_backlog.md` marks FB-032 as `Promoted` and cites this canonical workstream doc.
 - Confirm `Docs/workstreams/index.md` lists FB-032 under Active and not under Closed or Merged / Release Debt Owners.
 - Confirm `Docs/prebeta_roadmap.md` records FB-032 as the active Workstream-phase workstream and does not leave Branch Readiness-only truth behind.
-- Confirm no runtime, UI, persona, wording migration, source code, release, or desktop artifact changed during WS-1 through WS-3.
+- Confirm no runtime, UI, persona, wording migration, source code, release, or desktop artifact changed during WS-1 through WS-3 or H-1.
 
 ## User Test Summary Strategy
 
@@ -149,7 +150,7 @@ Seam 3: Validation and admission contract for controlled migration execution
 
 ## Active Seam
 
-Active seam: WS-3 validation and admission contract for controlled migration execution is complete; FB-032 Workstream is complete and the next legal phase is Hardening.
+Active seam: H-1 source-of-truth migration frame pressure test is complete; FB-032 Hardening is complete and the next legal phase is Live Validation.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-032, define branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and the first Workstream seam.
@@ -166,13 +167,16 @@ Active seam: WS-3 validation and admission contract for controlled migration exe
 - WS-3 Status: Completed / executed.
 - WS-3 Boundary: docs/canon validation and admission contract for controlled migration execution only.
 - WS-3 Non-Includes: no source code edits, no runtime behavior, no UI implementation, no persona implementation, no public wording migration, no release work, and no historical rewrite that destroys traceability.
+- H-1 Status: Completed / executed.
+- H-1 Boundary: docs/canon pressure test of the migration frame, naming policy, canonical-vs-historical surface classification, validation/admission contract, governance gaps, validation gaps, ambiguity, contradiction, scope issues, and migration-readiness risks.
+- H-1 Non-Includes: no controlled migration execution, no source code edits, no runtime behavior, no UI implementation, no persona implementation, no public wording migration, no release work, and no historical rewrite that destroys traceability.
 
 ## Seam Continuation Decision
 
 Continue Decision: `stop`
-Next Active Seam: `H-1 Hardening pressure test`
+Next Active Seam: `LV-1 Live Validation repo-truth and applicability classification`
 Stop Condition: `Phase boundary reached`
-Continuation Action: FB-032 Workstream is complete after WS-1 through WS-3; the next legal phase is Hardening, not another Workstream seam.
+Continuation Action: FB-032 Hardening is complete after H-1; the next legal phase is Live Validation, not another Hardening seam.
 
 ## WS-1 Execution Record
 
@@ -323,12 +327,40 @@ Stop controlled migration execution immediately if:
 - Workstream result: complete after WS-1 through WS-3.
 - Stop condition: phase boundary reached; next legal phase is Hardening.
 
+## H-1 Hardening Record
+
+H-1 is docs/canon only. It pressure-tests whether the WS-1 through WS-3 migration frame is coherent enough to move into Live Validation without admitting migration execution.
+
+### Hardening Findings
+
+- Governance Gap: bounded multi-seam continuation drift was already found and repaired in GOV-WS1. The validator now enforces the continuation rule and the active Workstream seam-continuation record. No new open governance gap remains in H-1.
+- Validation Gap: no dedicated migration classifier helper exists, but H-1 does not require one because the completed milestone is docs/canon-only. The current validation gate remains `python dev\orin_branch_governance_validation.py`, `git diff --check`, targeted phase-state searches, and source-owner review. A later controlled migration execution seam may need stronger targeted validation depending on the affected surface class.
+- Ambiguity Check: the policy separates `Nexus Desktop AI` product identity, `ORIN` assistant persona identity, `O.R.I.N.` / full expansion display forms, preserved historical `Jarvis` references, and current legacy-named runtime artifacts. No unresolved naming ambiguity blocks Live Validation.
+- Contradiction Check: WS-2 resolves the likely contradiction between current runtime truth and historical naming by classifying legacy-named runtime artifacts as current truth with legacy names. Historical records remain preserved evidence rather than current product claims.
+- Scope Check: WS-1 through WS-3 and H-1 did not execute migration, rename source code, change runtime paths, change user-facing copy, change persona behavior, change UI, change release artifacts, or rewrite historical records.
+- Migration-Readiness Risk: the branch is ready to validate the migration policy and admission contract, but it is not ready to execute controlled migration by inertia. Any later migration execution still requires surface class, owner, affected artifacts, validation gate, rollback target, User Test Summary/shortcut classification, and historical preservation proof.
+- User-Facing Risk: no user-facing behavior changed. Live Validation must still classify desktop shortcut applicability and User Test Summary applicability from the actual docs/canon-only FB-032 delta.
+- Release/History Risk: public release notes, tags, PRs, branch names, closeouts, and closed workstream history are protected by the `Historical-preserved` and `Public-release-controlled` classes. No release-facing mutation is admitted before PR Readiness or Release Readiness authority.
+
+### Hardening Corrections
+
+- Current-state canon is updated from Workstream-complete / Hardening-next wording to Hardening-complete / Live-Validation-next wording.
+- No naming-policy, surface-classification, or admission-contract correction was required after the pressure test.
+- No new helper, validator, runtime artifact, desktop artifact, release artifact, or User Test Summary export was created.
+
+### H-1 Completion Decision
+
+- H-1 Result: Complete / green.
+- User-facing impact: none. This pass changed docs/canon only.
+- Next legal phase: Live Validation.
+- Stop condition: phase boundary reached; Hardening is complete after H-1.
+
 ## Reuse Baseline
 
 - Reuse the existing governance validator `dev/orin_branch_governance_validation.py`.
 - Reuse the current workstream lifecycle and UTS rules in `Docs/phase_governance.md`, `Docs/development_rules.md`, and `Docs/workstreams/index.md`.
 - Reuse FB-031's architecture-only admission pattern for docs/canon planning seams, while keeping FB-032's identity/source-of-truth scope distinct from UI/UX implementation planning.
-- Do not create a new helper during WS-1 through WS-3.
+- Do not create a new helper during WS-1 through WS-3 or H-1.
 
 ## Exit Criteria
 
@@ -336,18 +368,19 @@ Stop controlled migration execution immediately if:
 - WS-1 naming policy for canonical vs historical surfaces is recorded.
 - WS-2 canonical-vs-historical surface classification and mapping is recorded.
 - WS-3 validation and admission contract for controlled migration execution is recorded.
-- `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` identify FB-032 as the active Workstream-phase authority.
+- H-1 pressure test findings and corrections are recorded.
+- `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and `Docs/workstreams/index.md` identify FB-032 as the active Hardening-phase authority.
 - No implementation work is admitted beyond the planned docs/canon seam sequence.
-- Workstream phase may advance to Hardening after WS-1 through WS-3 are complete and green.
+- Hardening may advance to Live Validation after H-1 is complete and green.
 - Governance validation and diff hygiene pass for the current seam.
 
 ## Rollback Target
 
-- `Workstream`
+- `Hardening`
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Live Validation`
 
 ## Governance Drift Audit
 
@@ -360,6 +393,7 @@ Governance Drift Found: Yes, repaired during GOV-WS1.
 - WS-1 found no reason to reinterpret historical Jarvis records as current Nexus truth and no reason to rename current legacy-named runtime paths without a later admitted implementation seam.
 - WS-2 classified current legacy-named runtime artifacts as current truth with legacy names, historical lane records as preservation surfaces, and user-facing/runtime/persona surfaces as controlled-admission surfaces.
 - WS-3 defined controlled migration admission gates and stop conditions; no controlled migration execution is admitted by inertia.
+- H-1 found no new governance gap, contradiction, scope issue, or migration-readiness blocker after current-state canon was advanced to Hardening-complete / Live-Validation-next truth.
 - Finding: the WS-1 pass correctly recorded WS-2 as next, but stopped after returning `Next Safe Move` instead of acting on the required bounded multi-seam continuation.
 - Repair: governance, prompt scaffolds, and validator enforcement now require that reporting `Next Safe Move` is not a substitute for execution and that a `continue` decision must be acted on immediately by starting the next admitted seam.
 
@@ -381,3 +415,7 @@ Governance Drift Found: Yes, repaired during GOV-WS1.
 - WS-3 diff hygiene: `git diff --check` PASS with line-ending normalization warnings only and no whitespace errors.
 - WS-3 phase-boundary scan: PASS; current authority surfaces report FB-032 Workstream complete and Hardening as the next legal phase.
 - WS-3 changed docs/canon only; no runtime, UI, persona behavior, source code behavior, release artifact, desktop shortcut behavior, broad wording migration, or historical rewrite changed.
+- H-1 validation: `python dev\orin_branch_governance_validation.py` PASS, 879 checks.
+- H-1 diff hygiene: `git diff --check` PASS with line-ending normalization warnings only and no whitespace errors.
+- H-1 phase-state scan: PASS; current authority surfaces report FB-032 Hardening complete and Live Validation as the next legal phase.
+- H-1 changed docs/canon only; no runtime, UI, persona behavior, source code behavior, release artifact, desktop shortcut behavior, broad wording migration, controlled migration execution, or historical rewrite changed.
