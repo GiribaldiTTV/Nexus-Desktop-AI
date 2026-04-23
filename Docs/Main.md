@@ -138,6 +138,7 @@ Rules:
 Use these for promoted work that needs a stable feature-state, branch-local validation/evidence record, active seam trail, durable artifact/reuse history, and closure history:
 
 - `Docs/workstreams/index.md`
+- `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`
 - `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`
 - `Docs/workstreams/FB-004_future_boot_orchestrator_layer.md`
 - `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
