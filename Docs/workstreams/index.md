@@ -80,7 +80,7 @@ That may be an executable branch owner or another explicitly promoted current-tr
 
 - `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
 
-FB-032 is the current promoted Branch Readiness authority. No FB-032 implementation, wording migration, runtime behavior, UI implementation, persona work, rebrand execution, or release work is admitted by promotion alone.
+FB-032 is the current promoted Workstream authority. WS-1 is docs/canon only and complete; WS-2 classification and mapping of canonical vs historical surfaces is the next admitted seam. No FB-032 implementation, wording migration, runtime behavior, UI implementation, persona work, rebrand execution, or release work is admitted by promotion alone.
 
 ### Merged / Release Debt Owners
 

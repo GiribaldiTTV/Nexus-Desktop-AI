@@ -67,13 +67,13 @@ Current merged truth indicates:
 - latest public prerelease title: `Pre-Beta v1.6.1`
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestone is FB-031 Nexus Desktop AI UI/UX overhaul planning in `v1.6.1-prebeta`
-- current phase after FB-031 release closure: `Branch Readiness`
-- phase status after FB-031 release closure: FB-032 promoted Branch Readiness authority
+- current phase after FB-031 release closure: `Workstream`
+- phase status after FB-031 release closure: FB-032 WS-1 complete; WS-2 next
 - blocker after FB-031 release: none for release debt; FB-032 implementation remains bounded by the recorded Workstream seam sequence
 - current active workstream: FB-032 Nexus-era vision and source-of-truth migration
 - current branch after FB-031 release: `feature/fb-032-nexus-era-vision-source-of-truth-migration`
 - selected next workstream: none while FB-032 is active
-- next concern: execute FB-032 WS-1 only after Branch Readiness validation is green and durable.
+- next concern: execute FB-032 WS-2 classification and mapping only after WS-1 validation is green and durable.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, and the released FB-031 UI/UX architecture milestone are now part of the current public shared pre-Beta baseline.
 
@@ -94,14 +94,14 @@ Active Branch: `feature/fb-032-nexus-era-vision-source-of-truth-migration`
 - status: `active`
 - lane type: `implementation`
 - record state: `Promoted`
-- current phase: `Branch Readiness`
+- current phase: `Workstream`
 - branch class: `implementation`
 - branch: `feature/fb-032-nexus-era-vision-source-of-truth-migration`
 - canonical workstream doc: `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
 - release floor: TBD after Workstream scope is executed and validated
 - release state: `active delta`
 - minimal scope: define the Nexus-era vision/source-of-truth migration boundary, current-vs-historical naming policy, AI/UI identity routing, canon migration admission rules, and explicit non-goals before any wording migration, persona work, runtime behavior, UI implementation, rebrand execution, or release work is considered.
-- sequencing note: Branch Readiness records objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and WS-1 as the first admitted Workstream seam.
+- sequencing note: WS-1 records the current-vs-historical source-of-truth inventory and naming policy; WS-2 classification and mapping is next.
 - next legal phase: `Workstream`
 
 ## Selected Next Workstream
@@ -120,7 +120,7 @@ None while FB-032 is the active promoted workstream. The successor workstream mu
 - release title: `Pre-Beta v1.6.1`
 - canonical workstream doc: `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`
 - sequencing note: released the architecture-only UI/UX planning milestone, including source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, Hardening pressure test, Live Validation waivers, PR Readiness merge-target canon, and PR-R1 release-floor validator repair.
-- successor note: FB-032 is promoted as the active Branch Readiness authority; WS-1 is the next legal seam after Branch Readiness validation is green and durable.
+- successor note: FB-032 is active in Workstream; WS-1 is complete and WS-2 is the next legal seam after validation is green and durable.
 
 ## Prior Released Workstream Context
 
@@ -266,7 +266,7 @@ Current merged truth indicates:
 - FB-039 is released and closed in `v1.5.0-prebeta`; internal-only intake runtime boundaries, reusable validation coverage, Live Validation waivers, PR readiness governance, and post-merge release-truth repairs are preserved as historical evidence
 - FB-040 is released and closed in `v1.6.0-prebeta`; architecture-only monitoring and thermal source mapping, lifecycle/trust-safety framing, validation/admission contract, hardening, Live Validation waiver truth, and post-release canon closure are preserved as historical evidence
 - FB-031 is released and closed in `v1.6.1-prebeta`; UI/UX source mapping, visual-language ownership vocabulary, lifecycle/interaction-state framing, future implementation admission contract, hardening, Live Validation waiver truth, PR Readiness merge-target canon, and PR-R1 release-floor validator repair are preserved as historical evidence
-- post-release repo truth after the FB-031 release is clear for release debt; FB-032 Branch Readiness must still complete admission planning before implementation
+- post-release repo truth after the FB-031 release is clear for release debt; FB-032 is active in Workstream with WS-1 complete and WS-2 next
 - successor-lane branch creation for FB-039 is historical; FB-039 is released and no longer an executable active implementation branch
 - if a branch changes release-facing canon, those canon updates must land on that same branch before PR readiness is allowed
 - escaped post-merge canon repair must ride a legal branch surface; `main` is protected and must not be patched directly by Codex
@@ -276,7 +276,7 @@ Current merged truth indicates:
   - FB-039 for external trigger and plugin integration architecture, now released and closed in `v1.5.0-prebeta`
   - FB-040 for monitoring, thermals, and performance HUD surfaces, released and closed in `v1.6.0-prebeta`
   - FB-031 for Nexus Desktop AI UI/UX overhaul planning, released and closed in `v1.6.1-prebeta`
-  - FB-032 for Nexus-era vision and source-of-truth migration, selected next on `feature/fb-032-nexus-era-vision-source-of-truth-migration` for Branch Readiness only until admission completes
+  - FB-032 for Nexus-era vision and source-of-truth migration, active in Workstream on `feature/fb-032-nexus-era-vision-source-of-truth-migration`
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
 - FB-037 Branch Readiness does not imply automatic continuation into any remaining candidate lane
 
