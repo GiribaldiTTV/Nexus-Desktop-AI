@@ -37,14 +37,14 @@ Historical note:
 
 FB-004 Future boot orchestrator layer is the active promoted workstream on `feature/fb-004-future-boot-orchestrator-layer`.
 
-Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, and release debt is clear. FB-004 Future boot orchestrator layer has completed WS-1 current boot-to-desktop source map and ownership boundary and WS-2 lifecycle and orchestration-state framing, and is admitted next for WS-3 validation and admission contract.
+Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, and release debt is clear. FB-004 Future boot orchestrator layer has completed WS-1 current boot-to-desktop source map and ownership boundary, WS-2 lifecycle and orchestration-state framing, and WS-3 validation and admission contract. Hardening is the next legal phase.
 FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
 ## Merged-Unreleased Release-Debt Owner
 
 Merged-Unreleased Release-Debt Owner: None.
-Repo State: FB-004 Workstream is active on `feature/fb-004-future-boot-orchestrator-layer`; WS-1 and WS-2 are complete and WS-3 is admitted next.
+Repo State: FB-004 Workstream seams WS-1 through WS-3 are complete on `feature/fb-004-future-boot-orchestrator-layer`; Hardening is the next legal phase.
 Latest Public Prerelease: v1.6.2-prebeta.
 Latest Public Release Commit: e282072769ec25694928293ce51e144d6a37f611.
 Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.2-prebeta.
@@ -68,7 +68,7 @@ Deferred Since: v2.0 closeout; carried forward again by later closeout truth as 
 Deferred Because: boot-orchestrator planning groundwork is preserved, but no runtime boot-orchestrator delivery has been admitted.
 Selection / Unblock: Select only after the current active workstream closes and boot-to-desktop orchestration is the highest-priority next lane; Branch Readiness must define the smallest implementation-facing slice, non-goals, proof path, and rollback boundary.
 Branch Readiness: Complete. The branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam are recorded in the canonical workstream doc.
-Workstream: WS-1 current boot-to-desktop source map and ownership boundary is complete. WS-2 lifecycle and orchestration-state framing for boot and desktop transitions is complete. WS-3 validation and admission contract for orchestrator implementation seams is admitted next. No runtime implementation, launcher behavior, desktop shortcut behavior, UI change, installer change, release work, or tag work is admitted by WS-1 or WS-2.
+Workstream: WS-1 current boot-to-desktop source map and ownership boundary is complete. WS-2 lifecycle and orchestration-state framing for boot and desktop transitions is complete. WS-3 validation and admission contract for orchestrator implementation seams is complete. No runtime implementation, launcher behavior, desktop shortcut behavior, UI change, installer change, release work, or tag work is admitted by WS-1 through WS-3.
 Minimal Scope: Define the smallest implementation-facing boot-orchestrator Branch Readiness plan above the desktop launcher, including boot-to-desktop ownership, non-goals, validation proof path, rollback boundary, and explicit protection against runtime delivery by inertia.
 Summary: Preserve the future top-level boot-orchestrator direction above the desktop launcher without authorizing runtime delivery yet.
 Why it matters: Keeps the longer-term boot-to-desktop product direction explicit while current desktop and diagnostics work stays bounded.

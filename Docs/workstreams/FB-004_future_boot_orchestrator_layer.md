@@ -27,7 +27,7 @@
 
 ## Phase Status
 
-- `WS-2 complete / WS-3 admitted next`
+- `Workstream complete / Hardening next`
 - FB-032 is released and closed in `v1.6.2-prebeta`.
 - Latest public prerelease truth is `v1.6.2-prebeta`.
 - Release debt is clear.
@@ -35,7 +35,8 @@
 - Branch Readiness is complete.
 - WS-1 current boot-to-desktop source map and ownership boundary is complete.
 - WS-2 lifecycle and orchestration-state framing for boot and desktop transitions is complete.
-- WS-3 validation and admission contract for orchestrator implementation seams is admitted next.
+- WS-3 validation and admission contract for orchestrator implementation seams is complete.
+- Hardening is the next legal phase.
 - No FB-004 implementation, runtime behavior, launcher behavior, desktop shortcut behavior, UI change, installer change, release work, or tag work has started.
 
 ## Branch Class
@@ -149,14 +150,14 @@ Seam 2: Lifecycle and orchestration-state framing for boot and desktop transitio
 
 Seam 3: Validation and admission contract for orchestrator implementation seams
 
-- Status: Admitted next.
+- Status: Completed.
 - Goal: define the proof and admission contract required before any future boot orchestrator implementation can change launcher, renderer, shortcut, startup, diagnostics, or user-facing surfaces.
 - Scope: validation gates, shortcut/User Test Summary triggers, rollback proof, helper reuse requirements, implementation admission checklist, and later-phase evidence expectations.
 - Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no release work, and no public release editing.
 
 ## Active Seam
 
-Active seam: WS-2 lifecycle and orchestration-state framing for boot and desktop transitions is complete; WS-3 validation and admission contract for orchestrator implementation seams is admitted next.
+Active seam: WS-3 validation and admission contract for orchestrator implementation seams is complete; no active Workstream seam remains before Hardening.
 
 - BR-1 Status: Completed in this pass.
 - BR-1 Boundary: promote FB-004, define branch objective, target end-state, seam families, validation contract, User Test Summary strategy, later-phase expectations, and the first Workstream seam.
@@ -167,16 +168,16 @@ Active seam: WS-2 lifecycle and orchestration-state framing for boot and desktop
 - WS-2 Status: Completed / executed.
 - WS-2 Boundary: docs/canon lifecycle and orchestration-state framing only.
 - WS-2 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no release work, and no public release editing.
-- WS-3 Status: Admitted next.
+- WS-3 Status: Completed / executed.
 - WS-3 Boundary: docs/canon validation and implementation-admission contract only.
 - WS-3 Non-Includes: no runtime code edits, no launcher behavior changes, no desktop shortcut changes, no renderer lifecycle implementation, no UI work, no installer or autostart work, no release work, and no public release editing.
 
 ## Seam Continuation Decision
 
-Continue Decision: `continue`
-Next Active Seam: `WS-3 validation and admission contract for orchestrator implementation seams`
-Stop Condition: `none`
-Continuation Action: WS-2 is complete after validation; continue to WS-3 on the same branch because the approved seam chain remains inside Workstream scope.
+Continue Decision: `stop`
+Next Active Seam: `Hardening`
+Stop Condition: `phase boundary reached`
+Continuation Action: FB-004 Workstream seam chain is complete after validation; proceed to Hardening next.
 
 ## WS-1 Execution Record
 
@@ -362,6 +363,114 @@ Renderer states:
 - Current dev boot transition proof depends on monitor topology and boot-profile runtime markers, while production desktop readiness proof depends on launcher and renderer markers. Future validation must not substitute one proof family for the other without a recorded waiver.
 - The reusable launcher regression harness has stale legacy path constants. WS-3 must account for that before admitting any orchestrator implementation proof that claims launcher regression coverage.
 
+## WS-3 Execution Record
+
+WS-3 is docs/canon only. It defines the validation and admission contract that must gate any later boot-orchestrator implementation seam. It does not admit implementation by itself.
+
+### Implementation Admission Checklist
+
+Before any later FB-004 implementation seam may edit runtime or user-facing surfaces, it must record:
+
+- affected surface class: launch shim, desktop launcher, desktop renderer, `DesktopRuntimeWindow`, dev boot prototype, desktop shortcut, installer/OS integration, diagnostics evidence, state/history, or validation helper
+- ownership class: future boot framing, launcher-owned, renderer-owned, shared helper, dev-only prototype, or user-facing entrypoint
+- exact rollback target and rollback command or revert scope
+- expected runtime markers before and after the change
+- expected persisted files, state roots, signal files, log roots, and cleanup behavior before and after the change
+- helper reuse decision from `Docs/validation_helper_registry.md`
+- User Test Summary and user-facing shortcut applicability
+- explicit non-includes that prevent adjacent launcher, renderer, UI, installer, service/autostart, release, or source-tree work from entering by inertia
+
+If an implementation seam cannot answer those items before edits begin, it is not admitted.
+
+### Required Proof By Surface Class
+
+Docs/canon-only seams:
+
+- `python dev\orin_branch_governance_validation.py`
+- `git diff --check`
+- source-truth sweep confirming backlog, roadmap, workstream index, and this workstream record agree on phase, seam state, blockers, and next legal phase
+
+Desktop entrypoint or renderer-readiness seams:
+
+- `dev/orin_desktop_entrypoint_validation.py` unless the seam records a stronger replacement
+- runtime marker review for `RENDERER_MAIN|START`, `QAPPLICATION_CREATED`, `VISUAL_HTML_RESOLVED`, `WINDOW_CONSTRUCTED`, `WINDOW_SHOW_DEFERRED_UNTIL_CORE_READY`, `CORE_VISUALIZATION_READY`, `CORE_VISUALIZATION_FIRST_VISIBLE`, and `STARTUP_READY`
+- no regression in tray identity, overlay route, startup-abort handling, or passive dormant handoff when those surfaces are affected
+
+Launcher startup, recovery, or diagnostics seams:
+
+- `dev/orin_desktop_launcher_healthy_validation.py` for healthy launcher-to-renderer startup proof
+- failure/recovery coverage only through a current, repaired, or explicitly admitted harness path
+- runtime marker review for launcher recovery attempts, renderer spawn, startup observation, startup-abort handling, normal exit, failure flow, status/signal cleanup, and crash-log behavior
+- crash report and runtime incident evidence review when failure behavior is affected
+
+Boot-transition or boot-prototype seams:
+
+- `dev/orin_boot_monitor_preflight.py` when monitor topology assumptions matter
+- `dev/orin_boot_transition_verification.py` for marker-order proof
+- `dev/orin_boot_transition_capture.py` when visual capture proof is materially required
+- explicit proof that dev-only boot markers do not replace production launcher readiness markers unless the seam admits that product-path change
+
+Startup snapshot or diagnostics-evidence seams:
+
+- `dev/orin_startup_snapshot_harness_validation.py` when startup snapshot behavior is touched
+- proof that snapshot output remains opt-in and writes to a dev evidence path
+- proof that new dev or worker evidence does not write under root live logs without explicit approval
+
+Desktop shortcut or visible startup seams:
+
+- launch through the declared user-facing desktop shortcut or equivalent user entrypoint during Live Validation
+- record `User-Facing Shortcut Path:` and `User-Facing Shortcut Validation:` in this workstream record before User Test Summary handoff
+- add and export the canonical User Test Summary when the completed delta changes user-visible startup, shortcut behavior, visible runtime behavior, prompts, tray/overlay behavior, voice behavior, or another operator-facing path
+
+### Helper Reuse And Repair Contract
+
+- Reuse-first selection from `Docs/validation_helper_registry.md` is mandatory before any new helper is created.
+- New durable root `dev/` helpers must follow the `dev/orin_<domain>_<capability>_...` naming pattern and be registered immediately.
+- Workstream-scoped helpers require owner, non-reuse reason, consolidation target, and promotion decision point before PR Readiness.
+- Temporary probes must stay under ignored evidence roots and must be deleted or promoted before closeout-grade proof.
+- `dev/orin_desktop_launcher_regression_harness.py` currently points at absent legacy `jarvis_*` paths. It must be repaired, replaced by a current registered helper, or explicitly bypassed with a documented rationale before launcher regression coverage can be claimed for FB-004.
+
+### User Test Summary Admission Rules
+
+- WS-1 through WS-3 are docs/canon only and do not require User Test Summary handoff.
+- A later implementation seam that changes user-visible startup behavior, desktop shortcut behavior, runtime interaction, visible desktop UI, tray behavior, prompts, voice behavior, installer/OS integration, or another operator-facing path must add the exact `## User Test Summary` section before Live Validation.
+- If User Test Summary is required, the desktop export at `C:\Users\anden\OneDrive\Desktop\User Test Summary.txt` must also be refreshed unless an explicit documented exception applies.
+- If a later completed delta remains non-user-facing, Live Validation may waive User Test Summary only with a recorded waiver reason.
+
+### Rollback And Cleanup Contract
+
+Any later implementation seam must prove rollback and cleanup at the same surface it changed:
+
+- launch shim changes must restore the previous shim target and invocation behavior
+- launcher changes must restore default target, retry/recovery policy, signal files, status cleanup, runtime log generation, crash report behavior, single-instance mutex, and relaunch event semantics
+- renderer changes must restore startup markers, startup-ready timing, tray/hotkey startup, desktop attach behavior, passive dormant handoff, and event-loop exit behavior
+- boot-prototype changes must remain dev-only unless product promotion is explicitly admitted
+- diagnostics changes must restore evidence roots and prevent new dev evidence from entering live root logs by default
+- helper changes must leave no unregistered durable helper and no temporary closeout-grade probe
+
+### Implementation Admission Blockers
+
+The following conditions block future implementation until resolved inside an admitted seam:
+
+- affected surface cannot be named precisely
+- ownership boundary between boot, launcher, renderer, shared helper, and dev-only prototype is ambiguous
+- rollback target or cleanup path is undefined
+- required helper is stale, absent, unregistered, or weaker than the surface being changed
+- user-facing shortcut validation applicability is unresolved for a user-facing startup or shortcut delta
+- User Test Summary applicability is unresolved for a user-facing or operator-facing delta
+- a seam attempts installer, service/autostart, OS integration, release packaging, tag work, or public release editing without explicit phase authority
+- a seam promotes `main.py` boot prototype behavior into product boot ownership without product-path admission and user-facing validation
+
+### Workstream Validation Results
+
+- `python dev\orin_branch_governance_validation.py`: PASS after WS-1 and WS-2 checkpoints.
+- `git diff --check`: PASS after WS-1 and WS-2 checkpoints.
+- WS-1 scope validation: PASS; docs/canon source map only.
+- WS-2 scope validation: PASS; docs/canon lifecycle/state framing only.
+- WS-3 scope validation: PASS; docs/canon validation and implementation-admission contract only.
+- Final Workstream validation: `python dev\orin_branch_governance_validation.py` PASS, 914 checks.
+- Final whitespace validation: `git diff --check` PASS.
+
 ## Reuse Baseline
 
 - `Docs/architecture.md` and `Docs/orchestration.md` are the baseline architecture and orchestration references for current startup, launcher, renderer, and evidence boundaries.
@@ -379,10 +488,12 @@ Renderer states:
 - Validation contract is recorded.
 - User Test Summary strategy is recorded.
 - Later-phase expectations are recorded.
-- First Workstream seam is recorded and admitted next.
+- WS-1 current boot-to-desktop source map and ownership boundary is complete.
+- WS-2 lifecycle and orchestration-state framing for boot and desktop transitions is complete.
+- WS-3 validation and admission contract for orchestrator implementation seams is complete.
 - Backlog, roadmap, workstream index, and Main routing all point to this canonical FB-004 workstream record.
-- Branch Readiness validation passes.
-- Branch remains docs/canon only.
+- Workstream validation passes.
+- Branch remains docs/canon only through WS-1, WS-2, and WS-3.
 
 ## Rollback Target
 
@@ -391,4 +502,4 @@ Renderer states:
 
 ## Next Legal Phase
 
-- `Workstream`
+- `Hardening`
