@@ -161,6 +161,8 @@ MULTI_SEAM_CONTRACT_PHRASES = (
     "entry seam, not a terminal boundary",
     "bounded stop condition",
     "Single-Seam Fallback",
+    "reporting `Next Safe Move` is not a substitute for execution",
+    "A `continue` decision must be acted on immediately",
 )
 
 MULTI_SEAM_PRIMARY_REPAIR_PHRASES = (
@@ -187,6 +189,15 @@ MULTI_SEAM_PROMPT_PHRASES = (
     "Next-Seam Continuation Required",
     "entry seam, not a terminal boundary",
     "Single-Seam Fallback",
+    "reporting Next Safe Move is not a substitute for execution",
+    "continue decision must be acted on immediately",
+)
+
+REQUIRED_WORKSTREAM_CONTINUATION_MARKERS = (
+    "Continue Decision:",
+    "Next Active Seam:",
+    "Stop Condition:",
+    "Continuation Action:",
 )
 
 WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS = (
@@ -346,6 +357,12 @@ RELEASE_OPERATOR_OUTPUT_CONTRACT_PHRASES = (
     "### Release Tag",
     "### Target Commit",
     "### Release Notes",
+    "## Release Summary",
+    "## Release Highlights",
+    "## What's Changed",
+    "**Full Changelog**:",
+    "GitHub-generated release notes",
+    "previous release",
     "inclusion-only",
     "what was built",
     "what capabilities exist",
@@ -600,6 +617,12 @@ VALID_NEXT_WORKSTREAM_RECORD_STATES = (
     "Promoted",
 )
 
+DEFERRED_BACKLOG_CONTEXT_LABELS = (
+    "Deferred Since",
+    "Deferred Because",
+    "Selection / Unblock",
+)
+
 REQUIRED_BRANCH_RECORD_HEADINGS = (
     "## Current Phase",
     "## Phase Status",
@@ -675,6 +698,16 @@ def _parse_backlog_sections(text: str) -> list[dict[str, str]]:
             }
         )
     return entries
+
+
+def _is_open_backlog_candidate(entry: dict[str, str]) -> bool:
+    status = entry["status"].strip().casefold()
+    normalized_status = _normalize_status(entry["status"])
+    return (
+        entry["record_state"] != "Closed"
+        and normalized_status not in {"released", "closed", "merged unreleased"}
+        and not status.startswith("implemented")
+    )
 
 
 def _extract_colon_value(block: str, label: str) -> str:
@@ -1254,7 +1287,37 @@ def _run_next_workstream_gate(require, backlog_entries: list[dict[str, str]], ro
             "PR readiness gate: Successor Lock Missing blocker is active; "
             f"{selected_id} already has branch(es): {', '.join(matching_branches)}"
         ),
-    )
+        )
+
+
+def _run_open_backlog_selection_governance(require, backlog_entries: list[dict[str, str]]) -> None:
+    for entry in backlog_entries:
+        if not _is_open_backlog_candidate(entry):
+            continue
+
+        workstream_id = entry["id"]
+        block = entry["block"]
+        require(
+            bool(_extract_colon_value(block, "Priority")),
+            f"Docs/feature_backlog.md: {workstream_id} open backlog candidate must define Priority",
+        )
+        require(
+            not bool(_extract_colon_value(block, "Target Version")),
+            (
+                f"Docs/feature_backlog.md: {workstream_id} open backlog candidate must not carry "
+                "Target Version; use Priority and deferred-context fields for backlog selection"
+            ),
+        )
+
+        if _normalize_status(entry["status"]) == "deferred":
+            for label in DEFERRED_BACKLOG_CONTEXT_LABELS:
+                require(
+                    bool(_extract_colon_value(block, label)),
+                    (
+                        f"Docs/feature_backlog.md: {workstream_id} deferred backlog candidate "
+                        f"must define {label}:"
+                    ),
+                )
 
 
 def _run_pr_live_state_gate(require) -> None:
@@ -1672,6 +1735,7 @@ def main() -> int:
     release_debt_index_paths = _collect_release_debt_index_paths(index_text)
 
     backlog_entries = _parse_backlog_sections(backlog_text)
+    _run_open_backlog_selection_governance(require, backlog_entries)
     latest_public_prerelease = _latest_public_prerelease(roadmap_text)
     highest_known_prebeta_tag = _highest_known_prebeta_tag()
     if highest_known_prebeta_tag:
@@ -2110,6 +2174,18 @@ def main() -> int:
                 "Active seam:" in active_seam_section,
                 f"{canonical_path}: Active Seam section must clearly identify the active seam",
             )
+
+        if current_phase == "Workstream":
+            continuation_section = _section(workstream_text, "Seam Continuation Decision")
+            require(
+                bool(continuation_section),
+                f"{canonical_path}: active Workstream record must include '## Seam Continuation Decision'",
+            )
+            for marker in REQUIRED_WORKSTREAM_CONTINUATION_MARKERS:
+                require(
+                    marker in continuation_section,
+                    f"{canonical_path}: Seam Continuation Decision is missing '{marker}'",
+                )
 
         if current_phase in {"Live Validation", "PR Readiness"}:
             require(

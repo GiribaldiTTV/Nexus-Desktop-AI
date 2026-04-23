@@ -236,7 +236,7 @@ Supporting canon must stay aligned with live truth.
 
 That means:
 
-- PR Readiness hard blocker shorthand is `stale-canon`, `post-merge`, `dirty`, `docs-sync`, `next-workstream`, `uts-results`, `pr-created`, and `pr-validated`
+- PR Readiness hard blocker shorthand is `stale-canon`, `post-merge`, `dirty`, `docs-sync`, `next-workstream`, `deferred-context`, `uts-results`, `pr-created`, and `pr-validated`
 - directly supporting canon and tightly coupled governance may be updated on the active implementation or release branch when that branch changes or depends on the truth
 - no PR-ready without canon-ready:
   - a branch is not PR-ready if merging it would leave `main` canon-stale
@@ -245,9 +245,11 @@ That means:
 - when a branch closes a workstream, changes released milestone posture, changes the current rebaseline, changes closeout-index routing, changes backlog or roadmap release posture, changes workstream-index release posture, or changes `Docs/Main.md` baseline routing, the required release-facing canon updates must already be on that branch before PR creation is allowed
 - no PR-ready with `Next Workstream Undefined`:
   - If post-merge truth will resolve to `No Active Branch` because `Release Debt` or another repo-level admission blocker remains open, successor branch creation remains deferred; next-workstream selection is still required unless the user explicitly approves a no-next-workstream steady-state outcome in canon.
-  - the next workstream must be selected from canon
+  - the next workstream must be selected from canon using open backlog `Priority` plus deferred-context readiness, not `Target Version`
   - that workstream must be recorded in `Docs/feature_backlog.md` and `Docs/prebeta_roadmap.md`
   - that workstream must have canon-valid `Record State`
+  - that workstream must have `Priority` defined
+  - if that workstream is deferred, the backlog entry must include `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:`
   - that workstream must have minimal scope defined before PR green
   - no branch may exist yet for that next workstream
   - the selected backlog entry must include `Next Workstream: Selected` and `Minimal Scope:`
@@ -309,6 +311,8 @@ That means:
   - PR Readiness PR creation details must use separate copy-ready blocks for `PR Title`, `Base Branch`, `Head Branch`, and `PR Summary`
   - Release Readiness release package details must use separate copy-ready blocks for `Release Title`, `Release Tag`, `Target Commit`, and `Release Notes`
   - PR summaries and release notes must report implemented or released work only
+  - GitHub release notes must use the standard Markdown release body shape: `# <release title>`, `## Release Summary`, `## Release Highlights`, GitHub-generated `## What's Changed`, and the generated `**Full Changelog**:` compare link to the previous release
+  - Release Execution must use GitHub-generated release notes, through the GitHub release notes button or generated-release-notes API, so the `## What's Changed` section and previous-release compare link are populated from GitHub instead of hand-written or omitted
   - do not include `Not Included` sections, exclusion lists, negative scope framing, or defensive wording in operator summaries or release notes
   - keep normal source-of-truth scope, non-goals, stop conditions, and blockers in canon records; the inclusion-only rule applies to operator-facing PR and release packages
 - post-release canon repair is emergency-only:
@@ -388,6 +392,9 @@ Bounded multi-seam workflow means:
 - multiple seams may execute in sequence within one approved phase boundary only when phase governance allows it
 - each seam still has one active owner, exact boundary, explicit non-includes, validation gate, cleanup expectation, and continue-or-stop decision
 - Codex must continue by default to the next planned seam when the continuation authority conditions pass
+- reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
+- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
+- durability commit/push after a green seam is a checkpoint, not a stop
 - stopping after a green seam requires a bounded stop condition from `Docs/phase_governance.md`, a phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback`
 - every seam must remain in the same workstream or active authority record, same phase, same branch class, same approved scope, and same subsystem family or tightly coupled implementation, validation, or governance chain
 - Branch Readiness may use planning, admission, or tightly coupled governance-repair seams, but not product/runtime implementation
@@ -696,6 +703,14 @@ Use `Docs/Main.md` as the routing index for the merged canon.
 ## Backlog Governance
 
 `Docs/feature_backlog.md` is a controlled registry layer.
+
+Open backlog selection is priority-led:
+
+- `Priority` is the primary selection signal for open candidate work
+- `Target Version` must not be used to rank, select, defer, or skip open backlog candidates
+- open `Registry-only` and active `Promoted` entries should not carry `Target Version`
+- closed, released, implemented, or release-debt entries may keep `Target Version` as historical release evidence
+- deferred open entries must state `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:` before they are eligible for next-workstream selection
 
 Codex may:
 

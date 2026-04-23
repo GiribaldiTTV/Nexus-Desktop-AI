@@ -417,13 +417,17 @@ Exception:
 
 This gate requires all of the following before PR creation is allowed:
 
-- the next workstream identity is selected from current canon
+- the next workstream identity is selected from current canon using open backlog `Priority` plus deferred-context readiness, not `Target Version`
 - that workstream exists in `Docs/feature_backlog.md`
 - that workstream is recorded in `Docs/prebeta_roadmap.md`
 - that workstream has a canon-valid `Record State`
+- that workstream has `Priority` defined
+- if that workstream is deferred, the backlog entry records `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:`
 - that workstream has minimal scope defined before PR green
 - no branch has been created for that next workstream yet
 - successor branch creation is deferred to `Branch Readiness` after the current branch merges and updated `main` is revalidated
+
+`Target Version` is not a next-workstream selection field. Do not use it to rank, select, defer, or skip open backlog candidates. Release targets are assigned by release-floor and release-readiness governance when a release-bearing branch requires them. Closed, released, implemented, or release-debt entries may preserve `Target Version` as historical release evidence.
 
 Machine-checkable canon markers:
 
@@ -440,6 +444,7 @@ When the exception applies, the branch must instead:
 - avoid creating or executing the next implementation branch by inertia
 
 If the next workstream is not selected, is not recorded in backlog and roadmap, lacks valid record state, or lacks minimal scope, the branch is blocked by `Next Workstream Undefined`.
+If a selected deferred workstream lacks deferred-context fields, the branch is blocked by `Deferred Selection Context Missing`.
 If a successor branch is created before `Branch Readiness`, the branch is blocked by `Successor Lock Missing`.
 
 ### PR Readiness Hard Blocker Gates
@@ -448,13 +453,15 @@ PR Readiness must not report green while any pre-merge process blocker remains u
 
 Hard blockers:
 
-- canonical shorthand: `stale-canon`, `post-merge`, `dirty`, `docs-sync`, `next-workstream`, `desktop-shortcut`, `uts-results`
+- canonical shorthand: `stale-canon`, `post-merge`, `dirty`, `docs-sync`, `next-workstream`, `deferred-context`, `desktop-shortcut`, `uts-results`
 - `Stale Canon`:
   current-state canon and merge-target canon must already reflect the branch's true state and the state that will be true after merge
 - `Post-Merge State Unresolved`:
   post-merge truth must already encode either the `No Active Branch` / `Release Debt` path or the successor-workstream planning, canon sync, and branch-creation deferral required when post-merge truth will admit another branch
 - `Next Workstream Undefined`:
   PR Readiness cannot be green until the next workstream exists in canon, is recorded in backlog and roadmap, has a valid record state, has minimal scope defined, and has no branch created yet
+- `Deferred Selection Context Missing`:
+  PR Readiness cannot be green when the selected next workstream is deferred but lacks `Deferred Since:`, `Deferred Because:`, or `Selection / Unblock:` in the backlog entry
 - `Dirty Branch`:
   PR Readiness cannot be green while the worktree is dirty, required docs changes are uncommitted, required canon exists only in the working tree, or branch truth is not durable in commit history
 - `Docs Sync Incomplete`:
@@ -549,6 +556,7 @@ If `May Create Now` is `NO`, the `Next Branch` subsection must explain the block
 Operator-facing PR summaries and GitHub release notes are inclusion-only.
 They must report what exists, what was implemented, what capabilities are available, how the system behaves, and which validation or release facts support the package.
 They must not report what was not done, include exclusion lists, use `Not Included` sections, or use defensive scope framing.
+GitHub release notes must also use the standard Markdown release body shape: `# <release title>`, `## Release Summary`, `## Release Highlights`, GitHub-generated `## What's Changed`, and the generated `**Full Changelog**:` compare link to the previous release.
 This rule governs operator output packages; it does not remove normal canon requirements for branch scope, non-goals, stop conditions, or blockers in source-of-truth records.
 
 ### User-Facing Shortcut Live Validation Gate
@@ -725,6 +733,15 @@ Each release operator field must be its own copy-ready block and must be usable 
 Release notes must be detailed, descriptive, and user-facing.
 They must clearly explain what was built, what capabilities exist, and how the system behaves.
 Release notes must follow the operator output content rule: report included work only, with no exclusion lists, `Not Included` sections, negative scope framing, or defensive wording.
+The live GitHub release body must use the standard Markdown release body shape:
+
+- `# <release title>`
+- `## Release Summary`
+- `## Release Highlights`
+- `## What's Changed`
+- `**Full Changelog**:`
+
+The `## What's Changed` section and `**Full Changelog**:` compare link must be populated by GitHub-generated release notes, using the GitHub release notes button or the generated-release-notes API with the previous release selected. Release Readiness may prepare the human-written summary and highlights, but Release Execution must combine them with the GitHub-generated notes before publication or repair the release body immediately after publication.
 
 If Release Readiness discovers missing PR-owned canon or docs work, stop immediately and classify the issue as `PR Readiness Scope Missed` and `Release Readiness Scope Drift`.
 If the branch has not merged, return to `PR Readiness` and repair the miss there before any Release Readiness output can be treated as green.
@@ -1018,6 +1035,11 @@ Codex must not stop merely because:
 - durability commit and push completed
 - one seam was successfully recorded
 
+reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
+A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
+Durability commit/push after a green seam is a checkpoint, not a stop.
+Do not send a final closeout response after a green entry seam while the next seam remains admitted and no bounded stop condition exists.
+
 Stopping after a green seam requires a recorded bounded stop condition from this contract.
 
 A prompt-level `execute only <seam>` request does not override this continuation duty unless the request is paired with a bounded stop condition or another named blocker from this contract.
@@ -1058,6 +1080,7 @@ After each seam, Codex must:
 - verify cleanup for artifacts the pass created or opened
 - decide and report `continue` or `stop`
 - continue by default to the next planned seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass
+- act on a `continue` decision by starting the next seam before final closeout
 
 ### Continuation Authority
 

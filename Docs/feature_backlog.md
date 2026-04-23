@@ -9,6 +9,11 @@ Rules:
 - backlog identity remains controlled and approval-gated
 - `Status` is the delivery or work field
 - `Record State` is the canonical-record lifecycle field
+- `Priority` is the primary backlog selection signal for open candidate work
+- `Target Version` is not an open-backlog selection field and must not be used to rank, select, defer, or skip open backlog candidates
+- open `Registry-only` and active `Promoted` entries should not carry `Target Version`; release target truth is assigned later through roadmap, workstream, PR Readiness, and Release Readiness governance when release-bearing work exists
+- closed, released, implemented, or release-debt entries may preserve `Target Version` as historical release evidence
+- if `Status` is `Deferred`, the entry must also state `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:` so next-workstream selection can evaluate it without guessing
 - allowed `Record State` values are `Registry-only`, `Promoted`, and `Closed`
 - if `Record State` is not `Registry-only`, `Canonical Workstream Doc` must exist
 - backlog entries keep the short registry story, not the full execution story
@@ -26,113 +31,139 @@ Historical note:
 
 ## Promoted Canonical Workstreams
 
-- `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`
+- `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
 
 ## Active Promoted Workstream
 
-None after FB-031 merge-target canon.
+FB-032 Nexus-era vision and source-of-truth migration is the current promoted PR Readiness authority on `feature/fb-032-nexus-era-vision-source-of-truth-migration`.
 
-Main-facing canon is shaped for post-merge PR Readiness truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 becomes the merged-unreleased release-debt owner after merge, and repo state resolves to `No Active Branch` until FB-031 release handling clears release debt.
+Main-facing canon is aligned to post-release truth: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, release debt is clear before FB-032 merge, and FB-032 PR Readiness prepares the post-merge release-debt state for `v1.6.2-prebeta`. The next legal phase after PR merge is Release Readiness.
 FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
 
 ## Merged-Unreleased Release-Debt Owner
 
-Merged-Unreleased Release-Debt Owner: FB-031 Nexus Desktop AI UI/UX overhaul planning.
-Repo State: No Active Branch.
-Release Target: v1.6.1-prebeta.
+Merged-Unreleased Release-Debt Owner: FB-032 Nexus-era vision and source-of-truth migration after PR merge.
+Repo State: No Active Branch after PR merge until FB-032 release debt clears.
+Latest Public Prerelease: v1.6.1-prebeta.
+Release Target: v1.6.2-prebeta.
 Release Floor: patch prerelease.
-Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work uses patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
-Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, and PR Readiness merge-target canon.
-Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, and clean branch history.
-Post-Release Truth: FB-031 becomes Released / Closed in v1.6.1-prebeta; release debt clears; repo remains No Active Branch until FB-032 Branch Readiness admission is explicitly opened.
-Selected Next Workstream: FB-032 Nexus-era vision and source-of-truth migration.
-Next-Branch Creation Gate: FB-032 remains selected-only with Branch: Not created until FB-031 release debt clears and updated main revalidates Branch Readiness admission.
+Version Rationale: FB-032 is architecture-only and canon-only source-of-truth migration planning, naming policy, surface classification, admission-contract, governance repair, hardening, Live Validation waiver, and PR Readiness merge-target work with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning and admission work advances by patch prerelease from `v1.6.1-prebeta` to `v1.6.2-prebeta`.
+Release Scope: Architecture-only Nexus-era source-of-truth inventory, current-vs-historical naming policy, canonical-vs-historical surface classification, controlled migration admission contract, bounded multi-seam continuation governance repair, release-note governance repair, backlog-selection governance repair, hardening pressure test, Live Validation waiver truth, and PR Readiness merge-target canon.
+Release Artifacts: Tag v1.6.2-prebeta; release title Pre-Beta v1.6.2; inclusion-only release notes summarize the FB-032 source-of-truth migration frame, naming and historical-preservation policy, controlled migration admission contract, governance repairs, hardening result, Live Validation waivers, selected-next deferral, and clean PR history.
+Post-Release Truth: FB-032 is Released / Closed in v1.6.2-prebeta; release debt is clear; FB-004 may enter Branch Readiness only after the FB-032 release is published, `main` is updated and revalidated, and the repo-level admission gate passes.
+Selected Next Workstream: FB-004 Future boot orchestrator layer.
+Next-Branch Creation Gate: Do not create the FB-004 branch during FB-032 PR Readiness; successor branch creation is deferred to FB-004 Branch Readiness after PR merge, FB-032 release execution, updated-main revalidation, and release-debt clearance.
 
 ## Registry Items
 
 ### [ID: FB-004] Future boot orchestrator layer
 
-Status: Deferred (planning groundwork complete enough to pause)
+Status: Deferred (since v2.0 closeout; planning groundwork complete enough to pause until an implementation-facing boot-orchestrator slice is explicitly selected)
 Record State: Registry-only
 Priority: High
 Release Stage: Slice-staged
-Target Version: v2.0
+Deferred Since: v2.0 closeout; carried forward again by later closeout truth as future boot-orchestrator implementation work.
+Deferred Because: boot-orchestrator planning groundwork is preserved, but no runtime boot-orchestrator delivery has been admitted.
+Selection / Unblock: Select only after the current active workstream closes and boot-to-desktop orchestration is the highest-priority next lane; Branch Readiness must define the smallest implementation-facing slice, non-goals, proof path, and rollback boundary.
+Next Workstream: Selected
+Minimal Scope: Define the smallest implementation-facing boot-orchestrator Branch Readiness plan above the desktop launcher, including boot-to-desktop ownership, non-goals, validation proof path, rollback boundary, and explicit protection against runtime delivery by inertia.
 Summary: Preserve the future top-level boot-orchestrator direction above the desktop launcher without authorizing runtime delivery yet.
 Why it matters: Keeps the longer-term boot-to-desktop product direction explicit while current desktop and diagnostics work stays bounded.
 
 ### [ID: FB-005] Workspace and folder organization
 
-Status: Deferred (partial implementation through Step 4)
+Status: Deferred (since v2.0 closeout; Step 4 is complete and Step 5 or broader workspace moves need explicit path-sensitive approval)
 Record State: Registry-only
 Priority: Low
 Release Stage: Slice-staged
-Target Version: v2.0
+Deferred Since: v2.0 closeout after the Step 4 workspace slice; the earlier first workspace slice is preserved in v1.9.0 closeout history.
+Deferred Because: remaining workspace movement is path-sensitive and can break imports, launcher routes, logs, or user-facing entrypoints if treated as casual cleanup.
+Selection / Unblock: Select only when the next approved lane is a bounded workspace/path slice with exact file/path ownership, migration limits, validation coverage, and rollback instructions.
 Summary: Continue workspace organization only through explicitly approved path-sensitive slices.
 Why it matters: Keeps folder and ownership cleanup deliberate instead of letting it blur into unrelated feature work.
 
 ### [ID: FB-015] Boot and desktop phase-boundary model
 
-Status: Deferred (rev1a clarification complete enough to pause)
+Status: Deferred (since v2.0 closeout; rev1a clarification is complete enough to pause until later boundary follow-through is explicitly selected)
 Record State: Registry-only
 Priority: Medium
 Release Stage: Slice-staged
-Target Version: v2.0
+Deferred Since: v2.0 closeout after the FB-015 rev1a phase-boundary clarification.
+Deferred Because: the boot/desktop ownership model is clarified at planning level, but no later implementation-facing boundary change has been admitted.
+Selection / Unblock: Select when a concrete boot, desktop, startup, trust, or orchestration lane is blocked by unresolved ownership boundaries; Branch Readiness must name the exact ambiguity it resolves.
 Summary: Preserve the future boot and desktop phase-boundary model above the already-closed milestone taxonomy work.
 Why it matters: Keeps boot-versus-desktop ownership planning explicit without reopening the closed taxonomy milestone by inertia.
 
 ### [ID: FB-029] ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening
 
-Status: Deferred
+Status: Deferred (pending explicit product/legal identity decision; not selectable as routine wording cleanup)
 Record State: Registry-only
 Priority: High
 Release Stage: pre-Beta
-Target Version: v2.2.1
+Deferred Since: current pre-Beta identity backlog registration before FB-032 promotion.
+Deferred Because: legal-safe naming, ORIN/ARIA persona posture, and licensing hardening need explicit product/legal approval and must not ride along with source-of-truth migration, UI, runtime, or release work.
+Selection / Unblock: Select only after the user explicitly approves identity/legal hardening as the next lane; Branch Readiness must separate naming, licensing, persona, release, and runtime non-goals before edits begin.
 Summary: Track future ORIN-era naming, persona, and licensing hardening work without treating the local rebrand overlay as merged truth.
 Why it matters: Product identity, legal posture, and repo ownership still need durable future treatment, but not by accidental carry-forward.
 
 ### [ID: FB-030] ORIN voice/audio direction refinement
 
-Status: Deferred
+Status: Deferred (pending explicit voice/persona direction lane; not selectable as incidental runtime or canon cleanup)
 Record State: Registry-only
 Priority: Medium
 Release Stage: pre-Beta
-Target Version: TBD
+Deferred Since: current pre-Beta voice/persona backlog registration before FB-032 promotion.
+Deferred Because: ORIN voice identity needs a deliberate persona-facing direction pass; current voice harness, shutdown-voice, and source-of-truth work do not admit broader voice redesign or execution behavior.
+Selection / Unblock: Select only with an explicit voice/audio design goal, affected-surface map, validation boundary, and non-goals separating persona direction from runtime execution.
 Summary: Preserve future ORIN voice-direction refinement as its own bounded persona-facing lane.
 Why it matters: Voice identity should be intentional and should not piggyback on unrelated runtime or canon work.
 
-### [ID: FB-031] Nexus Desktop AI UI/UX overhaul planning
+### [ID: FB-032] Nexus-era vision and source-of-truth migration
 
-Status: Merged Unreleased
+Status: Active
 Record State: Promoted
 Priority: Medium
 Release Stage: pre-Beta
+Branch: feature/fb-032-nexus-era-vision-source-of-truth-migration
+Canonical Workstream Doc: Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md
+Workstream: WS-1 current-vs-historical source-of-truth inventory and naming policy, WS-2 classification and mapping of canonical vs historical surfaces, and WS-3 validation and admission contract for controlled migration execution are complete.
+Hardening: H-1 source-of-truth migration frame pressure test is complete.
+Live Validation: LV-1 repo-truth alignment, user-facing shortcut applicability, User Test Summary applicability, desktop export applicability, cleanup posture, and waiver handling are complete; PR Readiness is next.
+PR Readiness: PR-1 merge-target canon, PR-2 durable branch truth, and PR-3 live PR validation are complete; PR #73 is open, non-draft, mergeable, and clean.
+Post-Merge State: FB-032 becomes the merged-unreleased release-debt owner for `v1.6.2-prebeta`; repo state is `No Active Branch` until release debt clears.
+Branch Readiness Governance Repair: GitHub release notes across the live release history were standardized to Markdown release bodies with generated `## What's Changed` and `**Full Changelog**:` sections; Release Readiness governance and validator coverage now require that format before future release execution can be treated as complete.
+Minimal Scope: FB-032 must keep Nexus-era source-of-truth migration controlled by current-vs-historical naming policy, canonical vs historical surface classification, AI/UI identity routing, canon migration admission rules, and explicit non-goals before any wording migration, persona work, runtime behavior, UI implementation, rebrand execution, or release work is considered.
+Release Target: v1.6.2-prebeta
+Release Floor: patch prerelease
+Version Rationale: FB-032 is architecture-only and canon-only planning, admission, validation, and governance work with no executable, runtime, operator-facing, user-facing, or materially expanded product capability.
+Release Scope: Architecture-only Nexus-era source-of-truth inventory, naming policy, surface classification, controlled migration admission contract, governance repairs, hardening, Live Validation waivers, and PR Readiness merge-target canon.
+Release Artifacts: Tag v1.6.2-prebeta; release title Pre-Beta v1.6.2; inclusion-only release notes summarize the FB-032 migration frame and governance/validation outcomes.
+Post-Release Truth: FB-032 is Released / Closed in v1.6.2-prebeta; release debt is clear; FB-004 Branch Readiness may begin only after updated-main revalidation.
+Summary: Track the broader Nexus-era vision and source-of-truth migration above the current phase-one canon foundation rebuild.
+Why it matters: The repo still needs deeper identity and wording normalization after the foundation layer is rebuilt.
+
+## Closed Canonical Workstreams
+
+### [ID: FB-031] Nexus Desktop AI UI/UX overhaul planning
+
+Status: Released (v1.6.1-prebeta)
+Record State: Closed
+Priority: Medium
+Release Stage: pre-Beta
 Target Version: v1.6.1-prebeta
+Release Title: Pre-Beta v1.6.1
 Branch: feature/fb-031-nexus-desktop-ai-ui-ux-overhaul-planning
 Canonical Workstream Doc: Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md
 Minimal Scope: Define the Nexus-era UI/UX overhaul planning boundary, source map, visual-language ownership, lifecycle/interaction-state framing, validation contract, and explicit non-goals before any UI implementation, runtime behavior, settings work, launcher work, or release work is considered.
 Release Target: v1.6.1-prebeta
 Release Floor: patch prerelease
-Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work uses patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
-Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, and PR Readiness merge-target canon.
-Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, and clean branch history.
-Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; FB-032 remains selected-only until Branch Readiness admission after release.
-Summary: Preserve future UI/UX overhaul planning as a deliberate design lane rather than piecemeal visual drift.
-Why it matters: The Nexus-era visual language should be planned coherently when the repo is ready for that design pass.
-
-### [ID: FB-032] Nexus-era vision and source-of-truth migration
-
-Status: Deferred
-Record State: Registry-only
-Priority: Medium
-Release Stage: pre-Beta
-Target Version: TBD
-Next Workstream: Selected
-Minimal Scope: Branch Readiness must define the Nexus-era vision/source-of-truth migration boundary, current-vs-historical naming policy, AI/UI identity routing, canon migration admission rules, and explicit non-goals before any wording migration, persona work, runtime behavior, UI implementation, rebrand execution, or release work is considered.
-Summary: Track the broader Nexus-era vision and source-of-truth migration above the current phase-one canon foundation rebuild.
-Why it matters: The repo still needs deeper identity and wording normalization after the foundation layer is rebuilt.
-
-## Closed Canonical Workstreams
+Version Rationale: FB-031 is architecture-only UI/UX planning and implementation-admission canon with no executable, runtime, operator-facing, user-facing, or materially expanded product capability; per governance, architecture-only planning/admission work used patch prerelease advancement from v1.6.0-prebeta to v1.6.1-prebeta.
+Release Scope: Architecture-only Nexus Desktop AI UI/UX source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, hardening pressure test, Live Validation repo-truth and waiver classification, PR Readiness merge-target canon, and PR-R1 release-floor validator repair.
+Release Artifacts: Tag v1.6.1-prebeta; release title Pre-Beta v1.6.1; inclusion-only release notes summarize the FB-031 UI/UX architecture milestone, source-map and lifecycle/state boundaries, validation/admission contract, hardening result, Live Validation waivers, clean branch history, and PR-R1 validator repair.
+Post-Release Truth: FB-031 is Released / Closed in v1.6.1-prebeta; release debt is clear; FB-032 PR Readiness is green on PR #73.
+Summary: Preserved Nexus-era UI/UX overhaul planning as a deliberate design lane rather than piecemeal visual drift.
+Why it matters: The Nexus-era visual language should be planned coherently before any later UI implementation pass.
 
 ### [ID: FB-040] Monitoring, thermals, and performance HUD surface
 

@@ -137,6 +137,8 @@ In Workflow mode, Codex should:
 - when the approved Workstream boundary contains an approved seam chain, use bounded multi-seam workflow as the primary model while executing one active seam at a time
 - when a prompt names an active seam inside an approved sequence, treat it as the entry seam, not a terminal boundary
 - after a green entry seam, apply `Next-Seam Continuation Required` and continue by default when the continuation authority conditions pass
+- reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
+- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 - use `Single-Seam Fallback` only when source-of-truth records a bounded stop condition or continuation blocker
 - when the approved boundary is continuous validation inside the current workstream, keep iterating only while the governing phase rules, validation, and stop-loss contract remain green
 
@@ -203,6 +205,9 @@ When the approved phase is `PR Readiness`, the output must also explicitly inclu
 - for the selected next workstream:
   - the selected next workstream identity
   - the next workstream `Record State`
+  - the backlog `Priority` used as the primary selection signal
+  - confirmation that `Target Version` was not used to rank, select, defer, or skip the open backlog candidate
+  - if the selected item is deferred, confirmation that `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:` are present
   - the minimal scope recorded in canon
   - confirmation that backlog includes `Next Workstream: Selected` and `Minimal Scope:` and roadmap includes `## Selected Next Workstream`
   - confirmation that no branch exists yet for that next workstream
@@ -310,6 +315,10 @@ When the approved phase is `Release Readiness`, the output must also explicitly 
 ```
 ````
 
+The Release Notes block must prepare the human-written Markdown release body using the standard release body shape: `# <release title>`, `## Release Summary`, and `## Release Highlights`.
+During Release Execution, the live GitHub release body must also include GitHub-generated release notes with `## What's Changed` and the generated `**Full Changelog**:` compare link to the previous release, populated through the GitHub release notes button or generated-release-notes API.
+Do not hand-write or omit the generated changelog section when publishing or repairing a GitHub release.
+
 - release notes must clearly explain what was built, what capabilities exist, and how the system behaves
 - release notes must not include exclusion lists, `Not Included` sections, negative scope framing, or defensive wording
 
@@ -352,6 +361,8 @@ That means:
 - PR Readiness uses readiness-gate seams for PR package, PR creation, and PR validation rather than implementation continuation
 - Release Readiness is review-only and file-frozen; it must not mutate repository files through a seam
 - the output must report the per-seam validation result and `continue` or `stop` decision
+- reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
+- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 - a validation failure, regression, scope drift, unplanned risk expansion, governance drift, unresolved manual-validation blocker, branch-truth contradiction, phase boundary, stop-loss trigger, or other bounded stop condition stops the workflow
 
 `Single-Seam Fallback` is a bounded stop decision, not a category shortcut.

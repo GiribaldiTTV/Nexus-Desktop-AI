@@ -86,6 +86,9 @@ For bounded multi-seam Workstream execution, also include:
 - `Per-Seam Gate: validate, record evidence, and report continue-or-stop before the next seam`
 - `Entry Seam Rule: the prompt-named seam is the entry seam, not a terminal boundary`
 - `Continuation Rule: apply Next-Seam Continuation Required after a green seam when continuation authority conditions pass`
+- `Execution Rule: reporting Next Safe Move is not a substitute for execution when continuation authority passes`
+- Execution Rule: reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
+- Execution Rule: A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 
 For Release Readiness, also include:
 
@@ -350,6 +353,10 @@ Required add-ons:
 - `report continue-or-stop after each seam`
 - `treat prompt-named seam as the entry seam, not a terminal boundary`
 - `apply Next-Seam Continuation Required after a green seam when continuation authority conditions pass`
+- `reporting Next Safe Move is not a substitute for execution when continuation authority passes`
+- `a continue decision must be acted on immediately by starting the next seam in the approved sequence`
+- reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
+- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 - `stop on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, or branch-truth inconsistency`
 
 Use this when:
@@ -359,6 +366,7 @@ Use this when:
 - per-seam validation and evidence recording remain mandatory
 
 Do not use prompt wording such as `execute WS-1` to mean `stop after WS-1` unless the prompt also records a bounded stop condition, phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback`.
+reporting `Next Safe Move` is not a substitute for execution when continuation authority passes; A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
 
 High-risk categories such as bug fixes, hotfixes, unclear seams, cross-subsystem changes, settings, protocol, launcher, or UI-model work require smaller seams and stronger gates; they do not automatically cancel bounded multi-seam continuation after a green admitted seam.
 
@@ -484,6 +492,8 @@ Prompting should reflect that reality.
 
 PR Readiness selects and minimally scopes the next workstream in canon, but it must also prove no branch exists yet for that next workstream.
 Use machine-checkable markers: `Next Workstream: Selected` and `Minimal Scope:` in the backlog entry, plus `## Selected Next Workstream` and `Branch: Not created` in the roadmap.
+Selection must be priority-led: use open backlog `Priority` and deferred-context readiness, not `Target Version`, to choose the next candidate.
+If the selected backlog item is deferred, it must already explain `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:` before PR Readiness can treat it as selectable.
 Create the fresh branch only during the next `Branch Readiness` pass after the current branch merges and updated `main` is revalidated.
 If that branch is created and a prior-branch canon miss is discovered, stay in `Branch Readiness`, repair the miss on the active branch, and do not start implementation until the blocker is cleared.
 
@@ -574,6 +584,8 @@ Required `Release Package Details` operator blocks:
 
 Release notes should clearly explain what was built, what capabilities exist, and how the system behaves.
 Release notes must report included release work only and must not include exclusion lists, `Not Included` sections, negative scope framing, or defensive wording.
+Release notes must use the standard Markdown release body shape: `# <release title>`, `## Release Summary`, `## Release Highlights`, GitHub-generated `## What's Changed`, and the generated `**Full Changelog**:` compare link to the previous release.
+During Release Execution, use GitHub-generated release notes through the GitHub release notes button or generated-release-notes API so the `## What's Changed` section and previous-release compare link are populated by GitHub.
 
 ## When To Use A Longer Prompt
 
