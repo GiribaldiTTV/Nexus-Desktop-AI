@@ -23,7 +23,7 @@
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `Hardening`
 
 ## Phase Status
 
@@ -32,11 +32,14 @@
 - FB-030 is Released / Closed in `v1.6.5-prebeta`, latest public prerelease truth is `v1.6.5-prebeta`, and merged-unreleased release debt is clear.
 - FB-005 is promoted from selected-only / `Registry-only` into an active canonical workstream on `feature/fb-005-workspace-path-planning`.
 - Workstream WS-1 is complete for the only currently admitted bounded path-sensitive slice.
+- H-1 hardening is complete for that slice, and Live Validation is the next legal phase.
 - Completed first slice: `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`.
 - The moved dev-only harness now lives at `dev/desktop/orin_desktop_test.py`.
 - Runtime entrypoints, launcher paths, audio paths, logs, visual assets, and user-facing desktop paths remain outside this admitted slice.
 - Runtime-reachability proof remains unchanged: shipped entrypoints still route through `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`.
 - The admitted Workstream chain ends after WS-1 for this pass because no WS-2 or later FB-005 slice is admitted yet; later slices remain explicit approval gates.
+- No reverse runtime dependency on `dev/desktop/` or the moved harness was found.
+- H-1 records one non-blocking dev-only residual risk: the harness still names historical visual file `jarvis_core_desktop.html` while the current desktop visual asset on disk is `orin_core_desktop.html`.
 
 ## Branch Class
 
@@ -69,7 +72,7 @@
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Live Validation`
 
 ## Branch Objective
 
@@ -189,7 +192,6 @@
 
 Seam 1: `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`
 
-- Status: Admitted.
 - Status: Complete.
 - Goal: relocate the dev-only desktop crash/test harness into the dev-owned tree without changing production runtime ownership.
 - Scope: move one file, update only its direct path references, preserve current behavior, and keep root-relative asset resolution intact from the new location.
@@ -201,7 +203,8 @@ Active seam: `None.`
 
 - WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete.
 - Bounded-stop authority: no WS-2 is admitted in this workstream record, so stopping after WS-1 is the legal end of the current admitted chain rather than a single-seam drift.
-- Next legal phase is `Hardening`.
+- H-1 hardening is complete for the admitted slice.
+- Next legal phase is `Live Validation`.
 
 ## Seam Continuation Decision
 
@@ -216,3 +219,40 @@ Continuation Action: `Advance to Hardening for the completed WS-1 slice and do n
 - rollback immediately if the move requires launcher-target edits, root-entrypoint edits, audio-path edits, log-root edits, visual-asset moves, or user-facing desktop-path edits
 - rollback immediately if direct reference sync reveals broader implicit coupling than the admitted slice allows
 - rollback immediately if validation cannot prove the harness remains dev-only and outside shipped runtime reachability
+
+## H-1 Hardening Record
+
+H-1 pressure-tests whether the completed WS-1 slice is coherent enough to move into Live Validation without widening the branch into another workspace/path move, runtime path edit, launcher edit, audio edit, logs edit, visual-asset move, or user-facing desktop-path change.
+
+### Hardening Findings
+
+- Governance Gap: current-state canon still reflected Workstream-complete / Hardening-next truth after the admitted WS-1 slice had already finished. H-1 corrects current-state canon to Hardening-complete / Live-Validation-next truth.
+- Path Ownership Pressure Test: PASS. No reverse dependency from runtime entrypoints, launcher paths, audio paths, logs, visual assets, or user-facing desktop paths into `dev/desktop/` or `dev/desktop/orin_desktop_test.py` was found.
+- Reference Integrity And Path-Math Pressure Test: PASS with one non-blocking dev-only residual risk. The moved harness now resolves repo-root imports correctly from `dev/desktop/`, but it still names historical file `jarvis_core_desktop.html` while the current desktop asset on disk is `jarvis_visual/orin_core_desktop.html`. Because the harness intentionally crashes and production paths do not consume that reference, H-1 records this as a dev-only residual risk rather than a production coupling issue.
+- Runtime Non-Reachability Pressure Test: PASS. Production entrypoint truth remains `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`, and no production path now references the moved harness.
+- Rollback Viability Pressure Test: PASS. The implementation delta remains a single-file rename plus local path-math update and direct path-truth docs updates. Rolling back the slice stays bounded and does not require launcher, runtime, audio, logs, or visual-asset rewiring.
+- Hidden Coupling Pressure Test: PASS. The remaining coupling is intentional one-way dev-harness consumption of runtime modules; no reverse runtime or launcher ownership leaked into `dev/desktop/`.
+- Bounded-Stop Enforceability: PASS after correction. The workstream doc now carries the formal `## Seam Continuation Decision` block, so stopping after WS-1 is explicitly authorized by scope rather than left as implied prose.
+- Scope Check: H-1 adds docs/canon evidence and phase-state repair only. No new runtime, launcher, audio, logs, visual-asset, or user-facing desktop-path implementation was introduced by this pass.
+
+### Hardening Corrections
+
+- Current-state canon is updated from Workstream-complete / Hardening-next wording to Hardening-complete / Live-Validation-next wording.
+- The slice now explicitly records the non-blocking dev-only residual risk around historical visual filename `jarvis_core_desktop.html` so later validation does not overclaim visual-asset correctness.
+- No helper, validator, runtime, launcher, audio, logs, visual-asset, release, or User Test Summary artifact was added during H-1.
+
+### H-1 Completion Decision
+
+- H-1 Result: Complete / green.
+- User-facing impact: none. This pass changes docs/canon only.
+- Next legal phase: Live Validation.
+- Stop condition: phase boundary reached; Hardening is complete after H-1.
+
+### H-1 Validation Results
+
+- `python dev\orin_branch_governance_validation.py`: PASS, 1138 checks.
+- `git diff --check`: PASS with line-ending normalization warnings only and no whitespace errors.
+- `python -m py_compile dev\desktop\orin_desktop_test.py`: PASS.
+- `python dev\desktop\orin_desktop_test.py`: PASS for bounded validation; the harness initializes from `dev/desktop/`, prints its expected banner, and exits only at the intentional `RuntimeError(\"Jarvis test crash triggered intentionally\")`.
+- Reverse-coupling scan: PASS; no `dev/desktop`, `from dev`, or `import dev` reference appears in `main.py`, `launch_orin_desktop.vbs`, `desktop/`, `Audio/`, or `assistant_personas.py`.
+- Asset-path integrity scan: recorded residual dev-only risk; `jarvis_visual/jarvis_core_desktop.html` does not exist while `jarvis_visual/orin_core_desktop.html` does.

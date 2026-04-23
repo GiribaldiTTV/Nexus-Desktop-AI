@@ -36,7 +36,7 @@
 - Release Title: Pre-Beta v1.6.4
 - Release debt is clear after live release validation and post-release canon closure.
 - FB-015 is released and closed in the same `v1.6.4-prebeta` package.
-- FB-030 is now released and closed in `v1.6.5-prebeta`; release debt is clear; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, and `Hardening` is next while later workspace/path slices remain explicit approval-gated.
+- FB-030 is now released and closed in `v1.6.5-prebeta`; release debt is clear; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, and `Live Validation` is next while later workspace/path slices remain explicit approval-gated.
 - FB-029 is now closed historical lane truth and no longer owns active implementation truth.
 - This milestone remains docs/canon-only planning and governance work.
 - WS-1 current identity, persona-option, and licensing source-of-truth inventory is complete and durably recorded.
@@ -394,7 +394,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-029 remains a docs/canon-only identity, persona-option, and licensing-planning milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
 Release Scope: FB-015 boot and desktop phase-boundary inventory, ownership map, lifecycle and state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, historical release-debt framing, plus the FB-029 identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, and historical merged-package-state repair
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta, FB-030 is Released / Closed in v1.6.5-prebeta, release debt is clear, and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, and `Hardening` is next while later workspace/path slices remain explicit approval-gated
+Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta, FB-030 is Released / Closed in v1.6.5-prebeta, release debt is clear, and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, and `Live Validation` is next while later workspace/path slices remain explicit approval-gated
 
 ## Post-Merge State
 
