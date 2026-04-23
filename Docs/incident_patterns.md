@@ -290,11 +290,11 @@ Branch-local "what worked" notes should stay in the canonical workstream doc fir
 - layer:
   seam workflow governance, prompt interpretation, and active workstream phase truth
 - root-cause pattern:
-  source-of-truth required a continue-or-stop decision, but did not make next-seam continuation the default after a green seam; validator enforcement only checked for broad multi-seam markers and missed prompt-as-terminal ambiguity
+  source-of-truth required a continue-or-stop decision, but did not encode an explicit all-seams default after a green seam; validator enforcement only checked for broad multi-seam markers and missed prompt-as-terminal ambiguity
 - fix pattern:
-  define `Next-Seam Continuation Required` as the default after a green seam, treat prompt-named seams inside approved sequences as entry seams rather than terminal boundaries, and require a recorded bounded stop condition, phase boundary, stop-loss trigger, or canon-valid `Single-Seam Fallback` before stopping
+  define `Next-Seam Continuation Required` as the default after a green seam, state that Codex must perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded, treat prompt-named seams inside approved sequences as entry seams rather than terminal boundaries, and require a recorded bounded stop condition, phase boundary, stop-loss trigger, or explicit waiver before stopping
 - validation pattern:
-  run `python dev/orin_branch_governance_validation.py`; governing docs and prompt scaffolds must include `Next-Seam Continuation Required`, entry-seam language, default-continuation language, bounded stop conditions, and `Single-Seam Fallback` as a bounded stop decision rather than category stop authority
+  run `python dev/orin_branch_governance_validation.py`; governing docs and prompt scaffolds must include `Next-Seam Continuation Required`, entry-seam language, the exact all-seams default, bounded stop conditions, and `Single-Seam Mode Waiver` as waiver-only rather than stop-by-category authority
 - source references:
   - `Docs/phase_governance.md`
   - `Docs/development_rules.md`

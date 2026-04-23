@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `Merged unreleased`
+- `Released (v1.6.4-prebeta)`
 
 ## Release Stage
 
@@ -27,16 +27,17 @@
 
 ## Current Phase
 
-- Phase: `Release Readiness`
+- Phase: `Closed`
 
 ## Phase Status
 
-- `Release Readiness pending on updated main after PR #75 merged cleanly into main at 3e821e07ff91d814fd7aba9b50819f97d700a301`
-- Repo state is `No Active Branch` while FB-015 carries merged-unreleased release debt for `v1.6.4-prebeta`.
-- FB-004 is released and closed in `v1.6.3-prebeta`.
-- Latest public prerelease truth is `v1.6.3-prebeta`.
-- Release debt is active for `v1.6.4-prebeta`.
-- FB-015 is the merged-unreleased release-debt owner on `main`, not an active promoted implementation branch.
+- `Released / Closed in v1.6.4-prebeta`
+- Latest Public Prerelease: v1.6.4-prebeta
+- Release Title: Pre-Beta v1.6.4
+- Release debt is clear after live release validation and post-release canon closure.
+- FB-029 is released and closed in the same `v1.6.4-prebeta` package.
+- FB-030 now owns active promoted branch truth on `feature/fb-030-orin-voice-audio-direction-refinement`.
+- FB-015 Branch Readiness is complete and this record is now closed historical lane truth.
 - Branch Readiness is complete.
 - WS-1 current boot/desktop boundary inventory and ownership map is complete.
 - WS-2 lifecycle and phase-boundary state framing is complete.
@@ -51,6 +52,7 @@
 - Live Validation confirmed the completed FB-015 delta remains docs/canon only, so user-facing shortcut validation and User Test Summary results are both waived for this milestone.
 - PR Readiness derived `v1.6.4-prebeta` / `Pre-Beta v1.6.4` as the semantic post-merge release target because FB-015 remains a docs/canon-only architecture/admission milestone with `patch prerelease` release-floor semantics.
 - PR Readiness selected FB-029 as the next planning-only workstream because it is the highest-priority remaining open backlog candidate after FB-015, while keeping implementation-facing admission blocked until explicit product/legal approval and updated-main admission.
+- Release Execution published `v1.6.4-prebeta` on commit `d2268b71feefa062c8117eae29f8ec17879a724f`.
 - A narrow supporting canon sync for released FB-040 Sensor HUD beta admission remained bounded to docs/governance-only source-of-truth maintenance; it did not reopen FB-040, change FB-015 runtime scope, or alter the admitted FB-015 seam chain.
 - A requested future-lane admission for `FB-042 Stream Deck Integration via Elgato MCP` was reviewed and explicitly deferred because backlog identity, roadmap sequencing, and new auxiliary planning-reference canon for that lane would exceed the current FB-015 branch boundary and remains out of scope for the completed FB-015 Workstream seam chain.
 - No FB-015 runtime, launcher, shortcut, renderer lifecycle, UI, installer, source-tree, helper-code, or release work has started.
@@ -61,7 +63,7 @@
 
 ## Blockers
 
-- `Release Debt`
+None.
 
 ## Entry Basis
 
@@ -604,27 +606,25 @@ Governance Drift Found: Yes, resolved before PR green.
 - Permanent validator fix: the normal governance validator now fails if `main` still carries active implementation workstream truth for a promoted workstream whose canonical branch is not `main`.
 - No unresolved contradiction remains across backlog priority, deferred-context fields, successor lock, semantic release-target derivation, merged-unreleased release-debt framing, or FB-015 docs/canon-only validation posture.
 
-## Merged-Unreleased Release-Debt State
+## Historical PR Package State
 
-Merged-Unreleased Release-Debt Owner: FB-015 Boot and desktop phase-boundary model
-Repo State: No Active Branch
-Latest Public Prerelease: v1.6.3-prebeta
-Release Debt: Active
+Historical Merged-Unreleased Release-Debt Owner At PR Package Time: FB-015 Boot and desktop phase-boundary model
+Historical Repo State At PR Package Time: No Active Branch
+Latest Public Prerelease: v1.6.4-prebeta
+Release Debt: Clear
 Release Target: v1.6.4-prebeta
 Release Title: Pre-Beta v1.6.4
 Release Floor: patch prerelease
 Version Rationale: FB-015 remains a docs/canon-only boot and desktop phase-boundary architecture plus admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
-Release Scope: FB-015 boot and desktop phase-boundary inventory, ownership map, lifecycle and state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR Readiness package history, post-merge canon repair, and merged-unreleased release-debt framing, plus the FB-029 identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, and PR Readiness package history
+Release Scope: FB-015 boot and desktop phase-boundary inventory, ownership map, lifecycle and state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR Readiness package history, post-merge canon repair, and historical release-debt framing, plus the FB-029 identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, and PR Readiness package history
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta after publication and validation; release debt then clears, and FB-030 Branch Readiness may begin only after updated-main revalidation and an explicit voice/audio design goal with affected-surface map admits promotion. Temporary `emergency canon repair` branches do not satisfy or consume the selected-next implementation-branch gate
-Selected Next Workstream: FB-030 ORIN voice/audio direction refinement
-Next-Branch Creation Gate: FB-030 remains selected-only, and its selected-next implementation branch must remain not created until `v1.6.4-prebeta` is published and validated and an explicit voice/audio design goal with affected-surface map admits promotion. Temporary `emergency canon repair` branches may exist only to clear release-readiness blockers and do not count as selected-next implementation-branch creation
+Post-Release Truth: FB-015 and FB-029 are Released / Closed in v1.6.4-prebeta, release debt is clear, and FB-030 now owns active PR Readiness truth on `feature/fb-030-orin-voice-audio-direction-refinement`, with WS-1 through WS-3, H-1, LV-1, and PR-1 through PR-3 complete on open PR #81
 
 ## Post-Merge State
 
-- PR #75 merged cleanly into `main` at `3e821e07ff91d814fd7aba9b50819f97d700a301`, and FB-015 is now the merged-unreleased release-debt owner for `v1.6.4-prebeta`.
-- After merge, repo state is `No Active Branch` until `v1.6.4-prebeta` is published, validated, and post-release canon closure is completed on the next legal branch surface.
-- FB-029 is merged-unreleased inside the inherited `v1.6.4-prebeta` package after PR #76 merged into `main`, and FB-030 remains selected-only while release debt plus its explicit voice/audio design-goal and affected-surface-map blockers still control any later Branch Readiness admission.
+- Historical post-merge state before release execution: PR #75 merged cleanly into `main` at `3e821e07ff91d814fd7aba9b50819f97d700a301`.
+- Historical pre-release repo state: `No Active Branch` until `v1.6.4-prebeta` was published, validated, and post-release canon closure completed.
+- Historical pending-package state: FB-029 merged-unreleased inside the inherited `v1.6.4-prebeta` package after PR #76 merged into `main`, and FB-030 remained selected-only until release debt cleared and its explicit voice/audio design goal plus affected-surface map admitted Branch Readiness.
 
 ## PR Readiness Record
 

@@ -159,6 +159,7 @@ MULTI_SEAM_CONTRACT_PHRASES = (
     "bounded multi-seam workflow",
     "Next-Seam Continuation Required",
     "entry seam, not a terminal boundary",
+    "Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.",
     "Single-Seam Mode Waiver",
     "bounded stop condition",
     "Single-Seam Fallback",
@@ -171,6 +172,7 @@ MULTI_SEAM_PRIMARY_REPAIR_PHRASES = (
     "`Single-Seam Fallback` is legacy terminology for `Single-Seam Mode Waiver`.",
     "Single-seam mode is waiver-only.",
     "A bounded stop condition blocks the workflow. It does not by itself authorize single-seam mode.",
+    "Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.",
 )
 
 MULTI_SEAM_PROHIBITED_CATEGORY_STOP_PHRASES = (
@@ -199,6 +201,7 @@ MULTI_SEAM_PROMPT_PHRASES = (
     "continue-or-stop",
     "Next-Seam Continuation Required",
     "entry seam, not a terminal boundary",
+    "Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.",
     "Single-Seam Mode Waiver",
     "Single-Seam Fallback",
     "reporting Next Safe Move is not a substitute for execution",
@@ -1159,7 +1162,7 @@ def _selected_next_ignored_branch_names(
     all_repair_branch_names: set[str],
     active_repair_branch_names: set[str],
 ) -> set[str]:
-    if current_branch == "main" or current_branch in all_repair_branch_names:
+    if current_branch == "main" or current_branch in active_repair_branch_names:
         return set(all_repair_branch_names)
     return set()
 

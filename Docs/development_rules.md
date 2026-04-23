@@ -386,6 +386,7 @@ and keep that validator green before calling the branch ready.
 - `bounded multi-seam workflow` is the primary Workstream execution model for approved seam chains
 - `Next-Seam Continuation Required` is the default after a green seam inside a valid bounded multi-seam workflow
 - a prompt-named seam inside an approved sequence is the entry seam, not a terminal boundary
+- Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 - unrelated ideas must still be split out even if they look convenient to batch
 
 Bounded multi-seam workflow means:
@@ -412,6 +413,7 @@ They do not require stopping after a green seam when the next seam is admitted, 
 Treat legacy `Single-Seam Fallback` wording as `Single-Seam Mode Waiver`.
 Single-seam mode is waiver-only.
 Use `Single-Seam Mode Waiver` only when source-of-truth explicitly records a waiver that narrows an otherwise valid bounded multi-seam workflow to one seam.
+If no explicit waiver is raised and no bounded stop condition is recorded, perform all admitted seams in the bounded multi-seam workflow.
 If source-of-truth admits exactly one seam and no next seam exists, that is a one-seam workflow rather than single-seam mode.
 
 Use the smallest safe slice for:

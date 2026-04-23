@@ -78,24 +78,23 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-- None
+- `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 
-No promoted implementation workstream currently owns active branch execution truth. Repo-level current-state canon remains `No Active Branch` while `v1.6.4-prebeta` release debt is open. Temporary `emergency canon repair` branches may clear release-readiness blockers without creating an active promoted workstream or the selected-next implementation branch.
+FB-030 now owns active branch execution truth on `feature/fb-030-orin-voice-audio-direction-refinement`. `v1.6.4-prebeta` is live, release debt is clear, WS-1 current voice/audio surface inventory and ownership map is complete, WS-2 lifecycle and persona-state framing for voice/audio transitions is complete, WS-3 validation and admission contract for future voice/audio implementation is complete, H-1 hardening is complete, LV-1 Live Validation is complete, PR-1 merge-target canon completeness is complete, PR-2 selected-next workstream selection is complete, and PR-3 live PR creation plus validation is complete on open PR #81.
 
 ### Merged / Release Debt Owners
 
 Merged / Release Debt Owners are promoted implementation workstreams whose implementation branch is merge-target complete but whose public release packaging has not yet cleared release debt.
 These records are not active implementation branch owners after merge.
 
-- `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`
-- `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`
+- None
 
-FB-015 merged through PR #75 into `main` at `3e821e07ff91d814fd7aba9b50819f97d700a301` and remains the merged-unreleased release-debt owner for `v1.6.4-prebeta`. The pending release scope now includes the completed FB-029 docs/canon-only identity, persona-option, and licensing-planning milestone. No repo-level active workstream is admitted while that release debt remains open. FB-030 remains selected-only / `Registry-only`, and temporary `emergency canon repair` branches do not count as selected-next implementation-branch creation.
-
-FB-029 merged through PR #76 into `main` at `0897fab768dc07385f83fab81434ba7926ecc4a1` and is now merged-unreleased inside the inherited `v1.6.4-prebeta` package owned by FB-015. It no longer owns active implementation-branch truth; the milestone remains docs/canon-only, and explicit product/legal approval still blocks any implementation-facing naming, licensing, release, runtime, or persona-surface work.
+Release debt is clear after `v1.6.4-prebeta` publication, validation, and post-release canon closure.
 
 ### Closed
 
+- `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`
+- `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`
 - `Docs/workstreams/FB-004_future_boot_orchestrator_layer.md`
 - `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
 - `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`

@@ -127,7 +127,7 @@ Before PR Readiness, each workstream-scoped helper must be resolved in one of th
 | `dev/orin_boot_transition_verification.py` | Helper Status: Reusable | boot transition verification | Extend for boot transition verification. |
 | `dev/orin_desktop_toolkit_validation.py` | Helper Status: Reusable | desktop toolkit validator | Extend for desktop toolkit validation. |
 | `dev/orin_dev_toolkit_smoke_validation.py` | Helper Status: Reusable | dev toolkit smoke validator | Extend for dev toolkit smoke checks. |
-| `dev/orin_diagnostics_report_issue_validation.py` | Helper Status: Reusable | diagnostics issue validator | Extend for diagnostics issue/report validation. |
+| `dev/orin_diagnostics_report_issue_validation.py` | Helper Status: Reusable | diagnostics issue validator | Repair-gated reusable: current file still references legacy `jarvis_diagnostics.pyw`; repair to current `orin_diagnostics.pyw` or explicitly bypass before using it as diagnostics issue/report proof. After repair, extend for diagnostics issue/report validation. |
 | `dev/orin_recoverable_launch_failed_validation.py` | Helper Status: Reusable | recoverable diagnostics validator | Extend for bounded recoverable launch-failed diagnostics. |
 | `dev/orin_startup_snapshot_harness_validation.py` | Helper Status: Reusable | startup snapshot validator | Extend for startup snapshot harness validation. |
 | `dev/orin_support_bundle_triage_toolkit_validation.py` | Helper Status: Reusable | support triage toolkit validator | Extend for support bundle triage toolkit validation. |

@@ -22,7 +22,7 @@ It kept FB-030 selected-only / `Registry-only` while the blocker-clearing canon 
 - branch was created from updated `main` at `0897fab768dc07385f83fab81434ba7926ecc4a1`
 - PR #76 merged, FB-029 no longer owned active implementation truth, and this branch carried the first required post-merge current-state repair
 - repo-level current-state canon intentionally remained `No Active Branch`; this branch did not create the selected-next FB-030 implementation branch or promote FB-030
-- branch no longer exists locally or on `origin`
+- the original blocker-clearing repair branch instance no longer exists locally or on `origin`; if the same branch name is later reused by the admitted FB-030 implementation branch, this historical record remains traceability only and does not regain live authority
 - later `Release Readiness` review found additional non-implementation drift on updated `main`, so repair responsibility moved to `feature/fb-030-release-readiness-canon-repair`
 - FB-015 remains the inherited merged-unreleased release-debt owner for `v1.6.4-prebeta` until release packaging clears
 - this record is preserved for historical traceability only and is not active execution authority

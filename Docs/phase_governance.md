@@ -1031,6 +1031,7 @@ Risky categories such as UI, launcher, settings, protocol, cross-subsystem, or p
 `Next-Seam Continuation Required` is the default result after a green seam in a valid bounded multi-seam workflow.
 When a prompt names an `Active Seam` or says to execute a seam that also appears inside an approved seam sequence, that seam is the entry seam, not a terminal boundary.
 After the entry seam validates green, Codex must evaluate the next seam in the sequence from source-of-truth and continue by default when the continuation authority conditions pass.
+Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 
 Codex must not stop merely because:
 
@@ -1134,6 +1135,7 @@ It is not a category shortcut, a cautious-default shortcut, or a prompt-wording 
 A bounded stop condition blocks the workflow. It does not by itself authorize single-seam mode.
 
 `Single-Seam Mode Waiver` may narrow an otherwise valid bounded multi-seam workflow to one seam only when an explicit waiver is recorded in source-of-truth, the active authority record, or the operator prompt.
+If no explicit waiver is raised and no bounded stop condition is recorded, perform all admitted seams in the bounded multi-seam workflow.
 When a `Single-Seam Mode Waiver` is used, the output or authority record must name:
 
 - `Single-Seam Waiver: Yes`
