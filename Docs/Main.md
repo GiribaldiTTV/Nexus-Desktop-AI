@@ -139,6 +139,7 @@ Use these for promoted work that needs a stable feature-state, branch-local vali
 
 - `Docs/workstreams/index.md`
 - `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
+- `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 - `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 - `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`
 - `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`

@@ -78,9 +78,9 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-None.
+- `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 
-No active promoted implementation workstream exists on this branch surface. FB-042 `Branch Readiness` is active through `Docs/branch_records/feature_fb_042_step5_entrypoint_planning.md` while FB-042 remains `Registry-only` / planning-only, and no Workstream seam is admitted.
+FB-042 Desktop entrypoint runtime refinement is the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`. Branch Readiness is complete, WS-1 desktop shortcut launch-path runtime refinement is admitted and active, and broader `main.py` reshaping plus broader workspace follow-through remain explicitly deferred until a later bounded seam.
 
 ### Merged / Release Debt Owners
 
