@@ -138,6 +138,7 @@ Rules:
 Use these for promoted work that needs a stable feature-state, branch-local validation/evidence record, active seam trail, durable artifact/reuse history, and closure history:
 
 - `Docs/workstreams/index.md`
+- `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
 - `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 - `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`
 - `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`
@@ -262,6 +263,8 @@ These are reference layers, not active workstream or roadmap owners.
   15. only after the PR exists, has no conflicts, has no unresolved Codex comments/issues, and matches merge-target canon may the branch report `PR Readiness GREEN`
 - PR creation details must use the operator copy-block contract from `Docs/phase_governance.md`: separate copy-ready blocks for `PR Title`, `Base Branch`, `Head Branch`, and `PR Summary`; the summary reports included implementation and validation truth only
 - PR Readiness also owns `PR Readiness Scope Missed`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early`; none may be deferred into Release Readiness or a later side branch
+- PR Readiness also owns `Release Window Audit Incomplete`; if the branch is inside an unreleased release window, it must audit the current blocker set and clear it on the same branch by default instead of knowingly teeing up another blocker-clearing PR before release
+- the normal green posture for that audit is `Remaining Known Release Blockers: None`, `Another Pre-Release Repair PR Required: NO`, and `Release Window Split Waiver: None`; only an explicit user-approved `Release Window Split Waiver` may allow a deliberate split
 - PR Readiness also owns `PR Creation Pending`, `PR Validation Pending`, and `PR State Unknown`; `PR package ready` is not `PR Readiness GREEN`
 - PR Readiness also owns the merged-unreleased release-debt owner contract when a branch will merge unreleased implementation work; the merge-target canon must already contain `Merged-Unreleased Release-Debt Owner:`, `Repo State: No Active Branch`, `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, `Release Artifacts:`, `Post-Release Truth:`, `Selected Next Workstream:`, and `Next-Branch Creation Gate:` before PR green
 - PR Readiness must validate release target semantics from the latest public prerelease and declared `Release Floor:` before green; marker presence is insufficient if the version is wrong

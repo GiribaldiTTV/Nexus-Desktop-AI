@@ -78,19 +78,22 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-None. Repo current-state is `No Active Branch` while FB-030 owns merged-unreleased release debt for `v1.6.5-prebeta`.
+None.
+
+No active promoted implementation branch remains in merge-target truth after FB-005 PR packaging.
 
 ### Merged / Release Debt Owners
 
 Merged / Release Debt Owners are promoted implementation workstreams whose implementation branch is merge-target complete but whose public release packaging has not yet cleared release debt.
 These records are not active implementation branch owners after merge.
 
-- `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
+- `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
 
-FB-030 merged through PR #81 into `main` at `c23adc70e17683d40770bf29571928af95935576` and now owns merged-unreleased release debt for `v1.6.5-prebeta`. Repo state is `No Active Branch`, and FB-005 remains selected next planning-only with branch not created.
+Current merge-target truth is `No Active Branch`. FB-005 is the merged-unreleased release-debt owner for `v1.6.6-prebeta`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; the residual visual-path mismatch remains dev-only and non-user-facing; and FB-042 is selected next planning-only with branch not created.
 
 ### Closed
 
+- `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 - `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`
 - `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`
 - `Docs/workstreams/FB-004_future_boot_orchestrator_layer.md`

@@ -61,83 +61,109 @@ Use these release-state values when relevant:
 
 Current merged truth indicates:
 
-- latest public prerelease: `v1.6.4-prebeta`
-- latest public release commit: `d2268b71feefa062c8117eae29f8ec17879a724f`
-- latest public prerelease publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.4-prebeta`
-- latest public prerelease title: `Pre-Beta v1.6.4`
+- latest public prerelease: `v1.6.5-prebeta`
+- latest public release commit: `7c2933d6427feb08a1139ba7f5ba2393eb61f1e1`
+- latest public prerelease publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.5-prebeta`
+- latest public prerelease title: `Pre-Beta v1.6.5`
 - merged unreleased non-doc implementation debt exists: yes
-- the latest public released implementation milestones are FB-015 Boot and desktop phase-boundary model and FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening in `v1.6.4-prebeta`
-- current phase after `v1.6.4-prebeta` release closure: `Release Readiness`
-- phase status after `v1.6.4-prebeta` release closure: FB-015 and FB-029 are Released / Closed in `v1.6.4-prebeta`; FB-030 merged through PR #81 into `main` at `c23adc70e17683d40770bf29571928af95935576`; release debt is now active for `v1.6.5-prebeta`; repo state is `No Active Branch`; and FB-005 remains selected next planning-only with branch not created
+- the latest public released implementation milestone is FB-030 ORIN voice/audio direction refinement in `v1.6.5-prebeta`; FB-015 Boot and desktop phase-boundary model plus FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening remain released in `v1.6.4-prebeta`
+- current phase after `v1.6.5-prebeta` release closure: `Release Readiness`
+- phase status after `v1.6.5-prebeta` release closure: FB-030 is Released / Closed in `v1.6.5-prebeta`; merged-unreleased release debt is now active for `v1.6.6-prebeta`; FB-005 is the merged-unreleased release-debt owner; repo state is `No Active Branch`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; the residual visual-path mismatch remains confirmed as dev-only and non-user-facing; and FB-042 is selected next planning-only with branch not created.
 - current active workstream: none
-- current branch after `v1.6.4-prebeta` release closure: `No Active Branch`
-- next concern: validate updated `main`, keep the docs/canon-only voice/audio planning package bounded, and clear `v1.6.5-prebeta` release readiness without admitting runtime implementation by inertia
+- current branch after `v1.6.5-prebeta` release closure: none
+- next concern: merge PR #83, then execute file-frozen Release Readiness on updated `main` for `v1.6.6-prebeta`
 
-That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, the released FB-032 source-of-truth migration milestone, the released FB-004 future boot-orchestrator architecture milestone, and the released FB-015 plus FB-029 planning milestones are now part of the current public shared pre-Beta baseline.
+That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, the released FB-032 source-of-truth migration milestone, the released FB-004 future boot-orchestrator architecture milestone, the released FB-015 plus FB-029 planning milestones, and the released FB-030 voice/audio planning milestone are now part of the current public shared pre-Beta baseline.
 
-## Current Release Debt Owner
+## Current Branch Readiness Posture
 
-Merged-Unreleased Release-Debt Owner: FB-030 ORIN voice/audio direction refinement.
+Merged-Unreleased Release-Debt Owner: FB-005 Workspace and folder organization.
 Repo State: No Active Branch.
 
-Latest Public Prerelease: v1.6.4-prebeta
-Latest Public Release Commit: d2268b71feefa062c8117eae29f8ec17879a724f
-Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.4-prebeta
-Latest Public Prerelease Title: Pre-Beta v1.6.4
-Release Debt: Active after PR #81 merged until `v1.6.5-prebeta` is published, validated, and post-release canon closure completes.
+Latest Public Prerelease: v1.6.5-prebeta
+Latest Public Release Commit: 7c2933d6427feb08a1139ba7f5ba2393eb61f1e1
+Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.5-prebeta
+Latest Public Prerelease Title: Pre-Beta v1.6.5
+Release Debt: Active after merge until `v1.6.6-prebeta` publication, validation, and post-release canon closure.
 Current active workstream: none
 Current Active Workstream Before Release: FB-030 ORIN voice/audio direction refinement
-Active Branch: None
+Active Branch: none
 Active Branch Before Release: `feature/fb-030-orin-voice-audio-direction-refinement`
-Selected Next Workstream: FB-005 Workspace and folder organization.
-Next-Branch Creation Gate: After `v1.6.5-prebeta` is published and validated, updated `main` is revalidated, and explicit path-sensitive workspace approval admits FB-005 Branch Readiness.
+Selected Next Workstream: FB-042 Top-level experience entrypoint and broader workspace follow-through.
+Historical Branch Readiness State: Complete on `feature/fb-005-workspace-path-planning`.
+Historical Workstream State: WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete.
+Historical Hardening State: Complete on `feature/fb-005-workspace-path-planning`.
+Historical Live Validation State: Complete on `feature/fb-005-workspace-path-planning`.
+PR Readiness State: Complete on `feature/fb-005-workspace-path-planning`; PR #83 is open, non-draft, mergeable, and clean against `main`.
+Admitted Workstream Chain: Complete for current approval; no WS-2 is admitted.
+Release Target: v1.6.6-prebeta
+Release Floor: patch prerelease
+Version Rationale: FB-005 delivers one bounded dev-only workspace/path implementation slice and direct path-truth sync with no change to shipped runtime entrypoints, launcher paths, audio paths, logs, visual assets, installer behavior, or user-facing desktop behavior, so patch prerelease remains the correct floor.
+Release Scope: WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, PR package history, and merged-unreleased release-debt truth for the first admitted FB-005 slice only.
+Release Artifacts: Tag v1.6.6-prebeta; release title Pre-Beta v1.6.6; rich Markdown release notes summarize the bounded FB-005 WS-1 workspace slice, validation evidence, non-user-facing release posture, and selected-next planning lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 remains selected next planning-only with branch not created until Branch Readiness admits a bounded Step 5 / top-level entrypoint planning slice.
+Next-Branch Creation Gate: After `v1.6.6-prebeta` publication, validation, and updated-main revalidation; `feature/fb-042-top-level-entrypoint-workspace-follow-through` must remain not created until Branch Readiness admits a bounded planning-first Step 5 / top-level entrypoint slice.
 
 ## Current Active Workstream
 
-None. Repo current-state is `No Active Branch` while FB-030 owns merged-unreleased release debt on `main` for `v1.6.5-prebeta`.
+### FB-005 Workspace and folder organization
+
+- status: `merged unreleased`
+- record state: `Promoted`
+- priority: `Low`
+- canonical workstream doc: `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
+- branch: `feature/fb-005-workspace-path-planning`
+- phase status: FB-005 is the merged-unreleased release-debt owner for `v1.6.6-prebeta`; repo state is `No Active Branch`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; H-1 and LV-1 are complete historical proof; the residual visual-path mismatch remains dev-only and non-user-facing; and FB-042 is selected next planning-only with branch not created.
+- admitted slice: dev-only desktop test harness relocation with runtime entrypoints, launcher paths, audio paths, logs, visual assets, and user-facing desktop paths explicitly outside the slice.
+- next legal seam: `Release Readiness`
+Release Target: v1.6.6-prebeta
+Release Floor: patch prerelease
+Version Rationale: FB-005 delivers one bounded dev-only workspace/path implementation slice and direct path-truth sync with no change to shipped runtime entrypoints, launcher paths, audio paths, logs, visual assets, installer behavior, or user-facing desktop behavior, so patch prerelease remains the correct floor.
+Release Scope: WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, PR package history, and merged-unreleased release-debt truth for the first admitted FB-005 slice only.
+Release Artifacts: Tag v1.6.6-prebeta; release title Pre-Beta v1.6.6; rich Markdown release notes summarize the bounded FB-005 WS-1 workspace slice, validation evidence, non-user-facing release posture, and selected-next planning lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 remains selected next planning-only with branch not created until Branch Readiness admits a bounded Step 5 / top-level entrypoint planning slice.
+Next-Branch Creation Gate: After `v1.6.6-prebeta` publication, validation, and updated-main revalidation; `feature/fb-042-top-level-entrypoint-workspace-follow-through` must remain not created until Branch Readiness admits a bounded planning-first Step 5 / top-level entrypoint slice.
 
 ### FB-030 ORIN voice/audio direction refinement
 
-- status: `Merged unreleased`
-- record state: `Promoted`
+- status: `released`
+- record state: `Closed`
 - priority: `Medium`
 - canonical workstream doc: `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 - branch: `feature/fb-030-orin-voice-audio-direction-refinement`
-- phase status: Release Readiness is active on `main`; FB-030 merged through PR #81 at `c23adc70e17683d40770bf29571928af95935576`; repo state is `No Active Branch`; WS-1 through WS-3, H-1, LV-1, and PR-1 through PR-3 are complete; release debt is active for `v1.6.5-prebeta`; and no runtime voice/audio implementation is admitted yet.
-- next legal seam: file-frozen Release Readiness on updated `main` for `v1.6.5-prebeta`.
+- phase status: Released / Closed in `v1.6.5-prebeta`; PR #81 merged into `main` at `c23adc70e17683d40770bf29571928af95935576`; PR #82 carried the post-merge canon repair; the release is live on commit `7c2933d6427feb08a1139ba7f5ba2393eb61f1e1`; release debt is clear; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, and `PR Readiness` is next while later workspace/path slices remain explicit approval-gated.
+- next legal seam: none; this record is now historical released truth.
 Release Target: v1.6.5-prebeta
 Release Floor: patch prerelease
 Version Rationale: FB-030 remains a docs/canon-only voice/audio planning and admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history.
 Release Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; release debt is clear; FB-005 remains selected next planning-only; and FB-005 Branch Readiness may begin only after updated-main revalidation and explicit path-sensitive workspace approval admits a bounded workspace/path slice.
+Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; release debt is clear; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, and `PR Readiness` is next while later workspace/path slices remain explicit approval-gated.
 Selected Next Workstream: FB-005 Workspace and folder organization.
-Next-Branch Creation Gate: After `v1.6.5-prebeta` is published and validated, updated `main` is revalidated, and explicit path-sensitive workspace approval admits FB-005 Branch Readiness.
+Branch Readiness Gate: Satisfied. Release publication, validation, updated-main revalidation, explicit path-sensitive workspace approval, and bounded-slice admission are complete for WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; later workspace/path slices remain separate approval gates.
 - Minimal Scope: Complete the bounded docs/canon voice/audio planning seam chain: current surface inventory and ownership mapping, lifecycle/persona-state framing, and the implementation admission contract before runtime voice, shutdown voice, recovery voice, persona-default, or public voice-copy change begins.
 
 ## Backlog Priority Review
 
-The 2026-04-23 priority reading is updated during FB-030 PR Readiness:
+The 2026-04-23 priority reading is updated during FB-005 Branch Readiness:
 
 - FB-004 is released and closed in `v1.6.3-prebeta`; it is no longer an active or selected-next branch candidate.
 - FB-015 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
 - FB-029 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
-- FB-030 remains `Medium`, is now the merged-unreleased release-debt owner for `v1.6.5-prebeta`, and the completed docs/canon-only voice/audio planning package now waits on file-frozen Release Readiness and prerelease publication before closure.
-- FB-005 remains `Low`, is selected next planning-only, and still requires explicit path-sensitive workspace approval before Branch Readiness admission or branch creation.
+- FB-030 remains `Medium` as historical planning priority, but it is now Released / Closed in `v1.6.5-prebeta` and no longer owns release debt or active branch truth.
+- FB-005 remains `Low` as historical workspace priority, but it is now the merged-unreleased release-debt owner for `v1.6.6-prebeta` and no longer remains the selected-next candidate.
+- FB-042 is now the selected-next planning-only candidate for future Step 5 / top-level experience entrypoint and broader workspace follow-through after `v1.6.6-prebeta` clears release debt.
 
-Current-branch clarity: repo current-state is `No Active Branch`; FB-030 owns merged-unreleased release debt for `v1.6.5-prebeta`; FB-005 is selected next planning-only; and the selected-next implementation branch remains not created.
+Current-branch clarity: merge-target canon now resolves to `No Active Branch`; latest public prerelease remains `v1.6.5-prebeta`; FB-005 is `Merged unreleased` and owns release debt for `v1.6.6-prebeta`; the completed delta remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; the residual visual-path mismatch remains dev-only and non-user-facing; and FB-042 is selected next planning-only with branch not created.
 
 ## Selected Next Workstream
 
-### FB-005 Workspace and folder organization
-
-- Status: `Deferred`
-- Record State: `Registry-only`
-- Priority: `Low`
-- Branch: Not created
-- Selection Basis: FB-005 is the only remaining open backlog candidate after FB-030 and is selected next planning-only while explicit path-sensitive workspace approval remains unresolved.
-- Minimal Scope: Define one bounded workspace/path slice with exact file/path ownership, migration limits, validation coverage, and rollback instructions before any workspace movement or branch admission begins.
-- Branch Creation Gate: After `v1.6.5-prebeta` is published and validated, updated `main` is revalidated, and explicit path-sensitive workspace approval admits FB-005 Branch Readiness.
+ID: `FB-042`
+Title: `Top-level experience entrypoint and broader workspace follow-through`
+Record State: `Registry-only`
+Branch: Not created
+Minimal Scope: Define the planning-first Step 5 / top-level experience entrypoint and broader workspace follow-through lane, including exact ownership, non-goals, branch objective, and admission limits around `main.py`, launcher/VBS routes, root-owned entry surfaces, and adjacent workspace moves before any branch implementation begins.
+Branch Creation Gate: After `v1.6.6-prebeta` publication, validation, and updated-main revalidation; `feature/fb-042-top-level-entrypoint-workspace-follow-through` must remain not created until Branch Readiness admits a bounded planning-first Step 5 / top-level entrypoint slice.
 
 ## Latest Released Workstream Context
 
@@ -150,14 +176,14 @@ Current-branch clarity: repo current-state is `No Active Branch`; FB-030 owns me
 - selection basis: selected during FB-015 PR Readiness as the highest-priority remaining open backlog candidate, then carried on this branch first for blocker-clearing FB-015 canon repair and now for completed Branch Readiness planning.
 - branch: `feature/fb-029-orin-identity-licensing-hardening`
 - phase status: Released / Closed in `v1.6.4-prebeta`; PR #76 merged into `main` at `0897fab768dc07385f83fab81434ba7926ecc4a1`; the milestone remains docs/canon-only historical truth, and explicit product/legal approval still blocks any later implementation-facing naming, licensing, release, runtime, or persona-surface change.
-- repo-level post-release state: FB-030 is now merged-unreleased release debt owner for `v1.6.5-prebeta`, repo state is `No Active Branch`, and FB-005 remains selected next planning-only with branch not created.
+- repo-level post-release state: FB-030 is Released / Closed in `v1.6.5-prebeta`; release debt is clear; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, and `PR Readiness` is next while later workspace/path slices remain explicit approval-gated.
 - next legal seam: none; this record is now historical released truth.
 Release Target: v1.6.4-prebeta
 Release Floor: patch prerelease
 Version Rationale: FB-029 remains a docs/canon-only identity, persona-option, and licensing-planning milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, merged-unreleased package-state repair, and post-merge current-state cleanup.
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-029 is Released / Closed in `v1.6.4-prebeta`; FB-015 is also Released / Closed in the same package; FB-030 is now merged-unreleased release debt owner for `v1.6.5-prebeta`; repo state is `No Active Branch`; and FB-005 remains selected next planning-only with branch not created.
+Post-Release Truth: FB-029 is Released / Closed in `v1.6.4-prebeta`; FB-015 is also Released / Closed in the same package; FB-030 is Released / Closed in `v1.6.5-prebeta`; release debt is clear; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, and `PR Readiness` is next while later workspace/path slices remain explicit approval-gated.
 - Minimal Scope: Define the legal-safe ORIN naming, optional future ARIA persona posture, and licensing-hardening planning frame before any naming, licensing, release, runtime, or persona-facing edits begin.
 
 ### FB-015 Boot And Desktop Phase-Boundary Model
@@ -175,7 +201,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-015 remains a docs/canon-only boot and desktop phase-boundary architecture plus admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: FB-015 boot and desktop phase-boundary inventory, ownership map, lifecycle and state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, post-merge canon repair, and merged-unreleased release-debt framing, plus the FB-029 identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, and PR Readiness package history.
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-015 is Released / Closed in `v1.6.4-prebeta`; FB-029 is also Released / Closed in the same package; FB-030 is now merged-unreleased release debt owner for `v1.6.5-prebeta`; repo state is `No Active Branch`; and FB-005 remains selected next planning-only with branch not created.
+Post-Release Truth: FB-015 is Released / Closed in `v1.6.4-prebeta`; FB-029 is also Released / Closed in the same package; FB-030 is Released / Closed in `v1.6.5-prebeta`; release debt is clear; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, and `PR Readiness` is next while later workspace/path slices remain explicit approval-gated.
 - Minimal Scope: Complete the bounded docs/canon seam chain for current boot/desktop phase-boundary ambiguity, starting with current boundary inventory and ownership mapping before lifecycle framing or implementation-admission rules are extended.
 
 ## Prior Released Workstream Context
@@ -190,7 +216,7 @@ Post-Release Truth: FB-015 is Released / Closed in `v1.6.4-prebeta`; FB-029 is a
 - release title: `Pre-Beta v1.6.3`
 - canonical workstream doc: `Docs/workstreams/FB-004_future_boot_orchestrator_layer.md`
 - sequencing note: released the docs/canon-only future boot-orchestrator architecture milestone, including source map, lifecycle/state framing, ownership boundaries, diagnostics evidence-root correction, rollback boundaries, stale helper caveat, implementation admission contract, hardening, Live Validation waivers, backlog governance sync, and PR Readiness merge-target canon.
-- successor note: FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`, FB-030 now owns merged-unreleased release debt for `v1.6.5-prebeta`, and FB-005 remains selected next planning-only with branch not created.
+- successor note: FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`, FB-030 is released and closed in `v1.6.5-prebeta`, and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, and `PR Readiness` is next while later workspace/path slices remain explicit approval-gated.
 
 ## Prior Released Workstream Context
 
@@ -204,7 +230,7 @@ Post-Release Truth: FB-015 is Released / Closed in `v1.6.4-prebeta`; FB-029 is a
 - release title: `Pre-Beta v1.6.2`
 - canonical workstream doc: `Docs/workstreams/FB-032_nexus_era_vision_and_source_of_truth_migration.md`
 - sequencing note: released the architecture-only Nexus-era source-of-truth migration foundation, including current-vs-historical source inventory, naming policy, canonical-vs-historical surface classification, controlled migration admission contract, governance repairs, hardening, Live Validation waivers, and PR Readiness merge-target canon.
-- successor note: FB-004 is released and closed in `v1.6.3-prebeta`; FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`; FB-030 now owns merged-unreleased release debt for `v1.6.5-prebeta`; and FB-005 remains selected next planning-only with branch not created.
+- successor note: FB-004 is released and closed in `v1.6.3-prebeta`; FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`; FB-030 is released and closed in `v1.6.5-prebeta`; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, and `PR Readiness` is next while later workspace/path slices remain explicit approval-gated.
 
 ## Prior Released Workstream Context
 
@@ -218,7 +244,7 @@ Post-Release Truth: FB-015 is Released / Closed in `v1.6.4-prebeta`; FB-029 is a
 - release title: `Pre-Beta v1.6.1`
 - canonical workstream doc: `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`
 - sequencing note: released the architecture-only UI/UX planning milestone, including source map, visual-language ownership vocabulary, lifecycle and interaction-state framing, future UI implementation admission contract, Hardening pressure test, Live Validation waivers, PR Readiness merge-target canon, and PR-R1 release-floor validator repair.
-- successor note: FB-032 is released and closed in `v1.6.2-prebeta`; FB-004 is released and closed in `v1.6.3-prebeta`; FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`; FB-030 now owns merged-unreleased release debt for `v1.6.5-prebeta`; and FB-005 remains selected next planning-only with branch not created.
+- successor note: FB-032 is released and closed in `v1.6.2-prebeta`; FB-004 is released and closed in `v1.6.3-prebeta`; FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`; FB-030 is released and closed in `v1.6.5-prebeta`; and FB-005 is Promoted on `feature/fb-005-workspace-path-planning`, Workstream WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, and `PR Readiness` is next while later workspace/path slices remain explicit approval-gated.
 
 ## Prior Released Workstream Context
 
@@ -376,7 +402,7 @@ Current merged truth indicates:
   - FB-015 for boot and desktop phase-boundary model, released and closed in `v1.6.4-prebeta`
   - FB-029 for ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening, released and closed in `v1.6.4-prebeta` and still implementation-gated for any later naming, licensing, release, runtime, or persona-facing execution
   - FB-030 for ORIN voice/audio direction refinement, `Medium`, promoted on `feature/fb-030-orin-voice-audio-direction-refinement`, and now carrying the explicit voice/audio design goal, ownership map, and conflict inventory needed for continued Workstream admission
-  - FB-005 for workspace and folder organization, `Low` and gated by explicit path-sensitive workspace approval
+  - FB-005 for workspace and folder organization, `Low`, promoted on `feature/fb-005-workspace-path-planning`, with only WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` admitted while later workspace/path slices remain approval-gated
 - those candidate lanes must be selected deliberately rather than bundled together as one implicit interaction continuation
 - FB-037 Branch Readiness does not imply automatic continuation into any remaining candidate lane
 

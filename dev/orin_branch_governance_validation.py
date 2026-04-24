@@ -329,8 +329,27 @@ PR_READINESS_BLOCKER_PHRASES = (
     "desktop-shortcut",
     "User Test Summary Results Pending",
     "PR Readiness Scope Missed",
+    "Release Window Audit Incomplete",
     "Between-Branch Canon Repair Attempt",
     "Next Branch Created Too Early",
+)
+
+RELEASE_WINDOW_AUDIT_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+    Path("Docs/nexus_startup_contract.md"),
+)
+
+RELEASE_WINDOW_AUDIT_PHRASES = (
+    "Release Window Audit",
+    "Release Window Audit Incomplete",
+    "Remaining Known Release Blockers: None",
+    "Another Pre-Release Repair PR Required: NO",
+    "Release Window Split Waiver: None",
 )
 
 PR_READINESS_RESPONSE_CONTRACT_DOCS = (
@@ -919,13 +938,95 @@ def _user_test_summary_section(text: str) -> str:
 
 def _extract_marker_value(block: str, label: str) -> str:
     matches = re.findall(
-        rf"^\s*(?:-\s*)?{re.escape(label)}\s*`?(.+?)`?\s*$",
+        rf"^\s*(?:-\s*)?{re.escape(label)}:?\s*`?(.+?)`?\s*$",
         block,
         flags=re.M,
     )
     if not matches:
         return ""
     return matches[-1].strip().strip("`").strip()
+
+
+def _validate_release_window_audit(require, source_path: str, text: str) -> None:
+    audit_section = _section(text, "Release Window Audit")
+    require(
+        bool(audit_section),
+        f"{source_path}: PR Readiness requires a Release Window Audit section",
+    )
+    if not audit_section:
+        return
+
+    audit_state = _extract_marker_value(audit_section, "Release Window Audit")
+    remaining_blockers = _extract_marker_value(audit_section, "Remaining Known Release Blockers")
+    another_repair_pr = _extract_marker_value(
+        audit_section, "Another Pre-Release Repair PR Required"
+    )
+    split_waiver = _extract_marker_value(audit_section, "Release Window Split Waiver")
+    split_waiver_reason = _extract_marker_value(
+        audit_section, "Release Window Split Waiver Reason"
+    )
+
+    require(
+        audit_state.upper() == "PASS",
+        f"{source_path}: Release Window Audit must report PASS before PR green",
+    )
+    require(
+        bool(remaining_blockers),
+        f"{source_path}: Release Window Audit is missing 'Remaining Known Release Blockers'",
+    )
+    require(
+        bool(another_repair_pr),
+        (
+            f"{source_path}: Release Window Audit is missing "
+            "'Another Pre-Release Repair PR Required'"
+        ),
+    )
+    require(
+        bool(split_waiver),
+        f"{source_path}: Release Window Audit is missing 'Release Window Split Waiver'",
+    )
+
+    normalized_remaining = remaining_blockers.casefold()
+    normalized_another = another_repair_pr.strip().upper()
+    normalized_waiver = split_waiver.strip().upper()
+
+    if normalized_waiver in {"", "NONE", "NO"}:
+        require(
+            normalized_remaining == "none",
+            (
+                f"{source_path}: without a Release Window Split Waiver, "
+                "Remaining Known Release Blockers must be None"
+            ),
+        )
+        require(
+            normalized_another == "NO",
+            (
+                f"{source_path}: without a Release Window Split Waiver, "
+                "Another Pre-Release Repair PR Required must be NO"
+            ),
+        )
+    else:
+        require(
+            normalized_waiver == "APPROVED",
+            (
+                f"{source_path}: Release Window Split Waiver must be None or APPROVED; "
+                f"found '{split_waiver}'"
+            ),
+        )
+        require(
+            normalized_another == "YES",
+            (
+                f"{source_path}: Release Window Split Waiver APPROVED requires "
+                "Another Pre-Release Repair PR Required: YES"
+            ),
+        )
+        require(
+            bool(split_waiver_reason),
+            (
+                f"{source_path}: Release Window Split Waiver APPROVED requires "
+                "'Release Window Split Waiver Reason'"
+            ),
+        )
 
 
 def _parse_uts_result_state(text: str) -> str:
@@ -1749,6 +1850,14 @@ def main() -> int:
                 f"{relative_path}: PR Readiness blocker guidance is missing '{required_phrase}'",
             )
 
+    for relative_path in RELEASE_WINDOW_AUDIT_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in RELEASE_WINDOW_AUDIT_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: release-window audit guidance is missing '{required_phrase}'",
+            )
+
     for relative_path in PR_READINESS_RESPONSE_CONTRACT_DOCS:
         text = _read_text(relative_path)
         for required_phrase in PR_READINESS_RESPONSE_CONTRACT_PHRASES:
@@ -2533,6 +2642,7 @@ def main() -> int:
                     "No Active Branch handling or successor-branch handling"
                 ),
             )
+            _validate_release_window_audit(require, canonical_path, workstream_text)
 
         phase_status_section = _section(workstream_text, "Phase Status")
         normalized_workstream_status = _normalize_status(str(workstream_info["status"]))
@@ -2890,6 +3000,37 @@ def main() -> int:
                     "tracked files are dirty while Current Phase is Release Readiness"
                 ),
             )
+        if branch_record_path in active_branch_record_paths and str(info["current_phase"]) in {
+            "PR Readiness",
+            "Release Readiness",
+        }:
+            governance_audit = _section(record_text, "Governance Drift Audit")
+            require(
+                bool(governance_audit),
+                (
+                    f"{branch_record_path}: Governance Drift Audit section is required before or during "
+                    f"'{info['current_phase']}'"
+                ),
+            )
+            require(
+                "Governance Drift Found:" in governance_audit,
+                f"{branch_record_path}: Governance Drift Audit is missing 'Governance Drift Found:'",
+            )
+        if branch_record_path in active_branch_record_paths and str(info["current_phase"]) == "PR Readiness":
+            post_merge_state = _section(record_text, "Post-Merge State")
+            require(
+                bool(post_merge_state),
+                f"{branch_record_path}: PR Readiness requires a Post-Merge State section",
+            )
+            require(
+                ("No Active Branch" in post_merge_state)
+                or ("successor" in post_merge_state.casefold()),
+                (
+                    f"{branch_record_path}: PR Readiness Post-Merge State must encode either "
+                    "No Active Branch handling or successor-branch handling"
+                ),
+            )
+            _validate_release_window_audit(require, branch_record_path, record_text)
         if branch_record_path in active_branch_record_paths:
             require(
                 "`Active Branch`" in phase_status_section,

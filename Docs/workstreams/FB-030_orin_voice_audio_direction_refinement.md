@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `Merged unreleased`
+- `Released (v1.6.5-prebeta)`
 
 ## Release Stage
 
@@ -27,18 +27,18 @@
 
 ## Current Phase
 
-- Phase: `Release Readiness`
+- Phase: `Closed`
 
 ## Phase Status
 
-- `Release Readiness is now the active phase on updated main after PR #81 merged cleanly into main at c23adc70e17683d40770bf29571928af95935576.`
+- `Released / Closed in v1.6.5-prebeta.`
 - FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`.
-- Latest public prerelease truth is `v1.6.4-prebeta`.
-- Repo current-state is `No Active Branch`.
-- FB-030 now owns merged-unreleased release debt for `v1.6.5-prebeta`.
-- Release debt is active after PR #81 merged until `v1.6.5-prebeta` is published, validated, and post-release canon closure completes.
-- This blocker-clearing repair branch does not restore active implementation-branch truth; it only carries the merged-state canon repair required before file-frozen Release Readiness can report green.
-- Branch-name reuse is intentional: the earlier emergency repair record with this same branch name remains historical traceability only and does not own live execution authority.
+- Latest Public Prerelease: v1.6.5-prebeta
+- Release Title: Pre-Beta v1.6.5
+- Release debt is clear after live release validation and post-release canon closure.
+- FB-005 is now the merged-unreleased release-debt owner for `v1.6.6-prebeta`; repo state is `No Active Branch`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; and FB-042 remains selected next planning-only with branch not created.
+- FB-030 is now closed historical lane truth and no longer owns active implementation or release-debt truth.
+- Release Execution published `v1.6.5-prebeta` on commit `7c2933d6427feb08a1139ba7f5ba2393eb61f1e1`.
 - The voice/audio design goal and affected-surface map are now explicitly recorded before any runtime voice, shutdown voice, recovery voice, diagnostics, UI, asset, or public-claim change is admitted.
 - WS-1 current voice/audio surface inventory and ownership map is complete and durably recorded below.
 - WS-2 lifecycle and persona-state framing for voice/audio transitions is complete and durably recorded below.
@@ -48,8 +48,7 @@
 - PR-1 merge-target canon completeness is complete and durably recorded below.
 - PR-2 selected-next workstream selection is complete and durably recorded below.
 - PR-3 live PR creation plus validation are complete and durably recorded below.
-- FB-005 remains selected next planning-only, and its implementation branch remains not created.
-- Release Execution is the next legal phase after file-frozen Release Readiness passes on updated main.
+- FB-005 is now the active promoted workspace/path lane, and only WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is admitted while later slices remain approval-gated.
 - No runtime voice behavior, shutdown voice behavior, recovery voice behavior, persona default, public copy, audio asset, or release-note wording change has started.
 
 ## Branch Class
@@ -58,7 +57,7 @@
 
 ## Blockers
 
-None. This branch is limited to post-merge canon repair so merged-unreleased release-debt truth becomes durable before Release Readiness resumes on updated `main`.
+None.
 
 ## Entry Basis
 
@@ -82,22 +81,23 @@ None. This branch is limited to post-merge canon repair so merged-unreleased rel
 
 ## Next Legal Phase
 
-- `Release Readiness`
+- `Branch Readiness`
 
-## Merged-Unreleased Release-Debt Owner
+## Release Closure
 
-- Merged-Unreleased Release-Debt Owner: FB-030 ORIN voice/audio direction refinement
-- Repo State: No Active Branch
-- Latest Public Prerelease: v1.6.4-prebeta
-- Release Debt: Active after PR #81 merged until `v1.6.5-prebeta` is published, validated, and post-release canon closure completes
+- Latest Public Prerelease: v1.6.5-prebeta
+- Release Title: Pre-Beta v1.6.5
+- Published Release URL: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.5-prebeta
+- Published Release Commit: 7c2933d6427feb08a1139ba7f5ba2393eb61f1e1
+- Release Debt: Clear after `v1.6.5-prebeta` publication, validation, and post-release canon closure
 - Release Target: v1.6.5-prebeta
 - Release Floor: patch prerelease
 - Version Rationale: FB-030 remains a docs/canon-only voice/audio planning and admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
-- Release Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history
-- Release Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-- Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; release debt is clear; FB-005 remains selected next planning-only; and FB-005 Branch Readiness may begin only after updated-main revalidation and explicit path-sensitive workspace approval admits a bounded workspace/path slice
+- Released Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history
+- Released Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
+- Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; merged-unreleased release debt is now active for v1.6.6-prebeta; FB-005 is the merged-unreleased release-debt owner with repo state `No Active Branch`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; and FB-042 remains selected next planning-only with branch not created
 - Selected Next Workstream: FB-005 Workspace and folder organization
-- Next-Branch Creation Gate: After `v1.6.5-prebeta` is published and validated, updated `main` is revalidated, and explicit path-sensitive workspace approval admits FB-005 Branch Readiness
+- Branch Readiness Gate: Satisfied. Release publication, validation, updated-main revalidation, explicit path-sensitive workspace approval, and bounded-slice admission are complete for WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; later workspace/path slices remain separate approval gates
 
 ## Branch Objective
 
@@ -660,13 +660,13 @@ Release Floor: patch prerelease
 Version Rationale: FB-030 remains a docs/canon-only voice/audio planning and admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
 Release Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history
 Release Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; release debt is clear; FB-005 remains selected next planning-only; and FB-005 Branch Readiness may begin only after updated-main revalidation and explicit path-sensitive workspace approval admits a bounded workspace/path slice
+Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; merged-unreleased release debt is now active for v1.6.6-prebeta; FB-005 is the merged-unreleased release-debt owner with repo state `No Active Branch`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; and FB-042 remains selected next planning-only with branch not created
 
 ## Post-Merge State
 
 - Historical post-merge state before release execution: repo state becomes `No Active Branch` because FB-030 will own merged-unreleased release debt on `main` for `v1.6.5-prebeta`.
 - Historical pending-package state: the pending release scope contains the completed FB-030 docs/canon-only voice/audio planning milestone only.
-- Historical successor state: FB-005 remains selected next planning-only, and its implementation branch remains not created until release debt clears and explicit path-sensitive workspace approval admits Branch Readiness.
+- Historical successor state: FB-005 remains selected next planning-only, and its implementation branch becomes the blocked Branch Readiness surface only after release debt clears and updated-main revalidation completes.
 
 ## PR Readiness Record
 

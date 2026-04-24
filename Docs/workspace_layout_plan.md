@@ -32,7 +32,7 @@ Current merged desktop runtime path is:
 
 Current desktop test entrypoint is:
 
-- `desktop/orin_desktop_test.py`
+- `dev/desktop/orin_desktop_test.py`
 
 Current audio runtime surfaces are:
 
@@ -61,6 +61,7 @@ Historical note:
 `dev/`
 
 - developer launchers
+- developer desktop harnesses
 - deterministic targets
 - validation helpers and toolkit-oriented support
 
@@ -140,7 +141,7 @@ Examples include:
 - `main.py`
 - `desktop/orin_desktop_launcher.pyw`
 - `desktop/orin_desktop_main.py`
-- `desktop/orin_desktop_test.py`
+- `dev/desktop/orin_desktop_test.py`
 - `Audio/orin_voice.py`
 - `Audio/orin_error_voice.py`
 - `jarvis_visual/`
