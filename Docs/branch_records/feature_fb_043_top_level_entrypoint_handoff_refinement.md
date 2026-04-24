@@ -8,9 +8,11 @@
 
 ## Purpose / Why It Exists
 
-This branch is the active FB-043 `Branch Readiness` surface.
+This branch record is preserved as historical FB-043 `Branch Readiness` traceability.
 
-FB-043 remains `Registry-only` during this pass. The branch exists to close FB-042 post-release canon, rebase current repo truth onto the live `v1.6.7-prebeta` release, admit the first bounded runtime-bearing top-level desktop entrypoint slice, and preserve same-branch continuation for the remaining FB-043 slices needed to finish the backlog item.
+Active execution truth now lives in `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`.
+
+FB-043 no longer remains `Registry-only`: the branch closed FB-042 post-release canon, rebased current repo truth onto the live `v1.6.7-prebeta` release, admitted the first bounded runtime-bearing top-level desktop entrypoint slice, and then promoted into the canonical FB-043 workstream record.
 
 The older `feature/fb-043-release-debt-marker-repair` branch remains historical repair-only traceability and does not imply current Branch Readiness admission or active branch truth for FB-043.
 
@@ -20,17 +22,17 @@ The older `feature/fb-043-release-debt-marker-repair` branch remains historical 
 
 ## Phase Status
 
-- `Active Branch`: `feature/fb-043-top-level-entrypoint-handoff-refinement`
+- `Historical Branch`: `feature/fb-043-top-level-entrypoint-handoff-refinement`
 - FB-042 is Released / Closed in `v1.6.7-prebeta`, and release debt is clear after publication, validation, and post-release canon closure.
 - Latest Public Prerelease: `v1.6.7-prebeta`
 - Latest Public Release Commit: `8f53d163ad008f7508f55f593b15369749e3ec24`
 - Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.7-prebeta`
 - Latest Public Prerelease Title: `Pre-Beta v1.6.7`
-- Repo State: `Active Branch`
-- FB-043 remains selected-only / `Registry-only` during Branch Readiness.
-- A first bounded runtime/user-facing slice is now defined on this branch.
-- The defined slice is admitted for the next legal phase and is bounded to top-level entrypoint handoff behavior rather than broader runtime or workspace reshaping.
-- Same-branch backlog completion remains the default for the remaining FB-043 slices after WS-1 when scope, phase, risk, and validation authority stay green.
+- Repo State At Historical Branch Readiness Time: branch-owned implementation surface
+- FB-043 was selected-only / `Registry-only` during the preserved Branch Readiness pass.
+- A first bounded runtime/user-facing slice was defined on this branch before promotion.
+- The defined slice was admitted for the next legal phase and was bounded to top-level entrypoint handoff behavior rather than broader runtime or workspace reshaping.
+- Same-branch backlog completion remained the default for the remaining FB-043 slices after WS-1 when scope, phase, risk, and validation authority stayed green.
 - The historical repair-only branch `feature/fb-043-release-debt-marker-repair` remains non-admitting traceability only.
 
 ## Branch Class

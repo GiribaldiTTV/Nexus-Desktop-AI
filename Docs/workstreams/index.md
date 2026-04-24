@@ -81,9 +81,7 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-None.
-
-No active implementation workstream remains after FB-042 PR packaging because merge-target canon is now in `No Active Branch` posture for `v1.6.7-prebeta`.
+- `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`
 
 ### Merged / Release Debt Owners
 

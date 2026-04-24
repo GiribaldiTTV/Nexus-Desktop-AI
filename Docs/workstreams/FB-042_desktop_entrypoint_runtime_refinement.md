@@ -45,8 +45,8 @@
 - The declared user-facing desktop shortcut `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk` now has fresh live evidence showing the active branch runtime launches through the real shortcut path, reaches launcher-owned `STARTUP_READY_OBSERVED`, reaches renderer `STARTUP_READY`, and does not route through launcher failure flow.
 - User-facing shortcut validation is now clear in canon, and User Test Summary results are explicitly waived because the branch changes a narrow launch fallback/error-handling seam rather than a broader manual workflow, in-app content flow, settings surface, or multi-step operator interaction.
 - PR Readiness, Release Readiness, and Release Execution are complete historical proof.
-- Selected Next Workstream: FB-043 Top-level desktop entrypoint ownership and main.py handoff refinement.
-- FB-043 Branch Readiness is now active on `feature/fb-043-top-level-entrypoint-handoff-refinement`, and the first bounded runtime-bearing top-level entrypoint slice is defined for Workstream admission with same-branch continuation preserved for the remaining FB-043 slices.
+- Current Active Workstream: FB-043 Top-level desktop entrypoint ownership and main.py handoff refinement.
+- FB-043 is now the active promoted workstream on `feature/fb-043-top-level-entrypoint-handoff-refinement`; WS-1 is complete and same-branch continuation remains preserved for the remaining FB-043 slices.
 - Broader `main.py` reshaping and broader workspace follow-through are explicitly deferred; they are not admitted by inertia on this branch.
 - The historical FB-042 branch-authority record is preserved for traceability only and no longer owns active execution truth.
 

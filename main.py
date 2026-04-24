@@ -1,12 +1,124 @@
-import sys
 import os
+import datetime
+import shutil
+import subprocess
+import sys
+
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+CANONICAL_ENTRYPOINT_SCRIPT = os.path.join(ROOT_DIR, "launch_orin_desktop.vbs")
+VALID_BOOT_PROFILES = {"manual", "auto_handoff_skip_import"}
+VALID_AUDIO_MODES = {"voice", "quiet"}
+
+
+def hidden_windows_subprocess_kwargs():
+    kwargs = {}
+    if os.name == "nt":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 0
+        kwargs["startupinfo"] = startupinfo
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    return kwargs
+
+
+def resolve_windows_script_host():
+    if os.name != "nt":
+        return []
+
+    system_root = os.environ.get("SystemRoot", r"C:\Windows")
+    preferred = os.path.join(system_root, "System32", "wscript.exe")
+    if os.path.isfile(preferred):
+        return [preferred]
+
+    for candidate in ("wscript.exe", "wscript"):
+        resolved = shutil.which(candidate)
+        if resolved:
+            return [resolved]
+
+    return []
+
+
+def direct_parent_command_line():
+    if os.name != "nt":
+        return ""
+
+    parent_pid = os.getppid()
+    if parent_pid <= 0:
+        return ""
+
+    script = (
+        "$ParentPid = [int]$args[0]; "
+        "$Process = Get-CimInstance Win32_Process -Filter ('ProcessId = ' + $ParentPid); "
+        "if ($Process) { $Process.CommandLine }"
+    )
+
+    try:
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", script, str(parent_pid)],
+            cwd=ROOT_DIR,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=5,
+            **hidden_windows_subprocess_kwargs(),
+        )
+    except Exception:
+        return ""
+
+    return (result.stdout or "").strip()
+
+
+def direct_launch_requests_dev_boot(argv):
+    if len(argv) > 1:
+        return True
+
+    parent_command_line = direct_parent_command_line().lower().replace("/", "\\")
+    return "\\dev\\launchers\\launch_orin_main_" in parent_command_line
+
+
+def handoff_to_canonical_desktop_entrypoint():
+    if os.name != "nt":
+        sys.stderr.write(
+            "main.py direct launch now delegates to the Windows desktop entry chain; "
+            "use an explicit dev boot launcher or --boot-profile for the boot prototype path.\n"
+        )
+        return 1
+
+    if not os.path.isfile(CANONICAL_ENTRYPOINT_SCRIPT):
+        sys.stderr.write(f"Missing canonical desktop entrypoint: {CANONICAL_ENTRYPOINT_SCRIPT}\n")
+        return 1
+
+    windows_script_host = resolve_windows_script_host()
+    if not windows_script_host:
+        sys.stderr.write("Windows Script Host is unavailable; cannot start the canonical desktop entry chain.\n")
+        return 1
+
+    try:
+        subprocess.Popen(
+            windows_script_host + ["//nologo", CANONICAL_ENTRYPOINT_SCRIPT],
+            cwd=ROOT_DIR,
+            env=os.environ.copy(),
+            **hidden_windows_subprocess_kwargs(),
+        )
+    except Exception as exc:
+        sys.stderr.write(f"Failed to start the canonical desktop entry chain: {exc}\n")
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__" and not direct_launch_requests_dev_boot(sys.argv):
+    raise SystemExit(handoff_to_canonical_desktop_entrypoint())
+
 import asyncio
 import threading
 import time
 import ctypes
 import random
 import math
-import datetime
 
 from pynput import keyboard as pynput_keyboard
 
@@ -27,9 +139,6 @@ from desktop.single_instance import (
     acquire_or_prompt_replace,
 )
 
-
-VALID_BOOT_PROFILES = {"manual", "auto_handoff_skip_import"}
-VALID_AUDIO_MODES = {"voice", "quiet"}
 BOOT_LOG_ROOTS = {
     "manual": os.path.join("dev", "logs", "boot_manual_flow"),
     "auto_handoff_skip_import": os.path.join("dev", "logs", "boot_auto_handoff_skip_import"),
