@@ -365,6 +365,9 @@ Required add-ons:
 - `Docs-only Workstreams require explicit USER approval.`
 - `Planning-loop bypass requires Planning-Loop Bypass User Approval: APPROVED and Planning-Loop Bypass Reason:.`
 - `Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.`
+- All fixes and repairs use a new `feature/` branch by default.
+- Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
+- Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.
 
 Use this when:
 

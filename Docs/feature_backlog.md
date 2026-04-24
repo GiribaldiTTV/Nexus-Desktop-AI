@@ -56,6 +56,7 @@ Current Active Workstream Before Merge: FB-042 Desktop entrypoint runtime refine
 Active Branch: None.
 Active Branch Before Merge: feature/fb-042-desktop-entrypoint-runtime-refinement.
 Selected Next Workstream: FB-043 Top-level desktop entrypoint ownership and main.py handoff refinement.
+Repair-Only Branch Handling: `feature/fb-043-release-debt-marker-repair` is a repair-only `feature/` branch and does not imply Branch Readiness admission or active branch truth for FB-043.
 Historical Branch Readiness State: Complete on `feature/fb-005-workspace-path-planning`.
 Current Branch Readiness State: Complete on `feature/fb-042-desktop-entrypoint-runtime-refinement`.
 Historical Workstream State: WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete.
@@ -146,6 +147,7 @@ Record State: Registry-only
 Priority: High
 Selection / Unblock: Select after FB-042 because the next highest-value runtime-bearing follow-through is the still-ambiguous top-level desktop entrypoint handoff across `main.py` and the shipped launcher chain. Branch Readiness must keep planning/framing bounded and end by admitting one runtime/user-facing implementation seam rather than another docs-only lane.
 Branch: Not created
+Repair-Only Branch Handling: `feature/fb-043-release-debt-marker-repair` is a repair-only `feature/` branch and does not imply Branch Readiness admission or active branch truth.
 Canonical Workstream Doc: Not created yet
 Branch Readiness: Not started. It must record affected-surface ownership across `main.py`, `launch_orin_desktop.vbs`, `desktop/orin_desktop_launcher.pyw`, `desktop/orin_desktop_main.py`, and `dev/orin_desktop_entrypoint_validation.py`, then admit one bounded runtime-bearing slice.
 Next Workstream: Selected

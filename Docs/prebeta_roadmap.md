@@ -77,7 +77,6 @@ That means the released FB-027 interaction baseline, the released FB-036 authori
 
 ## Current Branch Readiness Posture
 
-Merged-Unreleased Release-Debt Owner: None.
 Merged-Unreleased Release-Debt Owner: FB-042 Desktop entrypoint runtime refinement.
 Repo State: No Active Branch.
 
@@ -93,6 +92,7 @@ Active Branch: `None`
 Active Branch Before Merge: `feature/fb-042-desktop-entrypoint-runtime-refinement`
 Active Branch Before Release: `feature/fb-005-workspace-path-planning`
 Selected Next Workstream: FB-043 Top-level desktop entrypoint ownership and main.py handoff refinement.
+Repair-Only Branch Handling: `feature/fb-043-release-debt-marker-repair` is a repair-only `feature/` branch and does not imply Branch Readiness admission or active branch truth for FB-043.
 Historical Branch Readiness State: Complete on `feature/fb-005-workspace-path-planning`.
 Current Branch Readiness State: Complete on `feature/fb-042-desktop-entrypoint-runtime-refinement`.
 Historical Workstream State: WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete.
@@ -182,6 +182,7 @@ Current-branch clarity: latest public prerelease is `v1.6.6-prebeta`; FB-005 is 
 - status: `selected`
 - record state: `Registry-only`
 - Branch: Not created
+- Repair-Only Branch Handling: `feature/fb-043-release-debt-marker-repair` is a repair-only `feature/` branch and does not imply Branch Readiness admission or active branch truth.
 - selection basis: selected during FB-042 PR Readiness because the next highest-value runtime-bearing follow-through is the still-ambiguous top-level desktop entrypoint handoff across `main.py` and the shipped launcher chain, and the planning-loop guardrail requires the next lane to stay implementation-bearing.
 - branch creation gate: after FB-042 merges, `v1.6.7-prebeta` is published and validated, updated `main` is revalidated, and FB-043 Branch Readiness admits one bounded runtime-bearing top-level entrypoint slice.
 - minimal scope: complete Branch Readiness for a bounded top-level desktop entrypoint ownership and handoff refinement slice across `main.py`, `launch_orin_desktop.vbs`, `desktop/orin_desktop_launcher.pyw`, `desktop/orin_desktop_main.py`, and `dev/orin_desktop_entrypoint_validation.py`, then admit one implementation seam that reduces top-level handoff ambiguity without widening into `Audio/`, `logs/`, `jarvis_visual/`, installer work, or broader workspace reshaping.

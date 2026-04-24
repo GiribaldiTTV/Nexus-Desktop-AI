@@ -7,7 +7,7 @@ This index routes repo-owned authority records for approved branches that do not
 Use this layer for:
 
 - `release packaging` branches
-- historical `docs/governance` or emergency repair records
+- preserved historical `docs/governance` or `emergency canon repair` records
 
 when those branches need a durable repo-owned phase authority record.
 
@@ -21,6 +21,9 @@ Do not use this layer to replace:
 - branch authority records are for explicitly approved non-backlog branches only
 - active-branch-first remains the default during `pre-Beta`
 - new governance-only branches are not used for Nexus work
+- All fixes and repairs use a new `feature/` branch by default.
+- Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
+- Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.
 - between-branch canon repair is blocked
 - missed PR Readiness canon work must be carried by the next active branch's `Branch Readiness` before implementation begins
 - the `Active Branch Authority Records` list is only for branches that are still the current execution base
