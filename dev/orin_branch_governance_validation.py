@@ -679,6 +679,24 @@ NON_RELEASE_WAIVER_BRANCH_CLASSES = (
 
 EMERGENCY_CANON_REPAIR_BRANCH_CLASS = "emergency canon repair"
 REPAIR_ONLY_BRANCH_HANDLING_LABEL = "Repair-Only Branch Handling"
+FEATURE_REPAIR_BRANCH_RE = re.compile(r"(?:origin/)?feature/[A-Za-z0-9._-]+")
+
+FEATURE_BRANCH_REPAIR_CONTRACT_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/codex_user_guide.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/nexus_startup_contract.md"),
+    Path("Docs/branch_records/index.md"),
+)
+
+FEATURE_BRANCH_REPAIR_CONTRACT_PHRASES = (
+    "All fixes and repairs use a new `feature/` branch by default.",
+    "Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.",
+    "Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.",
+)
 
 BRANCH_RECORD_INDEX = Path("Docs/branch_records/index.md")
 
@@ -792,6 +810,10 @@ def _is_open_backlog_candidate(entry: dict[str, str]) -> bool:
 def _extract_colon_value(block: str, label: str) -> str:
     match = re.search(rf"^{re.escape(label)}:\s*(.+)$", block, flags=re.M)
     return match.group(1).strip() if match else ""
+
+
+def _extract_colon_values(block: str, label: str) -> list[str]:
+    return [match.strip() for match in re.findall(rf"^{re.escape(label)}:\s*(.+)$", block, flags=re.M)]
 
 
 def _clean_release_value(value: str) -> str:
@@ -1442,7 +1464,9 @@ def _selected_next_ignored_branch_names(
     return set()
 
 
-def _selected_next_repair_only_branch_handling(blocks: list[str]) -> bool:
+def _selected_next_repair_only_branch_info(blocks: list[str]) -> tuple[bool, set[str]]:
+    handling_active = False
+    handled_branches: set[str] = set()
     for block in blocks:
         marker = _extract_marker_value(block, REPAIR_ONLY_BRANCH_HANDLING_LABEL)
         marker_lower = marker.casefold()
@@ -1452,8 +1476,34 @@ def _selected_next_repair_only_branch_handling(blocks: list[str]) -> bool:
             and "does not imply branch readiness admission" in marker_lower
             and "active branch truth" in marker_lower
         ):
-            return True
-    return False
+            handling_active = True
+            for branch_name in FEATURE_REPAIR_BRANCH_RE.findall(marker):
+                handled_branches.add(branch_name)
+                if branch_name.startswith("origin/"):
+                    handled_branches.add(branch_name.removeprefix("origin/"))
+                else:
+                    handled_branches.add(f"origin/{branch_name}")
+    return handling_active, handled_branches
+
+
+def _require_no_conflicting_marker_values(require, source_name: str, text: str, label: str) -> None:
+    cleaned_values = [
+        _clean_release_value(value)
+        for value in _extract_colon_values(text, label)
+        if _clean_release_value(value)
+    ]
+    unique_values: list[str] = []
+    seen: set[str] = set()
+    for value in cleaned_values:
+        key = value.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_values.append(value)
+    require(
+        len(unique_values) <= 1,
+        f"{source_name}: conflicting '{label}' markers found: {', '.join(unique_values)}",
+    )
 
 
 def _branch_names_for_workstream(
@@ -1609,7 +1659,7 @@ def _run_next_workstream_gate(
     selected_block = selected["block"]
     selected_scope = _extract_colon_value(selected_block, "Minimal Scope")
     roadmap_section = _next_workstream_roadmap_section(roadmap_text)
-    repair_only_handling = _selected_next_repair_only_branch_handling(
+    repair_only_handling, explicitly_handled_repair_branches = _selected_next_repair_only_branch_info(
         [selected_block, roadmap_section]
     )
 
@@ -1675,12 +1725,14 @@ def _run_next_workstream_gate(
         branch_name
         for branch_name in matching_branches
         if branch_record_class_map.get(branch_name) != EMERGENCY_CANON_REPAIR_BRANCH_CLASS
+        and branch_name not in explicitly_handled_repair_branches
     ]
     if repair_only_handling and not non_repair_matching_branches:
         matching_branches = []
     else:
         if not non_repair_matching_branches and any(
             branch_record_class_map.get(branch_name) == EMERGENCY_CANON_REPAIR_BRANCH_CLASS
+            or branch_name in explicitly_handled_repair_branches
             for branch_name in matching_branches
         ):
             require(
@@ -1931,6 +1983,14 @@ def main() -> int:
             "docs/governance" in text,
             f"{relative_path}: docs/governance historical branch-class guidance is missing",
         )
+
+    for relative_path in FEATURE_BRANCH_REPAIR_CONTRACT_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in FEATURE_BRANCH_REPAIR_CONTRACT_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: feature-branch repair contract is missing '{required_phrase}'",
+            )
 
     for relative_path in GOVERNANCE_ONLY_BLOCK_DOCS:
         text = _read_text(relative_path).casefold()
@@ -2469,19 +2529,21 @@ def main() -> int:
                 ignored_selected_next_branch_names,
             )
             if matching_branches:
-                repair_only_handling = _selected_next_repair_only_branch_handling(
+                repair_only_handling, explicitly_handled_repair_branches = _selected_next_repair_only_branch_info(
                     [selected["block"], roadmap_section]
                 )
                 non_repair_matching_branches = [
                     branch_name
                     for branch_name in matching_branches
                     if branch_record_class_map.get(branch_name) != EMERGENCY_CANON_REPAIR_BRANCH_CLASS
+                    and branch_name not in explicitly_handled_repair_branches
                 ]
                 if repair_only_handling and not non_repair_matching_branches:
                     matching_branches = []
                 else:
                     if not non_repair_matching_branches and any(
                         branch_record_class_map.get(branch_name) == EMERGENCY_CANON_REPAIR_BRANCH_CLASS
+                        or branch_name in explicitly_handled_repair_branches
                         for branch_name in matching_branches
                     ):
                         require(
@@ -2987,6 +3049,24 @@ def main() -> int:
 
         if normalized_workstream_status == "merged unreleased":
             roadmap_section = _roadmap_section_for_id(roadmap_text, workstream_id)
+            _require_no_conflicting_marker_values(
+                require,
+                "Docs/feature_backlog.md",
+                backlog_text,
+                "Merged-Unreleased Release-Debt Owner",
+            )
+            _require_no_conflicting_marker_values(
+                require,
+                "Docs/prebeta_roadmap.md",
+                roadmap_text,
+                "Merged-Unreleased Release-Debt Owner",
+            )
+            _require_no_conflicting_marker_values(
+                require,
+                canonical_path,
+                workstream_text,
+                "Merged-Unreleased Release-Debt Owner",
+            )
             for required_marker in REQUIRED_MERGED_UNRELEASED_MARKERS:
                 require(
                     required_marker in workstream_text,

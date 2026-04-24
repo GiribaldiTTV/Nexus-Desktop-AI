@@ -38,7 +38,7 @@ For phase-sensitive execution, prompts must include:
 
 Add these fields when relevant:
 
-- `Branch Class: <implementation / docs/governance / emergency canon repair / release packaging>`
+- `Branch Class: <implementation / repair on new feature branch / docs/governance historical context only with explicit waiver / emergency canon repair historical context only with explicit waiver / release packaging>`
 - `Active Seam: <seam name>`
 - `Seam Sequence: <ordered seam list>` when the current phase permits a bounded multi-seam pipeline
 - `Validation Contract: <summary or authority reference>`
@@ -150,6 +150,9 @@ This path is for explicitly approved non-backlog branch classes such as:
 - `release packaging`
 
 `docs/governance` branch records may exist as historical records, but new governance-only branches are not used in the normal Nexus flow.
+All fixes and repairs use a new `feature/` branch by default.
+Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
+Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.
 Tightly coupled governance and canon repair must ride on the active branch that owns the affected truth.
 It must not be used to avoid carrying supporting canon sync on an already-active implementation branch.
 

@@ -58,7 +58,7 @@ Use this ownership split unless a validated source conflict requires a temporary
 - User Test Summary = validation-contract layer owned by the relevant workstream
 - phase governance = repo-wide execution, proof, timeout, seam, stop-loss, validation-helper, and desktop UI audit contract
 - validation helper registry = repo-wide helper naming, ownership, reuse, workstream-scoped exception, and consolidation contract
-- branch authority records = repo-owned phase owners for approved non-backlog `release packaging` branches and historical `docs/governance` records
+- branch authority records = repo-owned phase owners for approved non-backlog `release packaging` branches and preserved historical `docs/governance` or `emergency canon repair` records; new fixes and repairs still use a new `feature/` branch by default
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 ## Analysis-First Prompt Baseline
@@ -248,6 +248,9 @@ These are reference layers, not active workstream or roadmap owners.
 - if repo truth resolves to blocked `No Active Branch`, report the blocking repair path
 - if repo truth resolves to steady-state `No Active Branch`, do not invent a next implementation branch by inertia
 - governance-only branches are not used for new Nexus work; governance or canon repair rides on the active branch that owns the affected truth, or on the next active branch's `Branch Readiness` if a PR Readiness miss escaped the prior branch
+- All fixes and repairs use a new `feature/` branch by default.
+- Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
+- Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.
 - Pre-PR Durability Rule: before `PR Readiness`, when a bounded phase pass or durability seam changes source, docs, canon, validator, helper registry, workstream authority, or branch-truth files and validation is green, Codex must commit and push those changes on the active branch instead of stopping at a copy-ready, staged-only, or uncommitted state
 - the Pre-PR Durability Rule applies through `Branch Readiness`, `Workstream`, `Hardening`, and `Live Validation`; `PR Readiness` remains the later merge-target gate and must still prove clean durable branch truth
 - prompt-level requests to stop before commit/push are not durability exceptions; only a documented `Durability Waiver`, failed validation, legally file-frozen `Release Readiness`, or a named Codex self-imposed blocker may stop commit/push, and self-imposed blockers must automatically commit and push once lifted

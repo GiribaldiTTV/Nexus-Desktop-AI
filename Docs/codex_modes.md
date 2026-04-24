@@ -148,6 +148,9 @@ In Workflow mode, Codex should:
 - Docs-only Workstreams require explicit USER approval.
 - Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
 - Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
+- All fixes and repairs use a new `feature/` branch by default.
+- Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
+- Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.
 
 ### What Codex Must Not Do
 
@@ -160,6 +163,7 @@ In Workflow mode, Codex must not:
 - stop after a green seam merely because the prompt task named only the entry seam, the output asks for `Next Safe Move`, durability completed, or one seam was recorded
 - treat branch existence, branch rename, backlog promotion, repair-only traceability, or release-bearing posture as Workstream progress by themselves
 - treat planning or canon-only output on an implementation branch as valid Workstream progress without explicit USER-approved bypass markers
+- open a `docs/governance` or `emergency canon repair` branch for a fix or repair without explicit USER waiver
 
 ### Expected Outputs
 

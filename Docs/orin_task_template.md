@@ -54,7 +54,7 @@ Phase:
 [Branch Readiness / Workstream / Hardening / Live Validation / PR Readiness / Release Readiness]
 
 Branch Class:
-[implementation / docs/governance / emergency canon repair / release packaging]
+[implementation / repair on new feature branch / release packaging / docs/governance historical context only with explicit Docs/Governance Branch Waiver: APPROVED / emergency canon repair historical context only with explicit Docs/Governance Branch Waiver: APPROVED]
 
 Implementation Delta Class:
 [runtime/user-facing / backend/runtime / developer-tooling / docs-only / comma-separated non-docs-only values]
@@ -591,3 +591,6 @@ During Release Execution, use GitHub-generated release notes through the GitHub 
 - Do not modify backlog status or add backlog items unless the task explicitly authorizes backlog updates.
 - Do not force tightly coupled governance or canon updates onto a separate docs/governance branch when the active branch owns the affected truth and the update can stay inside its current phase, branch class, validation rules, and stop conditions.
 - Do not open a governance-only branch or between-branch repair window for missed PR Readiness work; carry the repair in the next active branch's `Branch Readiness` before implementation begins.
+- All fixes and repairs use a new `feature/` branch by default.
+- Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
+- Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.

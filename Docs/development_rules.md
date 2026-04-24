@@ -66,7 +66,7 @@ Use this layered ownership model:
 - User Test Summary = validation-contract layer owned by workstreams
 - phase governance = repo-wide execution, exact phase enum, blockers, branch classes, proof, timeout, seam, stop-loss, validation-helper, Governance Drift Audit, phase resolver, and desktop UI audit contract
 - validation helper registry = repo-wide helper naming, helper ownership, reuse-first inventory, workstream-scoped exception markers, and consolidation contract
-- branch authority records = repo-owned phase owners for approved non-backlog `release packaging` branches and historical `docs/governance` records
+- branch authority records = repo-owned phase owners for approved non-backlog `release packaging` branches and preserved historical `docs/governance` or `emergency canon repair` records; new fixes and repairs still use a new `feature/` branch by default
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 Use `Docs/phase_governance.md` for:
@@ -210,6 +210,9 @@ When a governance or canon update is directly required to keep the active branch
 That allowance does not permit unrelated governance churn, product scope expansion, validation weakening, stop-condition weakening, or phase-authority bypass.
 Do not use a standalone `docs/governance` branch to carry routine canon or governance work that belongs on an already-active implementation or release branch.
 Do not open a governance-only branch for between-branch canon repair.
+All fixes and repairs use a new `feature/` branch by default.
+Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
+Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.
 If PR Readiness missed required canon or docs work and the owning branch has already merged, the next active branch must treat the miss as a `Branch Readiness` blocker and repair it before implementation begins.
 
 Pre-PR Durability Rule:
@@ -333,6 +336,9 @@ That means:
 - governance-only branches are not used for new Nexus work:
   - governance and canon repair ride on the active branch when tied to that branch's truth
   - between-branch canon repair is blocked
+  - all fixes and repairs use a new `feature/` branch by default
+  - `docs/governance` and `emergency canon repair` branches are waiver-only historical paths that require `Docs/Governance Branch Waiver: APPROVED` from the USER
+  - repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth
   - direct writes to `main` are blocked as `Main Write Attempt`
   - Release Readiness must not absorb docs sync or canon cleanup that PR Readiness should have completed
   - Release Readiness must not mutate files to repair a discovered gap; use `PR Readiness` before merge or the next active branch's `Branch Readiness` after merge
