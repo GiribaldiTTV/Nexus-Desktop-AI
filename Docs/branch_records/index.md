@@ -42,7 +42,7 @@ Do not use this layer to replace:
 
 ## Active Branch Authority Records
 
-- `Docs/branch_records/feature_fb_042_step5_entrypoint_planning.md`
+None.
 
 ## Historical Branch Authority Records
 
@@ -52,3 +52,4 @@ Do not use this layer to replace:
 - `Docs/branch_records/feature_fb_030_orin_voice_audio_direction_refinement.md`
 - `Docs/branch_records/feature_fb_030_release_readiness_canon_repair.md`
 - `Docs/branch_records/feature_fb_030_successor_branch_truth_repair.md`
+- `Docs/branch_records/feature_fb_042_step5_entrypoint_planning.md`

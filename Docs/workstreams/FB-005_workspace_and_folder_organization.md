@@ -46,7 +46,7 @@
 - The pending release scope ends after WS-1 because no WS-2 or later FB-005 slice is admitted yet; later slices remain explicit approval gates.
 - No reverse runtime dependency on `dev/desktop/` or the moved harness was found.
 - LV-1 confirms the residual visual-path mismatch is dev-only and non-user-facing: the harness still names historical visual file `jarvis_core_desktop.html` while the current desktop visual asset on disk is `orin_core_desktop.html`.
-- Selected-next planning truth is locked to FB-042 Top-level experience entrypoint and broader workspace follow-through, and Branch Readiness is now active on `feature/fb-042-step5-entrypoint-planning` while FB-042 remains planning-only / `Registry-only` with no Workstream slice admitted.
+- Selected-next planning truth is locked to FB-042 Top-level experience entrypoint and broader workspace follow-through. Historical repair-only traceability exists on `feature/fb-042-step5-entrypoint-planning`, but branch existence does not imply Branch Readiness admission or active branch truth for FB-042, and no Workstream slice is admitted.
 - Merge-target current-state truth is branchless release-debt ownership, not branch-owned execution.
 - PR #83 merged into `main` at `873c9b6801802a05bbcef074595e632c0ec9f1d2`, and current merge-target truth is now merged-unreleased release-debt ownership rather than open-PR state.
 
@@ -330,8 +330,8 @@ Release Floor: patch prerelease
 Version Rationale: FB-005 delivers a bounded dev-only workspace/path implementation slice and direct path-truth sync with no change to shipped runtime entrypoints, launcher paths, audio paths, logs, visual assets, installer behavior, or user-facing desktop behavior
 Release Scope: WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, PR package history, and merged-unreleased release-debt truth for the first admitted FB-005 slice only
 Release Artifacts: Tag v1.6.6-prebeta; release title Pre-Beta v1.6.6; rich Markdown release notes summarize the bounded FB-005 WS-1 workspace slice, validation evidence, non-user-facing release posture, and selected-next planning lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 remains selected next planning-only / `Registry-only` on `feature/fb-042-step5-entrypoint-planning` until Branch Readiness admits a bounded Step 5 / top-level entrypoint planning slice
-Next-Branch Creation Gate: Superseded by the active blocker-clearing Branch Readiness route. `feature/fb-042-step5-entrypoint-planning` is now the current FB-042 Branch Readiness branch, but FB-042 remains planning-first / `Registry-only` and must not admit any implementation slice until Branch Readiness completes
+Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 remains selected next planning-only / `Registry-only` while historical repair-only traceability may exist on `feature/fb-042-step5-entrypoint-planning`; branch existence does not imply Branch Readiness admission or active branch truth until a bounded Step 5 / top-level entrypoint planning slice is explicitly admitted later
+Next-Branch Creation Gate: Repair-only historical traceability on `feature/fb-042-step5-entrypoint-planning` does not count as Branch Readiness admission or implementation-branch activation. FB-042 remains planning-first / `Registry-only` until Branch Readiness is explicitly admitted later
 
 ## Post-Merge State
 

@@ -638,6 +638,7 @@ NON_RELEASE_WAIVER_BRANCH_CLASSES = (
 )
 
 EMERGENCY_CANON_REPAIR_BRANCH_CLASS = "emergency canon repair"
+REPAIR_ONLY_BRANCH_HANDLING_LABEL = "Repair-Only Branch Handling"
 
 BRANCH_RECORD_INDEX = Path("Docs/branch_records/index.md")
 
@@ -1268,6 +1269,20 @@ def _selected_next_ignored_branch_names(
     return set()
 
 
+def _selected_next_repair_only_branch_handling(blocks: list[str]) -> bool:
+    for block in blocks:
+        marker = _extract_marker_value(block, REPAIR_ONLY_BRANCH_HANDLING_LABEL)
+        marker_lower = marker.casefold()
+        if (
+            marker
+            and "repair-only" in marker_lower
+            and "does not imply branch readiness admission" in marker_lower
+            and "active branch truth" in marker_lower
+        ):
+            return True
+    return False
+
+
 def _branch_names_for_workstream(
     branch_names: list[str],
     workstream_id: str,
@@ -1402,6 +1417,7 @@ def _run_next_workstream_gate(
     backlog_entries: list[dict[str, str]],
     roadmap_text: str,
     ignored_branch_names: set[str],
+    branch_record_class_map: dict[str, str],
 ) -> None:
     selected_entries = _selected_next_workstream_entries(backlog_entries)
     require(
@@ -1420,6 +1436,9 @@ def _run_next_workstream_gate(
     selected_block = selected["block"]
     selected_scope = _extract_colon_value(selected_block, "Minimal Scope")
     roadmap_section = _next_workstream_roadmap_section(roadmap_text)
+    repair_only_handling = _selected_next_repair_only_branch_handling(
+        [selected_block, roadmap_section]
+    )
 
     require(
         selected_record_state in VALID_NEXT_WORKSTREAM_RECORD_STATES,
@@ -1464,13 +1483,14 @@ def _run_next_workstream_gate(
                 "Docs/prebeta_roadmap.md selected-next section must define Minimal Scope"
             ),
         )
-        require(
-            any(phrase.casefold() in roadmap_section.casefold() for phrase in NEXT_WORKSTREAM_BRANCH_NOT_CREATED_PHRASES),
-            (
-                "PR readiness gate: Successor Lock Missing blocker is active; "
-                "Docs/prebeta_roadmap.md must record that no branch exists yet for the selected next workstream"
-            ),
-        )
+        if not repair_only_handling:
+            require(
+                any(phrase.casefold() in roadmap_section.casefold() for phrase in NEXT_WORKSTREAM_BRANCH_NOT_CREATED_PHRASES),
+                (
+                    "PR readiness gate: Successor Lock Missing blocker is active; "
+                    "Docs/prebeta_roadmap.md must record that no branch exists yet for the selected next workstream"
+                ),
+            )
 
     branch_names, branch_error = _git_branch_names()
     require(
@@ -1478,6 +1498,28 @@ def _run_next_workstream_gate(
         f"PR readiness gate: could not inspect branch names for selected next workstream: {branch_error}",
     )
     matching_branches = _branch_names_for_workstream(branch_names, selected_id, ignored_branch_names)
+    non_repair_matching_branches = [
+        branch_name
+        for branch_name in matching_branches
+        if branch_record_class_map.get(branch_name) != EMERGENCY_CANON_REPAIR_BRANCH_CLASS
+    ]
+    if repair_only_handling and not non_repair_matching_branches:
+        matching_branches = []
+    else:
+        if not non_repair_matching_branches and any(
+            branch_record_class_map.get(branch_name) == EMERGENCY_CANON_REPAIR_BRANCH_CLASS
+            for branch_name in matching_branches
+        ):
+            require(
+                repair_only_handling,
+                (
+                    "PR readiness gate: Successor Lock Missing blocker is active; "
+                    f"{selected_id} only has repair-only branch(es): {', '.join(matching_branches)}, "
+                    "but roadmap/backlog do not explicitly declare that repair-only branch existence "
+                    "does not imply Branch Readiness admission or active branch truth"
+                ),
+            )
+        matching_branches = non_repair_matching_branches or matching_branches
     require(
         not matching_branches,
         (
@@ -1611,6 +1653,7 @@ def _run_pr_readiness_gate(
     backlog_entries: list[dict[str, str]],
     roadmap_text: str,
     ignored_branch_names: set[str],
+    branch_record_class_map: dict[str, str],
 ) -> None:
     status_output = _git_status_porcelain()
     require(
@@ -1621,7 +1664,13 @@ def _run_pr_readiness_gate(
         ),
     )
     _run_uts_results_pr_gate(require, backlog_entries)
-    _run_next_workstream_gate(require, backlog_entries, roadmap_text, ignored_branch_names)
+    _run_next_workstream_gate(
+        require,
+        backlog_entries,
+        roadmap_text,
+        ignored_branch_names,
+        branch_record_class_map,
+    )
     _run_pr_live_state_gate(require)
 
 
@@ -2214,7 +2263,13 @@ def main() -> int:
                 )
 
     if pr_readiness_gate:
-        _run_pr_readiness_gate(require, backlog_entries, roadmap_text, ignored_selected_next_branch_names)
+        _run_pr_readiness_gate(
+            require,
+            backlog_entries,
+            roadmap_text,
+            ignored_selected_next_branch_names,
+            branch_record_class_map,
+        )
 
     selected_entries = _selected_next_workstream_entries(backlog_entries)
     if len(selected_entries) == 1 and not pr_readiness_gate:
@@ -2232,6 +2287,32 @@ def main() -> int:
                 selected_id,
                 ignored_selected_next_branch_names,
             )
+            if matching_branches:
+                repair_only_handling = _selected_next_repair_only_branch_handling(
+                    [selected["block"], roadmap_section]
+                )
+                non_repair_matching_branches = [
+                    branch_name
+                    for branch_name in matching_branches
+                    if branch_record_class_map.get(branch_name) != EMERGENCY_CANON_REPAIR_BRANCH_CLASS
+                ]
+                if repair_only_handling and not non_repair_matching_branches:
+                    matching_branches = []
+                else:
+                    if not non_repair_matching_branches and any(
+                        branch_record_class_map.get(branch_name) == EMERGENCY_CANON_REPAIR_BRANCH_CLASS
+                        for branch_name in matching_branches
+                    ):
+                        require(
+                            repair_only_handling,
+                            (
+                                "Selected next workstream branch truth is ambiguous: "
+                                f"{selected_id} only has repair-only branch(es) {', '.join(matching_branches)}, "
+                                "but roadmap/backlog do not explicitly declare that repair-only branch existence "
+                                "does not imply Branch Readiness admission or active branch truth"
+                            ),
+                        )
+                    matching_branches = non_repair_matching_branches or matching_branches
             if matching_branches:
                 current_branch = current_git_branch
                 roadmap_lower = roadmap_section.casefold()
