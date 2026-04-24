@@ -80,7 +80,7 @@ That may be an executable branch owner or another explicitly promoted current-tr
 
 - `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 
-FB-042 Desktop entrypoint runtime refinement is the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`. Branch Readiness is complete, WS-1 desktop shortcut launch-path runtime refinement is admitted and active, and broader `main.py` reshaping plus broader workspace follow-through remain explicitly deferred until a later bounded seam.
+FB-042 Desktop entrypoint runtime refinement is the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`. Branch Readiness is complete, WS-1 desktop shortcut launch-path runtime refinement is complete and validated, Hardening is next, and broader `main.py` reshaping plus broader workspace follow-through remain explicitly deferred until a later bounded seam.
 
 ### Merged / Release Debt Owners
 

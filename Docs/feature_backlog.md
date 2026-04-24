@@ -37,7 +37,7 @@ None.
 
 - `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 
-FB-042 Desktop entrypoint runtime refinement is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`. Latest public prerelease truth is `v1.6.6-prebeta`; release debt is clear; Branch Readiness is complete; and WS-1 desktop shortcut launch-path runtime refinement is admitted and active. Broader `main.py` reshaping and broader workspace follow-through remain explicitly deferred until a later bounded seam.
+FB-042 Desktop entrypoint runtime refinement is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`. Latest public prerelease truth is `v1.6.6-prebeta`; release debt is clear; Branch Readiness is complete; and WS-1 desktop shortcut launch-path runtime refinement is complete and validated. Hardening is next, while broader `main.py` reshaping and broader workspace follow-through remain explicitly deferred until a later bounded seam.
 Released baseline truth is aligned: FB-040 is released and closed in `v1.6.0-prebeta`, FB-031 is released and closed in `v1.6.1-prebeta`, FB-032 is released and closed in `v1.6.2-prebeta`, FB-004 is released and closed in `v1.6.3-prebeta`, FB-015 plus FB-029 are released and closed in `v1.6.4-prebeta`, FB-030 is released and closed in `v1.6.5-prebeta`, and FB-005 is now released and closed in `v1.6.6-prebeta`.
 FB-039 is released and closed in `v1.5.0-prebeta`.
 FB-038 remains released and closed in `v1.4.1-prebeta`.
@@ -57,16 +57,16 @@ Selected Next Workstream: None yet. Selection deferred until FB-042 PR Readiness
 Historical Branch Readiness State: Complete on `feature/fb-005-workspace-path-planning`.
 Current Branch Readiness State: Complete on `feature/fb-042-desktop-entrypoint-runtime-refinement`.
 Historical Workstream State: WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete.
-Active Workstream State: WS-1 desktop shortcut launch-path runtime refinement is admitted and active.
+Active Workstream State: WS-1 desktop shortcut launch-path runtime refinement is complete and validated. Hardening is next.
 Historical Hardening State: Complete on `feature/fb-005-workspace-path-planning`.
 Historical Live Validation State: Complete on `feature/fb-005-workspace-path-planning`.
 PR Readiness State: Complete on `feature/fb-005-workspace-path-planning`; PR #83 merged into `main` at `873c9b6801802a05bbcef074595e632c0ec9f1d2`.
 Release Execution State: `v1.6.6-prebeta` is live at https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.6-prebeta on commit `deeaa691a79dd01897f6aed82f087970db7019b3`.
-Admitted Workstream Chain: WS-1 desktop shortcut launch-path runtime refinement is admitted and active.
+Admitted Workstream Chain: WS-1 desktop shortcut launch-path runtime refinement is complete and validated. No WS-2 or later seam is admitted yet.
 
 ## Backlog Governance Sync
 
-Last Reviewed: 2026-04-24 during FB-042 Branch Reorientation.
+Last Reviewed: 2026-04-24 during FB-042 WS-1 desktop shortcut launch-path runtime refinement.
 
 Open-candidate priority review:
 
@@ -75,9 +75,9 @@ Open-candidate priority review:
 - FB-029 is released and closed in `v1.6.4-prebeta`; it no longer owns release debt or active branch truth.
 - FB-030 remains `Medium` as historical planning priority, but it is now Released / Closed in `v1.6.5-prebeta` and no longer owns release debt or active branch truth.
 - FB-005 remains `Low` as historical workspace priority, but it is now Released / Closed in `v1.6.6-prebeta` and no longer owns release debt or selected-next truth.
-- FB-042 is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement admitted.
+- FB-042 is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement complete / validated.
 
-Current-branch clarity: latest public prerelease is `v1.6.6-prebeta`; FB-005 is Released / Closed and release debt is clear; the completed delta remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; the residual visual-path mismatch remains dev-only and non-user-facing; and FB-042 is the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement` with WS-1 desktop shortcut launch-path runtime refinement admitted.
+Current-branch clarity: latest public prerelease is `v1.6.6-prebeta`; FB-005 is Released / Closed and release debt is clear; the historical FB-005 residual visual-path mismatch remains dev-only and non-user-facing; and FB-042 is the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement` with WS-1 desktop shortcut launch-path runtime refinement complete / validated and Hardening next.
 
 ## Registry Items
 
@@ -104,9 +104,9 @@ Release Floor: patch prerelease
 Version Rationale: FB-005 delivers a bounded dev-only workspace/path implementation slice and direct path-truth sync with no change to shipped runtime entrypoints, launcher paths, audio paths, logs, visual assets, installer behavior, or user-facing desktop behavior, so patch prerelease remains the correct floor.
 Release Scope: WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, PR package history, and release publication for the first admitted FB-005 slice only.
 Release Artifacts: Tag v1.6.6-prebeta; release title Pre-Beta v1.6.6; rich Markdown release notes summarize the bounded FB-005 WS-1 workspace slice, validation evidence, non-user-facing release posture, and selected-next planning lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 is the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement admitted.
+Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 is the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement complete / validated.
 Selected Next Workstream: None yet. Selection is deferred until FB-042 PR Readiness.
-Next-Branch Creation Gate: Consumed. FB-042 Branch Readiness is complete on `feature/fb-042-desktop-entrypoint-runtime-refinement`, WS-1 desktop shortcut launch-path runtime refinement is admitted, and broader `main.py` reshaping plus broader workspace follow-through remain explicitly deferred until a later bounded seam.
+Next-Branch Creation Gate: Consumed. FB-042 Branch Readiness is complete on `feature/fb-042-desktop-entrypoint-runtime-refinement`, WS-1 desktop shortcut launch-path runtime refinement is complete / validated, Hardening is next, and broader `main.py` reshaping plus broader workspace follow-through remain explicitly deferred until a later bounded seam.
 Minimal Scope: Complete only the admitted WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, with direct reference sync and no broader workspace movement.
 Summary: Continue workspace organization only through explicitly approved path-sensitive slices, beginning with the now-completed dev-only desktop test harness move.
 Why it matters: Keeps folder and ownership cleanup deliberate instead of letting it blur into unrelated feature work.
@@ -116,11 +116,11 @@ Why it matters: Keeps folder and ownership cleanup deliberate instead of letting
 Status: Active
 Record State: Promoted
 Priority: Low
-Selection / Unblock: Reoriented on the current branch lineage from a planning-only Step 5 bucket into a runtime-bearing implementation lane so FB-042 can begin with real desktop entrypoint/user-facing progress instead of another docs-only Workstream. Branch Readiness is complete, the branch is renamed to match the admitted work, and WS-1 desktop shortcut launch-path runtime refinement is now admitted and active.
+Selection / Unblock: Reoriented on the current branch lineage from a planning-only Step 5 bucket into a runtime-bearing implementation lane so FB-042 can begin with real desktop entrypoint/user-facing progress instead of another docs-only Workstream. Branch Readiness is complete, the branch is renamed to match the admitted work, and WS-1 desktop shortcut launch-path runtime refinement is now complete and validated.
 Branch: feature/fb-042-desktop-entrypoint-runtime-refinement
 Canonical Workstream Doc: Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md
 Branch Readiness: Complete. Planning/framing now happens before Workstream, and the admitted WS-1 slice is recorded with owned paths, non-goals, validation coverage, rollback limits, and user-facing shortcut contract in the canonical workstream doc.
-Workstream: Active. WS-1 desktop shortcut launch-path runtime refinement is admitted and active on the real `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py` path.
+Workstream: Complete through WS-1. WS-1 desktop shortcut launch-path runtime refinement is complete and validated on the real `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py` path, and Hardening is next.
 Branch Meaning: Branch existence now means active promoted implementation ownership of the real desktop entrypoint/runtime launch path. It does not authorize `main.py` reshaping, broader workspace movement, or adjacent runtime expansion by inertia.
 Next Workstream: Active
 Minimal Scope: Execute only WS-1 desktop shortcut launch-path runtime refinement across `launch_orin_desktop.vbs`, `desktop/orin_desktop_launcher.pyw`, `desktop/orin_desktop_main.py`, and `dev/orin_desktop_entrypoint_validation.py`, while keeping `main.py`, broader workspace follow-through, audio, logs, visual assets, and installer redesign out of scope.
@@ -153,7 +153,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-015 remains a docs/canon-only boundary inventory, ownership, lifecycle, and implementation-admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Boot and desktop phase-boundary inventory, ownership map, lifecycle/state framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, post-merge canon repair, and merged-unreleased release-debt truth.
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and governance results without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-015 is Released / Closed in v1.6.4-prebeta; FB-029 is also Released / Closed in the same package; FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement admitted.
+Post-Release Truth: FB-015 is Released / Closed in v1.6.4-prebeta; FB-029 is also Released / Closed in the same package; FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement complete / validated.
 Minimal Scope: Complete the bounded docs/canon seam chain for current boot/desktop phase-boundary ambiguity, starting with current boundary inventory and ownership mapping before lifecycle framing or implementation-admission rules are extended.
 Summary: Preserve the future boot and desktop phase-boundary model above the already-closed milestone taxonomy work.
 Why it matters: Keeps boot-versus-desktop ownership planning explicit without reopening the closed taxonomy milestone by inertia.
@@ -183,7 +183,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-029 remains a docs/canon-only identity, persona-option, and licensing-planning milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Identity source-of-truth inventory, persona-option boundary framing, licensing boundary framing, implementation admission contract, hardening corrections, Live Validation waivers, PR package history, merged-unreleased package-state repair, and post-merge current-state cleanup.
 Release Artifacts: Tag v1.6.4-prebeta; release title Pre-Beta v1.6.4; rich Markdown release notes summarize the FB-015 boundary model and the FB-029 identity/licensing planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-029 is Released / Closed in v1.6.4-prebeta; FB-015 is also Released / Closed in the same package; FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement admitted.
+Post-Release Truth: FB-029 is Released / Closed in v1.6.4-prebeta; FB-015 is also Released / Closed in the same package; FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement complete / validated.
 Minimal Scope: Define the Branch Readiness frame for legal-safe ORIN naming, optional future ARIA persona posture, and repo licensing hardening before any naming, licensing, release, runtime, or persona-facing edits begin; Workstream remains docs/canon only unless a later legal surface explicitly widens scope.
 Summary: Track future ORIN-era naming, persona, and licensing hardening work without treating the local rebrand overlay as merged truth.
 Why it matters: Product identity, legal posture, and repo ownership still need durable future treatment, but not by accidental carry-forward.
@@ -213,9 +213,9 @@ Release Floor: patch prerelease
 Version Rationale: FB-030 remains a docs/canon-only voice/audio planning and admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability.
 Release Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history.
 Release Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
-Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement admitted.
+Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 is now the active promoted implementation workstream on `feature/fb-042-desktop-entrypoint-runtime-refinement`, with Branch Readiness complete and WS-1 desktop shortcut launch-path runtime refinement complete / validated.
 Selected Next Workstream: None yet. Selection is deferred until FB-042 PR Readiness.
-Next-Branch Creation Gate: Consumed. FB-042 Branch Readiness is complete on `feature/fb-042-desktop-entrypoint-runtime-refinement`, WS-1 desktop shortcut launch-path runtime refinement is admitted, and broader `main.py` reshaping plus broader workspace follow-through remain explicitly deferred until a later bounded seam.
+Next-Branch Creation Gate: Consumed. FB-042 Branch Readiness is complete on `feature/fb-042-desktop-entrypoint-runtime-refinement`, WS-1 desktop shortcut launch-path runtime refinement is complete / validated, Hardening is next, and broader `main.py` reshaping plus broader workspace follow-through remain explicitly deferred until a later bounded seam.
 Minimal Scope: Complete the bounded docs/canon voice/audio planning seam chain: current surface inventory and ownership mapping, lifecycle/persona-state framing, and the implementation admission contract before runtime voice/audio changes are considered.
 Summary: Preserve future ORIN voice-direction refinement as its own bounded persona-facing lane.
 Why it matters: Voice identity should be intentional and should not piggyback on unrelated runtime or canon work.

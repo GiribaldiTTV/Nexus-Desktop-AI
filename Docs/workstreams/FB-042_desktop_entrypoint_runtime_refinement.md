@@ -28,8 +28,10 @@
 - Latest public prerelease truth is `v1.6.6-prebeta`.
 - `v1.6.6-prebeta` is live at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.6-prebeta` on target commit `deeaa691a79dd01897f6aed82f087970db7019b3`.
 - FB-005 is Released / Closed in `v1.6.6-prebeta`, and release debt is clear in canon.
-- WS-1 desktop shortcut launch-path runtime refinement is admitted and active.
-- The admitted WS-1 slice is runtime-bearing and user-facing because it targets the real Windows-facing desktop shortcut / VBS / launcher / runtime path.
+- WS-1 desktop shortcut launch-path runtime refinement is complete and validated.
+- The completed WS-1 slice remains runtime-bearing and user-facing because it improved the real Windows-facing desktop shortcut / VBS / launcher / runtime path.
+- `launch_orin_desktop.vbs` now resolves the preferred installed `pythonw.exe` path first, falls back to `pyw.exe -3` and `pythonw.exe` on `PATH`, and shows a user-facing startup failure message if no windowed Python launcher is available.
+- `dev/orin_desktop_entrypoint_validation.py` now validates both the default VBS path and a forced-fallback VBS path through the real `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py` chain.
 - Broader `main.py` reshaping and broader workspace follow-through are explicitly deferred; they are not admitted by inertia on this branch.
 - The historical FB-042 branch-authority record is preserved for traceability only and no longer owns active execution truth.
 
@@ -64,7 +66,7 @@ None.
 
 ## Next Legal Phase
 
-- `Workstream`
+- `Hardening`
 
 ## Branch Objective
 
@@ -151,6 +153,7 @@ Planning-Loop Bypass Reason: `None`
 
 ## Validation Contract
 
+- run `python dev\orin_desktop_entrypoint_validation.py`
 - run `python dev\orin_branch_governance_validation.py`
 - run `git diff --check`
 - confirm `Docs/Main.md` routes this promoted FB-042 workstream record
@@ -176,7 +179,7 @@ Planning-Loop Bypass Reason: `None`
 
 ## Later-Phase Expectations
 
-- Workstream begins now with WS-1; do not reopen planning-only framing as a substitute for execution.
+- Workstream is now complete through WS-1; do not reopen planning-only framing as a substitute for execution.
 - Any later seam that touches `main.py` or broader workspace follow-through must be separately admitted after WS-1 evidence exists.
 - Hardening must pressure-test launch-path ownership, startup sequencing, shortcut expectations, validator coverage, and rollback viability for the implemented WS-1 delta.
 - Live Validation must classify shortcut applicability from the real shipped path and clear or waive the user-facing shortcut blocker with evidence.
@@ -185,23 +188,34 @@ Planning-Loop Bypass Reason: `None`
 
 Seam 1: `WS-1 desktop shortcut launch-path runtime refinement`
 
-- Status: Admitted / not yet executed
+- Status: Complete / validated
 - Goal: improve the real user-facing desktop launch path on the existing VBS / launcher / runtime chain
 - Scope: bounded runtime and user-facing entrypoint refinement plus direct validator updates required to prove it
 - Non-Includes: no `main.py` reshaping, no broader workspace moves, no audio-path changes, no visual-asset reorganization, no installer redesign
+- Result: `launch_orin_desktop.vbs` now falls back cleanly from the preferred installed `pythonw.exe` path to `pyw.exe -3` or `pythonw.exe`, and the reusable entrypoint validator now proves both the default and forced-fallback launch paths through the real desktop chain.
+
+## Artifact History
+
+- `dev/orin_desktop_entrypoint_validation.py`
+  Purpose: reusable desktop entrypoint validator for non-live startup, tray identity, tray routing, and launch-chain proof.
+  Introduced / Extended: extended in WS-1 to validate the real VBS -> launcher -> runtime chain in both default and forced-fallback launch scenarios.
+  Classification: `baseline`, `supporting`
+  Reuse: extend this helper before creating another desktop entrypoint or launch-shim validator.
+- `dev/logs/desktop_entrypoint_validation/reports/DesktopEntrypointValidationReport_20260424_110630.txt`
+  Purpose: latest WS-1 proof artifact showing the upgraded launch shim, default-path success, and forced-fallback success.
+  Classification: `supporting`
 
 ## Active Seam
 
-Active seam: `WS-1 desktop shortcut launch-path runtime refinement`
+Active seam: `None.`
 
-- Workstream is active.
-- WS-1 is admitted and must execute next.
+- Workstream is complete through WS-1.
 - No later FB-042 seam is admitted yet.
 - Broader `main.py` reshaping and broader workspace follow-through remain explicitly blocked until a later bounded admission.
 
 ## Seam Continuation Decision
 
-Continue Decision: `Continue.`
-Next Active Seam: `WS-1 desktop shortcut launch-path runtime refinement`
-Stop Condition: `None yet; WS-1 is admitted and unexecuted.`
-Continuation Action: `Execute WS-1 on the real desktop launch path before opening any later FB-042 seam or reintroducing broader planning-only follow-through.`
+Continue Decision: `Stop at the Workstream phase boundary.`
+Next Active Seam: `None.`
+Stop Condition: `WS-1 is complete and validated, and no later FB-042 seam is admitted yet.`
+Continuation Action: `Advance to Hardening and pressure-test the completed launch-path delta before any later seam is admitted.`
