@@ -73,6 +73,11 @@ If any required file cannot be read, any authority owner is ambiguous, or live r
 - Codex modes define Analysis versus Workflow posture.
 - Incident patterns are reusable lessons, not case-history authority.
 - `main` is protected for Codex work and may be read but not mutated.
+- Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
+- Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+- Docs-only Workstreams require explicit USER approval.
+- Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
+- Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
 
 Do not create parallel governance systems.
 Add narrow routing pointers here, and put detailed policy in the owning canon document.
@@ -97,6 +102,9 @@ Phase-sensitive prompts and outputs must identify:
 - `Workstream`
 - `Branch`
 - `Branch Class` when branch-sensitive
+- `Implementation Delta Class` when an implementation branch is in `Branch Readiness`, `Workstream`, `Hardening`, `Live Validation`, or `PR Readiness`
+- `Docs-Only Workstream` when an implementation branch is in `Branch Readiness`, `Workstream`, `Hardening`, `Live Validation`, or `PR Readiness`
+- `Planning-Loop Bypass User Approval` and `Planning-Loop Bypass Reason` whenever a docs-only implementation lane is being requested
 - `Active Seam` when seam-sensitive
 - `Validation Contract` when validation-sensitive
 

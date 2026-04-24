@@ -161,6 +161,12 @@ Default checkpoint:
 
 Branch Readiness must establish the branch-level execution plan before Workstream begins.
 That plan must name the branch objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase needs, and the first Workstream seam or initial seam sequence.
+Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
+Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+Docs-only Workstreams require explicit USER approval.
+Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
+Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
+Branch existence, branch rename, backlog promotion, repair-only traceability, or release-bearing posture do not count as Workstream progress by themselves.
 
 Stay inside the active grouped lane until one of these is true:
 

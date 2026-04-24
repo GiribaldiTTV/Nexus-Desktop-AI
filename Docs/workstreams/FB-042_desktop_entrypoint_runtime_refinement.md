@@ -131,6 +131,17 @@ None.
   - no installer or shortcut-registration redesign
   - no unrelated runtime UX expansion beyond the launch path itself
 
+## Planning-Loop Guardrail
+
+Implementation Delta Class: `runtime/user-facing`
+Docs-Only Workstream: `No`
+Planning-Loop Bypass User Approval: `None`
+Planning-Loop Bypass Reason: `None`
+
+- FB-042 is an implementation branch and must keep Workstream focused on the admitted runtime-bearing WS-1 slice.
+- Branch rename, promotion, canon sync, or release posture do not count as Workstream progress by themselves.
+- Any future docs-only or canon-only FB-042 pass requires explicit USER approval before it can bypass implementation execution.
+
 ## User-Facing Shortcut Contract
 
 - User-Facing Shortcut Path: `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk`

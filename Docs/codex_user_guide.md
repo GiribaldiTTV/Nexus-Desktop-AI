@@ -360,6 +360,11 @@ Required add-ons:
 - reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
 - A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 - `stop on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, or branch-truth inconsistency`
+- `Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.`
+- `Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.`
+- `Docs-only Workstreams require explicit USER approval.`
+- `Planning-loop bypass requires Planning-Loop Bypass User Approval: APPROVED and Planning-Loop Bypass Reason:.`
+- `Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.`
 
 Use this when:
 
@@ -368,6 +373,7 @@ Use this when:
 - per-seam validation and evidence recording remain mandatory
 
 Do not use prompt wording such as `execute WS-1` to mean `stop after WS-1` unless the prompt also records an explicit `Single-Seam Mode Waiver` or another blocker from `Docs/phase_governance.md`.
+Do not use an implementation branch's `Workstream` phase for planning-only or canon-only output unless the USER explicitly approves a docs-only bypass and source-of-truth records the required planning-loop guardrail markers.
 Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 A bounded stop condition blocks continuation; it does not create single-seam mode.
 reporting `Next Safe Move` is not a substitute for execution when continuation authority passes; A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.

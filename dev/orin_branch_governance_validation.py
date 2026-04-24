@@ -249,6 +249,45 @@ PRE_PR_DURABILITY_PHRASES = (
     "automatically commit and push",
 )
 
+PLANNING_LOOP_GUARDRAIL_DOCS = (
+    Path("Docs/phase_governance.md"),
+    Path("Docs/development_rules.md"),
+    Path("Docs/Main.md"),
+    Path("Docs/codex_modes.md"),
+    Path("Docs/orin_task_template.md"),
+    Path("Docs/codex_user_guide.md"),
+    Path("Docs/nexus_startup_contract.md"),
+)
+
+PLANNING_LOOP_GUARDRAIL_PHRASES = (
+    "Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.",
+    "Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.",
+    "Docs-only Workstreams require explicit USER approval.",
+    "Planning-Loop Bypass User Approval: APPROVED",
+    "Planning-Loop Bypass Reason:",
+    "Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.",
+)
+
+PLANNING_LOOP_ACTIVE_PHASES = (
+    "Branch Readiness",
+    "Workstream",
+    "Hardening",
+    "Live Validation",
+    "PR Readiness",
+)
+
+PLANNING_LOOP_DELTA_CLASS_LABEL = "Implementation Delta Class"
+PLANNING_LOOP_DOCS_ONLY_LABEL = "Docs-Only Workstream"
+PLANNING_LOOP_BYPASS_APPROVAL_LABEL = "Planning-Loop Bypass User Approval"
+PLANNING_LOOP_BYPASS_REASON_LABEL = "Planning-Loop Bypass Reason"
+PLANNING_LOOP_DOCS_ONLY_DELTA = "docs-only"
+REAL_IMPLEMENTATION_DELTA_CLASSES = frozenset(
+    {"runtime/user-facing", "backend/runtime", "developer-tooling"}
+)
+ALLOWED_IMPLEMENTATION_DELTA_CLASSES = REAL_IMPLEMENTATION_DELTA_CLASSES | frozenset(
+    {PLANNING_LOOP_DOCS_ONLY_DELTA}
+)
+
 LIVE_VALIDATION_REUSE_DOCS = (
     Path("Docs/phase_governance.md"),
     Path("Docs/development_rules.md"),
@@ -939,6 +978,146 @@ def _extract_marker_value(block: str, label: str) -> str:
     if not matches:
         return ""
     return matches[-1].strip().strip("`").strip()
+
+
+def _parse_delta_classes(value: str) -> set[str]:
+    return {part.strip().casefold() for part in value.split(",") if part.strip()}
+
+
+def _validate_planning_loop_guardrail(
+    require,
+    source_path: str,
+    text: str,
+    *,
+    branch_class: str,
+    current_phase: str,
+    normalized_status: str,
+) -> None:
+    if branch_class != "implementation":
+        return
+    if current_phase not in PLANNING_LOOP_ACTIVE_PHASES and normalized_status != "merged unreleased":
+        return
+
+    require(
+        "## Planning-Loop Guardrail" in text,
+        f"{source_path}: implementation lane is missing '## Planning-Loop Guardrail'",
+    )
+    guardrail_section = _section(text, "Planning-Loop Guardrail")
+    delta_value = _extract_marker_value(guardrail_section, PLANNING_LOOP_DELTA_CLASS_LABEL)
+    docs_only_value = _extract_marker_value(guardrail_section, PLANNING_LOOP_DOCS_ONLY_LABEL)
+    bypass_approval = _extract_marker_value(guardrail_section, PLANNING_LOOP_BYPASS_APPROVAL_LABEL)
+    bypass_reason = _extract_marker_value(guardrail_section, PLANNING_LOOP_BYPASS_REASON_LABEL)
+    delta_classes = _parse_delta_classes(delta_value)
+    normalized_docs_only = docs_only_value.strip().casefold()
+    normalized_bypass = bypass_approval.strip().upper()
+    normalized_reason = bypass_reason.strip().casefold()
+    has_real_delta = bool(delta_classes & REAL_IMPLEMENTATION_DELTA_CLASSES)
+
+    require(
+        bool(delta_value),
+        f"{source_path}: Planning-Loop Guardrail is missing '{PLANNING_LOOP_DELTA_CLASS_LABEL}:'",
+    )
+    require(
+        bool(docs_only_value),
+        f"{source_path}: Planning-Loop Guardrail is missing '{PLANNING_LOOP_DOCS_ONLY_LABEL}:'",
+    )
+    require(
+        bool(bypass_approval),
+        f"{source_path}: Planning-Loop Guardrail is missing '{PLANNING_LOOP_BYPASS_APPROVAL_LABEL}:'",
+    )
+    require(
+        bool(bypass_reason),
+        f"{source_path}: Planning-Loop Guardrail is missing '{PLANNING_LOOP_BYPASS_REASON_LABEL}:'",
+    )
+
+    if not delta_classes:
+        require(
+            False,
+            f"{source_path}: Planning-Loop Guardrail must declare at least one implementation delta class",
+        )
+        return
+
+    invalid_delta_classes = sorted(delta_classes - ALLOWED_IMPLEMENTATION_DELTA_CLASSES)
+    require(
+        not invalid_delta_classes,
+        (
+            f"{source_path}: {PLANNING_LOOP_DELTA_CLASS_LABEL} contains unsupported value(s): "
+            f"{', '.join(invalid_delta_classes)}"
+        ),
+    )
+    require(
+        not (
+            PLANNING_LOOP_DOCS_ONLY_DELTA in delta_classes
+            and len(delta_classes) > 1
+        ),
+        (
+            f"{source_path}: {PLANNING_LOOP_DELTA_CLASS_LABEL} must not mix "
+            f"'{PLANNING_LOOP_DOCS_ONLY_DELTA}' with runtime-bearing delta classes"
+        ),
+    )
+    require(
+        normalized_docs_only in {"yes", "no"},
+        f"{source_path}: {PLANNING_LOOP_DOCS_ONLY_LABEL} must be Yes or No",
+    )
+
+    if has_real_delta:
+        admitted_slice = _section(text, "Admitted Implementation Slice")
+        require(
+            "## Admitted Implementation Slice" in text and bool(admitted_slice),
+            f"{source_path}: implementation lane is missing '## Admitted Implementation Slice'",
+        )
+        require(
+            normalized_docs_only == "no",
+            (
+                f"{source_path}: runtime-bearing implementation delta requires "
+                f"'{PLANNING_LOOP_DOCS_ONLY_LABEL}: No'"
+            ),
+        )
+        require(
+            normalized_bypass in {"", "NONE", "NO"},
+            (
+                f"{source_path}: runtime-bearing implementation delta must not carry "
+                "a planning-loop bypass approval"
+            ),
+        )
+        require(
+            normalized_reason in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: runtime-bearing implementation delta must not carry "
+                "a planning-loop bypass reason"
+            ),
+        )
+    else:
+        require(
+            normalized_docs_only == "yes",
+            (
+                f"{source_path}: docs-only implementation lane requires "
+                f"'{PLANNING_LOOP_DOCS_ONLY_LABEL}: Yes'"
+            ),
+        )
+        require(
+            normalized_bypass == "APPROVED",
+            (
+                f"{source_path}: docs-only implementation lane is blocked by "
+                "'Planning-Loop Guardrail' until explicit USER approval is recorded"
+            ),
+        )
+        require(
+            normalized_reason not in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: docs-only implementation lane requires an explicit "
+                f"'{PLANNING_LOOP_BYPASS_REASON_LABEL}:'"
+            ),
+        )
+
+    if normalized_status == "merged unreleased":
+        require(
+            has_real_delta or normalized_bypass == "APPROVED",
+            (
+                f"{source_path}: release-bearing implementation work with no real runtime, "
+                "backend/runtime, or developer-tooling delta requires explicit USER approval"
+            ),
+        )
 
 
 def _validate_release_window_audit(require, source_path: str, text: str) -> None:
@@ -1813,6 +1992,14 @@ def main() -> int:
             require(
                 required_phrase in text,
                 f"{relative_path}: Pre-PR Durability Rule is missing '{required_phrase}'",
+            )
+
+    for relative_path in PLANNING_LOOP_GUARDRAIL_DOCS:
+        text = _read_text(relative_path)
+        for required_phrase in PLANNING_LOOP_GUARDRAIL_PHRASES:
+            require(
+                required_phrase in text,
+                f"{relative_path}: planning-loop guardrail guidance is missing '{required_phrase}'",
             )
 
     for relative_path in LIVE_VALIDATION_REUSE_DOCS:
@@ -2720,6 +2907,14 @@ def main() -> int:
 
         phase_status_section = _section(workstream_text, "Phase Status")
         normalized_workstream_status = _normalize_status(str(workstream_info["status"]))
+        _validate_planning_loop_guardrail(
+            require,
+            canonical_path,
+            workstream_text,
+            branch_class=branch_class,
+            current_phase=current_phase,
+            normalized_status=normalized_workstream_status,
+        )
         if (
             current_git_branch == "main"
             and branch_class == "implementation"
@@ -3026,6 +3221,7 @@ def main() -> int:
             )
 
         info = _parse_workstream_doc(record_text)
+        normalized_record_status = _normalize_status(str(info["status"]))
         require(
             str(info["current_phase"]) in PHASES,
             f"{branch_record_path}: Current Phase '{info['current_phase']}' is not in the canonical phase enum",
@@ -3065,6 +3261,15 @@ def main() -> int:
             str(info["next_legal_phase"]) in PHASES,
             f"{branch_record_path}: Next Legal Phase '{info['next_legal_phase']}' is not in the canonical phase enum",
         )
+        if branch_record_path in active_branch_record_paths:
+            _validate_planning_loop_guardrail(
+                require,
+                branch_record_path,
+                record_text,
+                branch_class=branch_class,
+                current_phase=str(info["current_phase"]),
+                normalized_status=normalized_record_status,
+            )
         if branch_record_path in active_branch_record_paths and str(info["current_phase"]) == "Release Readiness":
             status_output = _git_status_porcelain(tracked_only=True)
             require(
