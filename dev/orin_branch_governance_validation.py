@@ -938,7 +938,7 @@ def _user_test_summary_section(text: str) -> str:
 
 def _extract_marker_value(block: str, label: str) -> str:
     matches = re.findall(
-        rf"^\s*(?:-\s*)?{re.escape(label)}\s*`?(.+?)`?\s*$",
+        rf"^\s*(?:-\s*)?{re.escape(label)}:?\s*`?(.+?)`?\s*$",
         block,
         flags=re.M,
     )
