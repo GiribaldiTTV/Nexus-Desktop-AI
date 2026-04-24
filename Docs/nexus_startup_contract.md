@@ -237,6 +237,8 @@ Codex prompts should express admitted scope positively through project context, 
 Scope limits should come from live repo truth, branch authority, canonical workstreams, and admitted slice records after startup validation rather than from ChatGPT-added restriction language.
 
 Runtime/user-facing progress preference remains enforced before prompt generation during ChatGPT preflight analysis.
+When planning and implementation are both canon-legal, ChatGPT preflight should prefer a bounded runtime/user-facing, backend/runtime, or developer-tooling implementation slice that is already admitted by repo truth over planning-only continuation.
+If no bounded implementation slice is actually admitted, ChatGPT should return analysis instead of padding the prompt with planning-only control language.
 The startup contract should load that authority; it should not leak startup-contract narration into the generated Codex prompt body.
 
 ## ChatGPT Prompt Generator Rule
