@@ -57,7 +57,7 @@ Historical Branch Readiness State: Complete on `feature/fb-005-workspace-path-pl
 Historical Workstream State: WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete.
 Historical Hardening State: Complete on `feature/fb-005-workspace-path-planning`.
 Historical Live Validation State: Complete on `feature/fb-005-workspace-path-planning`.
-PR Readiness State: In progress on `feature/fb-005-workspace-path-planning` for merge-target canon completion, selected-next lock, PR creation, and live PR validation.
+PR Readiness State: Complete on `feature/fb-005-workspace-path-planning`; PR #83 is open, non-draft, mergeable, and clean against `main`.
 Admitted Workstream Chain: Complete for current approval; no WS-2 is admitted.
 
 ## Backlog Governance Sync
@@ -92,7 +92,7 @@ Branch: feature/fb-005-workspace-path-planning
 Canonical Workstream Doc: Docs/workstreams/FB-005_workspace_and_folder_organization.md
 Branch Readiness: Complete. The branch objective, target end-state, approved workspace/path slice, validation contract, User Test Summary strategy, later-phase expectations, and first Workstream seam are recorded in the canonical workstream doc.
 Workstream: WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete. H-1 is complete. LV-1 is complete. No WS-2 is admitted yet; later slices remain explicit approval gates.
-PR Readiness: In progress. PR-1 merge-target canon completeness, PR-2 selected-next workstream selection, and PR-3 live PR creation plus validation are being finalized on this branch.
+PR Readiness: Complete. PR-1 merge-target canon completeness, PR-2 selected-next workstream selection, and PR-3 live PR creation plus validation are complete; PR #83 is open, non-draft, mergeable, and clean against `main`.
 Release Target: v1.6.6-prebeta
 Release Floor: patch prerelease
 Version Rationale: FB-005 delivers a bounded dev-only workspace/path implementation slice and direct path-truth sync with no change to shipped runtime entrypoints, launcher paths, audio paths, logs, visual assets, installer behavior, or user-facing desktop behavior, so patch prerelease remains the correct floor.

@@ -71,7 +71,7 @@ Current merged truth indicates:
 - phase status after `v1.6.5-prebeta` release closure: FB-030 is Released / Closed in `v1.6.5-prebeta`; merged-unreleased release debt is now active for `v1.6.6-prebeta`; FB-005 is the merged-unreleased release-debt owner; repo state is `No Active Branch`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; the residual visual-path mismatch remains confirmed as dev-only and non-user-facing; and FB-042 is selected next planning-only with branch not created.
 - current active workstream: none
 - current branch after `v1.6.5-prebeta` release closure: none
-- next concern: validate the FB-005 PR package cleanly, then execute file-frozen Release Readiness on updated `main` for `v1.6.6-prebeta`
+- next concern: merge PR #83, then execute file-frozen Release Readiness on updated `main` for `v1.6.6-prebeta`
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, the released FB-032 source-of-truth migration milestone, the released FB-004 future boot-orchestrator architecture milestone, the released FB-015 plus FB-029 planning milestones, and the released FB-030 voice/audio planning milestone are now part of the current public shared pre-Beta baseline.
 
@@ -94,7 +94,7 @@ Historical Branch Readiness State: Complete on `feature/fb-005-workspace-path-pl
 Historical Workstream State: WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete.
 Historical Hardening State: Complete on `feature/fb-005-workspace-path-planning`.
 Historical Live Validation State: Complete on `feature/fb-005-workspace-path-planning`.
-PR Readiness State: In progress on `feature/fb-005-workspace-path-planning` for merge-target canon completion, selected-next lock, PR creation, and live PR validation.
+PR Readiness State: Complete on `feature/fb-005-workspace-path-planning`; PR #83 is open, non-draft, mergeable, and clean against `main`.
 Admitted Workstream Chain: Complete for current approval; no WS-2 is admitted.
 Release Target: v1.6.6-prebeta
 Release Floor: patch prerelease
