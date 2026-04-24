@@ -142,6 +142,15 @@ def latest_file_matching(folder_path, prefix):
     return best_path
 
 
+def dir_entry_names(path):
+    if not os.path.isdir(path):
+        return []
+    try:
+        return sorted(os.listdir(path))
+    except OSError:
+        return []
+
+
 def detect_branch_state():
     head_path = os.path.join(ROOT_DIR, ".git", "HEAD")
     try:
@@ -268,6 +277,23 @@ def entrypoint_shim_line():
         if line.strip().startswith("LauncherPath"):
             return line.strip()
     return "missing LauncherPath line"
+
+
+def resolve_cscript_command():
+    if os.name != "nt":
+        return []
+
+    system_root = os.environ.get("SystemRoot", r"C:\Windows")
+    preferred = os.path.join(system_root, "System32", "cscript.exe")
+    if os.path.isfile(preferred):
+        return [preferred]
+
+    for candidate in ("cscript.exe", "cscript"):
+        resolved = shutil.which(candidate)
+        if resolved:
+            return [resolved]
+
+    return []
 
 
 def validate_tray_overlay_route():
@@ -537,10 +563,12 @@ def validate_tray_identity_initialization():
 
 def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
     scenario_root = os.path.join(BASE_LOG_ROOT, scenario_name)
-    reset_dir(scenario_root)
     preexisting_processes_before, preexisting_processes_killed, preexisting_processes_after = (
         cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
     )
+    reset_dir(scenario_root)
+    scenario_root_entries_after_reset = dir_entry_names(scenario_root)
+    cscript_command = resolve_cscript_command()
 
     env = os.environ.copy()
     env["JARVIS_HARNESS_LOG_ROOT"] = scenario_root
@@ -551,11 +579,29 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
     if force_path_fallback:
         env["NEXUS_DESKTOP_SKIP_PREFERRED_PYTHONW"] = "1"
 
-    shim_result = run_hidden_command(
-        ["cscript.exe", "//nologo", ENTRYPOINT_SCRIPT],
-        env=env,
-        timeout_seconds=10,
-    )
+    launch_attempted = False
+    if scenario_root_entries_after_reset:
+        shim_result = subprocess.CompletedProcess(
+            ["cscript.exe", "//nologo", ENTRYPOINT_SCRIPT],
+            1,
+            "",
+            "scenario log root not empty after reset: "
+            + ", ".join(scenario_root_entries_after_reset[:5]),
+        )
+    elif not cscript_command:
+        shim_result = subprocess.CompletedProcess(
+            ["cscript.exe", "//nologo", ENTRYPOINT_SCRIPT],
+            1,
+            "",
+            "cscript.exe unavailable; VBS launch validation requires Windows Script Host on Windows",
+        )
+    else:
+        launch_attempted = True
+        shim_result = run_hidden_command(
+            cscript_command + ["//nologo", ENTRYPOINT_SCRIPT],
+            env=env,
+            timeout_seconds=10,
+        )
 
     runtime_log = ""
     runtime_lines = []
@@ -569,44 +615,45 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
     normal_exit_complete_seen = False
     failure_flow_seen = False
 
-    ready_deadline = time.time() + 25.0
-    while time.time() < ready_deadline:
-        runtime_log = latest_file_matching(scenario_root, "Runtime_")
-        runtime_lines = read_lines(runtime_log)
-        if any("RENDERER_MAIN|STARTUP_READY" in line for line in runtime_lines):
-            ready_seen = True
-            break
-        time.sleep(0.2)
+    if launch_attempted:
+        ready_deadline = time.time() + 25.0
+        while time.time() < ready_deadline:
+            runtime_log = latest_file_matching(scenario_root, "Runtime_")
+            runtime_lines = read_lines(runtime_log)
+            if any("RENDERER_MAIN|STARTUP_READY" in line for line in runtime_lines):
+                ready_seen = True
+                break
+            time.sleep(0.2)
 
-    if ready_seen:
-        hotkey_attempts += 1
-        hotkey_sent, hotkey_detail = send_shutdown_hotkey()
-
-    post_ready_deadline = time.time() + 20.0
-    while time.time() < post_ready_deadline:
-        runtime_log = latest_file_matching(scenario_root, "Runtime_")
-        runtime_lines = read_lines(runtime_log)
-        shutdown_requested_seen = any("RENDERER_MAIN|SHUTDOWN_REQUESTED" in line for line in runtime_lines)
-        renderer_exit_seen = any("RENDERER_MAIN|EVENT_LOOP_EXIT|code=0" in line for line in runtime_lines)
-        launcher_ready_observed_seen = any(
-            "STATUS|SUCCESS|LAUNCHER_RUNTIME|STARTUP_READY_OBSERVED" in line
-            for line in runtime_lines
-        )
-        normal_exit_complete_seen = any(
-            "STATUS|SUCCESS|LAUNCHER_RUNTIME|NORMAL_EXIT_COMPLETE" in line for line in runtime_lines
-        )
-        failure_flow_seen = any(
-            "STATUS|SUCCESS|LAUNCHER_RUNTIME|FAILURE_FLOW_COMPLETE" in line for line in runtime_lines
-        )
-
-        if shutdown_requested_seen and renderer_exit_seen and launcher_ready_observed_seen:
-            break
-
-        if ready_seen and not shutdown_requested_seen and hotkey_sent and hotkey_attempts < 2:
+        if ready_seen:
             hotkey_attempts += 1
             hotkey_sent, hotkey_detail = send_shutdown_hotkey()
 
-        time.sleep(0.2)
+        post_ready_deadline = time.time() + 20.0
+        while time.time() < post_ready_deadline:
+            runtime_log = latest_file_matching(scenario_root, "Runtime_")
+            runtime_lines = read_lines(runtime_log)
+            shutdown_requested_seen = any("RENDERER_MAIN|SHUTDOWN_REQUESTED" in line for line in runtime_lines)
+            renderer_exit_seen = any("RENDERER_MAIN|EVENT_LOOP_EXIT|code=0" in line for line in runtime_lines)
+            launcher_ready_observed_seen = any(
+                "STATUS|SUCCESS|LAUNCHER_RUNTIME|STARTUP_READY_OBSERVED" in line
+                for line in runtime_lines
+            )
+            normal_exit_complete_seen = any(
+                "STATUS|SUCCESS|LAUNCHER_RUNTIME|NORMAL_EXIT_COMPLETE" in line for line in runtime_lines
+            )
+            failure_flow_seen = any(
+                "STATUS|SUCCESS|LAUNCHER_RUNTIME|FAILURE_FLOW_COMPLETE" in line for line in runtime_lines
+            )
+
+            if shutdown_requested_seen and renderer_exit_seen and launcher_ready_observed_seen:
+                break
+
+            if ready_seen and not shutdown_requested_seen and hotkey_sent and hotkey_attempts < 2:
+                hotkey_attempts += 1
+                hotkey_sent, hotkey_detail = send_shutdown_hotkey()
+
+            time.sleep(0.2)
 
     residual_launch_chain_processes_before, residual_launch_chain_killed, residual_launch_chain_processes_after = (
         cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
@@ -648,6 +695,14 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
         "traceback_absent": line_status(
             "Traceback" not in shim_result.stdout and "Traceback" not in shim_result.stderr,
             (shim_result.stderr or shim_result.stdout).strip() or "no traceback in shim output",
+        ),
+        "scenario_log_root_cleared_before_launch": line_status(
+            not scenario_root_entries_after_reset,
+            "empty" if not scenario_root_entries_after_reset else ", ".join(scenario_root_entries_after_reset[:5]),
+        ),
+        "cscript_available": line_status(
+            bool(cscript_command),
+            cscript_command[0] if cscript_command else "missing Windows Script Host entrypoint",
         ),
         "failure_flow_absent": line_status(
             not failure_flow_seen,
