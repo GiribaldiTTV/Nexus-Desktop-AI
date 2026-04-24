@@ -78,16 +78,18 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-- `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
+None.
 
-Current execution truth is `Live Validation` on `feature/fb-005-workspace-path-planning`. FB-005 remains promoted, WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py` is complete, H-1 is complete, LV-1 is complete, the residual visual-path mismatch remains dev-only and non-user-facing, and `PR Readiness` is next without widening into broader workspace movement.
+No active promoted implementation branch remains in merge-target truth after FB-005 PR packaging.
 
 ### Merged / Release Debt Owners
 
 Merged / Release Debt Owners are promoted implementation workstreams whose implementation branch is merge-target complete but whose public release packaging has not yet cleared release debt.
 These records are not active implementation branch owners after merge.
 
-None.
+- `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
+
+Current merge-target truth is `No Active Branch`. FB-005 is the merged-unreleased release-debt owner for `v1.6.6-prebeta`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; the residual visual-path mismatch remains dev-only and non-user-facing; and FB-042 is selected next planning-only with branch not created.
 
 ### Closed
 

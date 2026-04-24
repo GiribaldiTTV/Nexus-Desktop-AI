@@ -11,11 +11,15 @@
 
 ## Status
 
-- `Active`
+- `Merged unreleased`
 
 ## Release Stage
 
-- `Slice-staged`
+- `Merged unreleased`
+
+## Target Version
+
+- `v1.6.6-prebeta`
 
 ## Canonical Branch
 
@@ -23,24 +27,27 @@
 
 ## Current Phase
 
-- Phase: `Live Validation`
+- Phase: `Release Readiness`
 
 ## Phase Status
 
-- Current execution surface is `Active Branch`.
+- Current merge-target execution surface is `No Active Branch`.
+- Merged-Unreleased Release-Debt Owner: FB-005 Workspace and folder organization
+- Repo State: No Active Branch
 - `v1.6.5-prebeta` is live at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.5-prebeta` on target commit `7c2933d6427feb08a1139ba7f5ba2393eb61f1e1`.
-- FB-030 is Released / Closed in `v1.6.5-prebeta`, latest public prerelease truth is `v1.6.5-prebeta`, and merged-unreleased release debt is clear.
-- FB-005 is promoted from selected-only / `Registry-only` into an active canonical workstream on `feature/fb-005-workspace-path-planning`.
-- Workstream WS-1 is complete for the only currently admitted bounded path-sensitive slice.
-- H-1 hardening is complete for that slice.
-- LV-1 Live Validation is complete for that slice, and PR Readiness is the next legal phase.
+- FB-030 is Released / Closed in `v1.6.5-prebeta`, and latest public prerelease truth remains `v1.6.5-prebeta`.
+- FB-005 is the merged-unreleased release-debt owner for `v1.6.6-prebeta`.
+- Historical branch-local execution on `feature/fb-005-workspace-path-planning` is complete through WS-1, H-1, and LV-1 for the only admitted bounded path-sensitive slice.
+- Release debt is active until `v1.6.6-prebeta` is published, validated, and post-release canon closure completes.
 - Completed first slice: `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`.
 - The moved dev-only harness now lives at `dev/desktop/orin_desktop_test.py`.
 - Runtime entrypoints, launcher paths, audio paths, logs, visual assets, and user-facing desktop paths remain outside this admitted slice.
 - Runtime-reachability proof remains unchanged: shipped entrypoints still route through `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`.
-- The admitted Workstream chain ends after WS-1 for this pass because no WS-2 or later FB-005 slice is admitted yet; later slices remain explicit approval gates.
+- The pending release scope ends after WS-1 because no WS-2 or later FB-005 slice is admitted yet; later slices remain explicit approval gates.
 - No reverse runtime dependency on `dev/desktop/` or the moved harness was found.
 - LV-1 confirms the residual visual-path mismatch is dev-only and non-user-facing: the harness still names historical visual file `jarvis_core_desktop.html` while the current desktop visual asset on disk is `orin_core_desktop.html`.
+- Selected-next planning truth is locked to FB-042 Top-level experience entrypoint and broader workspace follow-through, and its branch remains not created.
+- Merge-target current-state truth is branchless release-debt ownership, not branch-owned execution.
 
 ## Branch Class
 
@@ -48,8 +55,8 @@
 
 ## Blockers
 
-- None for the admitted WS-1 slice.
-- Later workspace/path slices remain blocked until separately approved.
+- None for the bounded FB-005 WS-1 release package.
+- Later workspace/path slices remain blocked until separately approved after release debt clears.
 
 ## Entry Basis
 
@@ -73,7 +80,7 @@
 
 ## Next Legal Phase
 
-- `PR Readiness`
+- `Release Readiness`
 
 ## Branch Objective
 
@@ -300,3 +307,78 @@ LV-1 validates the completed FB-005 WS-1 slice against live repo truth, branch t
 - User-Facing Shortcut Waiver Reason: The completed FB-005 delta is a dev-only harness relocation with runtime non-reachability proof. Exercising the existing user-facing desktop shortcut would not validate the moved harness or any changed user-facing behavior because none changed.
 - User Test Summary Results: WAIVED
 - User Test Summary Waiver Reason: The completed FB-005 delta is a bounded dev-only workspace/path relocation backed by repo/canon checks, reachability proof, and prior harness validation; a filled manual User Test Summary would not materially validate behavior because no user-facing setup, display, runtime, shortcut, launcher, audio, logs, visual-asset ownership, or invocation surface changed.
+
+## Governance Drift Audit
+
+Governance Drift Found: No.
+
+- The only drift at PR Readiness entry was that backlog truth had already started the merged-unreleased release-debt package while roadmap, workstream index, and this workstream record still reported Live Validation complete / PR Readiness next as current truth.
+- Repair: merge-target canon is now synchronized across backlog, roadmap, workstream index, released carry-forward workstreams, and this canonical FB-005 record.
+- The selected-next planning lane is now explicitly recorded as FB-042 with machine-checkable selected-next markers and branch-not-created truth.
+- No unresolved contradiction remains between the bounded WS-1 implementation delta, release-target semantics, release-window posture, selected-next branch deferral, or runtime non-reachability proof.
+
+## Historical PR Package State
+
+Historical Merged-Unreleased Release-Debt Owner At PR Package Time: FB-005 Workspace and folder organization
+Historical Repo State At PR Package Time: No Active Branch
+Latest Public Prerelease: v1.6.5-prebeta
+Release Debt: Active after merge until `v1.6.6-prebeta` is published, validated, and post-release canon closure completes
+Release Target: v1.6.6-prebeta
+Release Title: Pre-Beta v1.6.6
+Release Floor: patch prerelease
+Version Rationale: FB-005 delivers a bounded dev-only workspace/path implementation slice and direct path-truth sync with no change to shipped runtime entrypoints, launcher paths, audio paths, logs, visual assets, installer behavior, or user-facing desktop behavior
+Release Scope: WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, PR package history, and merged-unreleased release-debt truth for the first admitted FB-005 slice only
+Release Artifacts: Tag v1.6.6-prebeta; release title Pre-Beta v1.6.6; rich Markdown release notes summarize the bounded FB-005 WS-1 workspace slice, validation evidence, non-user-facing release posture, and selected-next planning lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
+Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; release debt is clear; and FB-042 remains selected next planning-only with branch not created until Branch Readiness admits a bounded Step 5 / top-level entrypoint planning slice
+Next-Branch Creation Gate: After `v1.6.6-prebeta` publication, validation, and updated-main revalidation; `feature/fb-042-top-level-entrypoint-workspace-follow-through` remains not created, and FB-042 Branch Readiness must stay planning-first around root-owned entrypoints and broader workspace ownership before any implementation slice is admitted
+
+## Post-Merge State
+
+- Historical post-merge state before release execution: repo state becomes `No Active Branch` because FB-005 will own merged-unreleased release debt on `main` for `v1.6.6-prebeta`.
+- Historical pending-package state: the pending release scope contains the completed FB-005 WS-1 dev-only workspace/path slice only.
+- Historical successor state: FB-042 remains selected next planning-only, and its implementation branch must stay not created until `v1.6.6-prebeta` is published, validated, updated `main` is revalidated, and Branch Readiness admits a bounded planning-first Step 5 / top-level entrypoint slice.
+
+## Release Window Audit
+
+Release Window Audit: PASS
+Window Scope: FB-005 WS-1 dev-only desktop test harness relocation plus the required merge-target canon, selected-next lock, release-debt framing, and PR package state for `v1.6.6-prebeta`.
+Known Window Blockers Reviewed: status/phase drift across backlog-roadmap-workstream surfaces; missing merged-unreleased release-debt framing; missing selected-next planning identity; missing roadmap selected-next markers; missing live PR state; and risk of another blocker-clearing repair PR before release.
+Remaining Known Release Blockers: None
+Another Pre-Release Repair PR Required: NO
+Release Window Split Waiver: None
+
+## PR Readiness Record
+
+PR Readiness validates the completed bounded FB-005 WS-1 implementation slice for merge to `main`. This record aligns the `v1.6.6-prebeta` release-debt package, selects the next planning lane, prepares durable PR package details, and then records live PR validation before reporting green.
+
+### PR-1 Merge-Target Canon Findings
+
+- Merge Target: `main`.
+- Head Branch: `feature/fb-005-workspace-path-planning`.
+- Source-of-Truth Alignment: PASS. `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, `Docs/workstreams/index.md`, `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`, `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`, `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`, and this workstream record align on FB-005 as the merged-unreleased release-debt owner for `v1.6.6-prebeta`.
+- Release-Debt Framing: PASS. `v1.6.5-prebeta` is the latest public prerelease; after merge, FB-005 becomes the merged-unreleased release-debt owner for `v1.6.6-prebeta`.
+- Release Target: `v1.6.6-prebeta`.
+- Release Title: `Pre-Beta v1.6.6`.
+- Release Floor: `patch prerelease`.
+- Version Rationale: `patch prerelease` remains required because the delivered FB-005 delta is one bounded dev-only workspace/path implementation slice with no shipped runtime, launcher, audio, logs, visual-asset, installer, or user-facing desktop behavior change.
+- Release Scope: dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, selected-next planning gate, and PR package history.
+- Release Artifacts: Tag `v1.6.6-prebeta`; release title `Pre-Beta v1.6.6`; rich Markdown release notes summarize the bounded FB-005 WS-1 workspace slice without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+- Post-Release Truth: FB-005 is Released / Closed in `v1.6.6-prebeta` after publication and validation; release debt then clears, and FB-042 Branch Readiness may begin only after updated `main` is revalidated and a bounded planning-first Step 5 / top-level entrypoint slice is admitted.
+
+### PR-2 Selected-Next Workstream Findings
+
+- Selected Next Workstream: FB-042 Top-level experience entrypoint and broader workspace follow-through.
+- Selected Next Basis: FB-042 is the repo-grounded deferred Step 5 / broader workspace follow-through lane already preserved in closeout and planning history, and it remains planning-only because it touches root-owned entrypoints and broader workspace ownership that cannot piggyback on the bounded WS-1 dev-only slice.
+- Selected Next Record State At PR Package Time: `Registry-only`.
+- Selected Next Implementation Branch At PR Package Time: Not created.
+- Branch Creation Gate At PR Package Time: After FB-005 merges, `v1.6.6-prebeta` is published and validated, updated `main` is revalidated, and Branch Readiness admits a bounded planning-first Step 5 / top-level entrypoint slice.
+- Branch Containment At PR Package Time: PASS. No local or remote branch exists for FB-042.
+
+### PR-3 PR Package Details
+
+- PR Title: `FB-005 Workspace And Folder Organization`
+- Base Branch: `main`
+- Head Branch: `feature/fb-005-workspace-path-planning`
+- PR Summary: Promote the bounded FB-005 WS-1 workspace/path implementation slice by moving the dev-only desktop test harness from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, preserving runtime non-reachability, recording hardening and Live Validation evidence, aligning merge-target canon for `v1.6.6-prebeta`, and selecting FB-042 as the next planning-only Step 5 / top-level entrypoint lane.
+- PR URL: Pending live creation on this branch.
+- PR State: Not created yet; PR-3 remains open until the live GitHub PR exists and validates clean.
