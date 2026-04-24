@@ -258,8 +258,52 @@ The default named blockers are:
 - `Governance Drift`
 - `Current-State Claim Drift`
 - `Phase Waiver Missing`
+- `Planning-Loop Guardrail`
 
 Blockers stop progression immediately and must be reported before any later-phase recommendation.
+
+### Planning-Loop Guardrail
+
+Purpose:
+
+- prevent planning-only branches from being mistaken for implementation progress
+- prevent Workstream from becoming a planning/canon sink on implementation branches
+- prevent repeated docs-only release trains from becoming the default delivery path
+- keep repair-only branches as blocker-clearing surfaces rather than normal product-progress lanes
+
+Core rule:
+
+- Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
+- Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+- Docs-only Workstreams require explicit USER approval.
+- Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
+- Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
+- branch existence, branch rename, backlog promotion, repair-only traceability, or release-bearing posture do not count as Workstream progress by themselves
+- repair-only branches are blocker-clearing surfaces, not normal implementation progress
+
+Required active authority markers for implementation branches in `Branch Readiness`, `Workstream`, `Hardening`, `Live Validation`, `PR Readiness`, or merged-unreleased release-debt truth:
+
+- `## Admitted Implementation Slice`
+- `## Planning-Loop Guardrail`
+- `Implementation Delta Class:`
+- `Docs-Only Workstream:`
+- `Planning-Loop Bypass User Approval:`
+- `Planning-Loop Bypass Reason:`
+
+Allowed `Implementation Delta Class:` values:
+
+- `runtime/user-facing`
+- `backend/runtime`
+- `developer-tooling`
+- `docs-only`
+- or a comma-separated combination of the non-docs-only values above
+
+Interpretation:
+
+- `docs-only` means the lane does not currently deliver runtime/user-facing, backend/runtime, or developer-tooling implementation delta
+- `docs-only` must not be mixed with another implementation delta class
+- `Docs-Only Workstream: Yes` is legal only when explicit USER approval is recorded through the planning-loop bypass markers
+- if those markers are missing, contradictory, or unapproved for a docs-only implementation lane, the branch is blocked by `Planning-Loop Guardrail`
 
 ### Blocker Rule
 
@@ -609,6 +653,7 @@ Routing:
 ### User Test Summary Results Gate
 
 Live Validation and PR Readiness must not report final green while a relevant user-facing workstream has a required User Test Summary handoff outstanding and returned results have not been submitted and digested.
+Live Validation green requires an exact `## User Test Summary` state before final green.
 
 Named blocker:
 
@@ -1328,9 +1373,11 @@ Required evidence:
 - explicit branch class
 - explicit phase block in the authority record
 - branch objective and target end-state
+- affected-surface mapping and implementation delta classification
 - expected seam families and risk classes
 - validation contract and User Test Summary strategy
 - expected Hardening, Live Validation, PR Readiness, and Release Readiness needs
+- admitted implementation slice or explicit USER-approved docs-only bypass markers
 - first Workstream seam or initial seam sequence
 
 Exit:
@@ -1340,13 +1387,15 @@ Exit:
 - exact phase state is recorded
 - branch-start canon is coherent
 - execution boundary is explicit
+- implementation delta class is explicit
+- admitted implementation slice is explicit, or an explicit USER-approved docs-only bypass is recorded
 - branch-level execution plan is explicit enough to enter Workstream without inventing the lane shape mid-execution
 
 ### Workstream
 
 Purpose:
 
-- execute the approved bounded implementation or bounded governance/docs work
+- execute the approved bounded implementation slice or an explicit USER-approved docs-only bypass
 - run normal repo-side regression validation inside that boundary
 - use bounded multi-seam workflow as the primary model when an approved seam chain remains inside its governed boundary and validation stays green
 
@@ -1360,6 +1409,7 @@ Allowed:
 Forbidden:
 
 - silent scope expansion
+- planning-only or docs-only output as a substitute for implementation on an `implementation` branch without explicit USER-approved bypass markers
 - hidden hardening or closure claims
 - PR or release packaging
 - batching multiple seams without per-seam validation and continue-or-stop gates
@@ -1368,13 +1418,15 @@ Forbidden:
 Required evidence:
 
 - approved execution boundary
+- implementation delta classification and planning-loop guardrail markers
+- admitted implementation slice
 - direct verification of the changed behavior or docs
 - seam sequence when multiple seams may execute in one pass
 - per-seam validation results and continue-or-stop decisions
 
 Exit:
 
-- approved scope is implemented
+- admitted implementation slice is implemented, or an explicit USER-approved docs-only bypass has completed its approved boundary
 - direct verification is complete
 - no unresolved same-slice correctness gaps remain
 - Workstream evidence and User Test Summary obligations are current for user-facing changes

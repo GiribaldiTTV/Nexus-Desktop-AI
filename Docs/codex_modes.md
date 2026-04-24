@@ -143,6 +143,11 @@ In Workflow mode, Codex should:
 - treat legacy `Single-Seam Fallback` wording as `Single-Seam Mode Waiver`
 - use `Single-Seam Mode Waiver` only when source-of-truth explicitly records a waiver that narrows the workflow to one seam
 - when the approved boundary is continuous validation inside the current workstream, keep iterating only while the governing phase rules, validation, and stop-loss contract remain green
+- Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
+- Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+- Docs-only Workstreams require explicit USER approval.
+- Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
+- Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
 
 ### What Codex Must Not Do
 
@@ -153,6 +158,8 @@ In Workflow mode, Codex must not:
 - silently create PR, merge, release, or closure output without current-truth justification
 - treat a clean first slice as automatic branch readiness
 - stop after a green seam merely because the prompt task named only the entry seam, the output asks for `Next Safe Move`, durability completed, or one seam was recorded
+- treat branch existence, branch rename, backlog promotion, repair-only traceability, or release-bearing posture as Workstream progress by themselves
+- treat planning or canon-only output on an implementation branch as valid Workstream progress without explicit USER-approved bypass markers
 
 ### Expected Outputs
 
@@ -470,6 +477,7 @@ For desktop workstreams, response-level `## User Test Summary` output and the ca
 - the desktop `User Test Summary.txt` file is the required user-facing exported copy when relevant, but it is not the default canonical repo record
 
 If a required User Test Summary handoff is outstanding, `User Test Summary Results Pending` is a hard blocker. Codex must not report final phase green or PR-ready while the filled results are missing; it must digest submitted results, update the authority record, reevaluate blockers, and route backward to `Workstream` or `Hardening` if the results expose a mismatch, regression, ambiguity, cleanup issue, or scope drift.
+Live Validation green requires an exact `## User Test Summary` state before final green.
 
 For relevant desktop user-facing workstreams, `User-Facing Shortcut Validation Pending` is a hard blocker before User Test Summary handoff.
 Codex may use validators, live helpers, harnesses, or direct runtime launches for scenario coverage, but Live Validation closeout must also run the declared user-facing desktop shortcut or equivalent entrypoint and record `User-Facing Shortcut Path:` plus `User-Facing Shortcut Validation: PASS`, `FAIL`, `PENDING`, or `WAIVED`.

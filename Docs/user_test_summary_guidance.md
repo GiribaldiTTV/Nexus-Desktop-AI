@@ -167,6 +167,7 @@ Named blocker:
 Definition:
 
 - Live Validation and PR Readiness must not report final green while a relevant user-facing workstream has a required `UTS` handoff outstanding and returned results have not been submitted and digested.
+- Live Validation green requires an exact `## User Test Summary` state before final green.
 
 Required authority-record marker:
 

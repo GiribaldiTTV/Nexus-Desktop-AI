@@ -360,6 +360,11 @@ Required add-ons:
 - reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
 - A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
 - `stop on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, or branch-truth inconsistency`
+- `Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.`
+- `Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.`
+- `Docs-only Workstreams require explicit USER approval.`
+- `Planning-loop bypass requires Planning-Loop Bypass User Approval: APPROVED and Planning-Loop Bypass Reason:.`
+- `Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.`
 
 Use this when:
 
@@ -368,6 +373,7 @@ Use this when:
 - per-seam validation and evidence recording remain mandatory
 
 Do not use prompt wording such as `execute WS-1` to mean `stop after WS-1` unless the prompt also records an explicit `Single-Seam Mode Waiver` or another blocker from `Docs/phase_governance.md`.
+Do not use an implementation branch's `Workstream` phase for planning-only or canon-only output unless the USER explicitly approves a docs-only bypass and source-of-truth records the required planning-loop guardrail markers.
 Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 A bounded stop condition blocks continuation; it does not create single-seam mode.
 reporting `Next Safe Move` is not a substitute for execution when continuation authority passes; A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
@@ -473,6 +479,7 @@ If results have not been returned yet, the correct prompt/output posture is:
 - if shortcut validation has not passed or been waived, `User-Facing Shortcut Validation Pending` remains the hard blocker before User Test Summary handoff
 - relevant desktop workstreams must record `User-Facing Shortcut Path:` and `User-Facing Shortcut Validation:` before treating Live Validation as final green
 - `User Test Summary Results Pending` remains the hard blocker
+- Live Validation green requires an exact `## User Test Summary` state before final green.
 - `User Test Summary Results: PENDING.`
 - `Final phase advancement is BLOCKED until the filled User Test Summary is submitted and digested.`
 - final phase advancement stays blocked until the filled User Test Summary is submitted or waived, digested into the active authority record, and blockers are reevaluated

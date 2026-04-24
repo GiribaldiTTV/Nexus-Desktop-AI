@@ -80,19 +80,20 @@ That may be an executable branch owner or another explicitly promoted current-tr
 
 None.
 
-No active promoted implementation branch remains in merge-target truth after FB-005 PR packaging.
+No active implementation workstream remains after FB-042 PR packaging because merge-target canon is now in `No Active Branch` posture for `v1.6.7-prebeta`.
 
 ### Merged / Release Debt Owners
 
 Merged / Release Debt Owners are promoted implementation workstreams whose implementation branch is merge-target complete but whose public release packaging has not yet cleared release debt.
 These records are not active implementation branch owners after merge.
 
-- `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
+- `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 
-Current merge-target truth is `No Active Branch`. FB-005 is the merged-unreleased release-debt owner for `v1.6.6-prebeta`; the pending release scope remains bounded to WS-1 `desktop/orin_desktop_test.py` -> `dev/desktop/orin_desktop_test.py`; the residual visual-path mismatch remains dev-only and non-user-facing; and FB-042 remains selected next planning-only with historical repair-only traceability on `feature/fb-042-step5-entrypoint-planning`; branch existence does not imply Branch Readiness admission or active branch truth, and no Workstream slice is admitted.
+FB-042 Desktop entrypoint runtime refinement is the merged-unreleased release-debt owner for `v1.6.7-prebeta`. `Repo State` is `No Active Branch`; the bounded WS-1 desktop shortcut launch-path runtime refinement, H-1 hardening, and LV-1 live shortcut validation are complete historical proof; and FB-043 is selected next as the branch-not-created top-level desktop entrypoint successor lane.
 
 ### Closed
 
+- `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
 - `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 - `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`
 - `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`

@@ -56,6 +56,18 @@ Phase:
 Branch Class:
 [implementation / docs/governance / emergency canon repair / release packaging]
 
+Implementation Delta Class:
+[runtime/user-facing / backend/runtime / developer-tooling / docs-only / comma-separated non-docs-only values]
+
+Docs-Only Workstream:
+[Yes / No]
+
+Planning-Loop Bypass User Approval:
+[APPROVED / None]
+
+Planning-Loop Bypass Reason:
+[required when approved; otherwise None]
+
 Release Branch:
 [Yes / No / not applicable]
 
@@ -114,6 +126,11 @@ If `Seam Sequence` is present, Codex must execute one active seam at a time, val
 If a prompt names an active seam inside that sequence, treat it as the entry seam, not a terminal boundary.
 After a green seam, `Next-Seam Continuation Required` applies by default when continuation authority conditions pass.
 Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
+Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
+Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+Docs-only Workstreams require explicit USER approval.
+Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
+Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
 reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
 reporting Next Safe Move is not a substitute for execution when continuation authority passes.
 A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
@@ -128,6 +145,7 @@ If a file change is needed during `Release Readiness`, classify `Release Readine
 Use `Release Branch: No` only for preserved historical records.
 Do not use `Release Branch: No` for `implementation` or `release packaging` branches.
 If a required User Test Summary handoff is outstanding, use `User Test Summary Results: PENDING`, list `User Test Summary Results Pending` under blockers, and do not report final phase advancement as green until the filled User Test Summary is submitted or waived, digested, and blockers are reevaluated.
+Live Validation green requires an exact `## User Test Summary` state before final green.
 For relevant desktop user-facing Live Validation, apply the `User-Facing Shortcut Live Validation Gate` / `desktop-shortcut` blocker path before User Test Summary handoff: declare `User-Facing Shortcut Path:`, record `User-Facing Shortcut Validation: PENDING`, `PASS`, `FAIL`, or `WAIVED`, and keep `User-Facing Shortcut Validation Pending` as a blocker until the declared desktop shortcut or equivalent user entrypoint is passable or explicitly waived.
 
 Default expectation:

@@ -139,6 +139,7 @@ Use these for promoted work that needs a stable feature-state, branch-local vali
 
 - `Docs/workstreams/index.md`
 - `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
+- `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 - `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 - `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`
 - `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`
@@ -230,7 +231,13 @@ These are reference layers, not active workstream or roadmap owners.
   5. `PR Readiness`
   6. `Release Readiness`
 - `Branch Readiness` must plan the whole branch at phase level before Workstream begins, including objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase needs, and first seam or seam sequence
+- Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
 - during `Workstream`, `bounded multi-seam workflow` is the primary model for approved seam chains; execute one active seam at a time, validate it, record evidence, report `continue` or `stop`, and continue by default when `Next-Seam Continuation Required` applies
+- Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+- Docs-only Workstreams require explicit USER approval.
+- Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
+- Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
+- branch existence, branch rename, backlog promotion, repair-only traceability, or release-bearing posture do not count as Workstream progress by themselves
 - when a prompt names an active seam inside an approved seam sequence, treat it as the entry seam, not a terminal boundary; stopping after a green seam by choice requires an explicit `Single-Seam Mode Waiver`, while bounded stop conditions from `Docs/phase_governance.md` block continuation without creating single-seam mode; treat legacy `Single-Seam Fallback` wording as waiver-only
 - Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
 - reporting `Next Safe Move` is not a substitute for execution when continuation authority passes; A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
@@ -282,6 +289,7 @@ These are reference layers, not active workstream or roadmap owners.
 - a post-release canon repair must not mutate `main`; if merged canon is stale, carry the repair on the still-available prior branch or block the next active branch's `Branch Readiness`
 - returned `UTS`, screenshot, interactive, PR-review, or release-review evidence must be digested into the authority record before phase advancement is recommended
 - while a required User Test Summary handoff is outstanding, the active branch must report `User Test Summary Results Pending`; automated validators and live helper evidence may be green, but final phase advancement is blocked until the filled User Test Summary is submitted or waived, digested into the authority record, and blockers are reevaluated
+- Live Validation green requires an exact `## User Test Summary` state before final green.
 - required pending-UTS wording is: `Automated validators and live helper evidence: GREEN.`, `User Test Summary Results: PENDING.`, and `Final phase advancement is BLOCKED until the filled User Test Summary is submitted and digested.`
 - when a slice changes user-visible behavior or another operator-facing path, do not treat `## User Test Summary` as a recap slot; route through `Docs/user_test_summary_guidance.md` and require a real manual checklist unless no meaningful manual test exists
 - `## User Test Summary Strategy` is planning context only; the canonical repo-level `UTS` artifact must be the exact `## User Test Summary` section when one is required or waived
