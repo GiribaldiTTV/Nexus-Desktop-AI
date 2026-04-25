@@ -68,7 +68,7 @@ Current merged truth indicates:
 - merged unreleased non-doc implementation debt exists: yes
 - the latest public released implementation milestone is FB-043 Top-level desktop entrypoint ownership and `main.py` handoff refinement in `v1.6.8-prebeta`; FB-042 Desktop entrypoint runtime refinement remains released in `v1.6.7-prebeta`; FB-005 Workspace and folder organization remains released in `v1.6.6-prebeta`; FB-030 ORIN voice/audio direction refinement remains released in `v1.6.5-prebeta`; FB-015 Boot and desktop phase-boundary model plus FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening remain released in `v1.6.4-prebeta`
 - current phase after `v1.6.8-prebeta` release closure: `PR Readiness`
-- phase status after `v1.6.8-prebeta` release closure: FB-043 is Released / Closed in `v1.6.8-prebeta`; FB-044 remains the merged-unreleased release-debt owner for `v1.6.9-prebeta`; FB-045 has completed its blocker-clearing Workstream, Hardening, and Live Validation lane on `feature/fb-045-active-session-relaunch-stability`; PR-1 / PR-2 are complete there; PR-3 live PR creation is pending; and updated `main` should return to file-frozen `Release Readiness` for the merged-unreleased FB-044 package after that PR merges.
+- phase status after `v1.6.8-prebeta` release closure: FB-043 is Released / Closed in `v1.6.8-prebeta`; FB-044 remains the merged-unreleased release-debt owner for `v1.6.9-prebeta`; FB-045 has completed its blocker-clearing Workstream, Hardening, and Live Validation lane on `feature/fb-045-active-session-relaunch-stability`; PR-1 / PR-2 / PR-3 are complete there on PR #90; and updated `main` should return to file-frozen `Release Readiness` for the merged-unreleased FB-044 package after that PR merges.
 - current active workstream: none
 - current branch after `v1.6.8-prebeta` release closure: none on merge-target canon
 - next concern: merge the completed FB-045 blocker-clearing PR, then rerun file-frozen `Release Readiness` on updated `main` for the merged-unreleased FB-044 `v1.6.9-prebeta` package.
@@ -103,10 +103,10 @@ Repair-Only Branch Handling: `feature/fb-043-release-debt-marker-repair` is a re
 Historical Branch Readiness State: Complete on `feature/fb-043-top-level-entrypoint-handoff-refinement`.
 Current Branch Readiness State: Historical complete on `feature/fb-045-active-session-relaunch-stability`.
 Historical Workstream State: FB-043 WS-1 `main.py` direct-launch handoff refinement, WS-2 explicit launch-intent refinement, H-1 entrypoint hardening, LV-1 live validation, PR Readiness, merge, and release publication are complete historical proof in `v1.6.8-prebeta`.
-Merged-Unreleased Workstream State: FB-044 WS-1 `desktop-settled handoff outcome refinement`, H-1 settled-state hardening, LV-1 live validation, and PR-1 / PR-2 / PR-3 remain complete and frozen for `v1.6.9-prebeta` release packaging. FB-045 WS-1 `post-settled runtime stability refinement` is complete and validated on the blocker-clearing branch, H-1 post-settled lifecycle hardening is complete and green, LV-1 live validation is complete and green with real shortcut evidence plus a focused User Test Summary waiver, PR-1 / PR-2 are complete there, PR-3 live PR creation is pending, and updated `main` should return to file-frozen `Release Readiness` for FB-044 after that PR merges.
+Merged-Unreleased Workstream State: FB-044 WS-1 `desktop-settled handoff outcome refinement`, H-1 settled-state hardening, LV-1 live validation, and PR-1 / PR-2 / PR-3 remain complete and frozen for `v1.6.9-prebeta` release packaging. FB-045 WS-1 `post-settled runtime stability refinement` is complete and validated on the blocker-clearing branch, H-1 post-settled lifecycle hardening is complete and green, LV-1 live validation is complete and green with real shortcut evidence plus a focused User Test Summary waiver, PR-1 / PR-2 / PR-3 are complete there on PR #90, and updated `main` should return to file-frozen `Release Readiness` for FB-044 after that PR merges.
 Historical Hardening State: Complete on `feature/fb-043-top-level-entrypoint-handoff-refinement`.
 Historical Live Validation State: Complete on `feature/fb-043-top-level-entrypoint-handoff-refinement`.
-PR Readiness State: In progress on `feature/fb-045-active-session-relaunch-stability`; live PR package state will be recorded in the canonical FB-045 workstream doc after PR creation.
+PR Readiness State: Complete on `feature/fb-045-active-session-relaunch-stability`; live PR package state is recorded in the canonical FB-045 workstream doc.
 Release Execution State: `v1.6.8-prebeta` is live at https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.8-prebeta on commit `5e695af5fada05e4ad6b25731bce328ede8a09ee`.
 Current Branch Objective: hold merge-target no-active-branch truth, land the completed FB-045 blocker-clearing package, and rerun file-frozen `Release Readiness` on updated `main` for the merged-unreleased FB-044 `v1.6.9-prebeta` package.
 Next Legal Phase: Release Readiness.
@@ -129,7 +129,7 @@ Active Workstream Chain: None on merge-target canon. The completed FB-045 blocke
 - priority: `High`
 - canonical workstream doc: `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
 - historical source branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
-- phase status: Merged unreleased for `v1.6.9-prebeta`; Workstream, Hardening, Live Validation, and PR Readiness are complete; FB-045 has completed the blocker-clearing follow-through and is now at PR-3 live PR creation; and updated `main` should return to `Release Readiness` once that PR lands.
+- phase status: Merged unreleased for `v1.6.9-prebeta`; Workstream, Hardening, Live Validation, and PR Readiness are complete; FB-045 has completed the blocker-clearing follow-through and now holds live PR #90; and updated `main` should return to `Release Readiness` once that PR lands.
 - next legal seam: `Release Readiness` on updated `main` after FB-045 merges and merged-main revalidation reruns green
 Release Target: v1.6.9-prebeta
 Release Floor: patch prerelease
@@ -157,7 +157,7 @@ Post-Release Truth: FB-044 and FB-045 are Released / Closed in `v1.6.9-prebeta` 
 - record state: `Promoted`
 - canonical workstream doc: `Docs/workstreams/FB-045_active_session_relaunch_outcome_refinement.md`
 - active branch: `feature/fb-045-active-session-relaunch-stability`
-- phase status: blocker-clearing promoted workstream package complete on the feature branch; WS-1 `post-settled runtime stability refinement` is complete and validated; H-1 post-settled lifecycle hardening is complete and green; LV-1 live validation is complete and green; PR-1 / PR-2 are complete; PR-3 live PR creation is pending; and updated `main` should return to file-frozen `Release Readiness` for FB-044 after this PR merges.
+- phase status: blocker-clearing promoted workstream package complete on the feature branch; WS-1 `post-settled runtime stability refinement` is complete and validated; H-1 post-settled lifecycle hardening is complete and green; LV-1 live validation is complete and green; PR-1 / PR-2 / PR-3 are complete; and updated `main` should return to file-frozen `Release Readiness` for FB-044 after this PR merges.
 - current branch objective: land the completed FB-045 blocker-clearing package without widening beyond the active-session relaunch-stability scope.
 
 ## Latest Released Workstream Context

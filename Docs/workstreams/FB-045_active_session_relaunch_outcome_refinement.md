@@ -332,7 +332,7 @@ Active seam: `None.`
 - LV-1 is complete and green.
 - PR-1 merge-target canon completeness is complete.
 - PR-2 selected-next workstream selection is complete with FB-046 as the branch-not-created successor lane.
-- PR-3 live PR creation and validation is pending.
+- PR-3 live PR creation and validation is complete.
 
 ## Governance Drift Audit
 
@@ -408,24 +408,25 @@ PR Readiness validates the completed bounded FB-045 blocker-clearing runtime sli
 - Base Branch: `main`
 - Head Branch: `feature/fb-045-active-session-relaunch-stability`
 - PR Summary: Deliver the bounded FB-045 blocker-clearing runtime/user-facing lifecycle slice by keeping `DESKTOP_OUTCOME|SETTLED|state=dormant` authoritative for startup success, classifying later abnormal renderer exits as recoverable post-settled runtime conditions instead of startup failure, preserving real desktop shortcut and explicit dev boot proof, aligning merge-target canon for the merged-unreleased FB-044 `v1.6.9-prebeta` package, and selecting FB-046 as the next relaunch-reacquisition successor lane.
-- PR URL: Pending live PR creation.
-- PR State At PR Package Time: Pending live PR creation.
-- Review Thread State: Pending live PR creation.
-- Merge Readiness At PR Package Time: Pending live PR creation.
+- PR URL: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/pull/90
+- PR State At PR Package Time: OPEN, non-draft, base `main`, head `feature/fb-045-active-session-relaunch-stability`.
+- Review Thread State: PASS. Zero review comments and zero submitted reviews at PR package time.
+- Merge Readiness At PR Package Time: CLEAN / MERGEABLE.
 
 ### PR Readiness Completion Decision
 
 - PR-1 Result: Complete / green.
 - PR-2 Result: Complete / green.
-- PR-3 Result: Pending live PR creation.
+- PR-3 Result: Complete / green.
 - Lifecycle Classification Integrity: authoritative settled remains the startup-success proof; clean post-settled shutdown remains distinct from recoverable post-settled abnormal exit; and the merged-main blocker now classifies truthfully instead of collapsing into startup failure flow.
 - Next legal action after merge: file-frozen Release Readiness on updated `main` for the merged-unreleased FB-044 `v1.6.9-prebeta` package.
 
 ### PR Readiness Validation Results
 
 - `python dev\orin_branch_governance_validation.py`: PASS; merge-target canon and successor-lock truth are green.
-- `python dev\orin_branch_governance_validation.py --pr-readiness-gate`: pending until live PR exists.
+- `python dev\orin_branch_governance_validation.py --pr-readiness-gate`: PASS after live PR creation and state validation.
 - `git diff --check`: PASS.
 - User-facing shortcut gate: PASS with exact markers in `## User Test Summary`.
 - User Test Summary results gate: WAIVED with exact markers in `## User Test Summary`.
 - Next-workstream selection gate: PASS. FB-046 is selected next, `Registry-only`, and branch-not-created.
+- Live PR state: PASS. PR #90 is `OPEN`, non-draft, base `main`, head `feature/fb-045-active-session-relaunch-stability`, and mergeability is `CLEAN`.
