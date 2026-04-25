@@ -90,10 +90,11 @@ None.
 Merged / Release Debt Owners are promoted implementation workstreams whose implementation branch is merge-target complete but whose public release packaging has not yet cleared release debt.
 These records are not active implementation branch owners after merge.
 
-- `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`
+- `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
 
 ### Closed
 
+- `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`
 - `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 - `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
 - `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`

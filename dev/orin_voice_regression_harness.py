@@ -11,12 +11,12 @@ DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
 BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "voice_regression_harness")
 REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 
-LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_launcher.pyw")
-ERROR_VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_error_voice.py")
-NORMAL_VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "jarvis_voice.py")
+LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_launcher.pyw")
+ERROR_VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "orin_error_voice.py")
+NORMAL_VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "orin_voice.py")
 
-FAILURE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_failure_target.pyw")
-STARTUP_ABORT_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_startup_abort_target.pyw")
+FAILURE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "orin_manual_failure_target.pyw")
+STARTUP_ABORT_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "orin_manual_startup_abort_target.pyw")
 
 EXPECTED_LAUNCHER_LINES = [
     "Uhm..... Sir, I seem to be malfunctioning.",
@@ -251,7 +251,7 @@ import importlib.util
 import json
 
 module_path = r"{NORMAL_VOICE_SCRIPT}"
-spec = importlib.util.spec_from_file_location("jarvis_voice_probe", module_path)
+spec = importlib.util.spec_from_file_location("orin_voice_probe", module_path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
@@ -380,8 +380,8 @@ def main(argv):
         target_script=STARTUP_ABORT_TARGET,
         log_root=startup_abort_root,
         expected_lane_markers=[
-            "STARTUP_READY_STALL_CONFIRMED",
-            "STARTUP_ABORT_REQUESTED_ON_CONFIRMED_STALL",
+            "DESKTOP_SETTLED_STALL_CONFIRMED",
+            "STARTUP_ABORT_REQUESTED_ON_CONFIRMED_SETTLED_STALL",
             "RENDERER_MAIN|STARTUP_ABORTED",
             "STARTUP_ABORT_COMPLETE",
             "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED",

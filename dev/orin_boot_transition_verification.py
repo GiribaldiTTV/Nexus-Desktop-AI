@@ -17,6 +17,7 @@ BOOT_RUNTIME_ROOT = os.path.join(DEV_LOGS_DIR, "boot_auto_handoff_skip_import")
 MAIN_SCRIPT = os.path.join(ROOT_DIR, "main.py")
 LEGACY_DEV_LAUNCHER = os.path.join(ROOT_DIR, "dev", "launchers", "launch_orin_main_dev.vbs")
 RUNTIME_RELAUNCH_EVENT = r"Local\JarvisRuntimeRelaunchRequestV1"
+AUTHORITATIVE_DESKTOP_SETTLED_MARKER = "DESKTOP_OUTCOME|SETTLED|state=dormant"
 
 EXPECTED_SEQUENCE = [
     "BOOT_MAIN|START|profile=auto_handoff_skip_import|audio=quiet",
@@ -29,6 +30,7 @@ EXPECTED_SEQUENCE = [
     "BOOT_MAIN|DESKTOP_VISIBLE",
     "BOOT_MAIN|DESKTOP_STATE_COMMITTED|state=dormant",
     "BOOT_MAIN|DESKTOP_SETTLED|state=dormant",
+    AUTHORITATIVE_DESKTOP_SETTLED_MARKER,
 ]
 
 CLEAN_EXIT_MARKERS = [

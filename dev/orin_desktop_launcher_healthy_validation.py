@@ -33,7 +33,7 @@ EXPECTED_RUNTIME_MARKERS = [
     "RENDERER_MAIN|HOTKEYS_STARTED",
     "RENDERER_MAIN|WINDOW_SHOW_REQUESTED",
     "RENDERER_MAIN|STARTUP_READY",
-    "STATUS|SUCCESS|LAUNCHER_RUNTIME|STARTUP_READY_OBSERVED",
+    "STATUS|SUCCESS|LAUNCHER_RUNTIME|DESKTOP_SETTLED_OBSERVED|state=dormant",
     "RENDERER_MAIN|SHUTDOWN_REQUESTED",
     "RENDERER_MAIN|EVENT_LOOP_EXIT|code=0",
 ]
@@ -370,9 +370,9 @@ def run_validation(log_root_override=None):
             any(f"Renderer target: {DEFAULT_TARGET_SCRIPT}" in line for line in runtime_lines),
             DEFAULT_TARGET_SCRIPT,
         ),
-        "launcher_owned_startup_ready_observed": line_status(
-            any("STATUS|SUCCESS|LAUNCHER_RUNTIME|STARTUP_READY_OBSERVED" in line for line in runtime_lines),
-            "STATUS|SUCCESS|LAUNCHER_RUNTIME|STARTUP_READY_OBSERVED",
+        "launcher_owned_desktop_settled_observed": line_status(
+            any("STATUS|SUCCESS|LAUNCHER_RUNTIME|DESKTOP_SETTLED_OBSERVED|state=dormant" in line for line in runtime_lines),
+            "STATUS|SUCCESS|LAUNCHER_RUNTIME|DESKTOP_SETTLED_OBSERVED|state=dormant",
         ),
         "renderer_startup_ready_reached": line_status(
             ready_seen,

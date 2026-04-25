@@ -12,6 +12,7 @@ VALID_AUDIO_MODES = {"voice", "quiet"}
 HELP_ARGS = {"-h", "--help", "/?"}
 DESKTOP_ENTRYPOINT_ARGS = {"--desktop-entrypoint"}
 PREPARSED_DEV_RUN_CONFIG = None
+AUTHORITATIVE_DESKTOP_SETTLED_MARKER = "DESKTOP_OUTCOME|SETTLED|state=dormant"
 
 
 def hidden_windows_subprocess_kwargs():
@@ -1318,6 +1319,7 @@ class BootRuntimeSystem:
             return
         self.desktop_settled_logged = True
         self.runtime_milestone("BOOT_MAIN|DESKTOP_SETTLED|state=dormant")
+        self.runtime_milestone(AUTHORITATIVE_DESKTOP_SETTLED_MARKER)
 
     def start(self):
         self.left_window.show()

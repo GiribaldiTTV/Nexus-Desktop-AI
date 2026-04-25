@@ -140,6 +140,7 @@ Rules:
 Use these for promoted work that needs a stable feature-state, branch-local validation/evidence record, active seam trail, durable artifact/reuse history, and closure history:
 
 - `Docs/workstreams/index.md`
+- `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
 - `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`
 - `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
 - `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`

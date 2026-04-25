@@ -12,11 +12,11 @@ DEV_LOGS_DIR = os.path.join(ROOT_DIR, "dev", "logs")
 BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "desktop_launcher_regression_harness")
 REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 
-LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "jarvis_desktop_launcher.pyw")
-HEALTHY_VALIDATOR_SCRIPT = os.path.join(ROOT_DIR, "dev", "jarvis_desktop_launcher_healthy_validation.py")
-FAILURE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_failure_target.pyw")
-STARTUP_ABORT_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_startup_abort_target.pyw")
-MIXED_SEQUENCE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "jarvis_manual_mixed_sequence_target.pyw")
+LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_launcher.pyw")
+HEALTHY_VALIDATOR_SCRIPT = os.path.join(ROOT_DIR, "dev", "orin_desktop_launcher_healthy_validation.py")
+FAILURE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "orin_manual_failure_target.pyw")
+STARTUP_ABORT_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "orin_manual_startup_abort_target.pyw")
+MIXED_SEQUENCE_TARGET = os.path.join(ROOT_DIR, "dev", "targets", "orin_manual_mixed_sequence_target.pyw")
 MIXED_SEQUENCE_STATE_FILE = "manual_mixed_sequence_state.txt"
 
 
@@ -131,7 +131,7 @@ def path_is_within_root(path, root):
 
 
 def run_healthy_section():
-    module = load_module_from_path("jarvis_desktop_launcher_healthy_validation_module", HEALTHY_VALIDATOR_SCRIPT)
+    module = load_module_from_path("orin_desktop_launcher_healthy_validation_module", HEALTHY_VALIDATOR_SCRIPT)
     healthy_log_root = os.path.join(BASE_LOG_ROOT, "healthy")
     result = module.run_validation(log_root_override=healthy_log_root)
     artifacts = module.write_validation_artifacts(result)
@@ -444,8 +444,8 @@ def main(argv):
         target_script=STARTUP_ABORT_TARGET,
         log_root=os.path.join(BASE_LOG_ROOT, "startup_abort"),
         expected_markers=[
-            "STARTUP_READY_STALL_CONFIRMED",
-            "STARTUP_ABORT_REQUESTED_ON_CONFIRMED_STALL",
+            "DESKTOP_SETTLED_STALL_CONFIRMED",
+            "STARTUP_ABORT_REQUESTED_ON_CONFIRMED_SETTLED_STALL",
             "RENDERER_MAIN|STARTUP_ABORTED",
             "STARTUP_ABORT_COMPLETE",
             "CONSECUTIVE_STARTUP_ABORT_THRESHOLD_REACHED",

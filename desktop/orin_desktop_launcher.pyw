@@ -51,6 +51,7 @@ STARTUP_READY_STALL_CONFIRM_SECONDS = 8.0
 STARTUP_ABORT_CONTROL_FLOW_RESULT = "STARTUP_ABORT"
 CONSECUTIVE_STARTUP_ABORT_THRESHOLD = 2
 CONSECUTIVE_IDENTICAL_CRASH_THRESHOLD = 2
+AUTHORITATIVE_DESKTOP_SETTLED_MARKER = "DESKTOP_OUTCOME|SETTLED|state=dormant"
 HISTORY_SCHEMA_VERSION = 1
 HISTORY_STABILITY_WINDOW_SIZE = 5
 HISTORY_FILENAME = "jarvis_history_v1.jsonl"
@@ -787,8 +788,8 @@ def runtime_log_contains_since(pattern, start_offset=0):
         return False
 
 
-def observe_renderer_startup_ready(proc, log_start_offset):
-    ready_marker = "RENDERER_MAIN|STARTUP_READY"
+def observe_authoritative_desktop_settled(proc, log_start_offset):
+    settled_marker = AUTHORITATIVE_DESKTOP_SETTLED_MARKER
     startup_abort_marker = "RENDERER_MAIN|STARTUP_ABORTED"
     warn_deadline = time.monotonic() + STARTUP_READY_OBSERVE_WINDOW_SECONDS
     stall_deadline = time.monotonic() + STARTUP_READY_STALL_CONFIRM_SECONDS
@@ -799,9 +800,14 @@ def observe_renderer_startup_ready(proc, log_start_offset):
     runtime_event("STATUS", "TRACE", "LAUNCHER_RUNTIME", "STARTUP_OBSERVE_BEGIN")
 
     while True:
-        if runtime_log_contains_since(ready_marker, log_start_offset):
-            runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "STARTUP_READY_OBSERVED")
-            return "ready", None, None
+        if runtime_log_contains_since(settled_marker, log_start_offset):
+            runtime_event(
+                "STATUS",
+                "SUCCESS",
+                "LAUNCHER_RUNTIME",
+                "DESKTOP_SETTLED_OBSERVED|state=dormant",
+            )
+            return "settled", None, None
 
         if runtime_log_contains_since(startup_abort_marker, log_start_offset):
             runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_OBSERVED")
@@ -812,7 +818,12 @@ def observe_renderer_startup_ready(proc, log_start_offset):
             and time.monotonic() >= warn_deadline
             and proc.poll() is None
         ):
-            runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_READY_NOT_OBSERVED_WITHIN_WINDOW")
+            runtime_event(
+                "STATUS",
+                "WARNING",
+                "LAUNCHER_RUNTIME",
+                "DESKTOP_SETTLED_NOT_OBSERVED_WITHIN_WINDOW",
+            )
             warned_within_window = True
 
         if (
@@ -820,11 +831,21 @@ def observe_renderer_startup_ready(proc, log_start_offset):
             and time.monotonic() >= stall_deadline
             and proc.poll() is None
         ):
-            runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_READY_STALL_CONFIRMED")
+            runtime_event(
+                "STATUS",
+                "WARNING",
+                "LAUNCHER_RUNTIME",
+                "DESKTOP_SETTLED_STALL_CONFIRMED",
+            )
             stall_confirmed = True
-            if not abort_requested_on_stall and not runtime_log_contains_since(ready_marker, log_start_offset):
+            if not abort_requested_on_stall and not runtime_log_contains_since(settled_marker, log_start_offset):
                 if request_startup_abort("confirmed stall"):
-                    runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_REQUESTED_ON_CONFIRMED_STALL")
+                    runtime_event(
+                        "STATUS",
+                        "WARNING",
+                        "LAUNCHER_RUNTIME",
+                        "STARTUP_ABORT_REQUESTED_ON_CONFIRMED_SETTLED_STALL",
+                    )
                     abort_requested_on_stall = True
 
         try:
@@ -833,16 +854,26 @@ def observe_renderer_startup_ready(proc, log_start_offset):
         except subprocess.TimeoutExpired:
             continue
 
-    if runtime_log_contains_since(ready_marker, log_start_offset):
-        runtime_event("STATUS", "SUCCESS", "LAUNCHER_RUNTIME", "STARTUP_READY_OBSERVED")
-        return "ready", stdout_text, stderr_text
+    if runtime_log_contains_since(settled_marker, log_start_offset):
+        runtime_event(
+            "STATUS",
+            "SUCCESS",
+            "LAUNCHER_RUNTIME",
+            "DESKTOP_SETTLED_OBSERVED|state=dormant",
+        )
+        return "settled", stdout_text, stderr_text
 
     if runtime_log_contains_since(startup_abort_marker, log_start_offset):
         runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_ABORT_OBSERVED")
         return "startup_aborted", stdout_text, stderr_text
 
-    runtime_event("STATUS", "WARNING", "LAUNCHER_RUNTIME", "STARTUP_READY_NOT_OBSERVED_BEFORE_EXIT")
-    return "not_ready_before_exit", stdout_text, stderr_text
+    runtime_event(
+        "STATUS",
+        "WARNING",
+        "LAUNCHER_RUNTIME",
+        "DESKTOP_SETTLED_NOT_OBSERVED_BEFORE_EXIT",
+    )
+    return "not_settled_before_exit", stdout_text, stderr_text
 
 
 def extract_renderer_failure_cause(stderr_text, stdout_text):
@@ -1208,7 +1239,7 @@ def run_renderer():
     )
     runtime(f"Renderer PID: {proc.pid}")
     runtime_event("STATUS", "SUCCESS", "RENDERER_PROCESS_SPAWN", f"PID={proc.pid}")
-    startup_observation, stdout_text, stderr_text = observe_renderer_startup_ready(proc, log_start_offset)
+    startup_observation, stdout_text, stderr_text = observe_authoritative_desktop_settled(proc, log_start_offset)
     if stdout_text is None and stderr_text is None:
         stdout_text, stderr_text = proc.communicate()
     runtime(f"Renderer exit code: {proc.returncode}")
@@ -1221,7 +1252,7 @@ def run_renderer():
         runtime(f"Renderer failure cause: {failure_cause}")
     if proc.returncode != 0 and failure_origin:
         runtime(failure_origin)
-    return proc.returncode, failure_cause, failure_origin, stderr_excerpt_lines, startup_aborted
+    return proc.returncode, failure_cause, failure_origin, stderr_excerpt_lines, startup_observation
 
 
 def finalize_failure(
@@ -1354,7 +1385,8 @@ def main():
         write_status("TRACE", f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
         time.sleep(0.18)
 
-        last_code, failure_cause, failure_origin, stderr_excerpt_lines, startup_aborted = run_renderer()
+        last_code, failure_cause, failure_origin, stderr_excerpt_lines, startup_observation = run_renderer()
+        startup_aborted = startup_observation == "startup_aborted"
 
         if last_code == 0 and startup_aborted:
             runtime("Renderer startup aborted cooperatively")
@@ -1367,7 +1399,25 @@ def main():
             failure_origin = ""
             stderr_excerpt_lines = []
 
-        if last_code == 0:
+        if last_code == 0 and startup_observation != "settled":
+            runtime("Renderer exited before authoritative desktop-settled signal was observed")
+            runtime_event(
+                "STATUS",
+                "WARNING",
+                "RECOVERY_ATTEMPT",
+                f"INDEX={attempt}",
+                "DESKTOP_SETTLED_NOT_REACHED_BEFORE_EXIT",
+            )
+            failure_cause = (
+                failure_cause
+                or "Renderer exited before the authoritative desktop-settled signal was observed."
+            )
+            failure_origin = (
+                failure_origin
+                or "Failure origin: launcher startup observation ended before the authoritative desktop-settled signal."
+            )
+
+        if last_code == 0 and startup_observation == "settled":
             runtime("Renderer exited normally")
             runtime_event("STATUS", "SUCCESS", "RECOVERY_ATTEMPT", f"INDEX={attempt}", "RENDERER_EXIT=0")
             write_status("TRACE", "Renderer exited normally")

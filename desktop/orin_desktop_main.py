@@ -25,6 +25,7 @@ TRAY_DISCOVERY_MESSAGE = (
     "If you do not see the icon, open hidden icons (^)."
 )
 TRAY_DISCOVERY_DURATION_MS = 4500
+AUTHORITATIVE_DESKTOP_SETTLED_MARKER = "DESKTOP_OUTCOME|SETTLED|state=dormant"
 
 
 def parse_runtime_log_arg(argv):
@@ -305,6 +306,7 @@ def main():
             return
         window.set_visual_state("dormant")
         runtime_milestone("RENDERER_MAIN|PASSIVE_DEFAULT_HANDOFF_REQUESTED|state=dormant")
+        runtime_milestone(AUTHORITATIVE_DESKTOP_SETTLED_MARKER)
 
     startup_ready_marked = False
 

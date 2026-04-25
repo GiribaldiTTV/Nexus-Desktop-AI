@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `Merged unreleased`
+- `Released (v1.6.8-prebeta)`
 
 ## Target Version
 
@@ -23,19 +23,18 @@
 
 ## Current Phase
 
-- Phase: `Release Readiness`
+- Phase: `Closed`
 
 ## Phase Status
 
-- Merged-Unreleased Release-Debt Owner: FB-043 Top-level desktop entrypoint ownership and main.py handoff refinement.
-- Repo State: No Active Branch
-- Merge-target repo state is `No Active Branch`.
-- FB-043 merge-target package truth is now owned here as merged-unreleased release debt sourced from `feature/fb-043-top-level-entrypoint-handoff-refinement`.
-- Latest Public Prerelease: `v1.6.7-prebeta`
-- Latest Public Release Commit: `8f53d163ad008f7508f55f593b15369749e3ec24`
-- Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.7-prebeta`
-- Latest Public Prerelease Title: `Pre-Beta v1.6.7`
-- FB-042 is Released / Closed in `v1.6.7-prebeta`, and release debt is clear.
+- `Released / Closed in v1.6.8-prebeta`.
+- Historical source-branch execution completed on `feature/fb-043-top-level-entrypoint-handoff-refinement`.
+- Latest Public Prerelease: v1.6.8-prebeta
+- Latest Public Release Commit: `5e695af5fada05e4ad6b25731bce328ede8a09ee`
+- Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.8-prebeta`
+- Latest Public Prerelease Title: `Pre-Beta v1.6.8`
+- FB-043 release debt is clear after publication, validation, and post-release canon closure.
+- FB-042 is Released / Closed in `v1.6.7-prebeta`, and release debt remains clear.
 - WS-1 `main.py` direct-launch handoff refinement is complete and validated.
 - WS-2 `main.py` explicit launch-intent refinement is complete and validated.
 - Plain direct `main.py` launches and explicit `--desktop-entrypoint` launches now hand off to the canonical desktop entry chain instead of silently owning a competing top-level runtime path.
@@ -49,7 +48,10 @@
 - PR-1 merge-target canon completeness is complete.
 - PR-2 selected-next workstream selection is complete with FB-044 as the branch-not-created runtime/back-end successor lane.
 - PR-3 live PR creation and validation is complete.
-- Active seam: `None.` The completed FB-043 slice chain is packaged for merge-target `v1.6.8-prebeta` release-debt truth, live PR validation is green, and `Release Readiness` is the next legal phase after merge.
+- PR Readiness, Release Readiness, and Release Execution are complete historical proof.
+- Current Active Workstream: FB-044 Boot-to-desktop handoff outcome refinement.
+- FB-044 now owns the active promoted workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement`; WS-1 is complete and validated; H-1 settled-state hardening is complete and green; LV-1 live validation is complete and green; and `PR Readiness` is next.
+- The historical FB-043 branch-authority record is preserved for traceability only and no longer owns active execution truth.
 
 ## Branch Class
 
@@ -79,11 +81,11 @@ None.
 
 ## Rollback Target
 
-- `Workstream`
+- `Closed`
 
 ## Next Legal Phase
 
-- `Release Readiness`
+- `Closed`
 
 ## Purpose / Why It Matters
 

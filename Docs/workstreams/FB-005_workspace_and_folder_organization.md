@@ -34,7 +34,7 @@
 - `Released / Closed in v1.6.6-prebeta`.
 - Current branch execution surface for new work is `main` in merged-unreleased release packaging posture.
 - Repo State: No Active Branch
-- Latest Public Prerelease: v1.6.7-prebeta
+- Latest Public Prerelease: v1.6.8-prebeta
 - `v1.6.6-prebeta` is live at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.6-prebeta` on target commit `deeaa691a79dd01897f6aed82f087970db7019b3`.
 - FB-030 is Released / Closed in `v1.6.5-prebeta`, and latest public prerelease truth is now `v1.6.6-prebeta`.
 - FB-005 is Released / Closed in `v1.6.6-prebeta`.
@@ -331,7 +331,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-005 delivers a bounded dev-only workspace/path implementation slice and direct path-truth sync with no change to shipped runtime entrypoints, launcher paths, audio paths, logs, visual assets, installer behavior, or user-facing desktop behavior
 Release Scope: the historically released WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, PR package history, and merged-unreleased release-debt truth for that bounded released slice
 Release Artifacts: Tag v1.6.6-prebeta; release title Pre-Beta v1.6.6; rich Markdown release notes summarize the bounded FB-005 WS-1 workspace slice, validation evidence, non-user-facing release posture, and selected-next planning lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; FB-042 is Released / Closed in `v1.6.7-prebeta`; FB-043 is the merged-unreleased release-debt owner for `v1.6.8-prebeta`; and FB-044 remains selected next, `Registry-only`, and branch-not-created.
+Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; FB-042 is Released / Closed in `v1.6.7-prebeta`; FB-043 is Released / Closed in `v1.6.8-prebeta`; and FB-044 is now the active promoted workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement` with WS-1 complete and `Hardening` next.
 Next-Branch Creation Gate: After FB-042 merges, `v1.6.7-prebeta` is published and validated, updated `main` is revalidated, and FB-043 Branch Readiness admits the first bounded runtime-bearing top-level entrypoint slice with same-branch continuation posture explicit; branch creation remains blocked until then
 
 ## Post-Merge State
