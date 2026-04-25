@@ -11,7 +11,7 @@
 
 ## Status
 
-- `Active`
+- `Merged unreleased`
 
 ## Target Version
 
@@ -23,10 +23,14 @@
 
 ## Current Phase
 
-- Phase: `Live Validation`
+- Phase: `Release Readiness`
 
 ## Phase Status
 
+- Merged-Unreleased Release-Debt Owner: FB-044 Boot-to-desktop handoff outcome refinement.
+- Repo State: No Active Branch
+- Merge-target repo state is `No Active Branch`.
+- FB-044 merge-target package truth is now owned here as merged-unreleased release debt sourced from `feature/fb-044-boot-desktop-handoff-outcome-refinement`.
 - FB-043 is Released / Closed in `v1.6.8-prebeta`, and release debt is clear after publication, validation, and post-release canon closure.
 - Latest Public Prerelease: `v1.6.8-prebeta`
 - Latest Public Release Commit: `5e695af5fada05e4ad6b25731bce328ede8a09ee`
@@ -44,7 +48,10 @@
 - Live Validation confirmed repo-truth alignment, exercised the real declared desktop shortcut, preserved explicit dev boot-profile proof, and verified the authoritative settled signal on both the real shortcut route and reusable helper routes.
 - User-facing shortcut validation is now green with fresh real-shortcut evidence, and User Test Summary results are explicitly waived because the completed FB-044 delta changes a narrow settled-outcome proof contract rather than adding a broader manual workflow or multi-step operator interaction.
 - Same-branch backlog completion remained the default, and no further implementable FB-044 work is currently required to resolve the admitted handoff ambiguity.
-- Active seam: `None.` LV-1 is complete; `PR Readiness` is the next legal phase.
+- PR-1 merge-target canon completeness is complete.
+- PR-2 selected-next workstream selection is complete with FB-045 as the branch-not-created runtime/user-facing successor lane.
+- PR-3 live PR creation and validation is complete.
+- Active seam: `None.` The completed FB-044 slice chain is packaged for merge-target `v1.6.9-prebeta` release-debt truth, live PR validation is green, and `Release Readiness` is the next legal phase after merge.
 
 ## Branch Class
 
@@ -77,7 +84,7 @@ None.
 
 ## Next Legal Phase
 
-- `PR Readiness`
+- `Release Readiness`
 
 ## Purpose / Why It Matters
 
@@ -308,3 +315,84 @@ LV-1 validates the completed FB-044 settled-outcome slice chain against live rep
 - User Test Summary Results: `WAIVED`
 - User Test Summary Waiver Reason: The completed FB-044 delta is a narrow desktop-settled outcome refinement already covered by fresh real-shortcut evidence, reusable default/fallback/direct-handoff validation, explicit dev boot-profile verification, and negative rollback proof. It does not add a new manual multi-step task flow, settings journey, persisted user-content path, or broader operator workflow that a filled manual User Test Summary would materially validate beyond that captured evidence.
 - Desktop User Test Summary Export: `Not required; waiver path`
+
+## Governance Drift Audit
+
+Governance Drift Found: No.
+
+- Merge-target canon is synchronized to merged-unreleased release-debt truth before PR green.
+- `Repo State` is `No Active Branch` in merge-target surfaces, so this package does not rely on a later post-merge active-branch cleanup.
+- FB-045 is explicitly selected next with `Branch: Not created`, so branch existence is not being confused with successor admission.
+- No docs-only bypass, planning-loop bypass, or repair-only branch posture is being used to justify this implementation package.
+
+## Historical PR Package State
+
+Historical Merged-Unreleased Release-Debt Owner At PR Package Time: FB-044 Boot-to-desktop handoff outcome refinement
+Historical Repo State At PR Package Time: No Active Branch
+Latest Public Prerelease: v1.6.8-prebeta
+Release Debt: Active after merge until `v1.6.9-prebeta` is published, validated, and post-release canon closure completes
+Release Target: v1.6.9-prebeta
+Release Title: Pre-Beta v1.6.9
+Release Floor: patch prerelease
+Version Rationale: FB-044 delivers a bounded runtime/user-facing boot-to-desktop settled-outcome refinement on the existing startup family without opening a new product lane, broader runtime family, or materially expanded capability beyond startup outcome clarity and rollback honesty
+Release Scope: completed FB-044 WS-1 `desktop-settled handoff outcome refinement`, H-1 settled-state hardening, LV-1 real desktop shortcut evidence, PR package history, merged-unreleased release-debt truth, and selected-next FB-045 successor lock for the bounded runtime/user-facing slice only
+Release Artifacts: Tag v1.6.9-prebeta; release title Pre-Beta v1.6.9; rich Markdown release notes summarize the bounded FB-044 boot-to-desktop settled-outcome refinement, rollback-hardening result, real shortcut evidence, and the FB-045 successor lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
+Post-Release Truth: FB-044 is Released / Closed in `v1.6.9-prebeta` after publication and validation; release debt then clears, and FB-045 Branch Readiness may begin only after updated `main` is revalidated and the first bounded runtime/user-facing relaunch slice is admitted
+Selected Next Workstream: FB-045 Active-session relaunch outcome refinement
+Next-Branch Creation Gate: After FB-044 merges, `v1.6.9-prebeta` is published and validated, updated `main` is revalidated, and FB-045 Branch Readiness admits the first bounded runtime/user-facing relaunch slice; branch creation remains blocked until then
+
+## Post-Merge State
+
+- Post-merge repo state: `No Active Branch` because FB-044 will own merged-unreleased release debt on `main` for `v1.6.9-prebeta`.
+- Pending release scope after merge: the completed bounded FB-044 settled-outcome slice chain only.
+- Successor state after merge: FB-045 remains selected next, `Registry-only`, and branch-not-created until `v1.6.9-prebeta` is published, validated, updated `main` is revalidated, and bounded Branch Readiness admits the first runtime/user-facing relaunch slice.
+
+## Release Window Audit
+
+Release Window Audit: PASS
+Window Scope: FB-044 WS-1 desktop-settled handoff outcome refinement, H-1 settled-state hardening, LV-1 real shortcut validation, merge-target release-debt framing for `v1.6.9-prebeta`, and successor-lock selection of FB-045.
+Known Window Blockers Reviewed: missing merged-unreleased release-debt framing; stale active-branch current-state wording on merge-target canon; missing successor lock; risk of another repair-only pre-release branch; missing live PR state; and risk of widening beyond the bounded settled-outcome lane.
+Remaining Known Release Blockers: None
+Another Pre-Release Repair PR Required: NO
+Release Window Split Waiver: None
+
+## PR Readiness Record
+
+PR Readiness validates the completed bounded FB-044 runtime slice chain for merge to `main`. This record aligns the `v1.6.9-prebeta` release-debt package, selects the next runtime/user-facing workstream, prepares durable PR package details, and then records live PR validation before reporting green.
+
+### PR-1 Merge-Target Canon Findings
+
+- Merge Target: `main`.
+- Head Branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`.
+- Source-of-Truth Alignment: PASS. `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, `Docs/workstreams/index.md`, `Docs/workstreams/FB-005_workspace_and_folder_organization.md`, `Docs/workstreams/FB-015_boot_and_desktop_phase_boundary_model.md`, `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`, `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`, `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`, `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`, and this workstream record align on FB-044 as the merged-unreleased release-debt owner for `v1.6.9-prebeta`.
+- Release-Debt Framing: PASS. `v1.6.8-prebeta` is the latest public prerelease; after merge, FB-044 becomes the merged-unreleased release-debt owner for `v1.6.9-prebeta`.
+- Release Target: `v1.6.9-prebeta`.
+- Release Title: `Pre-Beta v1.6.9`.
+- Release Floor: `patch prerelease`.
+- Version Rationale: `patch prerelease` remains required because the delivered FB-044 delta is a bounded runtime/user-facing boot-to-desktop settled-outcome refinement on the existing startup family, not a new capability lane or materially expanded feature family.
+- Release Scope: complete WS-1 `desktop-settled handoff outcome refinement`, H-1 settled-state hardening proof, real shortcut validation evidence, selected-next successor lock, and PR package history.
+- Release Artifacts: Tag `v1.6.9-prebeta`; release title `Pre-Beta v1.6.9`; rich Markdown release notes summarize the bounded FB-044 boot-to-desktop settled-outcome refinement without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+- Post-Release Truth: FB-044 is Released / Closed in `v1.6.9-prebeta` after publication and validation; release debt then clears, and FB-045 Branch Readiness may begin only after updated `main` is revalidated and the first bounded runtime/user-facing relaunch slice is admitted.
+
+### PR-2 Selected-Next Workstream Findings
+
+- Selected Next Workstream: FB-045 Active-session relaunch outcome refinement.
+- Selected Next Basis: FB-045 is the smallest repo-grounded runtime/user-facing successor after FB-044 because startup ownership and authoritative settled proof are now explicit, but the active-session relaunch path still spans boot prompts, launcher prompts, runtime relaunch signals, and proof that the relaunched session returns to the same settled outcome cleanly.
+- Selected Next Record State At PR Package Time: `Registry-only`.
+- Selected Next Implementation Branch At PR Package Time: Not created.
+- Branch Creation Gate At PR Package Time: After FB-044 merges, `v1.6.9-prebeta` is published and validated, updated `main` is revalidated, and FB-045 Branch Readiness admits the first bounded runtime/user-facing relaunch slice.
+- Branch Containment At PR Package Time: PASS. No local or remote branch exists for FB-045.
+
+### PR-3 PR Package Details
+
+- PR Title: `FB-044 Boot-To-Desktop Handoff Outcome Refinement`
+- Base Branch: `main`
+- Head Branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
+- PR Summary: Deliver the bounded FB-044 runtime/user-facing settled-outcome slice by making `DESKTOP_OUTCOME|SETTLED|state=dormant` the authoritative boot-to-desktop completion signal across boot proof, launcher observation, renderer proof, and reusable validators, hardening rollback when settled is never reached, preserving real desktop shortcut evidence, aligning merge-target canon for `v1.6.9-prebeta`, and selecting FB-045 as the next active-session relaunch successor lane.
+
+### PR Readiness Completion Decision
+
+- PR-1 Result: Complete / green.
+- PR-2 Result: Complete / green.
+- Runtime/User-Facing Impact: startup completion now means the same thing across production and explicit dev proof, and a clean renderer exit without the authoritative settled marker no longer produces a false healthy launcher outcome.
+- Next legal action after merge: file-frozen Release Readiness on updated `main` for `v1.6.9-prebeta`.

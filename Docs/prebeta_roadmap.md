@@ -65,67 +65,87 @@ Current merged truth indicates:
 - latest public release commit: `5e695af5fada05e4ad6b25731bce328ede8a09ee`
 - latest public prerelease publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.8-prebeta`
 - latest public prerelease title: `Pre-Beta v1.6.8`
-- merged unreleased non-doc implementation debt exists: no
+- merged unreleased non-doc implementation debt exists: yes
 - the latest public released implementation milestone is FB-043 Top-level desktop entrypoint ownership and `main.py` handoff refinement in `v1.6.8-prebeta`; FB-042 Desktop entrypoint runtime refinement remains released in `v1.6.7-prebeta`; FB-005 Workspace and folder organization remains released in `v1.6.6-prebeta`; FB-030 ORIN voice/audio direction refinement remains released in `v1.6.5-prebeta`; FB-015 Boot and desktop phase-boundary model plus FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening remain released in `v1.6.4-prebeta`
-- current phase after `v1.6.8-prebeta` release closure: `Live Validation`
-- phase status after `v1.6.8-prebeta` release closure: FB-043 is Released / Closed in `v1.6.8-prebeta`; repo release debt is clear; FB-044 now owns the active promoted runtime/user-facing workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement`; WS-1 is complete and validated; H-1 settled-state hardening is complete and green; LV-1 live validation is complete and green; and `PR Readiness` is the next legal phase.
-- current active workstream: FB-044 Boot-to-desktop handoff outcome refinement
-- current branch after `v1.6.8-prebeta` release closure: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
-- next concern: execute FB-044 `PR Readiness` on the live-validated settled-outcome slice chain, align merge-target canon, select the next workstream, and prepare the PR package.
+- current phase after `v1.6.8-prebeta` release closure: `Release Readiness`
+- phase status after `v1.6.8-prebeta` release closure: FB-043 is Released / Closed in `v1.6.8-prebeta`; FB-044 is now the merged-unreleased release-debt owner for `v1.6.9-prebeta`; repo state is `No Active Branch`; the bounded FB-044 slice chain, Hardening, Live Validation, and PR Readiness are complete; and FB-045 is selected next as the branch-not-created runtime/user-facing successor lane.
+- current active workstream: none
+- current branch after `v1.6.8-prebeta` release closure: none
+- next concern: execute file-frozen `Release Readiness` on updated `main` for the merged-unreleased FB-044 `v1.6.9-prebeta` package, then carry post-release canon closure on the next legal feature branch.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, the released FB-032 source-of-truth migration milestone, the released FB-004 future boot-orchestrator architecture milestone, the released FB-015 plus FB-029 planning milestones, the released FB-030 voice/audio planning milestone, and the released FB-005 bounded workspace-path slice are now part of the current public shared pre-Beta baseline.
 
 ## Current Branch Readiness Posture
 
-Merged-Unreleased Release-Debt Owner: None.
-Repo State: Active Workstream.
+Merged-Unreleased Release-Debt Owner: FB-044 Boot-to-desktop handoff outcome refinement.
+Repo State: No Active Branch.
 
 Latest Public Prerelease: v1.6.8-prebeta
 Latest Public Release Commit: 5e695af5fada05e4ad6b25731bce328ede8a09ee
 Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.8-prebeta
 Latest Public Prerelease Title: Pre-Beta v1.6.8
-Release Debt: Clear after `v1.6.8-prebeta` publication, validation, and post-release canon closure.
-Current active workstream: FB-044 Boot-to-desktop handoff outcome refinement
-Current Active Branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
+Release Debt: Active after merge until `v1.6.9-prebeta` is published, validated, and post-release canon closure completes.
+Current active workstream: None
+Current Active Workstream Before Release: FB-044 Boot-to-desktop handoff outcome refinement
+Current Active Branch: `None.`
+Active Branch Before Release: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
 Current Active Branch Record: `None.`
 Current Active Canonical Workstream Doc: `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
-Historical Active Workstream: FB-043 Top-level desktop entrypoint ownership and main.py handoff refinement
-Historical Active Branch: `feature/fb-043-top-level-entrypoint-handoff-refinement`
-Earlier Historical Active Workstream: FB-042 Desktop entrypoint runtime refinement
-Earlier Historical Active Branch: `feature/fb-042-desktop-entrypoint-runtime-refinement`
-Selected Next Workstream: None.
-Selected Next Record State: None.
-Selected Next Implementation Branch: `None.`
+Historical Active Workstream Before Release: FB-043 Top-level desktop entrypoint ownership and main.py handoff refinement
+Historical Active Branch Before Release: `feature/fb-043-top-level-entrypoint-handoff-refinement`
+Earlier Historical Active Workstream Before Release: FB-042 Desktop entrypoint runtime refinement
+Earlier Historical Active Branch Before Release: `feature/fb-042-desktop-entrypoint-runtime-refinement`
+Selected Next Workstream: FB-045 Active-session relaunch outcome refinement.
+Selected Next Record State: Registry-only.
+Selected Next Implementation Branch: `Not created.`
 Repair-Only Branch Handling: `feature/fb-043-release-debt-marker-repair` is a repair-only `feature/` branch and does not imply Branch Readiness admission or active branch truth for FB-043.
-Historical Branch Readiness State: Complete on `feature/fb-042-desktop-entrypoint-runtime-refinement`.
-Current Branch Readiness State: Historical complete on `feature/fb-044-boot-desktop-handoff-outcome-refinement`.
-Current Workstream State: FB-044 WS-1 `desktop-settled handoff outcome refinement` is complete and validated; H-1 settled-state hardening is complete and green; LV-1 live validation is complete and green; `Backlog Completion State` is `Implemented Complete`; `PR Readiness` is next.
+Historical Branch Readiness State: Complete on `feature/fb-043-top-level-entrypoint-handoff-refinement`.
+Current Branch Readiness State: Complete on `feature/fb-044-boot-desktop-handoff-outcome-refinement`.
 Historical Workstream State: FB-043 WS-1 `main.py` direct-launch handoff refinement, WS-2 explicit launch-intent refinement, H-1 entrypoint hardening, LV-1 live validation, PR Readiness, merge, and release publication are complete historical proof in `v1.6.8-prebeta`.
+Merged-Unreleased Workstream State: FB-044 WS-1 `desktop-settled handoff outcome refinement`, H-1 settled-state hardening, LV-1 live validation, and PR-1 / PR-2 / PR-3 are complete and frozen for `v1.6.9-prebeta` release packaging.
 Historical Hardening State: Complete on `feature/fb-043-top-level-entrypoint-handoff-refinement`.
 Historical Live Validation State: Complete on `feature/fb-043-top-level-entrypoint-handoff-refinement`.
-PR Readiness State: Historical proof complete on `feature/fb-043-top-level-entrypoint-handoff-refinement`; live PR package state is preserved in the canonical FB-043 workstream doc.
+PR Readiness State: Complete on `feature/fb-044-boot-desktop-handoff-outcome-refinement`; live PR package state is recorded in the canonical FB-044 workstream doc.
 Release Execution State: `v1.6.8-prebeta` is live at https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.8-prebeta on commit `5e695af5fada05e4ad6b25731bce328ede8a09ee`.
-Current Branch Objective: complete the active promoted FB-044 boot-to-desktop handoff outcome lane without widening into future boot-orchestrator implementation.
-Next Legal Phase: PR Readiness.
+Current Branch Objective: complete the merged-unreleased FB-044 boot-to-desktop handoff outcome lane through `v1.6.9-prebeta` release packaging without widening into future boot-orchestrator implementation.
+Next Legal Phase: Release Readiness.
+Release Target: v1.6.9-prebeta
+Release Title: Pre-Beta v1.6.9
+Release Floor: patch prerelease
+Version Rationale: FB-044 delivers a bounded runtime/user-facing boot-to-desktop settled-outcome refinement on the existing startup family without opening a new product lane or materially expanded runtime family.
+Release Scope: completed FB-044 WS-1 desktop-settled handoff outcome refinement across `main.py`, `desktop/orin_desktop_launcher.pyw`, `desktop/orin_desktop_main.py`, `dev/orin_boot_transition_verification.py`, and `dev/orin_desktop_entrypoint_validation.py`, plus H-1 settled-state hardening, LV-1 real desktop shortcut evidence, PR package history, merged-unreleased release-debt truth, and selected-next FB-045 successor lock for the bounded runtime/user-facing slice only.
+Release Artifacts: Tag v1.6.9-prebeta; release title Pre-Beta v1.6.9; rich Markdown release notes summarize the bounded FB-044 boot-to-desktop settled-outcome refinement, real shortcut evidence, rollback-hardening result, and the FB-045 successor lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+Post-Release Truth: FB-044 is Released / Closed in `v1.6.9-prebeta` after publication and validation; release debt then clears; and FB-045 Branch Readiness may begin only after updated `main` is revalidated and the first bounded runtime/user-facing relaunch slice is admitted.
+Next-Branch Creation Gate: After FB-044 merges, `v1.6.9-prebeta` is published and validated, updated `main` is revalidated, and FB-045 Branch Readiness admits the first bounded runtime/user-facing relaunch slice; branch creation remains blocked until then.
+Active Workstream Chain: None. After merge, FB-044 becomes the merged-unreleased release-debt owner for `v1.6.9-prebeta`, repo state is `No Active Branch`, and `Release Readiness` is next.
 
 ## Merged-Unreleased Release-Debt Owner
 
-None.
+### FB-044 Boot-to-desktop handoff outcome refinement
+
+- status: `merged unreleased`
+- record state: `Promoted`
+- priority: `High`
+- canonical workstream doc: `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
+- historical source branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
+- phase status: Merged unreleased for `v1.6.9-prebeta`; Workstream, Hardening, Live Validation, and PR Readiness are complete; repo state is `No Active Branch`; and FB-045 remains selected next, `Registry-only`, and branch-not-created.
+- next legal seam: `Release Readiness` on updated `main`
+Release Target: v1.6.9-prebeta
+Release Floor: patch prerelease
+Version Rationale: FB-044 delivers a bounded runtime/user-facing boot-to-desktop settled-outcome refinement on the existing startup family without opening a new product lane or materially expanded runtime family.
+Release Scope: completed FB-044 WS-1 desktop-settled handoff outcome refinement, H-1 settled-state hardening, LV-1 real desktop shortcut evidence, PR package history, merged-unreleased release-debt truth, and selected-next FB-045 successor lock for the bounded runtime/user-facing slice only.
+Release Artifacts: Tag v1.6.9-prebeta; release title Pre-Beta v1.6.9; rich Markdown release notes summarize the bounded FB-044 boot-to-desktop settled-outcome refinement, rollback-hardening result, real shortcut evidence, and the FB-045 successor lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+Post-Release Truth: FB-044 is Released / Closed in `v1.6.9-prebeta` after publication and validation; release debt then clears; and FB-045 Branch Readiness may begin only after updated `main` is revalidated and the first bounded runtime/user-facing relaunch slice is admitted.
 
 ## Selected Next Workstream
 
-None. FB-044 is now the active promoted workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement`; successor selection resumes later in the branch lifecycle.
-
-## Active Promoted Workstream Context
-
-### FB-044 Boot-to-desktop handoff outcome refinement
-
-- status: `Active`
-- record state: `Promoted`
-- canonical workstream doc: `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
-- branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
-- phase status: Workstream is active; WS-1 `desktop-settled handoff outcome refinement` is complete and validated; `Backlog Completion State` is `Implemented Complete`; and `Hardening` is next.
-- next legal seam: `Hardening`
+- ID: `FB-045`
+- Title: `Active-session relaunch outcome refinement`
+- Record State: `Registry-only`
+- Priority: `High`
+- Minimal Scope: Admit the first bounded runtime/user-facing relaunch refinement slice across `main.py`, `desktop/orin_desktop_launcher.pyw`, `desktop/orin_desktop_main.py`, `dev/orin_boot_transition_verification.py`, and `dev/orin_desktop_entrypoint_validation.py`, focused on active-session relaunch ownership, relaunch-settled proof, and rollback visibility, while keeping `Audio/`, `logs/`, `jarvis_visual/`, installer work, and broader future boot-orchestrator implementation out of scope.
+- Branch: Not created
+- Selection Basis: FB-045 is the smallest repo-grounded runtime/user-facing successor after FB-044 because startup ownership and authoritative settled proof are now explicit, but the active-session relaunch path still spans boot prompts, launcher prompts, runtime relaunch signals, and proof that the relaunched session returns to the same settled outcome cleanly.
 
 ## Latest Released Workstream Context
 
