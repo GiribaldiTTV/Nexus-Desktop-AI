@@ -23,7 +23,7 @@
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `Hardening`
 
 ## Phase Status
 
@@ -34,11 +34,14 @@
 - Latest Public Prerelease Title: `Pre-Beta v1.6.8`
 - Branch Readiness is complete historical proof on `feature/fb-044-boot-desktop-handoff-outcome-refinement`.
 - WS-1 `desktop-settled handoff outcome refinement` is complete and validated.
+- H-1 settled-state hardening is complete and green.
 - A single authoritative desktop-settled outcome signal now exists across boot proof, renderer proof, launcher observation, and reusable validation helpers.
 - The production desktop route remains the same stable user-facing chain: `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`.
 - Explicit dev boot-profile proof remains distinct from production startup ownership while still converging on the same settled outcome signal.
+- Hardening confirmed the authoritative settled marker is emitted only after the intended passive dormant handoff, appears exactly once per valid startup across CLI / VBS / launcher / explicit dev boot proof, and cannot be mistaken for neighboring readiness breadcrumbs.
+- Hardening also fixed the launcher rollback edge case where a renderer could exit `0` without the authoritative settled signal and still be classified as `NORMAL_EXIT_COMPLETE`; that path now routes into failure handling and reusable validation proves it.
 - Same-branch backlog completion remained the default, and no further implementable FB-044 work is currently required to resolve the admitted handoff ambiguity.
-- Active seam: `None.` WS-1 is complete; `Hardening` is the next legal phase.
+- Active seam: `None.` H-1 is complete; `Live Validation` is the next legal phase.
 
 ## Branch Class
 
@@ -71,7 +74,7 @@ None.
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Live Validation`
 
 ## Purpose / Why It Matters
 
@@ -212,14 +215,51 @@ The production and explicit dev proof paths now converge on the same settled out
 
 ## Seam Continuation Decision
 
-Continue Decision: `Stop after WS-1 because FB-044 backlog completion is now implemented complete on this same branch`
+Continue Decision: `Advance after H-1 because FB-044 backlog completion remains implemented complete on this same branch and the next legal phase is Live Validation`
 Next Active Seam: `None`
-Stop Condition: `Reached Backlog Completion State: Implemented Complete`
-Continuation Action: `Advance to Hardening for the completed FB-044 workstream implementation`
+Stop Condition: `Reached Live Validation gate after H-1 completion`
+Continuation Action: `Advance to Live Validation for the completed FB-044 settled-outcome slice chain`
 
 ## Active Seam
 
 Active seam: `None.`
 
 - WS-1 is complete and validated.
-- `Hardening` is now legal because `Backlog Completion State` is `Implemented Complete`.
+- H-1 is complete and green.
+- `Live Validation` is now legal because the completed settled-outcome slice chain is hardened and `Backlog Completion State` remains `Implemented Complete`.
+
+## H-1 Hardening Record
+
+H-1 pressure-tested the completed FB-044 settled-outcome slice chain across authoritative signal timing, exact-once emission, VBS / launcher / CLI / explicit dev boot convergence, rollback behavior when settled is not reached, and hidden coupling around intermediate startup breadcrumbs without widening beyond the admitted entrypoint/runtime ownership lane.
+
+### Hardening Findings
+
+- Valid production and explicit dev boot proof paths already emit the authoritative settled marker in the expected order after their local readiness or boot-settled breadcrumbs.
+- Valid startup logs show exactly one authoritative settled emission per startup across the canonical VBS / launcher / renderer route, direct `main.py` desktop handoff routes, and explicit dev boot verification.
+- `RENDERER_MAIN|STARTUP_READY` remains a local readiness breadcrumb and is no longer treated as the launcher-owned completion condition inside the active owner validation paths.
+- A real rollback bug existed in `desktop/orin_desktop_launcher.pyw`: if a renderer target exited `0` before emitting `DESKTOP_OUTCOME|SETTLED|state=dormant`, the launcher could still record `NORMAL_EXIT_COMPLETE`.
+
+### Hardening Corrections
+
+- `desktop/orin_desktop_launcher.pyw` now treats `startup_observation == "settled"` as the only normal-exit success gate; a clean renderer exit without the authoritative settled marker now routes into failure handling instead of false-green normal exit.
+- `dev/orin_desktop_entrypoint_validation.py` now includes a reusable negative scenario that launches a synthetic renderer target which never emits the authoritative settled marker and asserts warning-state rollback plus `FAILURE_FLOW_COMPLETE` without any false `DESKTOP_SETTLED_OBSERVED` or `NORMAL_EXIT_COMPLETE` markers.
+
+### H-1 Completion Decision
+
+- H-1 Result: `Complete / green`
+- Remaining implementable work inside FB-044: `None`
+- Stop condition: phase boundary reached; Hardening is complete after H-1.
+
+### H-1 Validation Results
+
+- `python -m py_compile main.py desktop\orin_desktop_launcher.pyw desktop\orin_desktop_main.py dev\orin_boot_transition_verification.py dev\orin_desktop_entrypoint_validation.py`: PASS
+- `python dev\orin_desktop_entrypoint_validation.py`: PASS
+- `python dev\orin_boot_transition_verification.py`: PASS
+- `python dev\orin_branch_governance_validation.py`: PASS
+- `git diff --check`: PASS
+
+### H-1 Stability Notes
+
+- Valid startup proof remains exact-order and exact-once for `DESKTOP_OUTCOME|SETTLED|state=dormant`.
+- Intermediate breadcrumbs such as `RENDERER_MAIN|STARTUP_READY` and `BOOT_MAIN|DESKTOP_SETTLED|state=dormant` remain useful local proof, but neither is allowed to masquerade as launcher-owned completion.
+- Rollback now behaves honestly when settled is never reached: the launcher records settled-missing warnings, requests cooperative startup abort on confirmed stall, and ends in failure flow instead of `NORMAL_EXIT_COMPLETE`.

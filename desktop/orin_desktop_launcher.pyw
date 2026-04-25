@@ -1252,7 +1252,7 @@ def run_renderer():
         runtime(f"Renderer failure cause: {failure_cause}")
     if proc.returncode != 0 and failure_origin:
         runtime(failure_origin)
-    return proc.returncode, failure_cause, failure_origin, stderr_excerpt_lines, startup_aborted
+    return proc.returncode, failure_cause, failure_origin, stderr_excerpt_lines, startup_observation
 
 
 def finalize_failure(
@@ -1385,7 +1385,8 @@ def main():
         write_status("TRACE", f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
         time.sleep(0.18)
 
-        last_code, failure_cause, failure_origin, stderr_excerpt_lines, startup_aborted = run_renderer()
+        last_code, failure_cause, failure_origin, stderr_excerpt_lines, startup_observation = run_renderer()
+        startup_aborted = startup_observation == "startup_aborted"
 
         if last_code == 0 and startup_aborted:
             runtime("Renderer startup aborted cooperatively")
@@ -1398,7 +1399,25 @@ def main():
             failure_origin = ""
             stderr_excerpt_lines = []
 
-        if last_code == 0:
+        if last_code == 0 and startup_observation != "settled":
+            runtime("Renderer exited before authoritative desktop-settled signal was observed")
+            runtime_event(
+                "STATUS",
+                "WARNING",
+                "RECOVERY_ATTEMPT",
+                f"INDEX={attempt}",
+                "DESKTOP_SETTLED_NOT_REACHED_BEFORE_EXIT",
+            )
+            failure_cause = (
+                failure_cause
+                or "Renderer exited before the authoritative desktop-settled signal was observed."
+            )
+            failure_origin = (
+                failure_origin
+                or "Failure origin: launcher startup observation ended before the authoritative desktop-settled signal."
+            )
+
+        if last_code == 0 and startup_observation == "settled":
             runtime("Renderer exited normally")
             runtime_event("STATUS", "SUCCESS", "RECOVERY_ATTEMPT", f"INDEX={attempt}", "RENDERER_EXIT=0")
             write_status("TRACE", "Renderer exited normally")

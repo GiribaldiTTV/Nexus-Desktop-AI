@@ -936,6 +936,118 @@ def run_main_invalid_argument_scenario():
     }
 
 
+def run_missing_settled_signal_scenario():
+    scenario_name = "launcher_missing_settled_signal"
+    scenario_root = os.path.join(BASE_LOG_ROOT, scenario_name)
+    preexisting_processes_before, preexisting_processes_killed, preexisting_processes_after = (
+        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+    )
+    reset_dir(scenario_root)
+    fake_renderer_script = os.path.join(scenario_root, "fake_renderer_no_settle.py")
+
+    with open(fake_renderer_script, "w", encoding="utf-8") as handle:
+        handle.write(
+            "import time\n"
+            "print('fake renderer start', flush=True)\n"
+            "time.sleep(8.5)\n"
+            "print('fake renderer clean exit without settled marker', flush=True)\n"
+        )
+
+    env = os.environ.copy()
+    env["JARVIS_HARNESS_LOG_ROOT"] = scenario_root
+    env["JARVIS_HARNESS_TARGET_SCRIPT"] = fake_renderer_script
+    env["JARVIS_HARNESS_DISABLE_DIAGNOSTICS"] = "1"
+    env["JARVIS_HARNESS_DISABLE_VOICE"] = "1"
+    env["QT_QPA_PLATFORM"] = "offscreen"
+
+    result = run_hidden_command(
+        [sys.executable, LAUNCHER_SCRIPT],
+        env=env,
+        timeout_seconds=45,
+    )
+    time.sleep(0.35)
+
+    runtime_log = latest_file_matching(scenario_root, "Runtime_")
+    runtime_lines = read_lines(runtime_log)
+    residual_launch_chain_processes_before, residual_launch_chain_killed, residual_launch_chain_processes_after = (
+        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+    )
+
+    checks = {
+        "runtime_log_created": line_status(
+            bool(runtime_log),
+            runtime_log or "missing runtime log",
+        ),
+        "renderer_target_matches_fake_script": line_status(
+            any(f"Renderer target: {fake_renderer_script}" in line for line in runtime_lines),
+            fake_renderer_script,
+        ),
+        "settled_missing_within_window_warning_present": line_status(
+            any("STATUS|WARNING|LAUNCHER_RUNTIME|DESKTOP_SETTLED_NOT_OBSERVED_WITHIN_WINDOW" in line for line in runtime_lines),
+            "STATUS|WARNING|LAUNCHER_RUNTIME|DESKTOP_SETTLED_NOT_OBSERVED_WITHIN_WINDOW",
+        ),
+        "settled_stall_confirmed_warning_present": line_status(
+            any("STATUS|WARNING|LAUNCHER_RUNTIME|DESKTOP_SETTLED_STALL_CONFIRMED" in line for line in runtime_lines),
+            "STATUS|WARNING|LAUNCHER_RUNTIME|DESKTOP_SETTLED_STALL_CONFIRMED",
+        ),
+        "startup_abort_requested_on_stall_present": line_status(
+            any("STATUS|WARNING|LAUNCHER_RUNTIME|STARTUP_ABORT_REQUESTED_ON_CONFIRMED_SETTLED_STALL" in line for line in runtime_lines),
+            "STATUS|WARNING|LAUNCHER_RUNTIME|STARTUP_ABORT_REQUESTED_ON_CONFIRMED_SETTLED_STALL",
+        ),
+        "settled_missing_before_exit_warning_present": line_status(
+            any("STATUS|WARNING|LAUNCHER_RUNTIME|DESKTOP_SETTLED_NOT_OBSERVED_BEFORE_EXIT" in line for line in runtime_lines),
+            "STATUS|WARNING|LAUNCHER_RUNTIME|DESKTOP_SETTLED_NOT_OBSERVED_BEFORE_EXIT",
+        ),
+        "authoritative_settled_absent": line_status(
+            not any(AUTHORITATIVE_DESKTOP_SETTLED_MARKER in line for line in runtime_lines),
+            AUTHORITATIVE_DESKTOP_SETTLED_MARKER,
+        ),
+        "launcher_settled_success_absent": line_status(
+            not any(LAUNCHER_SETTLED_OBSERVED_MARKER in line for line in runtime_lines),
+            LAUNCHER_SETTLED_OBSERVED_MARKER,
+        ),
+        "normal_exit_complete_absent": line_status(
+            not any("STATUS|SUCCESS|LAUNCHER_RUNTIME|NORMAL_EXIT_COMPLETE" in line for line in runtime_lines),
+            "STATUS|SUCCESS|LAUNCHER_RUNTIME|NORMAL_EXIT_COMPLETE absent",
+        ),
+        "failure_flow_complete_present": line_status(
+            any("STATUS|SUCCESS|LAUNCHER_RUNTIME|FAILURE_FLOW_COMPLETE" in line for line in runtime_lines),
+            "STATUS|SUCCESS|LAUNCHER_RUNTIME|FAILURE_FLOW_COMPLETE",
+        ),
+        "traceback_absent": line_status(
+            "Traceback" not in (result.stdout or "") and "Traceback" not in (result.stderr or ""),
+            (result.stderr or result.stdout).strip() or "no traceback in stdout/stderr",
+        ),
+        "scenario_preflight_cleanup_optional": line_status(
+            not preexisting_processes_after,
+            "no prior validation-owned launcher/runtime processes detected"
+            if not preexisting_processes_before
+            else (
+                f"detected {len(preexisting_processes_before)} prior process(es); "
+                f"killed={','.join(str(pid) for pid in preexisting_processes_killed) or 'none'}"
+            ),
+        ),
+        "launch_chain_cleanup_optional": line_status(
+            not residual_launch_chain_processes_after,
+            "no residual validation-owned launcher/runtime processes detected"
+            if not residual_launch_chain_processes_before
+            else (
+                f"detected {len(residual_launch_chain_processes_before)} residual process(es); "
+                f"killed={','.join(str(pid) for pid in residual_launch_chain_killed) or 'none'}"
+            ),
+        ),
+    }
+
+    return {
+        "scenario_name": scenario_name,
+        "log_root": scenario_root,
+        "runtime_log": runtime_log,
+        "stdout": (result.stdout or "").strip(),
+        "stderr": (result.stderr or "").strip(),
+        "checks": checks,
+    }
+
+
 def run_validation():
     ensure_dir(BASE_LOG_ROOT)
     ensure_dir(REPORTS_DIR)
@@ -1218,6 +1330,7 @@ def run_validation():
     main_handoff_result = run_main_default_handoff_scenario()
     main_explicit_handoff_result = run_main_explicit_desktop_handoff_scenario()
     main_invalid_argument_result = run_main_invalid_argument_scenario()
+    missing_settled_result = run_missing_settled_signal_scenario()
 
     for scenario_result in (
         default_launch_result,
@@ -1235,6 +1348,8 @@ def run_validation():
 
     for check_name, check_result in main_invalid_argument_result["checks"].items():
         checks[f"{main_invalid_argument_result['scenario_name']}::{check_name}"] = check_result
+    for check_name, check_result in missing_settled_result["checks"].items():
+        checks[f"{missing_settled_result['scenario_name']}::{check_name}"] = check_result
 
     return {
         "branch_state": detect_branch_state(),
@@ -1249,7 +1364,7 @@ def run_validation():
             main_handoff_result,
             main_explicit_handoff_result,
         ],
-        "nonlaunch_scenarios": [main_invalid_argument_result],
+        "nonlaunch_scenarios": [main_invalid_argument_result, missing_settled_result],
         "tray_route_events": tray_events,
         "tray_identity_events": tray_identity_events,
         "tray_identity_actions": tray_identity_result["action_texts"],
@@ -1310,6 +1425,20 @@ def build_report_text(report_path, result, overall_ok):
                     f"Launch scenario: {scenario_result['scenario_name']}",
                     f"  Log root: {scenario_result['log_root']}",
                     f"  Runtime log: {scenario_result['runtime_log'] or 'missing runtime log'}",
+                ]
+            )
+            if scenario_result["stdout"]:
+                lines.extend(["  stdout:", f"    {scenario_result['stdout']}"])
+            if scenario_result["stderr"]:
+                lines.extend(["  stderr:", f"    {scenario_result['stderr']}"])
+    if result.get("nonlaunch_scenarios"):
+        for scenario_result in result["nonlaunch_scenarios"]:
+            lines.extend(
+                [
+                    "",
+                    f"Non-launch scenario: {scenario_result['scenario_name']}",
+                    f"  Log root: {scenario_result.get('log_root', 'n/a')}",
+                    f"  Runtime log: {scenario_result.get('runtime_log', '') or 'missing runtime log'}",
                 ]
             )
             if scenario_result["stdout"]:

@@ -50,7 +50,7 @@
 - PR-3 live PR creation and validation is complete.
 - PR Readiness, Release Readiness, and Release Execution are complete historical proof.
 - Current Active Workstream: FB-044 Boot-to-desktop handoff outcome refinement.
-- FB-044 now owns the active promoted workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement`; WS-1 is complete and validated; and `Hardening` is next.
+- FB-044 now owns the active promoted workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement`; WS-1 is complete and validated; H-1 settled-state hardening is complete and green; and `Live Validation` is next.
 - The historical FB-043 branch-authority record is preserved for traceability only and no longer owns active execution truth.
 
 ## Branch Class
