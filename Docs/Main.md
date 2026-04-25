@@ -245,6 +245,7 @@ These are reference layers, not active workstream or roadmap owners.
 - Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
 - branch existence, branch rename, backlog promotion, repair-only traceability, or release-bearing posture do not count as Workstream progress by themselves
 - when a prompt names an active seam inside an approved seam sequence, treat it as the entry seam, not a terminal boundary; a slice is a bounded admitted backlog-completion unit, while a seam is the current execution checkpoint inside or between slices
+- `bounded` describes scope and blast radius, not partiality by default; a bounded slice may still be the full currently implementable backlog-completion pass for that backlog item or branch lane
 - there is no repo-wide cap on how many slices a branch or workstream may carry
 - Same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green.
 - Perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded.

@@ -85,6 +85,7 @@ FB-045 exists to close the last blocker between FB-044's settled-outcome package
 - bounded post-settled runtime outcome refinement across `desktop/orin_desktop_launcher.pyw` and `dev/orin_desktop_entrypoint_validation.py`
 - validation proof updates needed to keep launcher-path, VBS-path, `main.py` handoff, and explicit dev boot evidence aligned
 - canon updates required to promote FB-045 into the active canonical workstream and keep FB-044 release-debt truth aligned
+- for FB-045, `bounded` means the runtime lane stayed tightly scoped while still serving as the full currently implementable FB-045 backlog-completion pass, not the first fragment of a larger admitted FB-045 chain
 
 ## Non-Goals
 
@@ -112,12 +113,16 @@ Backlog-Split Reason: `None`
 
 - WS-1 is the first completed FB-045 slice, not a branch cap.
 - Additional FB-045 slices would continue on this same branch if more implementable relaunch-stability work remained.
+- For the current FB-045 definition, that continuation rule is now satisfied: no additional implementable FB-045 runtime slices remain on this branch.
 
 ## Backlog Completion Status
 
 Backlog Completion State: `Implemented Complete`
 Remaining Implementable Work: `None`
 Future-Dependent Blockers: `None`
+
+- This branch now represents the full currently implementable FB-045 runtime/user-facing pass.
+- Future relaunch or lifecycle issues should create a new backlog item or explicitly broaden FB-045 in source truth before more FB-045 slice work is claimed.
 
 ## Validation Contract
 
@@ -280,8 +285,8 @@ LV-1 validates the completed FB-045 relaunch-stability slice chain against live 
 - Production Launch Path Evidence: PASS. Fresh reusable entrypoint validation still proves the VBS default path, VBS fallback path, direct `main.py` desktop handoff, repeated-launch stability, pre-settled rollback honesty, clean-shutdown precedence, and immediate-versus-delayed recoverable post-settled lanes on the active branch.
 - Explicit Dev Boot-Proof Route Evidence: PASS. `python dev\orin_boot_transition_verification.py` still proves the explicit `auto_handoff_skip_import` boot-profile route reaches the ordered boot markers, converges on the authoritative settled marker, and exits cleanly.
 - Lifecycle Classification Integrity: PASS. Real execution on the declared shortcut route lands on valid clean termination after settled; reusable helper proof still covers the recoverable post-settled abnormal-exit lane; and neither path falls back into startup failure flow once authoritative settled has already been observed.
-- User Test Summary Applicability: narrow waiver. The completed FB-045 delta refines launcher lifecycle truth after settled on the existing startup path, but it does not add a new manual task flow, settings workflow, persisted user-content path, or broader multi-step operator interaction that a filled manual User Test Summary would materially validate beyond the captured real-shortcut evidence, reusable helper proof, and explicit dev boot proof.
-- Desktop Export Applicability: no desktop `User Test Summary.txt` export is required for LV-1 because User Test Summary results are waived for this narrow lifecycle-classification refinement.
+- User Test Summary Applicability: focused waiver. The completed FB-045 delta fully closes the currently implementable relaunch-lifecycle lane for this backlog item, but it does not add a new manual task flow, settings workflow, persisted user-content path, or broader multi-step operator interaction that a filled manual User Test Summary would materially validate beyond the captured real-shortcut evidence, reusable helper proof, and explicit dev boot proof.
+- Desktop Export Applicability: no desktop `User Test Summary.txt` export is required for LV-1 because User Test Summary results are waived for this focused lifecycle-classification refinement.
 - Cleanup: the real shortcut pass left no residual launcher/runtime processes after shutdown and post-validation cleanup.
 
 ### Live Validation Completion Decision
@@ -306,7 +311,7 @@ LV-1 validates the completed FB-045 relaunch-stability slice chain against live 
 - User-Facing Shortcut Path: `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk`
 - User-Facing Shortcut Validation: `PASS`
 - User Test Summary Results: `WAIVED`
-- User Test Summary Waiver Reason: The completed FB-045 delta is a narrow lifecycle-classification refinement on the existing desktop runtime path already covered by fresh real-shortcut evidence, reusable production-path validation, explicit dev boot verification, and synthetic recoverable-lifecycle proof. It does not add a new manual multi-step task flow, settings journey, persisted user-content path, or broader operator workflow that a filled manual User Test Summary would materially validate beyond that captured evidence.
+- User Test Summary Waiver Reason: The completed FB-045 delta is the full currently implementable lifecycle-classification pass for the existing desktop runtime path and is already covered by fresh real-shortcut evidence, reusable production-path validation, explicit dev boot verification, and synthetic recoverable-lifecycle proof. It does not add a new manual multi-step task flow, settings journey, persisted user-content path, or broader operator workflow that a filled manual User Test Summary would materially validate beyond that captured evidence.
 - Desktop User Test Summary Export: `Not required; waiver path`
 
 ## Seam Continuation Decision

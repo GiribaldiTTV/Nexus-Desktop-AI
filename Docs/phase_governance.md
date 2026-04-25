@@ -1130,6 +1130,7 @@ Risky categories such as UI, launcher, settings, protocol, cross-subsystem, or p
 ### Slice And Seam Definitions
 
 A slice is a bounded admitted backlog-completion unit; a seam is the current execution checkpoint inside or between slices.
+`bounded` describes scope and blast radius, not partiality by default. A bounded slice may still be the full currently implementable backlog-completion pass for that backlog item or branch lane.
 There is no repo-wide cap on how many slices a branch or workstream may carry.
 Same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green.
 Future-dependent blockers are remaining backlog work that cannot yet be implemented until another backlog item, dependency, or capability is completed.
