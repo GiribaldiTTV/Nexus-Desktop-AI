@@ -23,7 +23,7 @@
 
 ## Current Phase
 
-- Phase: `Hardening`
+- Phase: `Live Validation`
 
 ## Phase Status
 
@@ -35,13 +35,16 @@
 - Branch Readiness is complete historical proof on `feature/fb-044-boot-desktop-handoff-outcome-refinement`.
 - WS-1 `desktop-settled handoff outcome refinement` is complete and validated.
 - H-1 settled-state hardening is complete and green.
+- LV-1 live validation is complete and green.
 - A single authoritative desktop-settled outcome signal now exists across boot proof, renderer proof, launcher observation, and reusable validation helpers.
 - The production desktop route remains the same stable user-facing chain: `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`.
 - Explicit dev boot-profile proof remains distinct from production startup ownership while still converging on the same settled outcome signal.
 - Hardening confirmed the authoritative settled marker is emitted only after the intended passive dormant handoff, appears exactly once per valid startup across CLI / VBS / launcher / explicit dev boot proof, and cannot be mistaken for neighboring readiness breadcrumbs.
 - Hardening also fixed the launcher rollback edge case where a renderer could exit `0` without the authoritative settled signal and still be classified as `NORMAL_EXIT_COMPLETE`; that path now routes into failure handling and reusable validation proves it.
+- Live Validation confirmed repo-truth alignment, exercised the real declared desktop shortcut, preserved explicit dev boot-profile proof, and verified the authoritative settled signal on both the real shortcut route and reusable helper routes.
+- User-facing shortcut validation is now green with fresh real-shortcut evidence, and User Test Summary results are explicitly waived because the completed FB-044 delta changes a narrow settled-outcome proof contract rather than adding a broader manual workflow or multi-step operator interaction.
 - Same-branch backlog completion remained the default, and no further implementable FB-044 work is currently required to resolve the admitted handoff ambiguity.
-- Active seam: `None.` H-1 is complete; `Live Validation` is the next legal phase.
+- Active seam: `None.` LV-1 is complete; `PR Readiness` is the next legal phase.
 
 ## Branch Class
 
@@ -74,7 +77,7 @@ None.
 
 ## Next Legal Phase
 
-- `Live Validation`
+- `PR Readiness`
 
 ## Purpose / Why It Matters
 
@@ -215,10 +218,10 @@ The production and explicit dev proof paths now converge on the same settled out
 
 ## Seam Continuation Decision
 
-Continue Decision: `Advance after H-1 because FB-044 backlog completion remains implemented complete on this same branch and the next legal phase is Live Validation`
+Continue Decision: `Advance after LV-1 because FB-044 backlog completion remains implemented complete on this same branch and the next legal phase is PR Readiness`
 Next Active Seam: `None`
-Stop Condition: `Reached Live Validation gate after H-1 completion`
-Continuation Action: `Advance to Live Validation for the completed FB-044 settled-outcome slice chain`
+Stop Condition: `Reached PR Readiness gate after LV-1 completion`
+Continuation Action: `Advance to PR Readiness for the completed FB-044 settled-outcome slice chain`
 
 ## Active Seam
 
@@ -226,7 +229,8 @@ Active seam: `None.`
 
 - WS-1 is complete and validated.
 - H-1 is complete and green.
-- `Live Validation` is now legal because the completed settled-outcome slice chain is hardened and `Backlog Completion State` remains `Implemented Complete`.
+- LV-1 is complete and green.
+- `PR Readiness` is now legal because the completed settled-outcome slice chain is hardened, live-validated, and `Backlog Completion State` remains `Implemented Complete`.
 
 ## H-1 Hardening Record
 
@@ -263,3 +267,44 @@ H-1 pressure-tested the completed FB-044 settled-outcome slice chain across auth
 - Valid startup proof remains exact-order and exact-once for `DESKTOP_OUTCOME|SETTLED|state=dormant`.
 - Intermediate breadcrumbs such as `RENDERER_MAIN|STARTUP_READY` and `BOOT_MAIN|DESKTOP_SETTLED|state=dormant` remain useful local proof, but neither is allowed to masquerade as launcher-owned completion.
 - Rollback now behaves honestly when settled is never reached: the launcher records settled-missing warnings, requests cooperative startup abort on confirmed stall, and ends in failure flow instead of `NORMAL_EXIT_COMPLETE`.
+
+## Live Validation Record
+
+LV-1 validates the completed FB-044 settled-outcome slice chain against live repo truth, the declared real desktop shortcut path, explicit dev boot-profile evidence, the exact User Test Summary state, and branch cleanliness. This pass stays bounded to the admitted entrypoint/runtime ownership surfaces and does not reopen `Audio/`, `logs/`, `jarvis_visual/`, installer work, or broader future boot-orchestrator implementation.
+
+### Live Validation Findings
+
+- Repo Truth Alignment: `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and this workstream record align on FB-044 as the active promoted implementation workstream, latest public prerelease `v1.6.8-prebeta`, release debt clear, WS-1 complete, H-1 complete, and PR Readiness next after LV-1 completion.
+- Branch Truth Alignment: the checked-out branch is `feature/fb-044-boot-desktop-handoff-outcome-refinement`, aligned with origin at the hardened settled-state baseline before this LV-1 pass.
+- User-Facing Shortcut Applicability: applicable and exercised. FB-044 changes the user-facing desktop startup outcome contract on the shipped route, so the final Live Validation closeout used the declared desktop shortcut rather than helper-only or direct-Python proof as the final shortcut gate.
+- Real Shortcut Gate Result: PASS. Launching through `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk` exercised the active branch runtime, produced dedicated evidence under `dev/logs/fb_044_live_validation/20260424_203828/desktop_shortcut_gate`, reached launcher-owned `DESKTOP_SETTLED_OBSERVED|state=dormant`, reached renderer `STARTUP_READY`, recorded `WINDOW_SHOW_REQUESTED` and `TRAY_ENTRY_READY|available=true`, reached the authoritative settled marker, and shut down cleanly without launcher failure flow.
+- Explicit Dev Boot-Profile Route Evidence: PASS. `python dev\orin_boot_transition_verification.py` still proves the explicit `auto_handoff_skip_import` boot-profile route reaches its expected `BOOT_MAIN|...` handoff markers, converges on the authoritative settled marker, and exits cleanly.
+- Settled-Signal Integrity: PASS. Fresh helper validation and fresh live shortcut evidence both confirm the authoritative settled marker appears in the expected order, remains exact-once on valid startup, and is absent in the negative rollback scenario where the launcher now ends in failure flow rather than false normal exit.
+- User Test Summary Applicability: narrow waiver. The completed FB-044 delta changes the final desktop-settled proof contract and rollback honesty on the existing launch path, but it does not add a new in-app task flow, settings workflow, persisted user-content path, or broader multi-step operator interaction that a filled manual User Test Summary would materially validate beyond the fresh real-shortcut evidence, reusable helper proof, and negative rollback proof already captured.
+- Desktop Export Applicability: no desktop `User Test Summary.txt` export is required for LV-1 because User Test Summary results are waived for this narrow settled-outcome refinement.
+- Cleanup: the real shortcut pass left no residual launcher/runtime processes after shutdown and post-validation cleanup.
+
+### Live Validation Completion Decision
+
+- LV-1 Result: `Complete / green with real desktop shortcut evidence and waiver-based User Test Summary digestion recorded`
+- User-facing shortcut gate: `PASS` with exact markers in `## User Test Summary`
+- User Test Summary results gate: `WAIVED` with exact markers in `## User Test Summary`
+- Validation Layer: repo-truth alignment, reusable desktop entrypoint validator evidence, real desktop shortcut launch evidence, explicit dev boot-profile proof, negative rollback proof, and governance validation
+- Continue/Stop Decision: stop at the Live Validation phase boundary after validation because FB-044 LV-1 proof is green and the next normal phase is `PR Readiness`.
+
+### LV-1 Validation Results
+
+- Real desktop shortcut gate: PASS; report `dev/logs/fb_044_live_validation/20260424_203828/desktop_shortcut_gate/DesktopShortcutGateReport.json`
+- `python dev\orin_desktop_entrypoint_validation.py`: PASS; report `dev/logs/desktop_entrypoint_validation/reports/DesktopEntrypointValidationReport_20260424_204006.txt`
+- `python dev\orin_boot_transition_verification.py`: PASS; report `dev/logs/boot_transition_verification/reports/BootTransitionVerificationReport_20260424_203858.txt`
+- `python dev\orin_branch_governance_validation.py`: PASS
+- `git diff --check`: PASS
+- LV-1 phase-state scan: PASS; current authority surfaces report FB-044 Live Validation complete and PR Readiness as the next legal phase.
+
+## User Test Summary
+
+- User-Facing Shortcut Path: `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk`
+- User-Facing Shortcut Validation: `PASS`
+- User Test Summary Results: `WAIVED`
+- User Test Summary Waiver Reason: The completed FB-044 delta is a narrow desktop-settled outcome refinement already covered by fresh real-shortcut evidence, reusable default/fallback/direct-handoff validation, explicit dev boot-profile verification, and negative rollback proof. It does not add a new manual multi-step task flow, settings journey, persisted user-content path, or broader operator workflow that a filled manual User Test Summary would materially validate beyond that captured evidence.
+- Desktop User Test Summary Export: `Not required; waiver path`
