@@ -45,7 +45,7 @@ None.
 - latest public prerelease truth is advanced to `v1.6.5-prebeta` across canon
 - FB-030 is durably Released / Closed and merged-unreleased release debt is clear in canon
 - explicit path-sensitive workspace approval is recorded
-- one bounded FB-005 workspace/path slice is admitted with exact file/path ownership, migration limits, validation coverage, and rollback instructions
+- the first bounded FB-005 workspace/path slice is admitted with exact file/path ownership, migration limits, validation coverage, and rollback instructions; later same-branch slices were not forbidden by repo governance and should stay same-branch when that lane is reopened
 - FB-005 is promoted and live execution authority moves to the canonical workstream doc
 
 ## Rollback Target

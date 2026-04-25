@@ -16,6 +16,7 @@ REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 ENTRYPOINT_SCRIPT = os.path.join(ROOT_DIR, "launch_orin_desktop.vbs")
 LAUNCHER_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_launcher.pyw")
 DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_main.py")
+MAIN_SCRIPT = os.path.join(ROOT_DIR, "main.py")
 EXPECTED_DEFAULT_TARGET_LINE = re.compile(
     r'DEFAULT_TARGET_SCRIPT\s*=\s*os\.path\.join\(ROOT_DIR,\s*"desktop",\s*"orin_desktop_main\.py"\)'
 )
@@ -27,6 +28,24 @@ EXPECTED_ENTRYPOINT_FALLBACK_MARKERS = (
     "py -0p",
     "NEXUS_DESKTOP_SKIP_PREFERRED_PYTHONW",
     "windowed Python launcher was not found",
+)
+EXPECTED_MAIN_HANDOFF_MARKERS = (
+    'CANONICAL_ENTRYPOINT_SCRIPT = os.path.join(ROOT_DIR, "launch_orin_desktop.vbs")',
+    'DESKTOP_ENTRYPOINT_ARGS = {"--desktop-entrypoint"}',
+    "def classify_direct_launch_mode(argv):",
+    "def handoff_to_canonical_desktop_entrypoint():",
+    "\\\\dev\\\\launchers\\\\launch_orin_main_",
+)
+MAIN_EXPLICIT_DESKTOP_ARG = "--desktop-entrypoint"
+MAIN_INVALID_DIRECT_ARG = "--not-a-real-entrypoint-flag"
+EXPECTED_MAIN_INVALID_ARG_MARKERS = (
+    "Unrecognized direct-launch argument:",
+    "--desktop-entrypoint",
+    "--boot-profile/--audio-mode",
+)
+BOOT_RUNTIME_ROOTS = (
+    os.path.join(ROOT_DIR, "dev", "logs", "boot_manual_flow"),
+    os.path.join(ROOT_DIR, "dev", "logs", "boot_auto_handoff_skip_import"),
 )
 
 EXPECTED_MILESTONES = [
@@ -149,6 +168,21 @@ def dir_entry_names(path):
         return sorted(os.listdir(path))
     except OSError:
         return []
+
+
+def boot_runtime_files():
+    runtime_files = set()
+    for folder_path in BOOT_RUNTIME_ROOTS:
+        if not os.path.isdir(folder_path):
+            continue
+        try:
+            names = os.listdir(folder_path)
+        except OSError:
+            continue
+        for name in names:
+            if name.lower().startswith("runtime_") and name.lower().endswith(".txt"):
+                runtime_files.add(os.path.join(folder_path, name))
+    return runtime_files
 
 
 def detect_branch_state():
@@ -561,14 +595,13 @@ def validate_tray_identity_initialization():
             os.environ["QT_QPA_PLATFORM"] = previous_qt_platform
 
 
-def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
+def run_launch_chain_scenario(scenario_name, launch_command, force_path_fallback=False):
     scenario_root = os.path.join(BASE_LOG_ROOT, scenario_name)
     preexisting_processes_before, preexisting_processes_killed, preexisting_processes_after = (
         cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
     )
     reset_dir(scenario_root)
     scenario_root_entries_after_reset = dir_entry_names(scenario_root)
-    cscript_command = resolve_cscript_command()
 
     env = os.environ.copy()
     env["JARVIS_HARNESS_LOG_ROOT"] = scenario_root
@@ -582,23 +615,23 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
     launch_attempted = False
     if scenario_root_entries_after_reset:
         shim_result = subprocess.CompletedProcess(
-            ["cscript.exe", "//nologo", ENTRYPOINT_SCRIPT],
+            launch_command or ["missing-launch-command"],
             1,
             "",
             "scenario log root not empty after reset: "
             + ", ".join(scenario_root_entries_after_reset[:5]),
         )
-    elif not cscript_command:
+    elif not launch_command:
         shim_result = subprocess.CompletedProcess(
-            ["cscript.exe", "//nologo", ENTRYPOINT_SCRIPT],
+            ["missing-launch-command"],
             1,
             "",
-            "cscript.exe unavailable; VBS launch validation requires Windows Script Host on Windows",
+            "launch command unavailable",
         )
     else:
         launch_attempted = True
         shim_result = run_hidden_command(
-            cscript_command + ["//nologo", ENTRYPOINT_SCRIPT],
+            launch_command,
             env=env,
             timeout_seconds=10,
         )
@@ -660,7 +693,7 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
     )
 
     checks = {
-        "shim_invocation_ok": line_status(
+        "launch_invocation_ok": line_status(
             shim_result.returncode == 0,
             f"returncode={shim_result.returncode}",
         ),
@@ -700,13 +733,13 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
             not scenario_root_entries_after_reset,
             "empty" if not scenario_root_entries_after_reset else ", ".join(scenario_root_entries_after_reset[:5]),
         ),
-        "cscript_available": line_status(
-            bool(cscript_command),
-            cscript_command[0] if cscript_command else "missing Windows Script Host entrypoint",
-        ),
         "failure_flow_absent": line_status(
             not failure_flow_seen,
             "STATUS|SUCCESS|LAUNCHER_RUNTIME|FAILURE_FLOW_COMPLETE absent",
+        ),
+        "boot_markers_absent": line_status(
+            not any("BOOT_MAIN|" in line for line in runtime_lines),
+            "BOOT_MAIN| absent from launcher/runtime log",
         ),
         "no_residual_launch_chain_processes_for_log_root": line_status(
             not residual_launch_chain_processes_after,
@@ -746,8 +779,152 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
         "scenario_name": scenario_name,
         "log_root": scenario_root,
         "runtime_log": runtime_log,
+        "runtime_lines": runtime_lines,
         "stdout": (shim_result.stdout or "").strip(),
         "stderr": (shim_result.stderr or "").strip(),
+        "checks": checks,
+    }
+
+
+def scenario_has_single_instance_conflict(scenario_result):
+    return any(
+        "SINGLE_INSTANCE_CONFLICT_DETECTED" in line
+        for line in scenario_result.get("runtime_lines", [])
+    )
+
+
+def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
+    cscript_command = resolve_cscript_command()
+    launch_command = []
+    if cscript_command:
+        launch_command = cscript_command + ["//nologo", ENTRYPOINT_SCRIPT]
+    scenario_result = run_launch_chain_scenario(
+        scenario_name,
+        launch_command,
+        force_path_fallback=force_path_fallback,
+    )
+    if scenario_has_single_instance_conflict(scenario_result):
+        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+        time.sleep(0.5)
+        scenario_result = run_launch_chain_scenario(
+            scenario_name,
+            launch_command,
+            force_path_fallback=force_path_fallback,
+        )
+        scenario_result["checks"]["single_instance_conflict_retry_optional"] = line_status(
+            True,
+            "retried once after validator-observed single-instance conflict",
+        )
+    else:
+        scenario_result["checks"]["single_instance_conflict_retry_optional"] = line_status(
+            True,
+            "not needed",
+        )
+    scenario_result["checks"]["cscript_available"] = line_status(
+        bool(cscript_command),
+        cscript_command[0] if cscript_command else "missing Windows Script Host entrypoint",
+    )
+    return scenario_result
+
+
+def run_main_default_handoff_scenario():
+    scenario_result = run_launch_chain_scenario(
+        "main_default_handoff",
+        [sys.executable, MAIN_SCRIPT],
+    )
+    if scenario_has_single_instance_conflict(scenario_result):
+        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+        time.sleep(0.5)
+        scenario_result = run_launch_chain_scenario(
+            "main_default_handoff",
+            [sys.executable, MAIN_SCRIPT],
+        )
+        scenario_result["checks"]["single_instance_conflict_retry_optional"] = line_status(
+            True,
+            "retried once after validator-observed single-instance conflict",
+        )
+    else:
+        scenario_result["checks"]["single_instance_conflict_retry_optional"] = line_status(
+            True,
+            "not needed",
+        )
+    return scenario_result
+
+
+def run_main_explicit_desktop_handoff_scenario():
+    scenario_result = run_launch_chain_scenario(
+        "main_explicit_desktop_handoff",
+        [sys.executable, MAIN_SCRIPT, MAIN_EXPLICIT_DESKTOP_ARG],
+    )
+    if scenario_has_single_instance_conflict(scenario_result):
+        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+        time.sleep(0.5)
+        scenario_result = run_launch_chain_scenario(
+            "main_explicit_desktop_handoff",
+            [sys.executable, MAIN_SCRIPT, MAIN_EXPLICIT_DESKTOP_ARG],
+        )
+        scenario_result["checks"]["single_instance_conflict_retry_optional"] = line_status(
+            True,
+            "retried once after validator-observed single-instance conflict",
+        )
+    else:
+        scenario_result["checks"]["single_instance_conflict_retry_optional"] = line_status(
+            True,
+            "not needed",
+        )
+    return scenario_result
+
+
+def run_main_invalid_argument_scenario():
+    preexisting_processes_before, preexisting_processes_killed, preexisting_processes_after = (
+        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+    )
+    boot_files_before = boot_runtime_files()
+    result = run_hidden_command([sys.executable, MAIN_SCRIPT, MAIN_INVALID_DIRECT_ARG], timeout_seconds=20)
+    time.sleep(0.35)
+    boot_files_after = boot_runtime_files()
+    residual_launch_chain_processes = list_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+    new_boot_runtime_files = sorted(boot_files_after - boot_files_before)
+    stderr_text = (result.stderr or "").strip()
+
+    checks = {
+        "invalid_argument_exit_code": line_status(result.returncode == 2, f"returncode={result.returncode}"),
+        "invalid_argument_guidance_reported": line_status(
+            all(marker in stderr_text for marker in EXPECTED_MAIN_INVALID_ARG_MARKERS),
+            stderr_text or "missing stderr guidance",
+        ),
+        "boot_runtime_absent": line_status(
+            not new_boot_runtime_files,
+            "none" if not new_boot_runtime_files else ", ".join(new_boot_runtime_files[:5]),
+        ),
+        "launch_chain_process_absent": line_status(
+            not residual_launch_chain_processes,
+            "none"
+            if not residual_launch_chain_processes
+            else "; ".join(
+                f"{process['pid']}::{process['command_line']}" for process in residual_launch_chain_processes
+            ),
+        ),
+        "traceback_absent": line_status(
+            "Traceback" not in (result.stdout or "") and "Traceback" not in (result.stderr or ""),
+            stderr_text or (result.stdout or "").strip() or "no traceback in stdout/stderr",
+        ),
+        "scenario_preflight_cleanup_optional": line_status(
+            not preexisting_processes_after,
+            "no prior validation-owned launcher/runtime processes detected"
+            if not preexisting_processes_before
+            else (
+                f"detected {len(preexisting_processes_before)} prior process(es); "
+                f"killed={','.join(str(pid) for pid in preexisting_processes_killed) or 'none'}"
+            ),
+        ),
+    }
+
+    return {
+        "scenario_name": "main_invalid_direct_argument",
+        "runtime_log": "",
+        "stdout": (result.stdout or "").strip(),
+        "stderr": stderr_text,
         "checks": checks,
     }
 
@@ -760,6 +937,7 @@ def run_validation():
     entrypoint_line = entrypoint_shim_line()
     launcher_text = read_text(LAUNCHER_SCRIPT)
     launcher_line = launcher_default_target_line()
+    main_text = read_text(MAIN_SCRIPT)
 
     stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     runtime_log = os.path.join(BASE_LOG_ROOT, f"Runtime_{stamp}.txt")
@@ -806,6 +984,10 @@ def run_validation():
 
     stdout_text, stderr_text = proc.communicate()
     runtime_lines = read_lines(runtime_log)
+    direct_runtime_processes_before, direct_runtime_killed, direct_runtime_processes_after = (
+        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+    )
+    time.sleep(0.35)
 
     checks = {
         "launcher_default_target_matches_expected": line_status(
@@ -873,6 +1055,15 @@ def run_validation():
     checks["traceback_absent"] = line_status(
         "Traceback" not in stderr_text,
         stderr_text.strip() or "no traceback in stderr",
+    )
+    checks["direct_runtime_cleanup_optional"] = line_status(
+        not direct_runtime_processes_after,
+        "no residual direct-runtime validation processes detected"
+        if not direct_runtime_processes_before
+        else (
+            f"detected {len(direct_runtime_processes_before)} residual direct-runtime process(es); "
+            f"killed={','.join(str(pid) for pid in direct_runtime_killed) or 'none'}"
+        ),
     )
 
     tray_route_result = validate_tray_overlay_route()
@@ -980,6 +1171,10 @@ def run_validation():
         os.path.exists(ENTRYPOINT_SCRIPT),
         ENTRYPOINT_SCRIPT,
     )
+    checks["main_script_exists"] = line_status(
+        os.path.exists(MAIN_SCRIPT),
+        MAIN_SCRIPT,
+    )
     checks["entrypoint_launcher_path_declared"] = line_status(
         "desktop\\orin_desktop_launcher.pyw" in entrypoint_text,
         entrypoint_line,
@@ -989,14 +1184,27 @@ def run_validation():
             marker in entrypoint_text,
             marker,
         )
+    for marker in EXPECTED_MAIN_HANDOFF_MARKERS:
+        checks[f"main_handoff_marker::{marker}"] = line_status(
+            marker in main_text,
+            marker,
+        )
 
     default_launch_result = run_entrypoint_launch_scenario("vbs_default")
     fallback_launch_result = run_entrypoint_launch_scenario(
         "vbs_fallback",
         force_path_fallback=True,
     )
+    main_handoff_result = run_main_default_handoff_scenario()
+    main_explicit_handoff_result = run_main_explicit_desktop_handoff_scenario()
+    main_invalid_argument_result = run_main_invalid_argument_scenario()
 
-    for scenario_result in (default_launch_result, fallback_launch_result):
+    for scenario_result in (
+        default_launch_result,
+        fallback_launch_result,
+        main_handoff_result,
+        main_explicit_handoff_result,
+    ):
         scenario_name = scenario_result["scenario_name"]
         checks[f"{scenario_name}::runtime_log_recorded"] = line_status(
             bool(scenario_result["runtime_log"]),
@@ -1005,6 +1213,9 @@ def run_validation():
         for check_name, check_result in scenario_result["checks"].items():
             checks[f"{scenario_name}::{check_name}"] = check_result
 
+    for check_name, check_result in main_invalid_argument_result["checks"].items():
+        checks[f"{main_invalid_argument_result['scenario_name']}::{check_name}"] = check_result
+
     return {
         "branch_state": detect_branch_state(),
         "entrypoint_script": ENTRYPOINT_SCRIPT,
@@ -1012,7 +1223,13 @@ def run_validation():
         "runtime_log": runtime_log,
         "target_script": DEFAULT_TARGET_SCRIPT,
         "launcher_line": launcher_line,
-        "launch_scenarios": [default_launch_result, fallback_launch_result],
+        "launch_scenarios": [
+            default_launch_result,
+            fallback_launch_result,
+            main_handoff_result,
+            main_explicit_handoff_result,
+        ],
+        "nonlaunch_scenarios": [main_invalid_argument_result],
         "tray_route_events": tray_events,
         "tray_identity_events": tray_identity_events,
         "tray_identity_actions": tray_identity_result["action_texts"],

@@ -254,7 +254,7 @@ Hardening-phase validation must prove the completed same-risk catalog seam chain
   - `git diff --check` passed with CRLF normalization warnings only
 - all currently safe same-risk Workstream implementation seams are complete; settings/protocol behavior, target-kind expansion, launcher-policy work, UI-semantics work, and default-group expansion remain out of scope unless a later phase-valid prompt explicitly reclassifies the risk
 - branch-coupled governance refinement complete:
-  `bounded multi-seam workflow` is now formalized as the primary Workstream model while preserving one active seam at a time, per-seam validation, continue-or-stop gates, single-seam fallback, and the normal `Workstream` -> `Hardening` -> `Live Validation` -> `PR Readiness` phase path
+  `bounded multi-seam workflow` is now formalized as the primary Workstream model while preserving one active seam at a time, per-seam validation, continue-or-stop gates, stronger bounded stop conditions, and the normal `Workstream` -> `Hardening` -> `Live Validation` -> `PR Readiness` phase path
 - repo-side governance validation:
   - `python dev/orin_branch_governance_validation.py` must pass after the multi-seam governance repair
   - `git diff --check` must pass after the multi-seam governance repair

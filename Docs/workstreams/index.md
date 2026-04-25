@@ -19,6 +19,10 @@ Use `Docs/validation_helper_registry.md` for durable root `dev/` helper naming, 
 ## Workstream Record Rules
 
 - workstream docs are the canonical feature-state, branch-local validation/evidence, active-seam, artifact-history, branch-local reuse, and closure records for promoted work
+- a slice is a bounded admitted backlog-completion unit; a seam is the current execution checkpoint inside or between slices
+- active implementation workstreams may carry as many slices as needed to complete the backlog item on one branch when phase, scope, risk, and validation authority remain green
+- workstream docs must not encode a one-slice branch cap unless an explicit `Backlog-Split User Approval: APPROVED` or a named bounded stop condition is recorded
+- active implementation workstreams must record whether the backlog item is still `In Progress`, `Implemented Complete`, or `Implemented Complete Except Future Dependency` before phase exit
 - `Record State` tracks whether the record is `Promoted` or `Closed`
 - `Status` remains the delivery or work field
 - `Registry-only` backlog items do not require a canonical workstream execution record yet
@@ -65,6 +69,7 @@ For an active or recently closed canonical workstream, keep these durable tracea
 - scope and non-goals
 - executed slices or equivalent progress log
 - current phase, phase status, branch class, blockers, phase-specific validation, seam, timeout, or stop-loss state when phase-sensitive work is active
+- backlog completion status, remaining implementable work, and any future-dependent blockers when implementation work is active
 - durable validation or proof references that materially justify continuation or closeout
 - artifact history or artifact references for lane-specific validators, harnesses, helpers, reports, or manual-test exports that future work should reuse
 - branch-local reuse notes or "what worked" guidance when a future branch would otherwise need to rediscover the same lesson
@@ -80,19 +85,16 @@ That may be an executable branch owner or another explicitly promoted current-tr
 
 None.
 
-No active implementation workstream remains after FB-042 PR packaging because merge-target canon is now in `No Active Branch` posture for `v1.6.7-prebeta`.
-
 ### Merged / Release Debt Owners
 
 Merged / Release Debt Owners are promoted implementation workstreams whose implementation branch is merge-target complete but whose public release packaging has not yet cleared release debt.
 These records are not active implementation branch owners after merge.
 
-- `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
-
-FB-042 Desktop entrypoint runtime refinement is the merged-unreleased release-debt owner for `v1.6.7-prebeta`. `Repo State` is `No Active Branch`; the bounded WS-1 desktop shortcut launch-path runtime refinement, H-1 hardening, and LV-1 live shortcut validation are complete historical proof; and FB-043 is selected next as the branch-not-created top-level desktop entrypoint successor lane.
+- `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`
 
 ### Closed
 
+- `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 - `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
 - `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
 - `Docs/workstreams/FB-029_orin_identity_licensing_hardening.md`

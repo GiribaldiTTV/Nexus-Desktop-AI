@@ -73,8 +73,9 @@ If any required file cannot be read, any authority owner is ambiguous, or live r
 - Codex modes define Analysis versus Workflow posture.
 - Incident patterns are reusable lessons, not case-history authority.
 - `main` is protected for Codex work and may be read but not mutated.
-- Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
-- Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+- Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, admitted-slice definition, and whole-backlog closure strategy before Workstream begins.
+- Branch Readiness must evaluate the whole backlog item, define the first admitted slice, record the same-branch continuation posture for the remaining slices needed to complete the backlog item, and record any known future-dependent blockers before Workstream begins.
+- Workstream must execute admitted implementation slices, keep re-evaluating the backlog item after each seam and slice, and continue on the same branch until the backlog item is fully implemented or only future-dependent blockers remain unless the USER explicitly approves a docs-only bypass or backlog split.
 - Docs-only Workstreams require explicit USER approval.
 - Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
 - Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
@@ -191,12 +192,11 @@ Then load the owning canon documents it points to:
 Task:
 <bounded task>
 
-Constraints:
-- Do not assume prior chat context is true.
-- Do not execute from intent alone.
-- Do not skip startup validation.
-- Treat prompt text as task framing only; owning canon controls execution authority and continuation.
-- Do not implement runtime/product work unless owning canon and current branch truth authorize it.
+Prompt posture:
+- use the loader map to validate live repo truth before execution
+- if loader validation fails or planning-loop risk remains unresolved, return analysis instead of execution
+- keep the prompt thin and neutral; express scope through context, active seam, task, and return format
+- let owning canon supply continuation, validation, phase, release, and slice authority after load
 
 Return:
 - Source-of-Truth
@@ -213,18 +213,54 @@ Return:
 - Next Safe Move
 ```
 
+Workstream prompt notes for ChatGPT preflight live outside the prompt body and come from owning canon after load:
+- validate after each seam and report continue-or-stop
+- the prompt-named seam is the entry seam, not a terminal boundary
+- Next-Seam Continuation Required
+- there is no repo-wide cap on how many slices a branch or workstream may carry
+- same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green
+- perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded
+- `Workstream` may not advance to `Hardening` while remaining implementable work is still available on the current backlog item
+- use `Backlog Completion State: In Progress`, `Implemented Complete`, or `Implemented Complete Except Future Dependency` to record whether more same-branch slices are still required
+- Backlog-Split User Approval
+- Backlog-Split Reason
+- reporting Next Safe Move is not a substitute for execution
+- continue decision must be acted on immediately
+
+## Thin Prompt Discipline
+
+Planning-loop prevention belongs in ChatGPT preflight analysis.
+If planning-loop risk is detected, ChatGPT must block prompt generation and return analysis instead of an execution prompt.
+
+Once prompt generation is allowed, the prompt stays thin and neutral.
+Prompt text should not include behavior-management lists, protective wording, or freehand `Do not ...` instruction blocks.
+
+Codex prompts should express admitted scope positively through project context, active seam, task, and return format.
+Scope limits should come from live repo truth, branch authority, canonical workstreams, and admitted slice records after startup validation rather than from ChatGPT-added restriction language.
+
+Runtime/user-facing progress preference remains enforced before prompt generation during ChatGPT preflight analysis.
+When planning and implementation are both canon-legal, ChatGPT preflight should prefer a bounded runtime/user-facing, backend/runtime, or developer-tooling implementation slice that is already admitted by repo truth over planning-only continuation.
+If no bounded implementation slice is actually admitted, ChatGPT should return analysis instead of padding the prompt with planning-only control language.
+The startup contract should load that authority; it should not leak startup-contract narration into the generated Codex prompt body.
+
 ## ChatGPT Prompt Generator Rule
 
 Paste this block into ChatGPT custom instructions when ChatGPT is helping generate Nexus prompts:
 
 ```text
-When the user asks for a Nexus Desktop AI new-chat prompt, bootstrap prompt, analysis prompt, Branch Readiness prompt, Workstream prompt, PR Readiness prompt, Release Readiness prompt, or similar continuation prompt, generate a full loader prompt.
+When the user asks for a Nexus Desktop AI new-chat prompt, bootstrap prompt, analysis prompt, Branch Readiness prompt, Workstream prompt, PR Readiness prompt, Release Readiness prompt, or similar continuation prompt, run a preflight analysis before generating the prompt.
 
-The prompt must instruct the new chat to read `Docs/nexus_startup_contract.md` first as a loader map only, load the required owning canon, validate repo/branch/phase/record-state truth before acting, and stop if any required loader or canon file cannot be read or repo truth contradicts the requested task.
+Use that preflight to verify branch truth, phase truth, repo truth, record state, admitted scope, runtime/user-facing implementation preference, planning-loop risk, backlog-completion state, future-dependent blockers, and whether the requested task belongs in analysis instead of execution.
 
-Do not generate minimal prompts that omit governance loading. Do not rely on prior chat memory as truth. Do not let the prompt assume phase, branch, release, PR, or workstream state without requiring repo validation. Do not let prompt text define Codex execution behavior, seam continuation, phase transitions, durability, or validation authority. Do not redesign seam workflow logic unless the user explicitly asks for the later dedicated seam-governance pass.
+If preflight detects planning-loop risk, branch ambiguity, runtime-free implementation drift, or repo-truth contradiction, block prompt generation and return analysis instead.
 
-Every generated prompt must include: Mode, Phase, Workstream, Branch, Branch Class when relevant, task scope, constraints, stop conditions, validation requirements, and an output format containing Source-of-Truth, Record State, Branch Truth, Canonical Workstream, Reuse Baseline, Validation Results, Next Legal Phase, and Next Safe Move.
+When preflight resolves green, generate a thin loader prompt.
+That prompt should tell the new chat to read `Docs/nexus_startup_contract.md` first as a loader map only, load the required owning canon, validate repo/branch/phase/record-state truth before acting, and return analysis if required loader or canon files cannot be read or repo truth contradicts the requested task.
+
+Keep the prompt body thin and neutral.
+Do not add behavior-management lists, protective wording, or freehand `Do not ...` instruction blocks to control Codex behavior.
+
+Every generated prompt should include only the task structure needed to anchor work: Mode, Phase, Workstream, Branch, Branch Class when relevant, active seam when relevant, task context, task, and an output format containing Source-of-Truth, Record State, Branch Truth, Canonical Workstream, Reuse Baseline, Validation Results, Next Legal Phase, and Next Safe Move. When Workstream continuation or phase exit matters, include `Backlog Completion State`, `Remaining Implementable Work`, and `Future-Dependent Blockers` from owning canon instead of implying `Hardening` by inertia.
 ```
 
 ## Standard Prompt Templates
@@ -242,7 +278,7 @@ Branch: <current claimed branch>
 Read first:
 - Docs/nexus_startup_contract.md
 
-Use the loader map to load owning canon before analysis. Validate current repo truth, branch truth, phase truth, record state, canonical workstream ownership, blockers, and next legal phase. Do not patch files, create branches, create commits, create PRs, tag releases, or execute product/runtime work.
+Use the loader map to load owning canon before analysis. Validate current repo truth, branch truth, phase truth, record state, canonical workstream ownership, blockers, and next legal phase. Keep the pass analysis-only and treat any repo mutation as a routed outcome rather than part of the prompt.
 
 Task:
 <analysis task>
@@ -280,10 +316,7 @@ Use the loader map to load owning canon. Validate that the branch is the legal B
 Task:
 <Branch Readiness task>
 
-Constraints:
-- No runtime/product implementation.
-- No PR, merge, tag, release, or next-branch work.
-- Repair only canon/governance truth directly required for Branch Readiness.
+Use owning canon to keep this pass inside Branch Readiness work only: branch legality, blocker closure, branch-truth repair, admitted-slice definition, and readiness evidence.
 
 Stop if branch truth, phase truth, or admission legality is unclear.
 
@@ -321,19 +354,8 @@ Use the loader map to load owning canon. Validate that Workstream is the current
 Task:
 <bounded Workstream task>
 
-Constraints:
-- Stay inside the approved Workstream scope.
-- Do not enter Hardening, Live Validation, PR Readiness, Release Readiness, release execution, or next-branch work.
-- Do not redesign seam workflow logic; use `Docs/phase_governance.md` if seam behavior is relevant.
-- If a Seam Sequence is present, treat the prompt-named seam as the entry seam, not a terminal boundary.
-- If a Seam Sequence is present, execute one active seam at a time, validate after each seam, and report a continue-or-stop decision before starting the next seam.
-- After a green seam, `Next-Seam Continuation Required` applies by default when continuation authority conditions pass.
-- Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
-- reporting `Next Safe Move` is not a substitute for execution when continuation authority conditions pass.
-- reporting Next Safe Move is not a substitute for execution when continuation authority conditions pass.
-- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
-- continue decision must be acted on immediately by starting the next seam in the approved sequence.
-- Do not encode single-seam mode unless owning canon records an explicit `Single-Seam Mode Waiver`; treat legacy `Single-Seam Fallback` wording as waiver-only.
+Use owning canon to derive the admitted implementation slices, active seam, seam sequence, same-branch continuation posture, and validation contract before execution.
+Keep the prompt thin: the prompt names the current seam and task, while owning canon supplies continuation, backlog-split handling, and later-phase boundaries after load.
 
 Stop if scope, phase, branch truth, or validation requirements are unclear.
 
@@ -371,14 +393,8 @@ Use the loader map to load owning canon. Validate branch truth, authority-record
 Task:
 <PR Readiness task>
 
-Constraints:
-- No runtime/product implementation.
-- Do not merge.
-- Do not execute release work.
-- Do not create the next branch.
-- Do not report PR Readiness GREEN until PR creation and PR validation requirements are satisfied by canon and live PR truth.
-- If the branch is inside an unreleased release window, do not report PR Readiness GREEN until the active branch records a `Release Window Audit` with either no remaining known blockers or an explicit user-approved split waiver.
-- The default green posture for that audit is `Remaining Known Release Blockers: None`, `Another Pre-Release Repair PR Required: NO`, and `Release Window Split Waiver: None`; otherwise keep `Release Window Audit Incomplete` active.
+Use owning canon to keep this pass inside PR-readiness packaging, merge-target validation, next-workstream selection, release-window audit truth, and PR creation or PR validation evidence.
+Report PR Readiness green only when canon and live PR truth both satisfy the gate.
 
 Stop if PR state, branch truth, post-merge canon, next-workstream truth, or required validation is unknown.
 
@@ -399,6 +415,13 @@ Return:
 - Next Safe Move
 ```
 
+Release-window audit notes for ChatGPT preflight also stay outside the prompt body and come from owning canon after load:
+- Release Window Audit
+- Release Window Audit Incomplete
+- Remaining Known Release Blockers: None
+- Another Pre-Release Repair PR Required: NO
+- Release Window Split Waiver: None
+
 ### Release Readiness
 
 ```text
@@ -418,12 +441,8 @@ Use the loader map to load owning canon. Validate merged repo truth, release-deb
 Task:
 <Release Readiness task>
 
-Constraints:
-- Release Readiness is analysis-only and file-frozen.
-- Do not edit, stage, commit, generate, or refresh repository files.
-- Do not create tags or GitHub releases.
-- Do not create branches.
-- If any file change is needed, classify the drift and route it to PR Readiness before merge or the next active Branch Readiness after merge.
+Release Readiness is analysis-only and file-frozen.
+Use owning canon to perform merged-state release review only, and if any repo change is needed classify the drift and route it to the legal repair surface instead of widening the prompt.
 
 Stop if release target, scope, artifacts, post-release truth, or file-frozen state is unclear.
 

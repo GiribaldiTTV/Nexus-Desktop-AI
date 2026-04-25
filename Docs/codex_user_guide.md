@@ -47,7 +47,7 @@ The default prompt posture is:
 
 - one cue
 - one anchor
-- optional control add-ons only when they materially reduce ambiguity
+- optional structured fields only when they materially improve anchor clarity
 
 Use:
 
@@ -63,6 +63,9 @@ Examples:
 
 The prompt may be concise.
 Codex's investigation should still be complete enough for the task.
+
+When ChatGPT is generating the prompt, planning-loop risk belongs in preflight analysis.
+If preflight stays red, return analysis instead of thickening the prompt with control-language blocks.
 
 ## Required Phase Anchor
 
@@ -82,15 +85,15 @@ For governed closeout recovery, also include:
 
 For bounded multi-seam Workstream execution, also include:
 
-- `Seam Sequence: <ordered seam list>`
-- `Per-Seam Gate: validate, record evidence, and report continue-or-stop before the next seam`
-- `Entry Seam Rule: the prompt-named seam is the entry seam, not a terminal boundary`
-- `Continuation Rule: apply Next-Seam Continuation Required after a green seam when continuation authority conditions pass`
-- `All-Seams Rule: Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.`
-- `Execution Rule: reporting Next Safe Move is not a substitute for execution when continuation authority passes`
-- Execution Rule: reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
-- Execution Rule: A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
-- `Single-Seam Mode Waiver Rule: treat legacy Single-Seam Fallback wording as waiver-only`
+- `Current active seam: <seam name>`
+- `Seam Sequence: <ordered seam list>` when the admitted sequence is already explicit in canon
+- `Validation Contract: <summary or authority reference>` when validation governance matters
+- `Slice Continuation Policy: <summary or authority reference>` when same-branch continuation or an approved backlog split matters
+- `Backlog Completion State: <In Progress / Implemented Complete / Implemented Complete Except Future Dependency>` when Workstream continuation or phase exit matters
+- `Remaining Implementable Work: <None / short summary>` when Workstream continuation or phase exit matters
+- `Future-Dependent Blockers: <None / short summary>` when Workstream continuation or phase exit matters
+
+Use owning canon after load to derive the per-seam gate, entry seam, `Next-Seam Continuation Required`, the rule that a slice is a bounded admitted backlog-completion unit and a seam is the current execution checkpoint inside or between slices, the rule that there is no repo-wide cap on how many slices a branch or workstream may carry, same-branch backlog completion, backlog completion state, future-dependent blockers, `Backlog-Split User Approval`, `Backlog-Split Reason`, and the rule that reporting `Next Safe Move` is not a substitute for execution and a continue decision must be acted on immediately by starting the next seam in the approved sequence.
 
 For Release Readiness, also include:
 
@@ -102,6 +105,15 @@ For Release Readiness, also include:
 - `Release Branch: No` only for preserved historical records
 - `No file changes` because Release Readiness is analysis-only for repository files
 - `Protected Main: main is read-only for Codex work` when the task reads post-merge truth from `main`
+
+## Thin Prompt Discipline
+
+Planning-loop prevention belongs in ChatGPT preflight analysis, not in a thicker Codex prompt body.
+If planning-loop risk, branch ambiguity, or runtime-free implementation drift remains unresolved, ChatGPT should block prompt generation and return analysis instead.
+
+Once prompt generation is allowed, keep the Codex prompt thin and neutral.
+Use project context, active seam, task, and return format to express scope positively.
+Let repo truth, branch authority, canonical workstreams, and admitted slice records supply behavior after load rather than pasting full seam-governance rule blocks into the prompt text.
 
 ## What Codex Should Do Automatically
 
@@ -165,7 +177,7 @@ If the task remains materially ambiguous after that baseline, Codex should ask o
 
 ## Startup Contract For Every Task
 
-Before planning or execution, Codex should follow the startup contract in `Docs/Main.md`.
+Before planning or execution, Codex should follow the startup loading contract in `Docs/Main.md`, using `Docs/nexus_startup_contract.md` only as the ChatGPT/new-chat loader map when prompt generation is in scope.
 
 For tracked work, that means:
 
@@ -350,24 +362,10 @@ Use:
 Required add-ons:
 
 - `Phase: Workstream`
-- `Seam Sequence: [ordered seam list]`
-- `validate after each seam`
-- `report continue-or-stop after each seam`
-- `treat prompt-named seam as the entry seam, not a terminal boundary`
-- `apply Next-Seam Continuation Required after a green seam when continuation authority conditions pass`
-- `reporting Next Safe Move is not a substitute for execution when continuation authority passes`
-- `a continue decision must be acted on immediately by starting the next seam in the approved sequence`
-- reporting `Next Safe Move` is not a substitute for execution when continuation authority passes
-- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence
-- `stop on validation failure, regression, scope drift, risk-class change, governance drift, unresolved manual-validation blocker, or branch-truth inconsistency`
-- `Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.`
-- `Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.`
-- `Docs-only Workstreams require explicit USER approval.`
-- `Planning-loop bypass requires Planning-Loop Bypass User Approval: APPROVED and Planning-Loop Bypass Reason:.`
-- `Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.`
-- All fixes and repairs use a new `feature/` branch by default.
-- Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
-- Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.
+- `Current active seam: [seam name]`
+- `Seam Sequence: [ordered seam list]` when canon already defines the admitted sequence
+- `Validation Contract: [summary or authority reference]`
+- `Slice Continuation Policy: [same-branch completion / approved backlog split / authority reference]`
 
 Use this when:
 
@@ -375,11 +373,28 @@ Use this when:
 - the operator wants Codex to keep moving through a coherent seam sequence without a new prompt after every seam
 - per-seam validation and evidence recording remain mandatory
 
-Do not use prompt wording such as `execute WS-1` to mean `stop after WS-1` unless the prompt also records an explicit `Single-Seam Mode Waiver` or another blocker from `Docs/phase_governance.md`.
-Do not use an implementation branch's `Workstream` phase for planning-only or canon-only output unless the USER explicitly approves a docs-only bypass and source-of-truth records the required planning-loop guardrail markers.
-Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
-A bounded stop condition blocks continuation; it does not create single-seam mode.
-reporting `Next Safe Move` is not a substitute for execution when continuation authority passes; A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
+Keep the prompt body thin and let owning canon supply the detailed rules after load.
+Use the prompt to name the active seam, validate after each seam, and report continue-or-stop.
+Source-truth reminders that stay in canon rather than prompt body:
+
+- Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, admitted-slice definition, and whole-backlog closure strategy before Workstream begins.
+- Branch Readiness must evaluate the whole backlog item, define the first admitted slice, record the same-branch continuation posture for the remaining slices needed to complete the backlog item, and record any known future-dependent blockers before Workstream begins.
+- Workstream must execute admitted implementation slices, keep re-evaluating the backlog item after each seam and slice, and continue on the same branch until the backlog item is fully implemented or only future-dependent blockers remain unless the USER explicitly approves a docs-only bypass or backlog split.
+- Docs-only Workstreams require explicit USER approval.
+- Planning-Loop Bypass User Approval: APPROVED
+- Planning-Loop Bypass Reason:
+- Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
+- All fixes and repairs use a new `feature/` branch by default.
+- Do not create a `docs/governance` or `emergency canon repair` branch unless explicit `Docs/Governance Branch Waiver: APPROVED` is recorded from the USER.
+- Repair-only `feature/` branch existence does not imply Branch Readiness admission or active branch truth.
+- the prompt-named seam is the entry seam, not a terminal boundary
+- Next-Seam Continuation Required
+- same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green
+- perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded
+- `Workstream` may not advance to `Hardening` while remaining implementable work is still available on the current backlog item
+- use `Backlog Completion State: In Progress`, `Implemented Complete`, or `Implemented Complete Except Future Dependency` to record whether more same-branch slices are still required
+- reporting Next Safe Move is not a substitute for execution
+- A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
 
 High-risk categories such as bug fixes, hotfixes, unclear seams, cross-subsystem changes, settings, protocol, launcher, or UI-model work require smaller seams and stronger gates; they do not automatically cancel bounded multi-seam continuation after a green admitted seam.
 
@@ -619,7 +634,7 @@ The key distinction is prompt length, not analysis depth.
 ## Best Operator Habits
 
 - use one cue plus one anchor by default
-- add control language only when it materially protects truth or scope
+- prefer ChatGPT preflight analysis over control-language blocks; if risk stays red, return analysis instead of thickening the prompt
 - use `Analyze for drift` before merge, release, or major canon carry-forward decisions
 - use evidence-digestion language when returned validation evidence should control the next move, rather than implying that phase advancement is automatic
 - in `PR Readiness`, require hard blocker checks before accepting `PR READY: YES`: `stale-canon`, `post-merge`, `next-workstream`, `dirty`, `docs-sync`, `desktop-shortcut`, `uts-results`, `PR Readiness Scope Missed`, `Release Window Audit Incomplete`, `Between-Branch Canon Repair Attempt`, and `Next Branch Created Too Early`

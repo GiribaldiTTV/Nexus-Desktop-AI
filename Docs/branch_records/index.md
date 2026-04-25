@@ -49,6 +49,7 @@ None.
 
 ## Historical Branch Authority Records
 
+- `Docs/branch_records/feature_fb_043_top_level_entrypoint_handoff_refinement.md`
 - `Docs/branch_records/codex_fb_037_release_debt_packaging.md`
 - `Docs/branch_records/codex_no_active_branch_docs_governance_refinement.md`
 - `Docs/branch_records/feature_fb_042_desktop_entrypoint_runtime_refinement.md`

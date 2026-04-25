@@ -87,6 +87,7 @@ REQUIRED_WORKSTREAM_HEADINGS = (
 REQUIRED_BRANCH_READINESS_DURABILITY_HEADINGS = (
     "## Branch Objective",
     "## Target End-State",
+    "## Backlog Completion Strategy",
     "## Expected Seam Families And Risk Classes",
     "## User Test Summary Strategy",
     "## Later-Phase Expectations",
@@ -99,6 +100,12 @@ REQUIRED_BRANCH_READINESS_FIRST_SEAM_MARKERS = (
     "Goal:",
     "Scope:",
     "Non-Includes:",
+)
+
+REQUIRED_BRANCH_READINESS_COMPLETION_MARKERS = (
+    "Branch Completion Goal:",
+    "Known Future-Dependent Blockers:",
+    "Branch Closure Rule:",
 )
 
 SUCCESSOR_LOCK_WAIVER_DOCS = (
@@ -159,20 +166,26 @@ MULTI_SEAM_CONTRACT_PHRASES = (
     "bounded multi-seam workflow",
     "Next-Seam Continuation Required",
     "entry seam, not a terminal boundary",
-    "Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.",
-    "Single-Seam Mode Waiver",
+    "a slice is a bounded admitted backlog-completion unit",
+    "a seam is the current execution checkpoint inside or between slices",
+    "there is no repo-wide cap on how many slices a branch or workstream may carry",
+    "same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green",
+    "perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded",
+    "Branch Readiness must evaluate the whole backlog item, define the first admitted slice, record the same-branch continuation posture for the remaining slices needed to complete the backlog item, and record any known future-dependent blockers before Workstream begins.",
+    "Workstream must execute admitted implementation slices, keep re-evaluating the backlog item after each seam and slice, and continue on the same branch until the backlog item is fully implemented or only future-dependent blockers remain unless the USER explicitly approves a docs-only bypass or backlog split.",
+    "`Workstream` may not advance to `Hardening` while remaining implementable work is still available on the current backlog item",
+    "Backlog-Split User Approval",
     "bounded stop condition",
-    "Single-Seam Fallback",
     "reporting `Next Safe Move` is not a substitute for execution",
     "A `continue` decision must be acted on immediately",
 )
 
 MULTI_SEAM_PRIMARY_REPAIR_PHRASES = (
     "Category labels are not stop conditions by themselves.",
-    "`Single-Seam Fallback` is legacy terminology for `Single-Seam Mode Waiver`.",
-    "Single-seam mode is waiver-only.",
-    "A bounded stop condition blocks the workflow. It does not by itself authorize single-seam mode.",
-    "Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.",
+    "Legacy `Single-Seam Fallback` and `Single-Seam Mode Waiver` terms are retired and must not be used in active source-of-truth.",
+    "A bounded stop condition blocks the workflow. It does not by itself authorize splitting the backlog item across branches.",
+    "Stopping after the first slice or splitting the backlog item across branches requires an explicit `Backlog-Split User Approval` or a named bounded stop condition.",
+    "Perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded.",
 )
 
 MULTI_SEAM_PROHIBITED_CATEGORY_STOP_PHRASES = (
@@ -188,6 +201,8 @@ MULTI_SEAM_PROHIBITED_THROTTLE_PHRASES = (
     "use `single-seam fallback` only when",
     "canon-valid `single-seam fallback`",
     "unless owning canon supplies `single-seam fallback`",
+    "use `single-seam mode waiver` only when",
+    "one-seam workflow",
 )
 
 MULTI_SEAM_PROMPT_DOCS = (
@@ -201,12 +216,22 @@ MULTI_SEAM_PROMPT_PHRASES = (
     "continue-or-stop",
     "Next-Seam Continuation Required",
     "entry seam, not a terminal boundary",
-    "Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.",
-    "Single-Seam Mode Waiver",
-    "Single-Seam Fallback",
+    "there is no repo-wide cap on how many slices a branch or workstream may carry",
+    "same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green",
+    "perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded",
+    "Backlog Completion State",
+    "Backlog-Split User Approval",
+    "Backlog-Split Reason",
     "reporting Next Safe Move is not a substitute for execution",
     "continue decision must be acted on immediately",
 )
+
+REUSABLE_GUIDANCE_RETIRED_SEAM_TERMS = {
+    Path("Docs/incident_patterns.md"): (
+        "Single-Seam Fallback",
+        "Single-Seam Mode Waiver",
+    ),
+}
 
 REQUIRED_WORKSTREAM_CONTINUATION_MARKERS = (
     "Continue Decision:",
@@ -260,16 +285,60 @@ PLANNING_LOOP_GUARDRAIL_DOCS = (
 )
 
 PLANNING_LOOP_GUARDRAIL_PHRASES = (
-    "Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.",
-    "Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.",
+    "Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, admitted-slice definition, and whole-backlog closure strategy before Workstream begins.",
+    "Branch Readiness must evaluate the whole backlog item, define the first admitted slice, record the same-branch continuation posture for the remaining slices needed to complete the backlog item, and record any known future-dependent blockers before Workstream begins.",
+    "Workstream must execute admitted implementation slices, keep re-evaluating the backlog item after each seam and slice, and continue on the same branch until the backlog item is fully implemented or only future-dependent blockers remain unless the USER explicitly approves a docs-only bypass or backlog split.",
     "Docs-only Workstreams require explicit USER approval.",
     "Planning-Loop Bypass User Approval: APPROVED",
     "Planning-Loop Bypass Reason:",
     "Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.",
+    "`Workstream` may not advance to `Hardening` while remaining implementable work is still available on the current backlog item",
 )
+
+PROMPT_DISCIPLINE_REQUIRED_PHRASES = {
+    Path("Docs/nexus_startup_contract.md"): (
+        "Planning-loop prevention belongs in ChatGPT preflight analysis.",
+        "If planning-loop risk is detected, ChatGPT must block prompt generation and return analysis instead of an execution prompt.",
+        "Once prompt generation is allowed, the prompt stays thin and neutral.",
+        "Codex prompts should express admitted scope positively through project context, active seam, task, and return format.",
+        "The startup contract should load that authority; it should not leak startup-contract narration into the generated Codex prompt body.",
+    ),
+    Path("Docs/codex_user_guide.md"): (
+        "When ChatGPT is generating the prompt, planning-loop risk belongs in preflight analysis.",
+        "Planning-loop prevention belongs in ChatGPT preflight analysis, not in a thicker Codex prompt body.",
+        "Once prompt generation is allowed, keep the Codex prompt thin and neutral.",
+        "Let repo truth, branch authority, canonical workstreams, and admitted slice records supply behavior after load rather than pasting full seam-governance rule blocks into the prompt text.",
+    ),
+    Path("Docs/Main.md"): (
+        "Planning-loop blocking belongs in ChatGPT preflight analysis before prompt generation.",
+        "Once a prompt is allowed, it should stay thin, neutral, and repo-aligned instead of carrying behavior-management lists or protective governance narration.",
+    ),
+    Path("Docs/orin_task_template.md"): (
+        "When ChatGPT is generating a Codex prompt, treat this template as a construction checklist rather than prompt text to paste wholesale.",
+        "Planning-loop prevention belongs in ChatGPT preflight analysis; once prompt generation is allowed, keep the prompt thin, neutral, and repo-aligned.",
+    ),
+}
+
+PROMPT_DISCIPLINE_PROHIBITED_PHRASES = {
+    Path("Docs/nexus_startup_contract.md"): (
+        "Do not generate minimal prompts that omit governance loading.",
+        "Every generated prompt must include: Mode, Phase, Workstream, Branch, Branch Class when relevant, task scope, constraints, stop conditions, validation requirements",
+        "\nConstraints:\n",
+    ),
+    Path("Docs/codex_user_guide.md"): (
+        "optional control add-ons only when they materially reduce ambiguity",
+    ),
+}
 
 PLANNING_LOOP_ACTIVE_PHASES = (
     "Branch Readiness",
+    "Workstream",
+    "Hardening",
+    "Live Validation",
+    "PR Readiness",
+)
+
+BACKLOG_COMPLETION_ACTIVE_PHASES = (
     "Workstream",
     "Hardening",
     "Live Validation",
@@ -286,6 +355,28 @@ REAL_IMPLEMENTATION_DELTA_CLASSES = frozenset(
 )
 ALLOWED_IMPLEMENTATION_DELTA_CLASSES = REAL_IMPLEMENTATION_DELTA_CLASSES | frozenset(
     {PLANNING_LOOP_DOCS_ONLY_DELTA}
+)
+
+SLICE_CONTINUATION_DEFAULT_LABEL = "Slice Continuation Default"
+BACKLOG_SPLIT_APPROVAL_LABEL = "Backlog-Split User Approval"
+BACKLOG_SPLIT_REASON_LABEL = "Backlog-Split Reason"
+SAME_BRANCH_SLICE_CONTINUATION_VALUE = "same-branch backlog completion"
+BACKLOG_COMPLETION_STATUS_HEADING = "Backlog Completion Status"
+BACKLOG_COMPLETION_STRATEGY_HEADING = "Backlog Completion Strategy"
+BACKLOG_COMPLETION_STATE_LABEL = "Backlog Completion State"
+REMAINING_IMPLEMENTABLE_WORK_LABEL = "Remaining Implementable Work"
+FUTURE_DEPENDENT_BLOCKERS_LABEL = "Future-Dependent Blockers"
+BACKLOG_COMPLETION_GOAL_LABEL = "Branch Completion Goal"
+KNOWN_FUTURE_DEPENDENT_BLOCKERS_LABEL = "Known Future-Dependent Blockers"
+BRANCH_CLOSURE_RULE_LABEL = "Branch Closure Rule"
+BACKLOG_COMPLETION_UNPROVEN_BLOCKER = "Backlog Completion Unproven"
+BACKLOG_COMPLETION_IN_PROGRESS = "in progress"
+BACKLOG_COMPLETION_IMPLEMENTED_COMPLETE = "implemented complete"
+BACKLOG_COMPLETION_IMPLEMENTED_COMPLETE_FUTURE = "implemented complete except future dependency"
+ACTIVE_SINGLE_SLICE_PROHIBITED_PATTERNS = (
+    r"only the admitted ws-\d+",
+    r"unless the user later approves another seam",
+    r"later slices remain explicit approval gates",
 )
 
 LIVE_VALIDATION_REUSE_DOCS = (
@@ -1139,6 +1230,264 @@ def _validate_planning_loop_guardrail(
             (
                 f"{source_path}: release-bearing implementation work with no real runtime, "
                 "backend/runtime, or developer-tooling delta requires explicit USER approval"
+            ),
+        )
+
+
+def _validate_slice_continuation_policy(
+    require,
+    source_path: str,
+    text: str,
+    *,
+    branch_class: str,
+    current_phase: str,
+) -> None:
+    if branch_class != "implementation":
+        return
+    if current_phase not in PLANNING_LOOP_ACTIVE_PHASES:
+        return
+
+    require(
+        "## Slice Continuation Policy" in text,
+        f"{source_path}: implementation lane is missing '## Slice Continuation Policy'",
+    )
+    continuation_section = _section(text, "Slice Continuation Policy")
+    continuation_default = _extract_marker_value(
+        continuation_section, SLICE_CONTINUATION_DEFAULT_LABEL
+    )
+    split_approval = _extract_marker_value(
+        continuation_section, BACKLOG_SPLIT_APPROVAL_LABEL
+    )
+    split_reason = _extract_marker_value(
+        continuation_section, BACKLOG_SPLIT_REASON_LABEL
+    )
+    normalized_default = continuation_default.strip().casefold()
+    normalized_approval = split_approval.strip().upper()
+    normalized_reason = split_reason.strip().casefold()
+
+    require(
+        bool(continuation_default),
+        f"{source_path}: Slice Continuation Policy is missing '{SLICE_CONTINUATION_DEFAULT_LABEL}:'",
+    )
+    require(
+        bool(split_approval),
+        f"{source_path}: Slice Continuation Policy is missing '{BACKLOG_SPLIT_APPROVAL_LABEL}:'",
+    )
+    require(
+        bool(split_reason),
+        f"{source_path}: Slice Continuation Policy is missing '{BACKLOG_SPLIT_REASON_LABEL}:'",
+    )
+    require(
+        normalized_default == SAME_BRANCH_SLICE_CONTINUATION_VALUE,
+        (
+            f"{source_path}: {SLICE_CONTINUATION_DEFAULT_LABEL} must be "
+            "'Same-branch backlog completion' for active implementation lanes"
+        ),
+    )
+
+    if normalized_approval == "APPROVED":
+        require(
+            normalized_reason not in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: {BACKLOG_SPLIT_APPROVAL_LABEL} APPROVED requires "
+                f"'{BACKLOG_SPLIT_REASON_LABEL}:'"
+            ),
+        )
+    else:
+        require(
+            normalized_approval in {"", "NONE", "NO"},
+            (
+                f"{source_path}: {BACKLOG_SPLIT_APPROVAL_LABEL} must be APPROVED or None "
+                "for active implementation lanes"
+            ),
+        )
+        require(
+            normalized_reason in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: {BACKLOG_SPLIT_REASON_LABEL} must be None unless a backlog split "
+                "is explicitly approved"
+            ),
+        )
+
+    lowered_text = text.casefold()
+    for prohibited_pattern in ACTIVE_SINGLE_SLICE_PROHIBITED_PATTERNS:
+        require(
+            re.search(prohibited_pattern, lowered_text) is None,
+            (
+                f"{source_path}: active implementation lane must not encode single-slice stop "
+                f"authority via '{prohibited_pattern}'"
+            ),
+        )
+
+
+def _validate_backlog_completion_strategy(
+    require,
+    source_path: str,
+    text: str,
+    *,
+    branch_class: str,
+    current_phase: str,
+) -> None:
+    if branch_class != "implementation":
+        return
+    if current_phase != "Branch Readiness":
+        return
+
+    require(
+        f"## {BACKLOG_COMPLETION_STRATEGY_HEADING}" in text,
+        f"{source_path}: implementation Branch Readiness is missing '## {BACKLOG_COMPLETION_STRATEGY_HEADING}'",
+    )
+    strategy_section = _section(text, BACKLOG_COMPLETION_STRATEGY_HEADING)
+    for marker in REQUIRED_BRANCH_READINESS_COMPLETION_MARKERS:
+        require(
+            marker in strategy_section,
+            f"{source_path}: {BACKLOG_COMPLETION_STRATEGY_HEADING} is missing '{marker}'",
+        )
+
+    completion_goal = _extract_marker_value(strategy_section, BACKLOG_COMPLETION_GOAL_LABEL)
+    known_future_blockers = _extract_marker_value(
+        strategy_section, KNOWN_FUTURE_DEPENDENT_BLOCKERS_LABEL
+    )
+    closure_rule = _extract_marker_value(strategy_section, BRANCH_CLOSURE_RULE_LABEL)
+
+    require(
+        bool(completion_goal),
+        f"{source_path}: {BACKLOG_COMPLETION_GOAL_LABEL} must not be empty",
+    )
+    require(
+        bool(known_future_blockers),
+        f"{source_path}: {KNOWN_FUTURE_DEPENDENT_BLOCKERS_LABEL} must not be empty",
+    )
+    require(
+        bool(closure_rule),
+        f"{source_path}: {BRANCH_CLOSURE_RULE_LABEL} must not be empty",
+    )
+
+
+def _validate_backlog_completion_status(
+    require,
+    source_path: str,
+    text: str,
+    *,
+    branch_class: str,
+    current_phase: str,
+    blockers: list[str],
+    next_legal_phase: str,
+) -> None:
+    if branch_class != "implementation":
+        return
+    if current_phase not in BACKLOG_COMPLETION_ACTIVE_PHASES:
+        return
+
+    require(
+        f"## {BACKLOG_COMPLETION_STATUS_HEADING}" in text,
+        f"{source_path}: implementation lane is missing '## {BACKLOG_COMPLETION_STATUS_HEADING}'",
+    )
+    status_section = _section(text, BACKLOG_COMPLETION_STATUS_HEADING)
+    state_value = _extract_marker_value(status_section, BACKLOG_COMPLETION_STATE_LABEL)
+    remaining_work = _extract_marker_value(status_section, REMAINING_IMPLEMENTABLE_WORK_LABEL)
+    future_blockers = _extract_marker_value(status_section, FUTURE_DEPENDENT_BLOCKERS_LABEL)
+    normalized_state = state_value.strip().casefold()
+    normalized_remaining = remaining_work.strip().casefold()
+    normalized_future = future_blockers.strip().casefold()
+    has_backlog_blocker = BACKLOG_COMPLETION_UNPROVEN_BLOCKER in blockers
+
+    require(
+        bool(state_value),
+        f"{source_path}: {BACKLOG_COMPLETION_STATUS_HEADING} is missing '{BACKLOG_COMPLETION_STATE_LABEL}:'",
+    )
+    require(
+        bool(remaining_work),
+        f"{source_path}: {BACKLOG_COMPLETION_STATUS_HEADING} is missing '{REMAINING_IMPLEMENTABLE_WORK_LABEL}:'",
+    )
+    require(
+        bool(future_blockers),
+        f"{source_path}: {BACKLOG_COMPLETION_STATUS_HEADING} is missing '{FUTURE_DEPENDENT_BLOCKERS_LABEL}:'",
+    )
+    require(
+        normalized_state
+        in {
+            BACKLOG_COMPLETION_IN_PROGRESS,
+            BACKLOG_COMPLETION_IMPLEMENTED_COMPLETE,
+            BACKLOG_COMPLETION_IMPLEMENTED_COMPLETE_FUTURE,
+        },
+        (
+            f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} '{state_value}' must be "
+            "'In Progress', 'Implemented Complete', or 'Implemented Complete Except Future Dependency'"
+        ),
+    )
+
+    if normalized_state == BACKLOG_COMPLETION_IN_PROGRESS:
+        require(
+            current_phase == "Workstream",
+            (
+                f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} In Progress must keep the branch in "
+                "`Workstream`"
+            ),
+        )
+        require(
+            next_legal_phase == "Workstream",
+            (
+                f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} In Progress must keep "
+                "Next Legal Phase at `Workstream`"
+            ),
+        )
+        require(
+            normalized_remaining not in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} In Progress requires "
+                f"'{REMAINING_IMPLEMENTABLE_WORK_LABEL}:' to name remaining same-branch work"
+            ),
+        )
+        require(
+            has_backlog_blocker,
+            (
+                f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} In Progress requires blocker "
+                f"'{BACKLOG_COMPLETION_UNPROVEN_BLOCKER}'"
+            ),
+        )
+    elif normalized_state == BACKLOG_COMPLETION_IMPLEMENTED_COMPLETE:
+        require(
+            normalized_remaining in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} Implemented Complete requires "
+                f"'{REMAINING_IMPLEMENTABLE_WORK_LABEL}: None'"
+            ),
+        )
+        require(
+            normalized_future in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} Implemented Complete requires "
+                f"'{FUTURE_DEPENDENT_BLOCKERS_LABEL}: None'"
+            ),
+        )
+        require(
+            not has_backlog_blocker,
+            (
+                f"{source_path}: blocker '{BACKLOG_COMPLETION_UNPROVEN_BLOCKER}' must clear once "
+                "backlog completion is proven"
+            ),
+        )
+    elif normalized_state == BACKLOG_COMPLETION_IMPLEMENTED_COMPLETE_FUTURE:
+        require(
+            normalized_remaining in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} Implemented Complete Except Future "
+                f"Dependency requires '{REMAINING_IMPLEMENTABLE_WORK_LABEL}: None'"
+            ),
+        )
+        require(
+            normalized_future not in {"", "none", "n/a", "na"},
+            (
+                f"{source_path}: {BACKLOG_COMPLETION_STATE_LABEL} Implemented Complete Except Future "
+                f"Dependency requires named '{FUTURE_DEPENDENT_BLOCKERS_LABEL}:'"
+            ),
+        )
+        require(
+            not has_backlog_blocker,
+            (
+                f"{source_path}: blocker '{BACKLOG_COMPLETION_UNPROVEN_BLOCKER}' must clear once "
+                "only future-dependent blockers remain"
             ),
         )
 
@@ -2005,7 +2354,7 @@ def main() -> int:
         lower_text = text.casefold()
         for required_phrase in MULTI_SEAM_CONTRACT_PHRASES:
             require(
-                required_phrase in text,
+                required_phrase.casefold() in lower_text,
                 f"{relative_path}: canonical bounded multi-seam workflow contract is missing '{required_phrase}'",
             )
         for prohibited_phrase in MULTI_SEAM_PROHIBITED_CATEGORY_STOP_PHRASES:
@@ -2020,9 +2369,10 @@ def main() -> int:
             )
 
     phase_governance_text = _read_text(Path("Docs/phase_governance.md"))
+    phase_governance_lower = phase_governance_text.casefold()
     for required_phrase in MULTI_SEAM_PRIMARY_REPAIR_PHRASES:
         require(
-            required_phrase in phase_governance_text,
+            required_phrase.casefold() in phase_governance_lower,
             f"Docs/phase_governance.md: primary seam governance is missing category-stop repair phrase '{required_phrase}'",
         )
 
@@ -2031,13 +2381,21 @@ def main() -> int:
         lower_text = text.casefold()
         for required_phrase in MULTI_SEAM_PROMPT_PHRASES:
             require(
-                required_phrase in text,
+                required_phrase.casefold() in lower_text,
                 f"{relative_path}: multi-seam prompt scaffold is missing '{required_phrase}'",
             )
         for prohibited_phrase in MULTI_SEAM_PROHIBITED_THROTTLE_PHRASES:
             require(
                 prohibited_phrase not in lower_text,
                 f"{relative_path}: prompt scaffold must not recreate single-seam throttling authority via '{prohibited_phrase}'",
+            )
+
+    for relative_path, retired_terms in REUSABLE_GUIDANCE_RETIRED_SEAM_TERMS.items():
+        text = _read_text(relative_path)
+        for retired_term in retired_terms:
+            require(
+                retired_term not in text,
+                f"{relative_path}: reusable guidance must not reintroduce retired seam-governance term '{retired_term}'",
             )
 
     for relative_path, guard_phrase in zip(WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS, WORKSTREAM_TO_PR_DEFAULT_GUARD_PHRASES):
@@ -2061,6 +2419,22 @@ def main() -> int:
             require(
                 required_phrase in text,
                 f"{relative_path}: planning-loop guardrail guidance is missing '{required_phrase}'",
+            )
+
+    for relative_path, required_phrases in PROMPT_DISCIPLINE_REQUIRED_PHRASES.items():
+        text = _read_text(relative_path)
+        for required_phrase in required_phrases:
+            require(
+                required_phrase in text,
+                f"{relative_path}: thin prompt discipline guidance is missing '{required_phrase}'",
+            )
+
+    for relative_path, prohibited_phrases in PROMPT_DISCIPLINE_PROHIBITED_PHRASES.items():
+        text = _read_text(relative_path)
+        for prohibited_phrase in prohibited_phrases:
+            require(
+                prohibited_phrase not in text,
+                f"{relative_path}: prompt-discipline drift reintroduced prohibited phrase '{prohibited_phrase}'",
             )
 
     for relative_path in LIVE_VALIDATION_REUSE_DOCS:
@@ -2744,6 +3118,14 @@ def main() -> int:
                     ),
                 )
 
+            _validate_backlog_completion_strategy(
+                require,
+                canonical_path,
+                workstream_text,
+                branch_class=branch_class,
+                current_phase=current_phase,
+            )
+
             initial_seam_sequence = _section(workstream_text, "Initial Workstream Seam Sequence")
             for marker in REQUIRED_BRANCH_READINESS_FIRST_SEAM_MARKERS:
                 require(
@@ -2977,6 +3359,22 @@ def main() -> int:
             branch_class=branch_class,
             current_phase=current_phase,
             normalized_status=normalized_workstream_status,
+        )
+        _validate_slice_continuation_policy(
+            require,
+            canonical_path,
+            workstream_text,
+            branch_class=branch_class,
+            current_phase=current_phase,
+        )
+        _validate_backlog_completion_status(
+            require,
+            canonical_path,
+            workstream_text,
+            branch_class=branch_class,
+            current_phase=current_phase,
+            blockers=blockers,
+            next_legal_phase=next_legal_phase,
         )
         if (
             current_git_branch == "main"
@@ -3343,14 +3741,72 @@ def main() -> int:
             f"{branch_record_path}: Next Legal Phase '{info['next_legal_phase']}' is not in the canonical phase enum",
         )
         if branch_record_path in active_branch_record_paths:
+            current_phase = str(info["current_phase"])
             _validate_planning_loop_guardrail(
                 require,
                 branch_record_path,
                 record_text,
                 branch_class=branch_class,
-                current_phase=str(info["current_phase"]),
+                current_phase=current_phase,
                 normalized_status=normalized_record_status,
             )
+            _validate_slice_continuation_policy(
+                require,
+                branch_record_path,
+                record_text,
+                branch_class=branch_class,
+                current_phase=current_phase,
+            )
+            _validate_backlog_completion_strategy(
+                require,
+                branch_record_path,
+                record_text,
+                branch_class=branch_class,
+                current_phase=current_phase,
+            )
+            _validate_backlog_completion_status(
+                require,
+                branch_record_path,
+                record_text,
+                branch_class=branch_class,
+                current_phase=current_phase,
+                blockers=list(info["blockers"]),
+                next_legal_phase=str(info["next_legal_phase"]),
+            )
+            if current_phase == "Branch Readiness":
+                for heading in REQUIRED_BRANCH_READINESS_DURABILITY_HEADINGS:
+                    require(
+                        heading in record_text,
+                        (
+                            f"{branch_record_path}: Branch Readiness durability scaffold is missing "
+                            f"required heading '{heading}'"
+                        ),
+                    )
+                initial_seam_sequence = _section(record_text, "Initial Workstream Seam Sequence")
+                for marker in REQUIRED_BRANCH_READINESS_FIRST_SEAM_MARKERS:
+                    require(
+                        marker in initial_seam_sequence,
+                        (
+                            f"{branch_record_path}: Initial Workstream Seam Sequence must define a first seam "
+                            f"with '{marker}'"
+                        ),
+                    )
+                active_seam_section = _section(record_text, "Active Seam")
+                require(
+                    "Active seam:" in active_seam_section,
+                    f"{branch_record_path}: Active Seam section must clearly identify the active seam",
+                )
+            if current_phase == "Workstream":
+                continuation_section = _section(record_text, "Seam Continuation Decision")
+                require(
+                    bool(continuation_section),
+                    f"{branch_record_path}: active Workstream record must include '## Seam Continuation Decision'",
+                )
+                for marker in REQUIRED_WORKSTREAM_CONTINUATION_MARKERS:
+                    require(
+                        marker in continuation_section,
+                        f"{branch_record_path}: Seam Continuation Decision is missing '{marker}'",
+                    )
         if branch_record_path in active_branch_record_paths and str(info["current_phase"]) == "Release Readiness":
             status_output = _git_status_porcelain(tracked_only=True)
             require(

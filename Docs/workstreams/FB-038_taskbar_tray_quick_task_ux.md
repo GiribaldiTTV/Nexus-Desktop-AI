@@ -204,7 +204,7 @@ The branch should prove a bounded shell-facing UX milestone, not redesign the ac
 - validation support:
   - risk class: helper or harness support only if the existing validation surface cannot prove the selected UX seam
 
-Because taskbar, tray, launcher-adjacent, and UI-model behavior are higher-risk than catalog-only actions, FB-038 begins with single-seam fallback by default.
+Because taskbar, tray, launcher-adjacent, and UI-model behavior are higher-risk than catalog-only actions, FB-038 begins with one smallest approved seam plus stronger per-seam validation by default.
 Bounded multi-seam workflow may be used later only if a Workstream analysis proves the seams share the same risk class, subsystem family, and validation gate.
 
 ## First Workstream Pass
@@ -300,7 +300,7 @@ When a Workstream seam changes taskbar, tray, Create Custom Task, or other user-
   - run the first source-map and seam-selection pass
   - implement only the approved smallest safe seam
   - validate before continuing
-  - use single-seam fallback until same-risk continuation is explicitly proven safe
+  - keep one active seam at a time until same-risk continuation is explicitly proven safe
 - Hardening:
   - pressure-test the selected shell-facing UX and authoring-entry behavior across normal and edge cases
   - repair only defects, validation gaps, or helper seams inside the approved scope

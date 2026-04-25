@@ -226,7 +226,7 @@ Nexus does not own:
 - Validation Layer: documentation and governance validation only.
 - Cleanup: no programs, helper processes, windows, temporary files, telemetry collectors, probes, or runtime artifacts were created.
 - User Test Summary Applicability: not applicable for WS-1 because it adds architecture-only planning and no user-visible behavior.
-- Continue/Stop Decision: the original stop after WS-1 is superseded and classified as seam-continuation governance drift because no canon-valid blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback` required stopping. WS-2 was the required next Workstream continuation candidate after this governance repair and is now complete.
+- Continue/Stop Decision: the original stop after WS-1 is superseded and classified as seam-continuation governance drift because no canon-valid blocker, phase boundary, stop-loss trigger, or explicit bounded stop condition required stopping. WS-2 was the required next Workstream continuation candidate after this governance repair and is now complete.
 
 ## Seam Continuation Governance Repair
 
@@ -234,7 +234,7 @@ Nexus does not own:
 - Drift Type: green Workstream seam stopped without a canon-valid continuation blocker.
 - Root Cause: source-of-truth required a continue-or-stop decision but did not make safe next-seam continuation the default after a green seam.
 - Corrected Rule: `Next-Seam Continuation Required` is now the default after a green seam in a valid bounded multi-seam workflow.
-- Recurrence Prevention: prompt-named seams are entry seams, not terminal boundaries; stopping after a green seam requires a recorded blocker, phase boundary, stop-loss trigger, or `Single-Seam Fallback`.
+- Recurrence Prevention: prompt-named seams are entry seams, not terminal boundaries; stopping after a green seam requires a recorded blocker, phase boundary, stop-loss trigger, or explicit bounded stop condition.
 
 ## WS-2 Execution Record
 
@@ -322,7 +322,7 @@ Before any future runtime monitoring seam may begin, the seam must explicitly de
 - Validation Layer: documentation and governance validation only.
 - Cleanup: no programs, helper processes, windows, temporary files, telemetry collectors, probes, or runtime artifacts were created.
 - User Test Summary Applicability: not applicable for WS-3 because it adds architecture-only admission rules and no user-visible behavior.
-- Continue/Stop Decision: stop at the Workstream phase boundary because the approved initial WS-1 through WS-3 architecture sequence is complete. The next legal phase is `Hardening`.
+- Continue/Stop Decision: historical Workstream closure because the approved initial WS-1 through WS-3 architecture sequence was complete on that branch. The next legal phase there was `Hardening`.
 
 ## H-1 Hardening Record
 

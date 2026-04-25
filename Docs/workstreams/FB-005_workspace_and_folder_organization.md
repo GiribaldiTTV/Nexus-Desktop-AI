@@ -32,9 +32,9 @@
 ## Phase Status
 
 - `Released / Closed in v1.6.6-prebeta`.
-- Current branch execution surface for new work is `feature/fb-042-desktop-entrypoint-runtime-refinement`.
-- Repo State: Active Branch
-- Latest Public Prerelease: v1.6.6-prebeta
+- Current branch execution surface for new work is `main` in merged-unreleased release packaging posture.
+- Repo State: No Active Branch
+- Latest Public Prerelease: v1.6.7-prebeta
 - `v1.6.6-prebeta` is live at `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.6-prebeta` on target commit `deeaa691a79dd01897f6aed82f087970db7019b3`.
 - FB-030 is Released / Closed in `v1.6.5-prebeta`, and latest public prerelease truth is now `v1.6.6-prebeta`.
 - FB-005 is Released / Closed in `v1.6.6-prebeta`.
@@ -44,11 +44,11 @@
 - The moved dev-only harness now lives at `dev/desktop/orin_desktop_test.py`.
 - Runtime entrypoints, launcher paths, audio paths, logs, visual assets, and user-facing desktop paths remain outside this admitted slice.
 - Runtime-reachability proof remains unchanged: shipped entrypoints still route through `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`.
-- The completed release scope ends after WS-1 because no WS-2 or later FB-005 slice was admitted; later slices remain separate approval gates.
+- The completed release scope ends after WS-1 because that historical branch closed with only the released WS-1 slice under the earlier path-sensitive posture; this is preserved historical truth, not the current repo-wide backlog-completion rule.
 - No reverse runtime dependency on `dev/desktop/` or the moved harness was found.
 - LV-1 confirms the residual visual-path mismatch is dev-only and non-user-facing: the harness still names historical visual file `jarvis_core_desktop.html` while the current desktop visual asset on disk is `orin_core_desktop.html`.
-- FB-042 now owns merged-unreleased release debt for `v1.6.7-prebeta`, and merge-target canon is in `No Active Branch` posture.
-- Canonical FB-042 truth now lives in `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`, and WS-1 desktop shortcut launch-path runtime refinement, H-1 hardening, and LV-1 are complete with PR Readiness next.
+- FB-043 now owns merged-unreleased release debt for `v1.6.8-prebeta`, and merge-target canon is in `No Active Branch` posture.
+- Canonical FB-043 truth now lives in `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`, and WS-1, WS-2, H-1, LV-1, and PR Readiness are complete with Release Readiness next after merge.
 - Release Execution published `v1.6.6-prebeta` on commit `deeaa691a79dd01897f6aed82f087970db7019b3`.
 - PR #83 merged into `main` at `873c9b6801802a05bbcef074595e632c0ec9f1d2`, and later release packaging and publication are now complete historical truth.
 
@@ -88,21 +88,21 @@ None.
 
 - Resume FB-005 through the smallest path-sensitive workspace slice that can be admitted without destabilizing current runtime or user-facing entrypoint ownership.
 - Keep production runtime, launcher, audio, log-root, visual-asset, and user-facing path truth frozen while proving one dev-only harness move can be governed cleanly.
-- Establish a reusable admission model for future FB-005 slices so later workspace work stays bounded, validated, and approval-gated.
+- Establish a reusable admission model for future FB-005 slices so later workspace work stays bounded, validated, and explicitly governed without silently widening.
 
 ## Target End-State
 
 - FB-005 has a canonical workstream record instead of living only as a selected-only backlog item plus branch record.
-- The first admitted slice is explicitly bounded to the dev-only desktop test harness move from `desktop/` to `dev/desktop/`.
+- The historically released slice is explicitly bounded to the dev-only desktop test harness move from `desktop/` to `dev/desktop/`.
 - Future workspace/path slices remain blocked until separately approved; this branch does not silently widen into Step 5, runtime-root moves, or launcher-path restructuring.
 
 ## Expected Seam Families And Risk Classes
 
-- Dev-only harness relocation family; risk class: workspace/path ownership, because the first admitted slice moves one non-runtime file into the dev-owned tree and must not accidentally widen beyond that boundary.
+- Dev-only harness relocation family; risk class: workspace/path ownership, because the released WS-1 slice moved one non-runtime file into the dev-owned tree and had to remain tightly bounded.
 - Reference-sync and path-truth family; risk class: validation/governance, because the move is only safe if direct references, planning truth, and ownership records all point to the same new path.
 - Runtime non-reachability proof family; risk class: launcher/runtime protection, because the admitted slice is legal only if shipped entrypoints, launcher routing, and user-facing desktop paths remain untouched.
 - Rollback and containment family; risk class: implementation safety, because any need to touch runtime entrypoints, audio paths, logs, visual assets, or broader workspace structure invalidates this slice and routes work back to Branch Readiness.
-- Future slice admission family; risk class: scope-control, because later FB-005 moves must stay separately approval-gated and must not piggyback on this dev-only harness relocation.
+- Future slice admission family; risk class: scope-control, because later FB-005 moves must be explicitly governed and must not piggyback on this dev-only harness relocation.
 
 ## Approved Workspace/Path Slice
 
@@ -171,7 +171,7 @@ None.
 - Updated local path resolution in the moved harness so repo-root imports and `jarvis_visual/jarvis_core_desktop.html` resolution still work from `dev/desktop/`.
 - Updated direct current-path references in `Docs/workspace_layout_plan.md`.
 - Preserved runtime entrypoints, launcher paths, audio paths, logs, visual assets, and user-facing desktop paths exactly as-is.
-- Bounded-stop decision: stopping after WS-1 is legal here because the canonical FB-005 seam chain admits only WS-1; no WS-2 is admitted, and later workspace/path slices remain explicit approval gates rather than implied continuation.
+- Bounded-stop decision: this historical branch stopped after WS-1 because the branch carried only that released path-sensitive slice at the time; preserve that as historical truth rather than as the current repo-wide default.
 
 ## Branch Readiness Validation Results
 
@@ -329,10 +329,10 @@ Release Target: v1.6.6-prebeta
 Release Title: Pre-Beta v1.6.6
 Release Floor: patch prerelease
 Version Rationale: FB-005 delivers a bounded dev-only workspace/path implementation slice and direct path-truth sync with no change to shipped runtime entrypoints, launcher paths, audio paths, logs, visual assets, installer behavior, or user-facing desktop behavior
-Release Scope: WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, PR package history, and merged-unreleased release-debt truth for the first admitted FB-005 slice only
+Release Scope: the historically released WS-1 dev-only desktop test harness relocation from `desktop/orin_desktop_test.py` to `dev/desktop/orin_desktop_test.py`, local path-math preservation, direct workspace-layout truth sync, hardening corrections, Live Validation waivers, PR package history, and merged-unreleased release-debt truth for that bounded released slice
 Release Artifacts: Tag v1.6.6-prebeta; release title Pre-Beta v1.6.6; rich Markdown release notes summarize the bounded FB-005 WS-1 workspace slice, validation evidence, non-user-facing release posture, and selected-next planning lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; FB-042 owns merged-unreleased release debt for `v1.6.7-prebeta`; `Repo State` is `No Active Branch`; and FB-043 is selected next as the branch-not-created top-level desktop entrypoint ownership and `main.py` handoff refinement lane
-Next-Branch Creation Gate: After FB-042 merges, `v1.6.7-prebeta` is published and validated, updated `main` is revalidated, and FB-043 Branch Readiness admits one bounded runtime-bearing top-level entrypoint slice; branch creation remains blocked until then
+Post-Release Truth: FB-005 is Released / Closed in v1.6.6-prebeta; FB-042 is Released / Closed in `v1.6.7-prebeta`; FB-043 is the merged-unreleased release-debt owner for `v1.6.8-prebeta`; and FB-044 remains selected next, `Registry-only`, and branch-not-created.
+Next-Branch Creation Gate: After FB-042 merges, `v1.6.7-prebeta` is published and validated, updated `main` is revalidated, and FB-043 Branch Readiness admits the first bounded runtime-bearing top-level entrypoint slice with same-branch continuation posture explicit; branch creation remains blocked until then
 
 ## Post-Merge State
 

@@ -15,6 +15,7 @@ BASE_LOG_ROOT = os.path.join(DEV_LOGS_DIR, "boot_transition_verification")
 REPORTS_DIR = os.path.join(BASE_LOG_ROOT, "reports")
 BOOT_RUNTIME_ROOT = os.path.join(DEV_LOGS_DIR, "boot_auto_handoff_skip_import")
 MAIN_SCRIPT = os.path.join(ROOT_DIR, "main.py")
+LEGACY_DEV_LAUNCHER = os.path.join(ROOT_DIR, "dev", "launchers", "launch_orin_main_dev.vbs")
 RUNTIME_RELAUNCH_EVENT = r"Local\JarvisRuntimeRelaunchRequestV1"
 
 EXPECTED_SEQUENCE = [
@@ -35,6 +36,11 @@ CLEAN_EXIT_MARKERS = [
     "BOOT_MAIN|SHUTDOWN_REQUESTED",
     "BOOT_MAIN|EVENT_LOOP_EXIT|code=0",
 ]
+
+EXPECTED_LEGACY_DEV_LAUNCHER_MARKERS = (
+    "--boot-profile manual",
+    "--audio-mode voice",
+)
 
 
 def hidden_subprocess_kwargs():
@@ -65,6 +71,13 @@ def read_lines(path):
         return []
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         return [line.rstrip("\r\n") for line in f]
+
+
+def read_text(path):
+    if not os.path.exists(path):
+        return ""
+    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        return f.read()
 
 
 def latest_file_matching(folder_path, prefix):
@@ -151,6 +164,7 @@ def send_runtime_relaunch_signal():
 def run_verification():
     ensure_dir(BASE_LOG_ROOT)
     ensure_dir(REPORTS_DIR)
+    legacy_dev_launcher_text = read_text(LEGACY_DEV_LAUNCHER)
 
     before_files = {
         name for name in os.listdir(BOOT_RUNTIME_ROOT)
@@ -201,6 +215,10 @@ def run_verification():
         "expected_sequence_reached": line_status(reached_expected_sequence, "all expected handoff markers observed"),
         "handoff_marker_order_valid": line_status(ordered, json.dumps(marker_indexes, indent=2)),
         "runtime_cleanup_signal_sent": line_status(signal_sent, RUNTIME_RELAUNCH_EVENT),
+        "legacy_dev_launcher_explicit_boot_contract": line_status(
+            all(marker in legacy_dev_launcher_text for marker in EXPECTED_LEGACY_DEV_LAUNCHER_MARKERS),
+            LEGACY_DEV_LAUNCHER,
+        ),
     }
 
     for marker in EXPECTED_SEQUENCE:

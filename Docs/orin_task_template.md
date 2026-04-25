@@ -36,6 +36,9 @@ If anything in the request conflicts with those docs, call it out explicitly bef
 Concise prompts are acceptable.
 They do not reduce the required depth of analysis.
 
+When ChatGPT is generating a Codex prompt, treat this template as a construction checklist rather than prompt text to paste wholesale.
+Planning-loop prevention belongs in ChatGPT preflight analysis; once prompt generation is allowed, keep the prompt thin, neutral, and repo-aligned.
+
 ## Current Project State
 
 Version:
@@ -67,6 +70,24 @@ Planning-Loop Bypass User Approval:
 
 Planning-Loop Bypass Reason:
 [required when approved; otherwise None]
+
+Slice Continuation Default:
+[Same-branch backlog completion / blocked by stop condition / USER-approved backlog split]
+
+Backlog-Split User Approval:
+[APPROVED / None]
+
+Backlog-Split Reason:
+[required when approved; otherwise None]
+
+Backlog Completion State:
+[In Progress / Implemented Complete / Implemented Complete Except Future Dependency]
+
+Remaining Implementable Work:
+[None / short summary of same-branch work still available]
+
+Future-Dependent Blockers:
+[None / short summary of work blocked by another backlog item, dependency, or capability]
 
 Release Branch:
 [Yes / No / not applicable]
@@ -125,9 +146,12 @@ Add `Seam Sequence` when the Workstream prompt may use bounded multi-seam workfl
 If `Seam Sequence` is present, Codex must execute one active seam at a time, validate after each seam, and report a continue-or-stop decision before starting the next seam.
 If a prompt names an active seam inside that sequence, treat it as the entry seam, not a terminal boundary.
 After a green seam, `Next-Seam Continuation Required` applies by default when continuation authority conditions pass.
-Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
-Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
-Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+There is no repo-wide cap on how many slices a branch or workstream may carry.
+Same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green.
+Perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded.
+Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, admitted-slice definition, and whole-backlog closure strategy before Workstream begins.
+Branch Readiness must evaluate the whole backlog item, define the first admitted slice, record the same-branch continuation posture for the remaining slices needed to complete the backlog item, and record any known future-dependent blockers before Workstream begins.
+Workstream must execute admitted implementation slices, keep re-evaluating the backlog item after each seam and slice, and continue on the same branch until the backlog item is fully implemented or only future-dependent blockers remain unless the USER explicitly approves a docs-only bypass or backlog split.
 Docs-only Workstreams require explicit USER approval.
 Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
 Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
@@ -135,7 +159,10 @@ reporting `Next Safe Move` is not a substitute for execution when continuation a
 reporting Next Safe Move is not a substitute for execution when continuation authority passes.
 A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
 continue decision must be acted on immediately by starting the next seam in the approved sequence.
-Do not encode single-seam mode unless owning canon records an explicit `Single-Seam Mode Waiver`; treat legacy `Single-Seam Fallback` wording as waiver-only. A bounded stop condition blocks continuation; it does not create single-seam mode.
+Legacy `Single-Seam Fallback` and `Single-Seam Mode Waiver` wording is retired in active source-of-truth.
+`Workstream` may not advance to `Hardening` while remaining implementable work is still available on the current backlog item.
+Use `Backlog Completion State: In Progress`, `Implemented Complete`, or `Implemented Complete Except Future Dependency` to record whether more same-branch slices are still required.
+Stopping after the first slice or splitting the backlog item across branches requires an explicit `Backlog-Split User Approval` or a named bounded stop condition.
 For `Release Readiness`, a release-bearing branch must include `Release Target:`, `Release Floor:`, `Version Rationale:`, `Release Scope:`, and `Release Artifacts:` before green status is allowed.
 For `PR Readiness`, release-bearing merge-target canon must prove the target is semantically correct from the latest public prerelease and declared release floor before green status is allowed.
 For release-version planning, `patch prerelease` is the default for architecture-only planning, admission contracts, validation-only work, documentation/canon repair, governance repair, and non-user-facing milestones that do not add executable product behavior; `minor prerelease` requires a new executable, runtime, operator-facing, user-facing, or materially expanded product capability lane.
@@ -288,8 +315,9 @@ After analysis is complete and execution scope is approved, follow these discipl
 - execute exactly one active seam at a time and validate, record, and decide continue-or-stop before the next seam
 - treat a prompt-named seam inside an approved sequence as the entry seam, not a terminal boundary
 - continue by default after a green seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass
-- perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded
-- use `Single-Seam Mode Waiver` only when source-of-truth explicitly records a waiver that narrows an otherwise valid bounded multi-seam workflow to one seam; if source-of-truth admits exactly one seam and no next seam exists, that is a one-seam workflow rather than single-seam mode
+- recognize that a slice is a bounded admitted backlog-completion unit while a seam is the current execution checkpoint inside or between slices
+- keep same-branch backlog completion as the default and continue through the additional slices needed to finish the backlog item on the current branch whenever validation stays green
+- perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded
 - preserve architecture boundaries
 - keep source-of-truth docs aligned with actual implemented state
 - production behavior must remain unchanged unless explicitly in scope
@@ -369,7 +397,7 @@ If the task includes interactive validation, the validation plan should also sta
 2. For bounded multi-seam workflow, perform exactly one seam, verify it, record evidence, and decide `continue` or `stop` before starting the next seam.
 3. Continue by default to the next planned seam after a green seam when `Next-Seam Continuation Required` applies and the continuation authority conditions pass.
 4. Reporting `Next Safe Move` is not a substitute for execution when continuation authority passes; A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
-5. Stop the workflow immediately on validation failure, regression, scope drift, unplanned risk expansion, governance drift, unresolved manual-validation blocker, branch-truth inconsistency, phase boundary, stop-loss trigger, or a declared `Single-Seam Mode Waiver` boundary.
+5. Stop the workflow immediately on validation failure, regression, scope drift, unplanned risk expansion, governance drift, unresolved manual-validation blocker, branch-truth inconsistency, phase boundary, stop-loss trigger, or a declared `Backlog-Split User Approval` boundary.
 6. Clean up session-scoped side effects from the pass unless there is an explicit reason to preserve them.
 7. Report what changed, what was verified, the per-seam continue-or-stop decisions, and what was cleaned up or intentionally left in place.
 

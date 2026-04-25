@@ -161,8 +161,9 @@ Default checkpoint:
 
 Branch Readiness must establish the branch-level execution plan before Workstream begins.
 That plan must name the branch objective, target end-state, expected seam families and risk classes, validation contract, User Test Summary strategy, later-phase needs, and the first Workstream seam or initial seam sequence.
-Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, and admitted-slice definition before Workstream begins.
+Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, admitted-slice definition, and whole-backlog closure strategy before Workstream begins.
 Workstream must execute an admitted implementation slice unless the USER explicitly approves a docs-only bypass.
+Workstream must keep re-evaluating the backlog item after each seam and slice and continue on the same branch until the backlog item is fully implemented or only future-dependent blockers remain.
 Docs-only Workstreams require explicit USER approval.
 Planning-loop bypass requires `Planning-Loop Bypass User Approval: APPROVED` and `Planning-Loop Bypass Reason:`.
 Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.
@@ -399,12 +400,19 @@ and keep that validator green before calling the branch ready.
 - one fix per revision means one coherent approved subproblem per revision
 - minimal isolated changes means the minimal coherent change set needed to close that approved subproblem
 - grouped workstreams are allowed during `pre-Beta` when they remain coherent by subsystem and end-state
-- a grouped branch may carry multiple validated slices when they all belong to the same milestone
+- a grouped branch may carry as many validated slices as needed when they all belong to the same backlog item, milestone, and coherent end-state
 - `Docs/phase_governance.md` owns seam workflow behavior; prompts and task text may name seams, but they do not define continuation authority
 - `bounded multi-seam workflow` is the primary Workstream execution model for approved seam chains
 - `Next-Seam Continuation Required` is the default after a green seam inside a valid bounded multi-seam workflow
 - a prompt-named seam inside an approved sequence is the entry seam, not a terminal boundary
-- Perform all admitted seams in the bounded multi-seam workflow unless an explicit `Single-Seam Mode Waiver` is raised or a named bounded stop condition is recorded.
+- Branch Readiness must evaluate the whole backlog item, define the first admitted slice, record the same-branch continuation posture for the remaining slices needed to complete the backlog item, and record any known future-dependent blockers before Workstream begins.
+- Workstream must execute admitted implementation slices, keep re-evaluating the backlog item after each seam and slice, and continue on the same branch until the backlog item is fully implemented or only future-dependent blockers remain unless the USER explicitly approves a docs-only bypass or backlog split.
+- a slice is a bounded admitted backlog-completion unit; a seam is the current execution checkpoint inside or between slices
+- there is no repo-wide cap on how many slices a branch or workstream may carry
+- Same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green.
+- Perform all admitted seams in the bounded multi-seam workflow and continue through the additional slices needed to complete the backlog item on the same branch unless an explicit `Backlog-Split User Approval` or a named bounded stop condition is recorded.
+- `Workstream` may not advance to `Hardening` while remaining implementable work is still available on the current backlog item.
+- use `Backlog Completion State: In Progress`, `Implemented Complete`, or `Implemented Complete Except Future Dependency` to record whether more same-branch slices are still required
 - unrelated ideas must still be split out even if they look convenient to batch
 
 Bounded multi-seam workflow means:
@@ -415,7 +423,7 @@ Bounded multi-seam workflow means:
 - reporting `Next Safe Move` is not a substitute for execution when continuation authority passes.
 - A `continue` decision must be acted on immediately by starting the next seam in the approved sequence.
 - durability commit/push after a green seam is a checkpoint, not a stop
-- stopping after a green seam by choice requires an explicit `Single-Seam Mode Waiver`; a bounded stop condition, phase boundary, or stop-loss trigger blocks continuation but does not create single-seam mode
+- a bounded stop condition, phase boundary, or stop-loss trigger blocks continuation but does not by itself authorize stopping the backlog item after only one slice
 - every seam must remain in the same workstream or active authority record, same phase, same branch class, same approved scope, and same subsystem family or tightly coupled implementation, validation, or governance chain
 - Branch Readiness may use planning, admission, or tightly coupled governance-repair seams, but not product/runtime implementation
 - Workstream uses the full seam pipeline for safe approved execution
@@ -428,11 +436,9 @@ Stop the workflow immediately if validation fails, regression appears, scope dri
 Do not use category labels as stop authority.
 Bug fixes, hotfixes, unclear seams, high-risk seams, cross-subsystem changes, settings, protocol, launcher-policy, and UI-model work require the smallest safe seam, stronger validation, and an explicit continuation check.
 They do not require stopping after a green seam when the next seam is admitted, validation-backed, and inside the same approved bounded workflow.
-Treat legacy `Single-Seam Fallback` wording as `Single-Seam Mode Waiver`.
-Single-seam mode is waiver-only.
-Use `Single-Seam Mode Waiver` only when source-of-truth explicitly records a waiver that narrows an otherwise valid bounded multi-seam workflow to one seam.
-If no explicit waiver is raised and no bounded stop condition is recorded, perform all admitted seams in the bounded multi-seam workflow.
-If source-of-truth admits exactly one seam and no next seam exists, that is a one-seam workflow rather than single-seam mode.
+Legacy `Single-Seam Fallback` and `Single-Seam Mode Waiver` wording is retired and must not be used in active source-of-truth.
+Stopping after the first slice or splitting the backlog item across branches requires an explicit `Backlog-Split User Approval` or a named bounded stop condition.
+If no explicit approval is raised and no bounded stop condition is recorded, continue admitting and executing the additional slices needed to complete the backlog item on the same branch.
 
 Use the smallest safe slice for:
 

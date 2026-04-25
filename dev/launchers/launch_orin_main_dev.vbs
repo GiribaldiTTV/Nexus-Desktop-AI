@@ -7,7 +7,7 @@ DevDir = Fso.GetParentFolderName(ScriptDir)
 RootDir = Fso.GetParentFolderName(DevDir)
 MainPath = Fso.BuildPath(RootDir, "main.py")
 
-WshShell.Run """" & PythonwPath & """ """ & MainPath & """", 0
+WshShell.Run """" & PythonwPath & """ """ & MainPath & """ --boot-profile manual --audio-mode voice", 0
 
 Set Fso = Nothing
 Set WshShell = Nothing
