@@ -39,7 +39,7 @@
 - WS-1 `main.py` direct-launch handoff refinement is complete and validated.
 - WS-2 `main.py` explicit launch-intent refinement is complete and validated.
 - Plain direct `main.py` launches and explicit `--desktop-entrypoint` launches now hand off to the canonical desktop entry chain instead of silently owning a competing top-level runtime path.
-- Explicit dev boot intent remains available through recognized boot arguments and the existing dev launcher parent path, and invalid direct-launch args now fail fast with usage guidance instead of silently falling into the boot prototype.
+- Explicit dev boot intent remains available through recognized boot arguments, and the legacy dev launcher now declares its manual/voice boot contract explicitly instead of relying on parent-process inference; invalid direct-launch args now fail fast with usage guidance instead of silently falling into the boot prototype.
 - Same-branch backlog completion remained the default for FB-043, and the branch reached implemented-complete state on this same branch without requiring a split.
 - H-1 entrypoint hardening is complete and green.
 - Hardening pressure tests confirmed explicit launch-intent resolution, invalid-argument handling, explicit dev boot preservation, CLI / VBS / launcher variability, import-side-effect boundaries, rollback viability, and hidden-coupling boundaries for the completed FB-043 slice chain.
@@ -166,6 +166,7 @@ Future-Dependent Blockers: `None`
 - Goal: make direct `main.py` launches align with the canonical desktop entry chain unless explicit dev boot intent is declared
 - Exact Affected Paths:
   - `main.py`
+  - `dev/launchers/launch_orin_main_dev.vbs`
   - `dev/orin_desktop_entrypoint_validation.py`
   - `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`
   - `Docs/feature_backlog.md`
@@ -192,7 +193,7 @@ Future-Dependent Blockers: `None`
 
 - `main.py` now behaves as a lightweight dispatcher before heavy boot/runtime imports are loaded.
 - Plain no-argument direct launches now delegate into `launch_orin_desktop.vbs`, aligning root-level execution with the shipped desktop entry chain.
-- Explicit dev boot intent still stays on the boot prototype path when arguments are supplied, and the no-argument dev launcher parent path remains preserved without widening the slice into `dev/launchers/`.
+- Explicit dev boot intent still stays on the boot prototype path when arguments are supplied, and the legacy dev launcher now reaches that path through explicit manual/voice boot arguments without widening the slice beyond the bounded launcher contract.
 - `dev/orin_desktop_entrypoint_validation.py` now validates three launch facts together:
   - the default VBS launch path
   - the forced-fallback VBS launch path
@@ -219,7 +220,9 @@ Future-Dependent Blockers: `None`
   - `Docs/prebeta_roadmap.md`
 - In-Scope Paths:
   - `main.py`
+  - `dev/launchers/launch_orin_main_dev.vbs`
   - `dev/orin_desktop_entrypoint_validation.py`
+  - `dev/orin_boot_transition_verification.py`
   - direct canon updates required to keep FB-043 truthful as completed Workstream implementation
 - Out-Of-Scope Paths:
   - `Audio/`
@@ -234,7 +237,7 @@ Future-Dependent Blockers: `None`
 - `main.py` now classifies direct launch intent explicitly before heavy runtime imports load.
 - Plain no-argument direct launches still delegate into `launch_orin_desktop.vbs`.
 - Explicit `--desktop-entrypoint` launches delegate into the same canonical desktop chain.
-- Explicit dev boot execution now requires recognized `--boot-profile` / `--audio-mode` intent or the existing dev-launcher parent path instead of treating any extra arg as boot ownership.
+- Explicit dev boot execution now requires recognized `--boot-profile` / `--audio-mode` intent; the legacy dev launcher was updated to supply that explicit manual/voice contract instead of relying on parent-process inference.
 - Unrecognized direct-launch args now fail fast with clear usage guidance instead of silently falling into the boot prototype path.
 - `dev/orin_desktop_entrypoint_validation.py` now validates four launch facts together:
   - the default VBS launch path
@@ -242,6 +245,7 @@ Future-Dependent Blockers: `None`
   - the plain `main.py` no-argument handoff into the same canonical chain
   - the explicit `main.py --desktop-entrypoint` handoff into that same canonical chain
 - The validator also now proves that invalid direct-launch args do not create boot-runtime artifacts or launcher-chain processes.
+- `dev/launchers/launch_orin_main_dev.vbs` now supplies `--boot-profile manual --audio-mode voice`, so the legacy no-argument dev launcher path no longer depends on best-effort parent-process lookup to reach the boot prototype.
 
 ### WS-2 Validation Results
 
@@ -279,7 +283,7 @@ H-1 pressure-tested the completed FB-043 slice chain across explicit launch-inte
 
 - Explicit launch-intent resolution is stable: plain `python main.py` and explicit `python main.py --desktop-entrypoint` both route into the canonical desktop chain, while recognized dev boot arguments still preserve the boot-prototype path.
 - Invalid direct-launch args and missing values for explicit boot flags fail fast with usage guidance instead of silently claiming boot ownership or launching the desktop chain.
-- Explicit dev boot preservation remains green even when recognized boot arguments are reordered; the preserved dev launcher parent path also still keeps the boot prototype reachable.
+- Explicit dev boot preservation remains green even when recognized boot arguments are reordered, and the legacy dev launcher now reaches the boot prototype through an explicit manual/voice launcher contract instead of parent-process inference.
 - CLI, VBS, and launcher variability remain bounded and green: default VBS launch, forced-fallback VBS launch, direct desktop handoff, and explicit dev boot proof all validate through the declared helpers without widening the runtime surface.
 - Import-side-effect pressure tests are green: `main.py --help` and invalid direct-launch exits do not pull in the heavy desktop/runtime stack before exiting.
 - Hidden-coupling scans found no stray runtime-owner leakage for the new explicit launch-intent markers outside `main.py`, `dev/orin_desktop_entrypoint_validation.py`, and direct current-truth documentation.
@@ -287,7 +291,8 @@ H-1 pressure-tested the completed FB-043 slice chain across explicit launch-inte
 
 ### Hardening Corrections
 
-- `None.` H-1 pressure tests did not reveal a new runtime correction beyond the completed WS-2 slice.
+- `dev/launchers/launch_orin_main_dev.vbs` now passes `--boot-profile manual --audio-mode voice`, removing reliance on fragile parent-process command-line inference for the legacy no-argument dev launcher path.
+- `dev/orin_boot_transition_verification.py` now validates that explicit legacy dev-launcher contract so future drift fails closed.
 
 ### H-1 Completion Decision
 
