@@ -65,10 +65,20 @@ class GlobalHotkeyManager:
 
     def stop(self) -> None:
         if self._listener is not None:
-            self._listener.stop()
+            listener = self._listener
+            listener.stop()
+            try:
+                listener.join(timeout=1.0)
+            except Exception:
+                pass
             self._listener = None
         if self._mouse_listener is not None:
-            self._mouse_listener.stop()
+            mouse_listener = self._mouse_listener
+            mouse_listener.stop()
+            try:
+                mouse_listener.join(timeout=1.0)
+            except Exception:
+                pass
             self._mouse_listener = None
         self._pressed.clear()
         self._shutdown_fired = False

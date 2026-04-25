@@ -315,6 +315,20 @@ def cleanup_launch_chain_processes_for_log_root(base_log_root):
     return before, killed, after
 
 
+def wait_for_no_launch_chain_processes_for_log_root(base_log_root, timeout_seconds=5.0):
+    deadline = time.time() + timeout_seconds
+    last_seen = []
+
+    while time.time() < deadline:
+        last_seen = list_launch_chain_processes_for_log_root(base_log_root)
+        if not last_seen:
+            return True, []
+        time.sleep(0.2)
+
+    last_seen = list_launch_chain_processes_for_log_root(base_log_root)
+    return not last_seen, last_seen
+
+
 def entrypoint_shim_line():
     for line in read_lines(ENTRYPOINT_SCRIPT):
         if line.strip().startswith("LauncherPath"):
@@ -604,11 +618,22 @@ def validate_tray_identity_initialization():
             os.environ["QT_QPA_PLATFORM"] = previous_qt_platform
 
 
-def run_launch_chain_scenario(scenario_name, launch_command, force_path_fallback=False):
+def run_launch_chain_scenario(
+    scenario_name,
+    launch_command,
+    force_path_fallback=False,
+    preflight_cleanup=True,
+    postflight_cleanup=True,
+):
     scenario_root = os.path.join(BASE_LOG_ROOT, scenario_name)
-    preexisting_processes_before, preexisting_processes_killed, preexisting_processes_after = (
-        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
-    )
+    if preflight_cleanup:
+        preexisting_processes_before, preexisting_processes_killed, preexisting_processes_after = (
+            cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+        )
+    else:
+        preexisting_processes_before = list_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+        preexisting_processes_killed = []
+        preexisting_processes_after = list(preexisting_processes_before)
     reset_dir(scenario_root)
     scenario_root_entries_after_reset = dir_entry_names(scenario_root)
 
@@ -705,9 +730,14 @@ def run_launch_chain_scenario(scenario_name, launch_command, force_path_fallback
 
             time.sleep(0.2)
 
-    residual_launch_chain_processes_before, residual_launch_chain_killed, residual_launch_chain_processes_after = (
-        cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
-    )
+    if postflight_cleanup:
+        residual_launch_chain_processes_before, residual_launch_chain_killed, residual_launch_chain_processes_after = (
+            cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+        )
+    else:
+        residual_launch_chain_processes_before = list_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
+        residual_launch_chain_killed = []
+        residual_launch_chain_processes_after = list(residual_launch_chain_processes_before)
 
     checks = {
         "launch_invocation_ok": line_status(
@@ -784,20 +814,28 @@ def run_launch_chain_scenario(scenario_name, launch_command, force_path_fallback
         ),
         "launch_chain_cleanup_optional": line_status(
             True,
-            "no residual validation-owned launcher/runtime processes detected"
-            if not residual_launch_chain_processes_before
+            "skipped to preserve active-session state for follow-up launch"
+            if not postflight_cleanup
             else (
-                f"detected {len(residual_launch_chain_processes_before)} residual process(es); "
-                f"killed={','.join(str(pid) for pid in residual_launch_chain_killed) or 'none'}"
+                "no residual validation-owned launcher/runtime processes detected"
+                if not residual_launch_chain_processes_before
+                else (
+                    f"detected {len(residual_launch_chain_processes_before)} residual process(es); "
+                    f"killed={','.join(str(pid) for pid in residual_launch_chain_killed) or 'none'}"
+                )
             ),
         ),
         "scenario_preflight_cleanup_optional": line_status(
-            not preexisting_processes_after,
-            "no prior validation-owned launcher/runtime processes detected"
-            if not preexisting_processes_before
+            not preexisting_processes_after if preflight_cleanup else True,
+            "skipped to preserve prior launch state"
+            if not preflight_cleanup
             else (
-                f"detected {len(preexisting_processes_before)} prior process(es); "
-                f"killed={','.join(str(pid) for pid in preexisting_processes_killed) or 'none'}"
+                "no prior validation-owned launcher/runtime processes detected"
+                if not preexisting_processes_before
+                else (
+                    f"detected {len(preexisting_processes_before)} prior process(es); "
+                    f"killed={','.join(str(pid) for pid in preexisting_processes_killed) or 'none'}"
+                )
             ),
         ),
     }
@@ -839,7 +877,13 @@ def launch_scenario_core_ok(scenario_result):
     return all(checks.get(name, {}).get("ok") for name in core_check_names)
 
 
-def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
+def run_entrypoint_launch_scenario(
+    scenario_name,
+    force_path_fallback=False,
+    preflight_cleanup=True,
+    postflight_cleanup=True,
+    allow_single_instance_retry=True,
+):
     cscript_command = resolve_cscript_command()
     launch_command = []
     if cscript_command:
@@ -848,14 +892,18 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
         scenario_name,
         launch_command,
         force_path_fallback=force_path_fallback,
+        preflight_cleanup=preflight_cleanup,
+        postflight_cleanup=postflight_cleanup,
     )
-    if scenario_has_single_instance_conflict(scenario_result):
+    if allow_single_instance_retry and scenario_has_single_instance_conflict(scenario_result):
         cleanup_launch_chain_processes_for_log_root(BASE_LOG_ROOT)
         time.sleep(0.5)
         scenario_result = run_launch_chain_scenario(
             scenario_name,
             launch_command,
             force_path_fallback=force_path_fallback,
+            preflight_cleanup=preflight_cleanup,
+            postflight_cleanup=postflight_cleanup,
         )
         scenario_result["checks"]["single_instance_conflict_retry_optional"] = line_status(
             True,
@@ -864,7 +912,9 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
     else:
         scenario_result["checks"]["single_instance_conflict_retry_optional"] = line_status(
             True,
-            "not needed",
+            "not needed"
+            if not scenario_has_single_instance_conflict(scenario_result)
+            else "disabled to preserve repeated-launch state",
         )
     scenario_result["checks"]["cscript_available"] = line_status(
         bool(cscript_command),
@@ -874,8 +924,18 @@ def run_entrypoint_launch_scenario(scenario_name, force_path_fallback=False):
 
 
 def run_repeated_entrypoint_launch_scenario():
-    first_result = run_entrypoint_launch_scenario("vbs_repeated_launch_first")
-    second_result = run_entrypoint_launch_scenario("vbs_repeated_launch_second")
+    first_result = run_entrypoint_launch_scenario(
+        "vbs_repeated_launch_first",
+        postflight_cleanup=False,
+    )
+    first_launch_released, first_launch_residual_processes = wait_for_no_launch_chain_processes_for_log_root(
+        BASE_LOG_ROOT
+    )
+    second_result = run_entrypoint_launch_scenario(
+        "vbs_repeated_launch_second",
+        preflight_cleanup=False,
+        allow_single_instance_retry=False,
+    )
 
     checks = {
         "first_launch_core_path_ok": line_status(
@@ -890,11 +950,31 @@ def run_repeated_entrypoint_launch_scenario():
             second_result["checks"]["failure_flow_absent"]["ok"],
             second_result["checks"]["failure_flow_absent"]["detail"],
         ),
+        "first_launch_released_before_second_launch": line_status(
+            first_launch_released,
+            "first launch released validator-owned launcher/runtime processes naturally"
+            if first_launch_released
+            else "; ".join(
+                f"{process['pid']}::{process['command_line']}" for process in first_launch_residual_processes
+            ),
+        ),
         "second_launch_no_single_instance_conflict": line_status(
             not scenario_has_single_instance_conflict(second_result),
             "no validator-observed single-instance conflict on repeated launch"
             if not scenario_has_single_instance_conflict(second_result)
             else "validator observed single-instance conflict on repeated launch",
+        ),
+        "launch_state_preserved_between_attempts": line_status(
+            first_result["checks"]["launch_chain_cleanup_optional"]["detail"]
+            == "skipped to preserve active-session state for follow-up launch"
+            and second_result["checks"]["scenario_preflight_cleanup_optional"]["detail"]
+            == "skipped to preserve prior launch state"
+            and second_result["checks"]["single_instance_conflict_retry_optional"]["detail"]
+            in {
+                "not needed",
+                "disabled to preserve repeated-launch state",
+            },
+            "second launch reused first-launch state without validator cleanup or retry masking",
         ),
     }
 
