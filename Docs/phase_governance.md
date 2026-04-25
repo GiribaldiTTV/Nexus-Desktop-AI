@@ -131,7 +131,7 @@ If any of those are missing for active promoted work, the branch is blocked by `
 
 ### Branch Authority Record Rule
 
-When an approved branch does not map to a promoted backlog workstream, it must use a repo-owned branch authority record under `Docs/branch_records/`.
+When an approved branch does not yet map to a promoted backlog workstream, it must use a repo-owned branch authority record under `Docs/branch_records/`.
 
 That branch authority record becomes the single authoritative owner of:
 
@@ -144,10 +144,11 @@ That branch authority record becomes the single authoritative owner of:
 - `Rollback Target`
 - `Next Legal Phase`
 
-This path is for explicitly approved non-backlog branch classes such as:
+This path is for:
 
-- `emergency canon repair`
-- `release packaging`
+- selected backlog items that remain `Registry-only` during `Branch Readiness`
+- explicitly approved non-backlog branch classes such as `release packaging`
+- preserved historical `docs/governance` or `emergency canon repair` records
 
 `docs/governance` branch records may exist as historical records, but new governance-only branches are not used in the normal Nexus flow.
 All fixes and repairs use a new `feature/` branch by default.
@@ -419,7 +420,7 @@ When this gate applies, the branch must already contain the required release-fac
 - `Docs/closeout_index.md`
 - the new or updated closeout or rebaseline file when current baseline routing changed
 - `Docs/Main.md` routing updates when the current baseline pointer changed
-- `Docs/branch_records/index.md` plus any relevant branch authority record when the branch is an approved non-backlog branch that would otherwise remain incorrectly active after merge
+- `Docs/branch_records/index.md` plus any relevant branch authority record when the branch still relies on branch-record authority and would otherwise remain incorrectly active after merge
 
 If any required merge-target canon update is missing, the branch remains blocked in `PR Readiness`.
 
@@ -503,7 +504,7 @@ Machine-checkable canon markers:
 - the selected backlog entry must include `Next Workstream: Selected`
 - the selected backlog entry must include `Minimal Scope:`
 - the roadmap must include `## Selected Next Workstream`
-- the roadmap selected-next section must include the same workstream id, its `Record State`, `Minimal Scope:`, and branch status such as `Branch: Not created`
+- the roadmap selected-next section must include the same workstream id, its `Record State`, `Minimal Scope:`, and truthful branch status such as `Branch: Not created` before branch creation or the active Branch Readiness branch name after creation
 
 When the exception applies, the branch must instead:
 
@@ -1129,6 +1130,7 @@ Risky categories such as UI, launcher, settings, protocol, cross-subsystem, or p
 ### Slice And Seam Definitions
 
 A slice is a bounded admitted backlog-completion unit; a seam is the current execution checkpoint inside or between slices.
+`bounded` describes scope and blast radius, not partiality by default. A bounded slice may still be the full currently implementable backlog-completion pass for that backlog item or branch lane.
 There is no repo-wide cap on how many slices a branch or workstream may carry.
 Same-branch backlog completion is the default: admit and execute the additional slices needed to finish the backlog item on the current branch whenever scope, phase, risk, and validation authority remain green.
 Future-dependent blockers are remaining backlog work that cannot yet be implemented until another backlog item, dependency, or capability is completed.
@@ -1578,7 +1580,7 @@ Required evidence:
 - PR exists, is open, non-draft, conflict-free, and inspectable
 - PR state matches merge-target canon
 - unresolved Codex comments/issues and requested changes are absent or resolved
-- approved non-backlog branches merge with historical or removed branch-authority truth rather than lingering as active branch owners on `main`
+- branches that still rely on branch-authority truth merge with historical or removed branch-authority truth rather than lingering as active branch owners on `main`
 - no active seam
 - no unresolved blocker that should have been repaired on the current branch before merge
 

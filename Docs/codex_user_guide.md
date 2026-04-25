@@ -187,7 +187,7 @@ For tracked work, that means:
 4. read `Docs/codex_modes.md`
 5. check `Docs/feature_backlog.md` for `Record State`
 6. load the canonical workstream doc when the item is `Promoted` or `Closed`
-7. if the task is an approved non-backlog branch, load the branch authority record under `Docs/branch_records/`
+7. if the task is a selected `Registry-only` backlog branch in `Branch Readiness`, or an approved non-backlog branch, load the branch authority record under `Docs/branch_records/`
 8. validate current branch truth before trusting prompt framing
 9. use the canonical workstream doc first for branch-local reuse, artifact history, and "what worked" notes, or use the branch authority record when no promoted workstream owns the branch
 10. use `Docs/incident_patterns.md` only for generalized cross-branch patterns
@@ -519,8 +519,8 @@ After a workstream is closed, released, merged, or otherwise no longer the right
 
 Prompting should reflect that reality.
 
-PR Readiness selects and minimally scopes the next workstream in canon, but it must also prove no branch exists yet for that next workstream.
-Use machine-checkable markers: `Next Workstream: Selected` and `Minimal Scope:` in the backlog entry, plus `## Selected Next Workstream` and `Branch: Not created` in the roadmap.
+PR Readiness selects and minimally scopes the next workstream in canon, but it must also prove no successor branch exists yet at PR-package time.
+Use machine-checkable markers: `Next Workstream: Selected` and `Minimal Scope:` in the backlog entry, plus `## Selected Next Workstream` and branch status such as `Branch: Not created` in the roadmap before the next branch opens or the active Branch Readiness branch name after it legally opens.
 Selection must be priority-led: use open backlog `Priority` and deferred-context readiness, not `Target Version`, to choose the next candidate.
 If the selected backlog item is deferred, it must already explain `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:` before PR Readiness can treat it as selectable.
 Create the fresh branch only during the next `Branch Readiness` pass after the current branch merges and updated `main` is revalidated.

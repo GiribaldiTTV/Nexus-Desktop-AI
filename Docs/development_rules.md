@@ -66,7 +66,7 @@ Use this layered ownership model:
 - User Test Summary = validation-contract layer owned by workstreams
 - phase governance = repo-wide execution, exact phase enum, blockers, branch classes, proof, timeout, seam, stop-loss, validation-helper, Governance Drift Audit, phase resolver, and desktop UI audit contract
 - validation helper registry = repo-wide helper naming, helper ownership, reuse-first inventory, workstream-scoped exception markers, and consolidation contract
-- branch authority records = repo-owned phase owners for approved non-backlog `release packaging` branches and preserved historical `docs/governance` or `emergency canon repair` records; new fixes and repairs still use a new `feature/` branch by default
+- branch authority records = repo-owned phase owners for selected `Registry-only` backlog branches in `Branch Readiness`, approved `release packaging` branches, and preserved historical `docs/governance` or `emergency canon repair` records; new fixes and repairs still use a new `feature/` branch by default
 - `Docs/Main.md` = routing authority aligned to merged truth
 
 Use `Docs/phase_governance.md` for:
@@ -238,7 +238,7 @@ For active promoted work, the canonical workstream doc is the single authoritati
 
 Backlog, roadmap, and prompt text may reference phase state, but they must not override the workstream doc.
 
-For approved non-backlog branches, the single authoritative owner is the branch authority record under `Docs/branch_records/`.
+For selected `Registry-only` backlog branches in `Branch Readiness`, and for approved non-backlog branches, the single authoritative owner is the branch authority record under `Docs/branch_records/`.
 
 ## Canon Freshness Rules
 
@@ -261,9 +261,9 @@ That means:
   - that workstream must have `Priority` defined
   - if that workstream is deferred, the backlog entry must include `Deferred Since:`, `Deferred Because:`, and `Selection / Unblock:`
   - that workstream must have minimal scope defined before PR green
-  - no branch may exist yet for that next workstream
+  - no branch may exist yet for that next workstream while PR Readiness is encoding selected-next truth
   - the selected backlog entry must include `Next Workstream: Selected` and `Minimal Scope:`
-  - `Docs/prebeta_roadmap.md` must include `## Selected Next Workstream` with the same workstream id, `Record State`, `Minimal Scope:`, and branch status such as `Branch: Not created`
+  - `Docs/prebeta_roadmap.md` must include `## Selected Next Workstream` with the same workstream id, `Record State`, `Minimal Scope:`, and truthful branch status such as `Branch: Not created` before branch creation or the active Branch Readiness branch name after creation
   - successor branch creation is deferred to `Branch Readiness` after the current branch merges and updated `main` is revalidated
   - when release debt or another admission blocker applies, the branch must also record `No Active Branch` plus the blocking admission item explicitly in merged current-state canon
 - no PR-ready with unresolved post-merge planning:

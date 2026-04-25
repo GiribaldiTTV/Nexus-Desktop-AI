@@ -1,6 +1,7 @@
 import os
 import sys
 import datetime
+import threading
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(CURRENT_DIR)
@@ -258,11 +259,12 @@ def main():
     hotkeys = GlobalHotkeyManager(bus)
     relaunch_signal = NamedSignal(RUNTIME_RELAUNCH_EVENT)
     shutdown_started = False
+    shutdown_force_kill_timer = None
     if exit_if_startup_abort_requested():
         return 0
 
     def do_shutdown():
-        nonlocal shutdown_started
+        nonlocal shutdown_started, shutdown_force_kill_timer
         if shutdown_started:
             return
         shutdown_started = True
@@ -270,7 +272,9 @@ def main():
         tray_entry.close()
         hotkeys.stop()
         window.request_shutdown()
-        QTimer.singleShot(1200, hotkeys.force_kill)
+        shutdown_force_kill_timer = threading.Timer(1.2, hotkeys.force_kill)
+        shutdown_force_kill_timer.daemon = True
+        shutdown_force_kill_timer.start()
 
     def poll_relaunch_request():
         if relaunch_signal.consume():

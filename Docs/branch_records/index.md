@@ -6,6 +6,7 @@ This index routes repo-owned authority records for approved branches that do not
 
 Use this layer for:
 
+- active `Registry-only` backlog branches in `Branch Readiness` before a promoted canonical workstream exists
 - `release packaging` branches
 - preserved historical `docs/governance` or `emergency canon repair` records
 
@@ -18,7 +19,8 @@ Do not use this layer to replace:
 
 ## Rules
 
-- branch authority records are for explicitly approved non-backlog branches only
+- branch authority records are for approved branches that do not yet map to a promoted canonical workstream
+- active `Registry-only` backlog branches may use this layer during `Branch Readiness` before promotion
 - active-branch-first remains the default during `pre-Beta`
 - new governance-only branches are not used for Nexus work
 - All fixes and repairs use a new `feature/` branch by default.
@@ -27,7 +29,7 @@ Do not use this layer to replace:
 - between-branch canon repair is blocked
 - missed PR Readiness canon work must be carried by the next active branch's `Branch Readiness` before implementation begins
 - the `Active Branch Authority Records` list is only for branches that are still the current execution base
-- before PR merge, a non-backlog branch must either move its record into `Historical Branch Authority Records` or remove it entirely so merged truth does not leave a stale active branch owner behind
+- before PR merge, any branch that still relies on an active branch authority record must either move that record into `Historical Branch Authority Records` or remove it entirely so merged truth does not leave a stale active branch owner behind
 - historical branch authority records are preserved traceability records, not live execution authority
 - each active branch authority record must carry the modern phase-state block:
   - `## Current Phase`
@@ -49,6 +51,7 @@ None.
 
 ## Historical Branch Authority Records
 
+- `Docs/branch_records/feature_fb_045_active_session_relaunch_stability.md`
 - `Docs/branch_records/feature_fb_044_boot_desktop_handoff_outcome_refinement.md`
 - `Docs/branch_records/feature_fb_043_top_level_entrypoint_handoff_refinement.md`
 - `Docs/branch_records/codex_fb_037_release_debt_packaging.md`

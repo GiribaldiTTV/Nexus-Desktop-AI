@@ -47,11 +47,14 @@
 - Hardening also fixed the launcher rollback edge case where a renderer could exit `0` without the authoritative settled signal and still be classified as `NORMAL_EXIT_COMPLETE`; that path now routes into failure handling and reusable validation proves it.
 - Live Validation confirmed repo-truth alignment, exercised the real declared desktop shortcut, preserved explicit dev boot-profile proof, and verified the authoritative settled signal on both the real shortcut route and reusable helper routes.
 - User-facing shortcut validation is now green with fresh real-shortcut evidence, and User Test Summary results are explicitly waived because the completed FB-044 delta changes a narrow settled-outcome proof contract rather than adding a broader manual workflow or multi-step operator interaction.
-- Same-branch backlog completion remained the default, and no further implementable FB-044 work is currently required to resolve the admitted handoff ambiguity.
+- Same-branch backlog completion remained the default, and no further implementable FB-044 work is currently required inside the admitted settled-outcome lane. The remaining release blocker has been carried into FB-045 as a new runtime/user-facing promoted workstream lane on updated `main`.
 - PR-1 merge-target canon completeness is complete.
-- PR-2 selected-next workstream selection is complete with FB-045 as the branch-not-created runtime/user-facing successor lane.
+- PR-2 selected-next workstream selection is complete with FB-045 as the runtime/user-facing successor lane.
 - PR-3 live PR creation and validation is complete.
-- Active seam: `None.` The completed FB-044 slice chain is packaged for merge-target `v1.6.9-prebeta` release-debt truth, live PR validation is green, and `Release Readiness` is the next legal phase after merge.
+- Updated-main `Release Readiness` later found a reproducible disposable-clone failure after authoritative settled was already observed: the renderer exits `3221226505`, GPU context-loss stderr is captured, and launcher failure flow fires instead of clean shutdown markers.
+- Active blocker-clearing branch: `feature/fb-045-active-session-relaunch-stability`
+- Active blocker-clearing workstream doc: `Docs/workstreams/FB-045_active_session_relaunch_outcome_refinement.md`
+- Active seam: `None.` The completed FB-044 slice chain remains the merge-target `v1.6.9-prebeta` release-debt package, and FB-045 now owns the completed blocker-clearing runtime lane there: H-1 post-settled lifecycle hardening is complete, LV-1 live validation is complete and green, PR-1 / PR-2 are complete, and live PR packaging is the remaining step before updated `main` returns to `Release Readiness`.
 
 ## Branch Class
 
@@ -59,7 +62,8 @@
 
 ## Blockers
 
-None.
+- `Release Readiness` is blocked on updated-main post-settled runtime instability. Disposable-clone validation reaches `DESKTOP_OUTCOME|SETTLED|state=dormant`, then the renderer exits `3221226505`, stderr reports `Failed to make current since context is marked as lost`, and launcher failure flow fires instead of clean shutdown markers.
+- FB-045 on `feature/fb-045-active-session-relaunch-stability` now owns the completed blocker-clearing runtime/user-facing follow-through while FB-044 remains the merged-unreleased release-debt owner for `v1.6.9-prebeta`.
 
 ## Entry Basis
 

@@ -83,7 +83,7 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-None.
+- `Docs/workstreams/FB-045_active_session_relaunch_outcome_refinement.md`
 
 ### Merged / Release Debt Owners
 

@@ -876,6 +876,38 @@ def observe_authoritative_desktop_settled(proc, log_start_offset):
     return "not_settled_before_exit", stdout_text, stderr_text
 
 
+def capture_post_settled_exit_markers(log_start_offset):
+    return {
+        "shutdown_requested": runtime_log_contains_since(
+            "RENDERER_MAIN|SHUTDOWN_REQUESTED",
+            log_start_offset,
+        ),
+        "relaunch_requested": runtime_log_contains_since(
+            "RENDERER_MAIN|RELAUNCH_REQUEST_RECEIVED",
+            log_start_offset,
+        ),
+        "event_loop_exit_zero": runtime_log_contains_since(
+            "RENDERER_MAIN|EVENT_LOOP_EXIT|code=0",
+            log_start_offset,
+        ),
+    }
+
+
+def classify_post_settled_exit(exit_code, startup_observation, log_start_offset):
+    exit_markers = capture_post_settled_exit_markers(log_start_offset)
+    if startup_observation != "settled":
+        return "", exit_markers
+
+    if (
+        exit_code == 0
+        and exit_markers["shutdown_requested"]
+        and exit_markers["event_loop_exit_zero"]
+    ):
+        return "valid_termination", exit_markers
+
+    return "recoverable_condition", exit_markers
+
+
 def extract_renderer_failure_cause(stderr_text, stdout_text):
     def cleaned_lines(text):
         for raw in reversed(text.splitlines()):
@@ -1247,12 +1279,24 @@ def run_renderer():
     failure_cause = extract_renderer_failure_cause(stderr_text or "", stdout_text or "")
     failure_origin = extract_renderer_failure_origin(stderr_text or "", stdout_text or "")
     stderr_excerpt_lines = extract_renderer_stderr_excerpt(stderr_text or "", failure_cause, failure_origin)
-    startup_aborted = startup_observation == "startup_aborted"
+    post_settled_classification, post_settled_exit_markers = classify_post_settled_exit(
+        proc.returncode,
+        startup_observation,
+        log_start_offset,
+    )
     if proc.returncode != 0 and failure_cause:
         runtime(f"Renderer failure cause: {failure_cause}")
     if proc.returncode != 0 and failure_origin:
         runtime(failure_origin)
-    return proc.returncode, failure_cause, failure_origin, stderr_excerpt_lines, startup_observation
+    return (
+        proc.returncode,
+        failure_cause,
+        failure_origin,
+        stderr_excerpt_lines,
+        startup_observation,
+        post_settled_classification,
+        post_settled_exit_markers,
+    )
 
 
 def finalize_failure(
@@ -1385,7 +1429,15 @@ def main():
         write_status("TRACE", f"Renderer launch attempt {attempt}/{MAX_RECOVERY_ATTEMPTS}")
         time.sleep(0.18)
 
-        last_code, failure_cause, failure_origin, stderr_excerpt_lines, startup_observation = run_renderer()
+        (
+            last_code,
+            failure_cause,
+            failure_origin,
+            stderr_excerpt_lines,
+            startup_observation,
+            post_settled_classification,
+            post_settled_exit_markers,
+        ) = run_renderer()
         startup_aborted = startup_observation == "startup_aborted"
 
         if last_code == 0 and startup_aborted:
@@ -1417,7 +1469,7 @@ def main():
                 or "Failure origin: launcher startup observation ended before the authoritative desktop-settled signal."
             )
 
-        if last_code == 0 and startup_observation == "settled":
+        if startup_observation == "settled" and post_settled_classification == "valid_termination":
             runtime("Renderer exited normally")
             runtime_event("STATUS", "SUCCESS", "RECOVERY_ATTEMPT", f"INDEX={attempt}", "RENDERER_EXIT=0")
             write_status("TRACE", "Renderer exited normally")
@@ -1430,6 +1482,54 @@ def main():
                 "SUCCESS",
                 "NORMAL_EXIT_COMPLETE",
                 "NORMAL_EXIT_COMPLETE",
+                attempt,
+            )
+            return 0
+
+        if startup_observation == "settled" and post_settled_classification == "recoverable_condition":
+            marker_details = [
+                f"EXIT={last_code}",
+                f"RELAUNCH_REQUESTED={'true' if post_settled_exit_markers['relaunch_requested'] else 'false'}",
+                f"SHUTDOWN_REQUESTED={'true' if post_settled_exit_markers['shutdown_requested'] else 'false'}",
+            ]
+            runtime(
+                "Renderer exited after the authoritative desktop-settled state was already reached; "
+                "classifying as a recoverable post-settled runtime exit"
+            )
+            runtime_event(
+                "STATUS",
+                "WARNING",
+                "RECOVERY_ATTEMPT",
+                f"INDEX={attempt}",
+                "POST_SETTLED_RUNTIME_EXIT",
+                f"EXIT={last_code}",
+            )
+            write_status(
+                "TRACE",
+                "Renderer exited after authoritative desktop-settled proof; "
+                "classified as recoverable post-settled runtime exit.",
+            )
+            if failure_cause:
+                runtime(f"Post-settled exit cause: {failure_cause}")
+                write_status("TRACE", f"Post-settled exit cause: {failure_cause}")
+            if failure_origin:
+                runtime(f"Post-settled exit origin: {failure_origin}")
+                write_status("TRACE", failure_origin)
+            delete_file(STOP_SIGNAL_FILE, "post-settled recoverable exit")
+            delete_file(STARTUP_ABORT_SIGNAL_FILE, "post-settled recoverable exit")
+            delete_file(STATUS_FILE, "post-settled recoverable exit")
+            runtime_event(
+                "STATUS",
+                "SUCCESS",
+                "LAUNCHER_RUNTIME",
+                "POST_SETTLED_RECOVERABLE_COMPLETE",
+                *marker_details,
+            )
+            record_finalized_history(
+                run_id,
+                "SUCCESS",
+                "POST_SETTLED_RECOVERABLE_RUNTIME_EXIT",
+                "POST_SETTLED_RECOVERABLE_COMPLETE",
                 attempt,
             )
             return 0
