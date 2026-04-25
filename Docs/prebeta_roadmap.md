@@ -67,7 +67,7 @@ Current merged truth indicates:
 - latest public prerelease title: `Pre-Beta v1.6.8`
 - merged unreleased non-doc implementation debt exists: yes
 - the latest public released implementation milestone is FB-043 Top-level desktop entrypoint ownership and `main.py` handoff refinement in `v1.6.8-prebeta`; FB-042 Desktop entrypoint runtime refinement remains released in `v1.6.7-prebeta`; FB-005 Workspace and folder organization remains released in `v1.6.6-prebeta`; FB-030 ORIN voice/audio direction refinement remains released in `v1.6.5-prebeta`; FB-015 Boot and desktop phase-boundary model plus FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening remain released in `v1.6.4-prebeta`
-- current phase after `v1.6.8-prebeta` release closure: `PR Readiness`
+- current phase after `v1.6.8-prebeta` release closure: `Release Readiness`
 - phase status after `v1.6.8-prebeta` release closure: FB-043 is Released / Closed in `v1.6.8-prebeta`; FB-044 remains the merged-unreleased release-debt owner for `v1.6.9-prebeta`; FB-045 completed its blocker-clearing Workstream, Hardening, and Live Validation lane on `feature/fb-045-active-session-relaunch-stability`; PR-1 / PR-2 / PR-3 completed there before PR #90 merged into `main`; and updated `main` is now back in file-frozen `Release Readiness` for the merged-unreleased FB-044 package.
 - current active workstream: none
 - current branch after `v1.6.8-prebeta` release closure: none on merge-target canon
@@ -130,7 +130,7 @@ Active Workstream Chain: None on merge-target canon. The completed FB-045 blocke
 - canonical workstream doc: `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
 - historical source branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
 - phase status: Merged unreleased for `v1.6.9-prebeta`; Workstream, Hardening, Live Validation, and PR Readiness are complete; FB-045 completed the blocker-clearing follow-through and merged via PR #90; and updated `main` is now back in `Release Readiness`.
-- next legal seam: `Release Readiness` on updated `main` after FB-045 merges and merged-main revalidation reruns green
+- next legal seam: `Release Readiness` on updated `main` with merged-main revalidation rerunning green
 Release Target: v1.6.9-prebeta
 Release Floor: patch prerelease
 Version Rationale: FB-044 delivers a bounded runtime/user-facing boot-to-desktop settled-outcome refinement on the existing startup family without opening a new product lane or materially expanded runtime family.
