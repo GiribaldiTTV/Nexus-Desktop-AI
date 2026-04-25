@@ -46,7 +46,7 @@
 - User-facing shortcut validation is now clear in canon, and User Test Summary results are explicitly waived because the branch changes a narrow launch fallback/error-handling seam rather than a broader manual workflow, in-app content flow, settings surface, or multi-step operator interaction.
 - PR Readiness, Release Readiness, and Release Execution are complete historical proof.
 - Current Active Workstream: FB-043 Top-level desktop entrypoint ownership and main.py handoff refinement.
-- FB-043 is now the active promoted workstream on `feature/fb-043-top-level-entrypoint-handoff-refinement`; WS-1 is complete and same-branch continuation remains preserved for the remaining FB-043 slices.
+- FB-043 is now the active promoted workstream on `feature/fb-043-top-level-entrypoint-handoff-refinement`; WS-1 and WS-2 are complete, H-1 and LV-1 are complete and green, and PR Readiness is now the next legal phase.
 - Broader `main.py` reshaping and broader workspace follow-through are explicitly deferred; they are not admitted by inertia on this branch.
 - The historical FB-042 branch-authority record is preserved for traceability only and no longer owns active execution truth.
 

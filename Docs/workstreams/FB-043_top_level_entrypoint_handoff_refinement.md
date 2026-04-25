@@ -19,7 +19,7 @@
 
 ## Current Phase
 
-- Phase: `Hardening`
+- Phase: `Live Validation`
 
 ## Phase Status
 
@@ -37,7 +37,9 @@
 - H-1 entrypoint hardening is complete and green.
 - Hardening pressure tests confirmed explicit launch-intent resolution, invalid-argument handling, explicit dev boot preservation, CLI / VBS / launcher variability, import-side-effect boundaries, rollback viability, and hidden-coupling boundaries for the completed FB-043 slice chain.
 - Fast-exit paths (`--help`, invalid direct-launch args, and missing explicit boot-argument values) now remain side-effect light and avoid loading the heavy desktop/runtime stack before exit.
-- Active seam: `None.` WS-1 and WS-2 are complete, backlog completion remains proven, H-1 is complete, and `Live Validation` is now legal.
+- LV-1 is complete and green.
+- Live Validation confirmed repo-truth alignment, exercised the real declared desktop shortcut, preserved explicit dev boot-profile evidence, and classified User Test Summary results as a narrow waiver.
+- Active seam: `None.` WS-1 and WS-2 are complete, backlog completion remains proven, H-1 is complete, LV-1 is complete, and `PR Readiness` is now legal.
 
 ## Branch Class
 
@@ -71,7 +73,7 @@ None.
 
 ## Next Legal Phase
 
-- `Live Validation`
+- `PR Readiness`
 
 ## Purpose / Why It Matters
 
@@ -122,7 +124,7 @@ Future-Dependent Blockers: `None`
 
 - User-Facing Shortcut Path: `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk`
 - Equivalent Entry Path: `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`
-- User-Facing Shortcut Validation: `Reused baseline only in Workstream; refreshed shortcut proof required in later Live Validation if a later FB-043 slice touches the real shortcut-facing chain`
+- User-Facing Shortcut Validation: `PASS`
 
 ## Validation Contract
 
@@ -296,11 +298,45 @@ H-1 pressure-tested the completed FB-043 slice chain across explicit launch-inte
 - `python dev\orin_branch_governance_validation.py`: PASS, `1364` checks
 - `git diff --check`: PASS with line-ending normalization warnings only; no whitespace errors
 
+## Live Validation Record
+
+LV-1 validates the completed FB-043 slice chain against live repo truth, the declared real desktop shortcut path, explicit dev boot-profile evidence, exact User Test Summary state, and branch cleanliness. This pass keeps the lane bounded to the admitted top-level entrypoint surfaces and does not reopen `Audio/`, `logs/`, `jarvis_visual/`, installer work, or broader workspace reshaping.
+
+### Live Validation Findings
+
+- Repo Truth Alignment: `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and this workstream record align on FB-043 as the active promoted implementation workstream, latest public prerelease `v1.6.7-prebeta`, release debt clear, WS-1 complete, WS-2 complete, H-1 complete, and PR Readiness next after LV-1 completion.
+- Branch Truth Alignment: the checked-out branch is `feature/fb-043-top-level-entrypoint-handoff-refinement`, aligned with origin at the durable hardening baseline before this LV-1 pass.
+- User-Facing Shortcut Applicability: applicable and exercised. FB-043 changes top-level desktop entrypoint ownership on a desktop/user-facing lane, and the declared production shortcut path remains feasible, so Live Validation used the real shortcut rather than helper-only or direct-Python proof as the final shortcut gate.
+- Real Shortcut Gate Result: PASS. Launching through `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk` exercised the active branch runtime, produced dedicated evidence under `dev/logs/fb_043_live_validation/20260424_174827/desktop_shortcut_gate`, reached launcher-owned `STARTUP_READY_OBSERVED`, reached renderer `STARTUP_READY`, recorded `WINDOW_SHOW_REQUESTED` and `TRAY_ENTRY_READY|available=true`, and shut down cleanly without launcher failure flow.
+- Explicit Dev Boot-Profile Route Evidence: PASS. `python dev\orin_boot_transition_verification.py` still proves the explicit `auto_handoff_skip_import` boot-profile route reaches its expected `BOOT_MAIN|...` handoff markers and exits cleanly.
+- User Test Summary Applicability: narrow waiver. The completed FB-043 delta clarifies top-level launch ownership, invalid direct-launch handling, and explicit handoff routing, but it does not add a new in-app task flow, settings workflow, persisted user-content path, or broader multi-step operator interaction that a filled manual User Test Summary would materially validate beyond the captured real-shortcut evidence and explicit dev-boot proof.
+- Desktop Export Applicability: no desktop `User Test Summary.txt` export is required for LV-1 because User Test Summary results are waived for this narrow entrypoint-ownership refinement.
+- Cleanup: the real shortcut pass left no residual launcher/runtime processes after shutdown.
+
+### Live Validation Completion Decision
+
+- LV-1 Result: `Complete / green with real desktop shortcut evidence and waiver-based User Test Summary digestion recorded`
+- User-facing shortcut gate: `PASS` with exact markers in `## User Test Summary`
+- User Test Summary results gate: `WAIVED` with exact markers in `## User Test Summary`
+- Validation Layer: repo-truth alignment, reusable desktop entrypoint validator evidence, real desktop shortcut launch evidence, explicit dev boot-profile proof, and governance validation
+- Continue/Stop Decision: stop at the Live Validation phase boundary after validation because FB-043 LV-1 proof is green and the next normal phase is `PR Readiness`.
+
+### Live Validation Validation Results
+
+- Real desktop shortcut gate: PASS; report `dev/logs/fb_043_live_validation/20260424_174827/desktop_shortcut_gate/DesktopShortcutGateReport.json`
+- `python dev\orin_desktop_entrypoint_validation.py`: PASS; report `dev/logs/desktop_entrypoint_validation/reports/DesktopEntrypointValidationReport_20260424_175435.txt`
+- `python dev\orin_boot_transition_verification.py`: PASS; report `dev/logs/boot_transition_verification/reports/BootTransitionVerificationReport_20260424_175349.txt`
+- `python dev\orin_branch_governance_validation.py`: PASS, `1364` checks
+- `git diff --check`: PASS
+- LV-1 phase-state scan: PASS; current authority surfaces report FB-043 Live Validation complete and PR Readiness as the next legal phase.
+
 ## User Test Summary
 
-- Applicability: `Relevant later; not a Workstream-phase gate by itself`
-- Status: `Pending later Live Validation classification`
-- Note: later Live Validation must decide whether the direct-launch ownership change requires a fresh shortcut gate only, a narrow waiver, or returned User Test Summary results once the full FB-043 slice chain is clearer.
+- User-Facing Shortcut Path: `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk`
+- User-Facing Shortcut Validation: `PASS`
+- User Test Summary Results: `WAIVED`
+- User Test Summary Waiver Reason: The completed FB-043 delta is a narrow top-level entrypoint ownership refinement already covered by fresh real-shortcut evidence, default/fallback/direct-handoff validator proof, and explicit dev boot-profile verification. It does not add a new manual multi-step task flow, settings journey, persisted user-content path, or broader UI/operator workflow that a filled manual User Test Summary would materially validate beyond that captured evidence.
+- Desktop User Test Summary Export: `Not required; waiver path`
 
 ## Active Seam
 
@@ -309,4 +345,5 @@ Active seam: `None.`
 - WS-1 is complete and validated.
 - WS-2 is complete and validated.
 - H-1 is complete and green.
-- `Live Validation` is now legal because `Backlog Completion State` is `Implemented Complete` and Hardening is complete.
+- LV-1 is complete and green.
+- `PR Readiness` is now legal because `Backlog Completion State` is `Implemented Complete`, Hardening is complete, and Live Validation is complete.
