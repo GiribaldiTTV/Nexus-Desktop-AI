@@ -19,7 +19,7 @@
 
 ## Current Phase
 
-- Phase: `Workstream`
+- Phase: `Hardening`
 
 ## Phase Status
 
@@ -32,7 +32,7 @@
 - Latest Public Prerelease Title: `Pre-Beta v1.6.9`
 - FB-044 and FB-045 are `Released / Closed` historical proof in `v1.6.9-prebeta`.
 - Release debt is clear after publication, validation, and post-release canon closure.
-- Active seam: `None.` WS-1 is complete and validated. `Hardening` is next.
+- Active seam: `None.` H-1 is complete and validated. `Live Validation` is next.
 
 ## Branch Class
 
@@ -63,7 +63,7 @@ None.
 
 ## Next Legal Phase
 
-- `Hardening`
+- `Live Validation`
 
 ## Purpose / Why It Matters
 
@@ -184,16 +184,63 @@ Accepted relaunch is now proven across the full lifecycle:
 
 That keeps settled-state truth authoritative while making replacement-session ownership explicit instead of implied.
 
+## H-1 Hardening Record
+
+H-1 pressure-tested the completed FB-046 relaunch-reacquisition lane across fast and slow relaunch shutdown timing, replacement-session success-marker timing, single-instance guard exclusivity, clean-shutdown precedence, relaunch after recoverable post-settled exit, and rapid consecutive accepted relaunch cycles without widening beyond the admitted runtime/user-facing surfaces.
+
+### Hardening Findings
+
+- Slow accepted relaunch still releases the original session before the replacement session logs reacquisition or replacement-session activation.
+- Replacement-session success markers do not appear on the original session, and they do not appear on the replacement session before the guard reacquire marker is present.
+- The single-instance guard is now logged as released only after the launcher actually releases the runtime guard and relaunch signal handles.
+- Relaunch after a recoverable post-settled exit remains green: startup truth stays anchored to authoritative settled, and a later accepted relaunch still reacquires the guard and returns the replacement session to settled.
+- Rapid consecutive accepted relaunch cycles remain truthful: each successor session reacquires only after the previous session emits release, and no dual ownership or relaunch wait timeout appears.
+- The main hidden coupling was in validator evidence attribution, not the runtime lane itself. Multi-session scenarios needed frozen per-session log identity so append timing could not make the validator compare the wrong session logs.
+
+### Hardening Corrections
+
+- `desktop/orin_desktop_main.py` now exposes a harness-only relaunch-shutdown delay hook so slow-shutdown timing can be exercised without changing production behavior.
+- `desktop/orin_desktop_launcher.pyw` now emits `SINGLE_INSTANCE_RELEASED` only after the guard and relaunch signal resources have actually been released.
+- `dev/orin_desktop_entrypoint_validation.py` now freezes per-session runtime-log attribution for multi-session relaunch scenarios and adds reusable coverage for:
+  - accepted relaunch with slow shutdown
+  - relaunch after recoverable post-settled exit
+  - rapid consecutive accepted relaunch cycles
+  - replacement-session success-marker timing
+- No broader runtime correction was needed in `desktop/single_instance.py`; the relaunch ownership model itself held under the new pressure tests.
+
+### H-1 Completion Decision
+
+- H-1 Result: `Complete / green`
+- Remaining implementable work inside FB-046: `None`
+- Stop condition: phase boundary reached; Hardening is complete after H-1.
+
+### H-1 Validation Results
+
+- `python -m py_compile desktop\single_instance.py desktop\orin_desktop_launcher.pyw desktop\orin_desktop_main.py dev\orin_desktop_entrypoint_validation.py dev\orin_boot_transition_verification.py`: PASS
+- `python dev\orin_desktop_entrypoint_validation.py`: PASS
+  - report: `dev/logs/desktop_entrypoint_validation/reports/DesktopEntrypointValidationReport_20260426_095741.txt`
+- `python dev\orin_boot_transition_verification.py`: PASS
+  - report: `dev/logs/boot_transition_verification/reports/BootTransitionVerificationReport_20260426_095803.txt`
+- `python dev\orin_branch_governance_validation.py`: PASS
+- `git diff --check`: PASS
+
+### H-1 Stability Notes
+
+- Replacement-session success still remains downstream of authoritative reacquire and authoritative settled, never ahead of them.
+- Clean shutdown still takes precedence when clean-exit markers are present, even on relaunch-capable sessions.
+- Recoverable post-settled exit remains distinct from startup failure and can still be followed by a valid accepted relaunch cycle.
+- The shipped VBS / launcher / renderer startup path, direct `main.py` desktop handoff proof, and explicit dev-boot proof all remain green after the added relaunch edge coverage.
+
 ## Active Seam
 
 Active seam: `None.`
 
-- WS-1 is complete and validated.
-- `Hardening` is now the next legal phase.
+- H-1 is complete and validated.
+- `Live Validation` is now the next legal phase.
 
 ## Seam Continuation Decision
 
-Continue Decision: `Advance after WS-1 because backlog completion is implemented complete and the next legal phase is Hardening`
+Continue Decision: `Advance after H-1 because backlog completion is implemented complete and the next legal phase is Live Validation`
 Next Active Seam: `None`
-Stop Condition: `Reached Hardening gate after WS-1 completion`
-Continuation Action: `Pressure-test accepted relaunch timing, replacement-session lifecycle truth, and guard-reacquisition stability without widening scope`
+Stop Condition: `Reached Live Validation gate after H-1 completion`
+Continuation Action: `Validate repo-truth alignment, real shortcut applicability, User Test Summary status, and relaunch lifecycle proof on the hardened branch without widening scope`

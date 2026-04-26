@@ -2,6 +2,7 @@ import os
 import sys
 import datetime
 import threading
+import time
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(CURRENT_DIR)
@@ -59,6 +60,16 @@ def runtime_milestone(event):
 def overlay_trace_enabled():
     value = (os.environ.get("NEXUS_OVERLAY_TRACE") or "").strip().casefold()
     return value in {"1", "true", "yes", "on"}
+
+
+def harness_relaunch_shutdown_delay_seconds():
+    value = (os.environ.get("JARVIS_HARNESS_RELAUNCH_SHUTDOWN_DELAY_SECONDS") or "").strip()
+    if not value:
+        return 0.0
+    try:
+        return max(0.0, float(value))
+    except ValueError:
+        return 0.0
 
 
 class DesktopTrayEntry:
@@ -279,6 +290,12 @@ def main():
     def poll_relaunch_request():
         if relaunch_signal.consume():
             runtime_milestone("RENDERER_MAIN|RELAUNCH_REQUEST_RECEIVED")
+            delay_seconds = harness_relaunch_shutdown_delay_seconds()
+            if delay_seconds > 0:
+                runtime_milestone(
+                    f"RENDERER_MAIN|HARNESS_RELAUNCH_SHUTDOWN_DELAY|seconds={delay_seconds:g}"
+                )
+                time.sleep(delay_seconds)
             do_shutdown()
 
     bus.shutdown_requested.connect(do_shutdown)

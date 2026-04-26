@@ -39,7 +39,7 @@
 - Release debt is clear after publication, validation, and post-release canon closure.
 - Historical source branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
 - Historical blocker-clearing follow-through: `feature/fb-045-active-session-relaunch-stability`
-- Current post-release successor lane: FB-046 is now the active promoted workstream on `feature/fb-046-active-session-relaunch-reacquisition`; WS-1 accepted relaunch replacement-session settled re-entry proof is complete and validated there; and `Hardening` is next.
+- Current post-release successor lane: FB-046 is now the active promoted workstream on `feature/fb-046-active-session-relaunch-reacquisition`; WS-1 accepted relaunch replacement-session settled re-entry proof and H-1 relaunch lifecycle hardening are complete and validated there; and `Live Validation` is next.
 - Active seam: `None.` This record is now preserved released historical truth.
 
 ## Branch Class

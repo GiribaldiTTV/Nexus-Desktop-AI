@@ -68,10 +68,10 @@ Current merged truth indicates:
 - merged unreleased non-doc implementation debt exists: no
 - the latest public released implementation milestones are FB-044 Boot-to-desktop handoff outcome refinement and FB-045 Active-session relaunch outcome refinement in `v1.6.9-prebeta`; FB-043 Top-level desktop entrypoint ownership and `main.py` handoff refinement remains released in `v1.6.8-prebeta`; FB-042 Desktop entrypoint runtime refinement remains released in `v1.6.7-prebeta`; FB-005 Workspace and folder organization remains released in `v1.6.6-prebeta`; FB-030 ORIN voice/audio direction refinement remains released in `v1.6.5-prebeta`; FB-015 Boot and desktop phase-boundary model plus FB-029 ORIN legal-safe rebrand, future ARIA persona option, and repo licensing hardening remain released in `v1.6.4-prebeta`
 - current phase after `v1.6.9-prebeta` release closure: `Workstream`
-- phase status after `v1.6.9-prebeta` release closure: FB-044 and FB-045 are Released / Closed in `v1.6.9-prebeta`; release debt is clear; FB-046 is now the active promoted workstream on `feature/fb-046-active-session-relaunch-reacquisition`; WS-1 accepted relaunch replacement-session settled re-entry proof is complete there; and `Hardening` is now the next legal phase.
+- phase status after `v1.6.9-prebeta` release closure: FB-044 and FB-045 are Released / Closed in `v1.6.9-prebeta`; release debt is clear; FB-046 is now the active promoted workstream on `feature/fb-046-active-session-relaunch-reacquisition`; H-1 relaunch lifecycle hardening is complete there; and `Live Validation` is now the next legal phase.
 - current active workstream: FB-046 Active-session relaunch reacquisition and settled re-entry proof
 - current branch after `v1.6.9-prebeta` release closure: `feature/fb-046-active-session-relaunch-reacquisition` on branch-local canon
-- next concern: pressure-test the completed FB-046 relaunch-reacquisition lane in `Hardening` while preserving same-branch backlog completion unless only future-dependent blockers remain.
+- next concern: validate the hardened FB-046 relaunch-reacquisition lane in `Live Validation` while preserving same-branch backlog completion unless only future-dependent blockers remain.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, the released FB-032 source-of-truth migration milestone, the released FB-004 future boot-orchestrator architecture milestone, the released FB-015 plus FB-029 planning milestones, the released FB-030 voice/audio planning milestone, and the released FB-005 bounded workspace-path slice are now part of the current public shared pre-Beta baseline.
 
@@ -107,9 +107,9 @@ Historical Hardening State: Complete on `feature/fb-045-active-session-relaunch-
 Historical Live Validation State: Complete on `feature/fb-045-active-session-relaunch-stability`.
 PR Readiness State: Complete historical proof on `feature/fb-045-active-session-relaunch-stability`; the historical live PR package state is recorded in the canonical FB-045 workstream doc.
 Release Execution State: `v1.6.9-prebeta` is live at https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.9-prebeta on commit `348fd55b944435e3cae80b97acd0bb857fd65d56`.
-Current Branch Objective: complete the bounded FB-046 accepted relaunch replacement-session settled re-entry lane, preserve truthful relaunch ownership, and carry the branch into `Hardening` without widening scope.
-Next Legal Phase: Hardening.
-Active Workstream Chain: FB-046 is the active promoted workstream on this branch; WS-1 accepted relaunch replacement-session settled re-entry proof is complete and validated; same-branch backlog completion remains the default; and `Hardening` is next.
+Current Branch Objective: carry the bounded FB-046 relaunch-reacquisition lane through `Live Validation` while preserving truthful relaunch ownership and the already-green startup paths without widening scope.
+Next Legal Phase: Live Validation.
+Active Workstream Chain: FB-046 is the active promoted workstream on this branch; WS-1 accepted relaunch replacement-session settled re-entry proof is complete and validated; H-1 relaunch lifecycle hardening is complete and green; same-branch backlog completion remains the default; and `Live Validation` is next.
 
 ## Merged-Unreleased Release-Debt Owner
 
@@ -139,8 +139,8 @@ Active Workstream Chain: FB-046 is the active promoted workstream on this branch
 - priority: `High`
 - canonical workstream doc: `Docs/workstreams/FB-046_active_session_relaunch_reacquisition.md`
 - branch: `feature/fb-046-active-session-relaunch-reacquisition`
-- phase status: active promoted workstream on the current branch; WS-1 accepted relaunch replacement-session settled re-entry proof is complete and validated; `Backlog Completion State` is `Implemented Complete`; and `Hardening` is next
-- next legal seam: `Hardening`
+- phase status: active promoted workstream on the current branch; WS-1 accepted relaunch replacement-session settled re-entry proof is complete and validated; H-1 relaunch lifecycle hardening is complete and green; `Backlog Completion State` is `Implemented Complete`; and `Live Validation` is next
+- next legal seam: `Live Validation`
 - minimal scope: complete the bounded accepted relaunch lane across `desktop/single_instance.py`, `desktop/orin_desktop_launcher.pyw`, `desktop/orin_desktop_main.py`, `dev/orin_desktop_entrypoint_validation.py`, and `dev/orin_boot_transition_verification.py` so the replacement session reacquires the guard and returns to authoritative settled without widening into `main.py`, `Audio/`, `logs/`, `jarvis_visual/`, installer work, or broader boot-orchestrator implementation
 - branch-readiness carry-forward: preserved in `Docs/branch_records/feature_fb_046_active_session_relaunch_reacquisition.md`
 

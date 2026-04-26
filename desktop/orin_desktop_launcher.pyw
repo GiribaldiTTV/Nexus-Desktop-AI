@@ -1390,10 +1390,10 @@ def main():
             return
 
         single_instance_state["released"] = True
-        runtime("Single-instance flow: SINGLE_INSTANCE_RELEASED")
-        runtime_event("STATUS", "TRACE", "LAUNCHER_RUNTIME", "SINGLE_INSTANCE_RELEASED")
         runtime_instance_guard.release()
         runtime_relaunch_signal.close()
+        runtime("Single-instance flow: SINGLE_INSTANCE_RELEASED")
+        runtime_event("STATUS", "TRACE", "LAUNCHER_RUNTIME", "SINGLE_INSTANCE_RELEASED")
 
     if not acquire_or_prompt_replace(
         runtime_instance_guard,
