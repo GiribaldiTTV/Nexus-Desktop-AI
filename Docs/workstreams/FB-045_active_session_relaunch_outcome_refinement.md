@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `In progress`
+- `Released (v1.6.9-prebeta)`
 
 ## Target Version
 
@@ -23,29 +23,23 @@
 
 ## Current Phase
 
-- Phase: `PR Readiness`
+- Phase: `Closed`
 
 ## Phase Status
 
 - Repo State: `Active Branch`
-- Active Branch: `feature/fb-045-active-session-relaunch-stability`
-- Latest Public Prerelease: `v1.6.8-prebeta`
-- Latest Public Release Commit: `5e695af5fada05e4ad6b25731bce328ede8a09ee`
-- Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.8-prebeta`
-- Latest Public Prerelease Title: `Pre-Beta v1.6.8`
-- FB-044 remains the merged-unreleased release-debt owner for `v1.6.9-prebeta`.
-- FB-045 is now the active promoted blocker-clearing workstream for the post-settled runtime stability lane on `feature/fb-045-active-session-relaunch-stability`.
-- WS-1 `post-settled runtime stability refinement` is complete and validated.
-- The launcher no longer collapses authoritative-settled runtime exits into startup failure flow.
-- Primary workspace validation remains green.
-- Disposable-copy validation is now also green on the updated FB-045 code, so the previously recorded merged-main-style release blocker is no longer reproducing on the active implementation lane.
-- H-1 post-settled lifecycle hardening is complete and green.
-- Hardening confirmed recoverable lifecycle classification never appears before authoritative settled, clean shutdown keeps precedence when shutdown markers are present, repeated launch cycles stay green, and both immediate and delayed post-settled abnormal exits land in the same recoverable lane without falling into startup failure flow.
-- LV-1 live validation is complete and green.
-- Live Validation confirmed repo-truth alignment, exercised the real declared desktop shortcut, preserved explicit dev boot proof, and verified that the hardened lifecycle contract still lands on valid clean termination on the real shipped route while reusable helpers continue to prove the recoverable post-settled lane.
-- PR-1 merge-target canon completeness is complete.
-- PR-2 selected-next workstream selection is complete with FB-046 as the branch-not-created runtime/user-facing successor lane.
-- Active seam: `None.` WS-1, H-1, LV-1, PR-1, and PR-2 are complete, and live PR creation plus validation is the remaining PR Readiness seam.
+- Current Active Branch: `feature/fb-046-active-session-relaunch-reacquisition`
+- Current Active Branch Authority Record: `Docs/branch_records/feature_fb_046_active_session_relaunch_reacquisition.md`
+- Latest Public Prerelease: v1.6.9-prebeta
+- Latest Public Release Commit: `348fd55b944435e3cae80b97acd0bb857fd65d56`
+- Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.9-prebeta`
+- Latest Public Prerelease Title: `Pre-Beta v1.6.9`
+- FB-044 and FB-045 are Released / Closed historical proof in `v1.6.9-prebeta`.
+- Release debt is clear after publication, validation, and post-release canon closure.
+- Historical source branch: `feature/fb-045-active-session-relaunch-stability`
+- Historical release owner for the shipped package: FB-044 on `feature/fb-044-boot-desktop-handoff-outcome-refinement`
+- Current post-release successor lane: FB-046 remains selected-only / `Registry-only`, Branch Readiness is complete on `feature/fb-046-active-session-relaunch-reacquisition`, the first bounded relaunch-reacquisition slice is admitted, and `Workstream` is next.
+- Active seam: `None.` This record is now preserved released historical truth.
 
 ## Branch Class
 
@@ -72,11 +66,11 @@ None.
 
 ## Rollback Target
 
-- `Workstream`
+- `Closed historical truth`
 
 ## Next Legal Phase
 
-- `Release Readiness`
+- `Closed`
 
 ## Purpose / Why It Matters
 

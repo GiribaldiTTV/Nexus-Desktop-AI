@@ -33,10 +33,10 @@
 
 - `Released / Closed in v1.6.5-prebeta.`
 - FB-015 and FB-029 are released and closed in `v1.6.4-prebeta`.
-- Latest Public Prerelease: v1.6.8-prebeta
+- Latest Public Prerelease: v1.6.9-prebeta
 - Release Title: Pre-Beta v1.6.5
 - Release debt is clear after live release validation and post-release canon closure.
-- FB-005 is now released and closed in `v1.6.6-prebeta`; FB-042 is now Released / Closed in `v1.6.7-prebeta`; FB-043 is Released / Closed in `v1.6.8-prebeta`; and FB-044 is now the active promoted workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement` with WS-1 complete and `Hardening` next.
+- FB-005 is now released and closed in `v1.6.6-prebeta`; FB-042 is now Released / Closed in `v1.6.7-prebeta`; FB-043 is Released / Closed in `v1.6.8-prebeta`; FB-044 and FB-045 are Released / Closed in `v1.6.9-prebeta`; release debt is clear; and FB-046 remains selected-only / `Registry-only` on `feature/fb-046-active-session-relaunch-reacquisition` with Branch Readiness complete and `Workstream` next.
 - FB-030 is now closed historical lane truth and no longer owns active implementation or release-debt truth.
 - Release Execution published `v1.6.5-prebeta` on commit `7c2933d6427feb08a1139ba7f5ba2393eb61f1e1`.
 - The voice/audio design goal and affected-surface map are now explicitly recorded before any runtime voice, shutdown voice, recovery voice, diagnostics, UI, asset, or public-claim change is admitted.
@@ -85,7 +85,7 @@ None.
 
 ## Release Closure
 
-- Latest Public Prerelease: v1.6.8-prebeta
+- Latest Public Prerelease: v1.6.9-prebeta
 - Release Title: Pre-Beta v1.6.5
 - Published Release URL: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.5-prebeta
 - Published Release Commit: 7c2933d6427feb08a1139ba7f5ba2393eb61f1e1
@@ -95,7 +95,7 @@ None.
 - Version Rationale: FB-030 remains a docs/canon-only voice/audio planning and admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
 - Released Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history
 - Released Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-- Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; FB-042 is Released / Closed in `v1.6.7-prebeta`; FB-043 is Released / Closed in `v1.6.8-prebeta`; and FB-044 is now the active promoted workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement` with WS-1 complete and `Hardening` next
+- Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; FB-042 is Released / Closed in `v1.6.7-prebeta`; FB-043 is Released / Closed in `v1.6.8-prebeta`; FB-044 and FB-045 are Released / Closed in `v1.6.9-prebeta`; release debt is clear; and FB-046 remains selected-only / `Registry-only` on `feature/fb-046-active-session-relaunch-reacquisition` with Branch Readiness complete and `Workstream` next
 - Current Active Workstream: None
 - Promotion Gate: Historical proof complete. `v1.6.7-prebeta` is published and validated, updated `main` is revalidated, and FB-043 then completed its promoted runtime workstream on `feature/fb-043-top-level-entrypoint-handoff-refinement`
 
@@ -660,7 +660,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-030 remains a docs/canon-only voice/audio planning and admission milestone with no new executable, runtime, operator-facing, user-facing, or materially expanded product capability
 Release Scope: Voice/audio trigger-surface inventory, playback-authority inventory, transcript/telemetry/history ownership map, lifecycle and persona-state framing, implementation admission contract, hardening corrections, Live Validation waivers, selected-next workspace/path gate, and PR package history
 Release Artifacts: Tag v1.6.5-prebeta; release title Pre-Beta v1.6.5; rich Markdown release notes summarize the FB-030 voice/audio direction planning frame without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; FB-042 is Released / Closed in `v1.6.7-prebeta`; FB-043 is Released / Closed in `v1.6.8-prebeta`; and FB-044 is now the active promoted workstream on `feature/fb-044-boot-desktop-handoff-outcome-refinement` with WS-1 complete and `Hardening` next
+Post-Release Truth: FB-030 is Released / Closed in v1.6.5-prebeta; FB-005 is Released / Closed in v1.6.6-prebeta; FB-042 is Released / Closed in `v1.6.7-prebeta`; FB-043 is Released / Closed in `v1.6.8-prebeta`; FB-044 and FB-045 are Released / Closed in `v1.6.9-prebeta`; release debt is clear; and FB-046 remains selected-only / `Registry-only` on `feature/fb-046-active-session-relaunch-reacquisition` with Branch Readiness complete and `Workstream` next
 
 ## Post-Merge State
 

@@ -83,17 +83,19 @@ For an active or recently closed canonical workstream, keep these durable tracea
 Active here means the current promoted truth owner.
 That may be an executable branch owner or another explicitly promoted current-truth owner.
 
-- `Docs/workstreams/FB-045_active_session_relaunch_outcome_refinement.md`
+- `None.`
 
 ### Merged / Release Debt Owners
 
 Merged / Release Debt Owners are promoted implementation workstreams whose implementation branch is merge-target complete but whose public release packaging has not yet cleared release debt.
 These records are not active implementation branch owners after merge.
 
-- `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
+- `None.`
 
 ### Closed
 
+- `Docs/workstreams/FB-045_active_session_relaunch_outcome_refinement.md`
+- `Docs/workstreams/FB-044_boot_desktop_handoff_outcome_refinement.md`
 - `Docs/workstreams/FB-043_top_level_entrypoint_handoff_refinement.md`
 - `Docs/workstreams/FB-042_desktop_entrypoint_runtime_refinement.md`
 - `Docs/workstreams/FB-005_workspace_and_folder_organization.md`

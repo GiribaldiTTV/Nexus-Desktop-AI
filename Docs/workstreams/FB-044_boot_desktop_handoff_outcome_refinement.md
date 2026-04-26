@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `Merged unreleased`
+- `Released (v1.6.9-prebeta)`
 
 ## Target Version
 
@@ -23,38 +23,24 @@
 
 ## Current Phase
 
-- Phase: `Release Readiness`
+- Phase: `Closed`
 
 ## Phase Status
 
-- Merged-Unreleased Release-Debt Owner: FB-044 Boot-to-desktop handoff outcome refinement.
-- Repo State: No Active Branch
-- Merge-target repo state is `No Active Branch`.
-- FB-044 merge-target package truth is now owned here as merged-unreleased release debt sourced from `feature/fb-044-boot-desktop-handoff-outcome-refinement`.
-- FB-043 is Released / Closed in `v1.6.8-prebeta`, and release debt is clear after publication, validation, and post-release canon closure.
-- Latest Public Prerelease: `v1.6.8-prebeta`
-- Latest Public Release Commit: `5e695af5fada05e4ad6b25731bce328ede8a09ee`
-- Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.8-prebeta`
-- Latest Public Prerelease Title: `Pre-Beta v1.6.8`
-- Branch Readiness is complete historical proof on `feature/fb-044-boot-desktop-handoff-outcome-refinement`.
-- WS-1 `desktop-settled handoff outcome refinement` is complete and validated.
-- H-1 settled-state hardening is complete and green.
-- LV-1 live validation is complete and green.
-- A single authoritative desktop-settled outcome signal now exists across boot proof, renderer proof, launcher observation, and reusable validation helpers.
-- The production desktop route remains the same stable user-facing chain: `launch_orin_desktop.vbs` -> `desktop/orin_desktop_launcher.pyw` -> `desktop/orin_desktop_main.py`.
-- Explicit dev boot-profile proof remains distinct from production startup ownership while still converging on the same settled outcome signal.
-- Hardening confirmed the authoritative settled marker is emitted only after the intended passive dormant handoff, appears exactly once per valid startup across CLI / VBS / launcher / explicit dev boot proof, and cannot be mistaken for neighboring readiness breadcrumbs.
-- Hardening also fixed the launcher rollback edge case where a renderer could exit `0` without the authoritative settled signal and still be classified as `NORMAL_EXIT_COMPLETE`; that path now routes into failure handling and reusable validation proves it.
-- Live Validation confirmed repo-truth alignment, exercised the real declared desktop shortcut, preserved explicit dev boot-profile proof, and verified the authoritative settled signal on both the real shortcut route and reusable helper routes.
-- User-facing shortcut validation is now green with fresh real-shortcut evidence, and User Test Summary results are explicitly waived because the completed FB-044 delta changes a narrow settled-outcome proof contract rather than adding a broader manual workflow or multi-step operator interaction.
-- Same-branch backlog completion remained the default, and no further implementable FB-044 work is currently required inside the admitted settled-outcome lane. The remaining release blocker has been carried into FB-045 as a new runtime/user-facing promoted workstream lane on updated `main`.
-- PR-1 merge-target canon completeness is complete.
-- PR-2 selected-next workstream selection is complete with FB-045 as the runtime/user-facing successor lane.
-- PR-3 live PR creation and validation is complete.
-- Updated-main `Release Readiness` later found a reproducible disposable-clone failure after authoritative settled was already observed: the renderer exits `3221226505`, GPU context-loss stderr is captured, and launcher failure flow fires instead of clean shutdown markers.
-- Active blocker-clearing branch: `feature/fb-045-active-session-relaunch-stability`
-- Active blocker-clearing workstream doc: `Docs/workstreams/FB-045_active_session_relaunch_outcome_refinement.md`
-- Active seam: `None.` The completed FB-044 slice chain remains the merge-target `v1.6.9-prebeta` release-debt package, and FB-045 now owns the completed blocker-clearing runtime lane there: H-1 post-settled lifecycle hardening is complete, LV-1 live validation is complete and green, PR-1 / PR-2 are complete, and live PR packaging is the remaining step before updated `main` returns to `Release Readiness`.
+- Repo State: `Active Branch`
+- Current Active Branch: `feature/fb-046-active-session-relaunch-reacquisition`
+- Current Active Branch Authority Record: `Docs/branch_records/feature_fb_046_active_session_relaunch_reacquisition.md`
+- Latest Public Prerelease: v1.6.9-prebeta
+- Latest Public Release Commit: `348fd55b944435e3cae80b97acd0bb857fd65d56`
+- Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.9-prebeta`
+- Latest Public Prerelease Title: `Pre-Beta v1.6.9`
+- FB-044 is Released / Closed historical proof in `v1.6.9-prebeta`.
+- FB-045 is also Released / Closed historical proof in `v1.6.9-prebeta`.
+- Release debt is clear after publication, validation, and post-release canon closure.
+- Historical source branch: `feature/fb-044-boot-desktop-handoff-outcome-refinement`
+- Historical blocker-clearing follow-through: `feature/fb-045-active-session-relaunch-stability`
+- Current post-release successor lane: FB-046 remains selected-only / `Registry-only`, Branch Readiness is complete on `feature/fb-046-active-session-relaunch-reacquisition`, the first bounded relaunch-reacquisition slice is admitted, and `Workstream` is next.
+- Active seam: `None.` This record is now preserved released historical truth.
 
 ## Branch Class
 
@@ -62,8 +48,7 @@
 
 ## Blockers
 
-- `Release Readiness` is blocked on updated-main post-settled runtime instability. Disposable-clone validation reaches `DESKTOP_OUTCOME|SETTLED|state=dormant`, then the renderer exits `3221226505`, stderr reports `Failed to make current since context is marked as lost`, and launcher failure flow fires instead of clean shutdown markers.
-- FB-045 on `feature/fb-045-active-session-relaunch-stability` now owns the completed blocker-clearing runtime/user-facing follow-through while FB-044 remains the merged-unreleased release-debt owner for `v1.6.9-prebeta`.
+None.
 
 ## Entry Basis
 
@@ -84,11 +69,11 @@
 
 ## Rollback Target
 
-- `Workstream`
+- `Closed historical truth`
 
 ## Next Legal Phase
 
-- `Release Readiness`
+- `Closed`
 
 ## Purpose / Why It Matters
 
