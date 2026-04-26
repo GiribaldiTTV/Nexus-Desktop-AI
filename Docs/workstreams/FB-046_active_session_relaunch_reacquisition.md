@@ -19,7 +19,7 @@
 
 ## Current Phase
 
-- Phase: `Hardening`
+- Phase: `Live Validation`
 
 ## Phase Status
 
@@ -32,7 +32,7 @@
 - Latest Public Prerelease Title: `Pre-Beta v1.6.9`
 - FB-044 and FB-045 are `Released / Closed` historical proof in `v1.6.9-prebeta`.
 - Release debt is clear after publication, validation, and post-release canon closure.
-- Active seam: `None.` H-1 is complete and validated. `Live Validation` is next.
+- Active seam: `None.` LV-1 is complete and validated. `PR Readiness` is next.
 
 ## Branch Class
 
@@ -63,7 +63,7 @@ None.
 
 ## Next Legal Phase
 
-- `Live Validation`
+- `PR Readiness`
 
 ## Purpose / Why It Matters
 
@@ -231,16 +231,62 @@ H-1 pressure-tested the completed FB-046 relaunch-reacquisition lane across fast
 - Recoverable post-settled exit remains distinct from startup failure and can still be followed by a valid accepted relaunch cycle.
 - The shipped VBS / launcher / renderer startup path, direct `main.py` desktop handoff proof, and explicit dev-boot proof all remain green after the added relaunch edge coverage.
 
+## Live Validation Record
+
+LV-1 validates the completed FB-046 relaunch-reacquisition slice chain against live repo truth, the declared real desktop shortcut path, explicit dev boot-proof evidence, exact User Test Summary state, and branch cleanliness. This pass stays bounded to the admitted relaunch/runtime ownership surfaces and does not reopen `main.py`, `Audio/`, `logs/`, `jarvis_visual/`, installer work, or broader boot-orchestrator scope.
+
+### Live Validation Findings
+
+- Repo Truth Alignment: `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and this workstream record align on FB-046 as the active promoted runtime/user-facing implementation workstream, latest public prerelease `v1.6.9-prebeta`, WS-1 complete, H-1 complete, and PR Readiness next after LV-1 completion.
+- Branch Truth Alignment: the checked-out branch is `feature/fb-046-active-session-relaunch-reacquisition`, aligned with origin on the hardened relaunch baseline before this LV-1 pass.
+- User-Facing Shortcut Applicability: applicable and exercised. FB-046 changes accepted relaunch ownership and replacement-session settled proof on the shipped desktop runtime family, so final Live Validation used the real declared desktop shortcut rather than helper-only proof as the final user-facing shortcut gate.
+- Real Shortcut Gate Result: PASS. Launching through `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk` exercised the active branch runtime, produced dedicated evidence under `dev/logs/fb_046_live_validation/20260426_100739/desktop_shortcut_gate`, reached launcher-owned `DESKTOP_SETTLED_OBSERVED|state=dormant`, reached renderer `STARTUP_READY`, recorded `WINDOW_SHOW_REQUESTED` and `TRAY_ENTRY_READY|available=true`, reached the authoritative settled marker, and completed on the clean-shutdown lifecycle path with no launcher failure flow.
+- Production Launch Path Evidence: PASS. Fresh reusable entrypoint validation still proves the VBS default path, VBS fallback path, direct `main.py` desktop handoff, repeated-launch stability, accepted relaunch, slow accepted relaunch, relaunch after recoverable post-settled exit, rapid consecutive accepted relaunch cycles, and no-dual-ownership guard behavior on the active branch.
+- Explicit Dev Boot-Proof Route Evidence: PASS. `python dev\orin_boot_transition_verification.py` still proves the explicit `auto_handoff_skip_import` boot-profile route reaches the ordered boot markers, converges on the authoritative settled marker, and exits cleanly.
+- Relaunch Lifecycle Integrity: PASS. Real execution on the declared shortcut route lands on valid clean termination after settled; fresh reusable multi-session proof demonstrates accepted relaunch shutdown, guard release, replacement-session reacquisition, replacement-session authoritative settled re-entry, and truthful lifecycle completion without dual ownership or premature replacement-session success markers.
+- User Test Summary Applicability: focused waiver. The completed FB-046 delta is the full currently implementable relaunch-reacquisition pass for this backlog item, but it does not add a new manual task flow, settings workflow, persisted user-content path, or broader multi-step operator interaction that a filled manual User Test Summary would materially validate beyond the captured real-shortcut evidence, reusable multi-session proof, and explicit dev boot proof.
+- Desktop Export Applicability: no desktop `User Test Summary.txt` export is required for LV-1 because User Test Summary results are waived for this focused relaunch-lifecycle refinement.
+- Cleanup: the real shortcut pass left no residual launcher/runtime processes after shutdown and post-validation cleanup.
+
+### Live Validation Completion Decision
+
+- LV-1 Result: `Complete / green with real desktop shortcut evidence and waiver-based User Test Summary digestion recorded`
+- User-facing shortcut gate: `PASS` with exact markers in `## User Test Summary`
+- User Test Summary results gate: `WAIVED` with exact markers in `## User Test Summary`
+- Validation Layer: repo-truth alignment, real desktop shortcut launch evidence, reusable production-path validation, explicit dev boot proof, real accepted-relaunch lifecycle proof, and governance validation
+- Continue/Stop Decision: stop at the Live Validation phase boundary after validation because FB-046 LV-1 proof is green and the next normal phase is `PR Readiness`.
+
+### LV-1 Validation Results
+
+- Real desktop shortcut gate: PASS; report `dev/logs/fb_046_live_validation/20260426_100739/desktop_shortcut_gate/DesktopShortcutGateReport.json`
+- `python dev\orin_desktop_entrypoint_validation.py`: PASS
+  - report: `dev/logs/desktop_entrypoint_validation/reports/DesktopEntrypointValidationReport_20260426_100953.txt`
+- `python dev\orin_boot_transition_verification.py`: PASS
+  - report: `dev/logs/boot_transition_verification/reports/BootTransitionVerificationReport_20260426_100803.txt`
+- `python dev\orin_branch_governance_validation.py`: PASS
+- `git diff --check`: PASS
+- LV-1 phase-state scan: PASS; current authority surfaces report FB-046 Live Validation complete and PR Readiness as the next legal phase.
+
+## User Test Summary
+
+- User-Facing Shortcut Path: `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk`
+- User-Facing Shortcut Validation: `PASS`
+- User Test Summary Results: `WAIVED`
+- User Test Summary Waiver Reason: The completed FB-046 delta is the full currently implementable relaunch-reacquisition pass for the existing desktop runtime path and is already covered by fresh real-shortcut evidence, reusable multi-session accepted-relaunch proof, production-path validation, and explicit dev boot verification. It does not add a new manual multi-step task flow, settings journey, persisted user-content path, or broader operator workflow that a filled manual User Test Summary would materially validate beyond that captured evidence.
+- Desktop User Test Summary Export: `Not required; waiver path`
+
 ## Active Seam
 
 Active seam: `None.`
 
-- H-1 is complete and validated.
-- `Live Validation` is now the next legal phase.
+- WS-1 is complete and validated.
+- H-1 is complete and green.
+- LV-1 is complete and green.
+- `PR Readiness` is now the next legal phase.
 
 ## Seam Continuation Decision
 
-Continue Decision: `Advance after H-1 because backlog completion is implemented complete and the next legal phase is Live Validation`
+Continue Decision: `Advance after LV-1 because backlog completion is implemented complete and the next legal phase is PR Readiness`
 Next Active Seam: `None`
-Stop Condition: `Reached Live Validation gate after H-1 completion`
-Continuation Action: `Validate repo-truth alignment, real shortcut applicability, User Test Summary status, and relaunch lifecycle proof on the hardened branch without widening scope`
+Stop Condition: `Reached PR Readiness gate after LV-1 completion`
+Continuation Action: `Prepare merge-target canon, PR package details, and live PR state for the completed relaunch-reacquisition slice`
