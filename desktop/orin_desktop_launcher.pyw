@@ -1357,12 +1357,15 @@ def finalize_failure(
 def main():
     run_id = create_run_id()
     single_instance_state = {
+        "declined_relaunch": False,
         "replacement_session": False,
         "replacement_session_settled_recorded": False,
         "released": False,
     }
 
     def log_single_instance_event(event):
+        if event in {"REPLACE_PROMPT_DECLINED", "REPLACE_PROMPT_AUTO_DECLINED"}:
+            single_instance_state["declined_relaunch"] = True
         if event in {"RELAUNCH_ACQUIRED_AFTER_WAIT", "RELAUNCH_REPLACEMENT_SESSION_CONFIRMED"}:
             single_instance_state["replacement_session"] = True
         runtime(f"Single-instance flow: {event}")
@@ -1405,8 +1408,17 @@ def main():
         secondary_button_text="Keep Current Session",
         event_logger=log_single_instance_event,
     ):
-        runtime("Launcher start blocked: Nexus Desktop AI is already running")
-        runtime_event("STATUS", "SKIP", "LAUNCHER_RUNTIME", "ALREADY_RUNNING")
+        if single_instance_state["declined_relaunch"]:
+            runtime("Incoming launch exited cleanly: current session preserved after relaunch decline")
+            runtime_event(
+                "STATUS",
+                "SUCCESS",
+                "LAUNCHER_RUNTIME",
+                "RELAUNCH_DECLINED_SESSION_PRESERVED",
+            )
+        else:
+            runtime("Launcher start blocked: Nexus Desktop AI is already running")
+            runtime_event("STATUS", "SKIP", "LAUNCHER_RUNTIME", "ALREADY_RUNNING")
         return 0
 
     ensure_crash_dir("launcher startup")

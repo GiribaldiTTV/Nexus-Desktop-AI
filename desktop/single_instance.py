@@ -63,6 +63,11 @@ def harness_auto_accept_relaunch():
     return value in {"1", "true", "yes", "on"}
 
 
+def harness_auto_decline_relaunch():
+    value = (os.environ.get("JARVIS_HARNESS_AUTO_DECLINE_RELAUNCH") or "").strip().casefold()
+    return value in {"1", "true", "yes", "on"}
+
+
 class SingleInstanceGuard:
     def __init__(self, mutex_name: str):
         self.mutex_name = mutex_name
@@ -387,6 +392,9 @@ def acquire_or_prompt_replace(
 
     if harness_auto_accept_relaunch():
         log_event("REPLACE_PROMPT_AUTO_ACCEPTED")
+    elif harness_auto_decline_relaunch():
+        log_event("REPLACE_PROMPT_AUTO_DECLINED")
+        return False
     else:
         if not show_replace_running_dialog(
             title,

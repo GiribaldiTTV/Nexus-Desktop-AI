@@ -51,6 +51,7 @@ Do not use this layer to replace:
 
 ## Historical Branch Authority Records
 
+- `Docs/branch_records/feature_fb_047_active_session_relaunch_decline_preservation.md`
 - `Docs/branch_records/feature_fb_046_active_session_relaunch_reacquisition.md`
 - `Docs/branch_records/feature_fb_045_active_session_relaunch_stability.md`
 - `Docs/branch_records/feature_fb_044_boot_desktop_handoff_outcome_refinement.md`
