@@ -73,7 +73,7 @@ Current Branch Readiness State: Not started for FB-048. Branch creation remains 
 Historical Workstream State: FB-047 is merge-target complete and will become the merged-unreleased release-debt owner for `v1.6.11-prebeta` after merge; FB-046 is Released / Closed in `v1.6.10-prebeta`; FB-044 and FB-045 remain Released / Closed historical proof in `v1.6.9-prebeta`.
 Historical Hardening State: Complete on `feature/fb-047-active-session-relaunch-decline-preservation`.
 Historical Live Validation State: Complete on `feature/fb-047-active-session-relaunch-decline-preservation`.
-PR Readiness State: Complete on `feature/fb-047-active-session-relaunch-decline-preservation`; PR-1 merge-target canon completeness, PR-2 selected-next successor lock, and PR-3 live PR creation plus validation are complete; PR number and live state are recorded in the canonical workstream doc.
+PR Readiness State: Complete on `feature/fb-047-active-session-relaunch-decline-preservation`; PR-1 merge-target canon completeness, PR-2 selected-next successor lock, and PR-3 live PR creation plus validation are complete; PR #93 is open, non-draft, and mergeable.
 Release Execution State: `v1.6.10-prebeta` is live at https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.10-prebeta on commit `36cf07495dc8e239b20b11afb5194355b77ffd8b`.
 Release Target: v1.6.11-prebeta.
 Release Floor: patch prerelease.
@@ -281,7 +281,7 @@ Historical Branch Readiness Record: Docs/branch_records/feature_fb_047_active_se
 Branch Readiness: Historical complete. The branch objective, target end-state, admitted WS-1 slice, validation contract, rollback conditions, and same-branch backlog-completion posture remain preserved in the historical branch-readiness record.
 Workstream: WS-1 `declined relaunch incoming-launch truthful exit proof` is complete and validated; harness-driven decline proof now records explicit preserved-session success markers instead of a generic already-running skip; repeated incoming declined launches preserve the active settled session and never emit replacement-session markers; H-1 decline-lifecycle hardening is complete / green; LV-1 real desktop shortcut evidence and reusable decline-lifecycle proof are complete / green; `Backlog Completion State` is `Implemented Complete`; PR-1 merge-target canon completeness and PR-2 selected-next successor lock are complete on this branch; and after merge this lane becomes the merged-unreleased release-debt owner for `v1.6.11-prebeta`.
 Backlog Completion State: Implemented Complete
-PR Readiness: Complete. PR-1 merge-target canon completeness, PR-2 selected-next workstream selection, and PR-3 live PR creation plus validation are complete; the live PR number, URL, and merge state are recorded in the canonical workstream doc.
+PR Readiness: Complete. PR-1 merge-target canon completeness, PR-2 selected-next workstream selection, and PR-3 live PR creation plus validation are complete; PR #93 is open, non-draft, and mergeable.
 Release Target: v1.6.11-prebeta
 Release Floor: patch prerelease
 Version Rationale: FB-047 delivers a bounded runtime/user-facing relaunch-decline preservation refinement on the existing desktop startup family without opening a new product lane or materially expanded feature family.

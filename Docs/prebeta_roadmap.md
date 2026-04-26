@@ -105,7 +105,7 @@ Current Branch Readiness State: Not started for FB-048. Branch creation remains 
 Historical Workstream State: FB-047 is merge-target complete and will own merged-unreleased release debt for `v1.6.11-prebeta` after merge; FB-046 is Released / Closed in `v1.6.10-prebeta`; FB-044 and FB-045 remain Released / Closed historical proof in `v1.6.9-prebeta`.
 Historical Hardening State: Complete on `feature/fb-047-active-session-relaunch-decline-preservation`.
 Historical Live Validation State: Complete on `feature/fb-047-active-session-relaunch-decline-preservation`.
-PR Readiness State: Complete on `feature/fb-047-active-session-relaunch-decline-preservation`; PR-1 merge-target canon completeness, PR-2 selected-next successor lock, and PR-3 live PR creation plus validation are complete; PR number and live state are recorded in the canonical workstream doc.
+PR Readiness State: Complete on `feature/fb-047-active-session-relaunch-decline-preservation`; PR-1 merge-target canon completeness, PR-2 selected-next successor lock, and PR-3 live PR creation plus validation are complete; PR #93 is open, non-draft, and mergeable.
 Release Execution State: `v1.6.10-prebeta` is live at https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.10-prebeta on commit `36cf07495dc8e239b20b11afb5194355b77ffd8b`.
 Release Target: v1.6.11-prebeta
 Release Floor: patch prerelease

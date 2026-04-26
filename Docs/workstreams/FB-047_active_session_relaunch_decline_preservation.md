@@ -379,25 +379,25 @@ PR Readiness validates the completed bounded FB-047 runtime slice chain for merg
 - Base Branch: `main`
 - Head Branch: `feature/fb-047-active-session-relaunch-decline-preservation`
 - PR Summary: Deliver the bounded FB-047 runtime/user-facing relaunch-decline preservation slice by proving declined incoming launches preserve the settled active session, keep single-instance ownership with that session, and exit truthfully without false replacement-session markers; preserving real desktop shortcut and explicit dev boot proof; aligning merge-target canon for `v1.6.11-prebeta`; and selecting FB-048 as the next relaunch signal-failure and wait-timeout truth lane.
-- PR URL: pending live creation
-- PR State At PR Package Time: pending live creation
-- Review Thread State: pending live creation
-- Merge Readiness At PR Package Time: pending live creation
+- PR URL: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/pull/93
+- PR State At PR Package Time: OPEN, non-draft, base `main`, head `feature/fb-047-active-session-relaunch-decline-preservation`.
+- Review Thread State: PASS. Zero top-level PR comments and zero submitted reviews at PR package time.
+- Merge Readiness At PR Package Time: MERGEABLE.
 
 ### PR Readiness Completion Decision
 
 - PR-1 Result: Complete / green.
 - PR-2 Result: Complete / green.
-- PR-3 Result: Pending live PR creation and validation.
+- PR-3 Result: Complete / green.
 - Decline Lifecycle Integrity: declined incoming launches now preserve the active settled owner, emit explicit preserved-session success markers, never leak replacement-session markers, and keep accepted-relaunch transfer truth isolated to the accept lane.
 - Next legal action after merge: file-frozen Release Readiness on updated `main` for `v1.6.11-prebeta`.
 
 ### PR Readiness Validation Results
 
 - `python dev\orin_branch_governance_validation.py`: PASS; merged-unreleased release-debt package truth is green.
-- `python dev\orin_branch_governance_validation.py --pr-readiness-gate`: pending live PR creation and state validation.
+- `python dev\orin_branch_governance_validation.py --pr-readiness-gate`: PASS after live PR creation and state validation.
 - `git diff --check`: PASS.
 - User-facing shortcut gate: PASS with exact markers in `## User Test Summary`.
 - User Test Summary results gate: WAIVED with exact markers in `## User Test Summary`.
 - Next-workstream selection gate: PASS. FB-048 is selected next, `Registry-only`, and branch-not-created.
-- Live PR state: pending live creation.
+- Live PR state: PASS. PR #93 is `OPEN`, non-draft, base `main`, head `feature/fb-047-active-session-relaunch-decline-preservation`, and mergeability is `MERGEABLE`.
