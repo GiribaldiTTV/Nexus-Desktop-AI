@@ -71,7 +71,7 @@ Current merged truth indicates:
 - phase status after `v1.6.10-prebeta` release closure: FB-044 and FB-045 are Released / Closed in `v1.6.9-prebeta`; FB-046 is Released / Closed in `v1.6.10-prebeta`; release debt is clear after publication, validation, and post-release canon closure; and FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`.
 - current active workstream: FB-047 Active-session relaunch decline session-preservation proof
 - current branch after `v1.6.10-prebeta` release closure: `feature/fb-047-active-session-relaunch-decline-preservation`
-- next concern: run `Live Validation` on the completed and hardened FB-047 decline-preservation pass without widening beyond the bounded runtime/user-facing lane.
+- next concern: prepare `PR Readiness` for the completed and live-validated FB-047 decline-preservation pass without widening beyond the bounded runtime/user-facing lane.
 
 That means the released FB-027 interaction baseline, the released FB-036 authoring-and-callable-group milestone, the released FB-041 deterministic callable-group execution milestone, the released FB-037 built-in catalog milestone, the released FB-038 tray quick-task UX milestone, the released FB-039 external trigger intake architecture milestone, the released FB-040 monitoring/thermal architecture milestone, the released FB-031 UI/UX architecture milestone, the released FB-032 source-of-truth migration milestone, the released FB-004 future boot-orchestrator architecture milestone, the released FB-015 plus FB-029 planning milestones, the released FB-030 voice/audio planning milestone, and the released FB-005 bounded workspace-path slice are now part of the current public shared pre-Beta baseline.
 
@@ -108,8 +108,8 @@ Historical Live Validation State: Complete on `feature/fb-046-active-session-rel
 PR Readiness State: Historical proof complete on `feature/fb-046-active-session-relaunch-reacquisition`; PR #92 merged into `main` at `36cf07495dc8e239b20b11afb5194355b77ffd8b`.
 Release Execution State: `v1.6.10-prebeta` is live at https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.10-prebeta on commit `36cf07495dc8e239b20b11afb5194355b77ffd8b`.
 Current Branch Objective: complete the full currently implementable FB-047 runtime/user-facing relaunch-decline preservation pass by proving repeated declined incoming launches preserve active ownership and exit truthfully.
-Next Legal Phase: Live Validation.
-Active Workstream Chain: Release debt is clear; FB-047 is the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 is complete and validated; H-1 is complete and green; `Backlog Completion State` is `Implemented Complete`; and `Live Validation` is the next legal phase.
+Next Legal Phase: PR Readiness.
+Active Workstream Chain: Release debt is clear; FB-047 is the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 is complete and validated; H-1 is complete and green; LV-1 is complete and green; `Backlog Completion State` is `Implemented Complete`; and `PR Readiness` is the next legal phase.
 
 ## Current Merged-Unreleased Workstream
 
@@ -137,8 +137,8 @@ record state: `Promoted`
 priority: `High`
 canonical workstream doc: `Docs/workstreams/FB-047_active_session_relaunch_decline_preservation.md`
 branch: `feature/fb-047-active-session-relaunch-decline-preservation`
-phase status: release debt is clear after `v1.6.10-prebeta` publication, validation, and post-release canon closure; FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 is complete and validated; H-1 is complete and green; `Backlog Completion State` is `Implemented Complete`; and `Live Validation` is next.
-next legal seam: `Live Validation`
+phase status: release debt is clear after `v1.6.10-prebeta` publication, validation, and post-release canon closure; FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 is complete and validated; H-1 is complete and green; LV-1 is complete and green; `Backlog Completion State` is `Implemented Complete`; and `PR Readiness` is next.
+next legal seam: `PR Readiness`
 
 ## Latest Released Workstream Context
 
@@ -266,7 +266,7 @@ The 2026-04-23 priority reading is updated during FB-005 Branch Readiness:
 - FB-043 is now Released / Closed in `v1.6.8-prebeta`.
 - FB-044 and FB-045 are now Released / Closed in `v1.6.9-prebeta`.
 
-Current-branch clarity: latest public prerelease is `v1.6.10-prebeta`; FB-044 and FB-045 are released and closed in `v1.6.9-prebeta`; FB-046 is released and closed in `v1.6.10-prebeta`; release debt is clear; and FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`, with WS-1 complete, H-1 complete / green, `Backlog Completion State` at `Implemented Complete`, and `Live Validation` next.
+Current-branch clarity: latest public prerelease is `v1.6.10-prebeta`; FB-044 and FB-045 are released and closed in `v1.6.9-prebeta`; FB-046 is released and closed in `v1.6.10-prebeta`; release debt is clear; and FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`, with WS-1 complete, H-1 complete / green, LV-1 complete / green, `Backlog Completion State` at `Implemented Complete`, and `PR Readiness` next.
 
 ## Current Merged-Unreleased Workstream
 

@@ -19,7 +19,7 @@
 
 ## Current Phase
 
-- Phase: `Hardening`
+- Phase: `Live Validation`
 
 ## Phase Status
 
@@ -33,7 +33,7 @@ Latest Public Prerelease Title: `Pre-Beta v1.6.10`
 FB-046 is `Released / Closed` historical proof in `v1.6.10-prebeta`.
 Release debt is clear after publication, validation, and post-release canon closure.
 FB-047 is now the active promoted workstream on this branch.
-WS-1 is complete / validated, H-1 is complete / green, `Backlog Completion State` is `Implemented Complete`, and `Live Validation` is next.
+WS-1 is complete / validated, H-1 is complete / green, LV-1 is complete / green, `Backlog Completion State` is `Implemented Complete`, and `PR Readiness` is next.
 Active seam: `None.`
 
 ## Branch Class
@@ -65,7 +65,7 @@ None.
 
 ## Next Legal Phase
 
-- `Live Validation`
+- `PR Readiness`
 
 ## Purpose / Why It Matters
 
@@ -241,21 +241,56 @@ H-1 pressure-tested the completed FB-047 decline-preservation lane across rapid 
 - Mixed decline/accept proof now distinguishes preserved-session logs, declined incoming-launch logs, and accepted replacement-session logs by content instead of fragile file-order assumptions.
 - The shipped startup route, accepted-relaunch proof, repeated-launch proof, and explicit dev-boot proof remain green after the added decline-lane pressure coverage.
 
+## Live Validation Record
+
+LV-1 validates the completed FB-047 relaunch-decline preservation slice chain against live repo truth, the declared real desktop shortcut path, explicit dev boot-proof evidence, exact User Test Summary state, and branch cleanliness. This pass stays bounded to the admitted relaunch/runtime ownership surfaces and does not reopen `main.py`, `Audio/`, `logs/`, `jarvis_visual/`, installer work, or broader boot-orchestrator scope.
+
+### Live Validation Findings
+
+- Repo Truth Alignment: `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, and this workstream record align on FB-047 as the active promoted runtime/user-facing implementation workstream, latest public prerelease `v1.6.10-prebeta`, WS-1 complete, H-1 complete, and PR Readiness next after LV-1 completion.
+- Branch Truth Alignment: the checked-out branch is `feature/fb-047-active-session-relaunch-decline-preservation`, aligned with origin on the hardened decline-lifecycle baseline before this LV-1 pass.
+- User-Facing Shortcut Applicability: applicable and exercised. FB-047 changes user-facing relaunch-decline ownership truth on the shipped desktop runtime family, so final Live Validation used the real declared desktop shortcut rather than helper-only proof as the final user-facing shortcut gate.
+- Real Shortcut Gate Result: PASS. Launching through `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk` exercised the active branch runtime, produced dedicated evidence under `dev/logs/fb_047_live_validation/20260426_124943/desktop_shortcut_gate`, reached launcher-owned `DESKTOP_SETTLED_OBSERVED|state=dormant`, reached renderer `STARTUP_READY`, recorded `WINDOW_SHOW_REQUESTED` and `TRAY_ENTRY_READY|available=true`, reached the authoritative settled marker, and completed on the clean-shutdown lifecycle path with no launcher failure flow.
+- Production Launch Path Evidence: PASS. Fresh reusable entrypoint validation still proves the VBS default path, VBS fallback path, direct `main.py` desktop handoff, repeated-launch stability, accepted relaunch, slow accepted relaunch, declined relaunch, rapid consecutive declined launches, mixed decline/accept relaunch sequencing, relaunch after recoverable post-settled exit, rapid consecutive accepted relaunch cycles, and no-dual-ownership guard behavior on the active branch.
+- Explicit Dev Boot-Proof Route Evidence: PASS. `python dev\orin_boot_transition_verification.py` still proves the explicit `auto_handoff_skip_import` boot-profile route reaches the ordered boot markers, converges on the authoritative settled marker, and exits cleanly.
+- Decline Lifecycle Integrity: PASS. Real execution on the declared shortcut route lands on valid clean termination after settled; fresh reusable multi-session proof demonstrates that declined incoming launches preserve the active settled owner, emit explicit decline success markers, never leak replacement-session markers, and only transfer ownership in the later accepted phase of a mixed decline/accept sequence.
+- User Test Summary Applicability: focused waiver. The completed FB-047 delta is the full currently implementable relaunch-decline preservation pass for this backlog item, but it does not add a new settings journey, persisted user-content path, or broader operator workflow that a filled manual User Test Summary would materially validate beyond the captured real-shortcut evidence, reusable multi-session decline and mixed decline/accept proof, production-path validation, and explicit dev boot proof.
+- Desktop Export Applicability: no desktop `User Test Summary.txt` export is required for LV-1 because User Test Summary results are waived for this focused relaunch-decline refinement.
+- Cleanup: the real shortcut pass left no residual launcher/runtime processes after shutdown and post-validation cleanup.
+
+### Live Validation Completion Decision
+
+- LV-1 Result: `Complete / green with real desktop shortcut evidence and waiver-based User Test Summary digestion recorded`
+- User-facing shortcut gate: `PASS` with exact markers in `## User Test Summary`
+- User Test Summary results gate: `WAIVED` with exact markers in `## User Test Summary`
+- Validation Layer: repo-truth alignment, real desktop shortcut launch evidence, reusable production-path validation, explicit dev boot proof, reusable decline-lifecycle proof, and governance validation
+- Continue/Stop Decision: stop at the Live Validation phase boundary after validation because FB-047 LV-1 proof is green and the next normal phase is `PR Readiness`.
+
+### LV-1 Validation Results
+
+- Real desktop shortcut gate: PASS; report `dev/logs/fb_047_live_validation/20260426_124943/desktop_shortcut_gate/DesktopShortcutGateReport.json`
+- `python dev\orin_desktop_entrypoint_validation.py`: PASS
+  - report: `dev/logs/desktop_entrypoint_validation/reports/DesktopEntrypointValidationReport_20260426_125222.txt`
+- `python dev\orin_boot_transition_verification.py`: PASS
+  - report: `dev/logs/boot_transition_verification/reports/BootTransitionVerificationReport_20260426_125009.txt`
+- `python dev\orin_branch_governance_validation.py`: PASS
+- `git diff --check`: PASS
+- LV-1 phase-state scan: PASS; current authority surfaces report FB-047 Live Validation complete and PR Readiness as the next legal phase.
+
 ## User Test Summary
 
-User-Facing Shortcut Path: `Pending Live Validation classification`
-User-Facing Shortcut Validation: `Pending`
-User Test Summary Results: `Pending`
-
-- Workstream proof currently rests on reusable production-path validation and explicit dev-boot proof.
-- Live Validation will classify real desktop shortcut applicability and the exact User Test Summary state for this lane.
+- User-Facing Shortcut Path: `C:\Users\anden\OneDrive\Desktop\Nexus Desktop Launcher.lnk`
+- User-Facing Shortcut Validation: `PASS`
+- User Test Summary Results: `WAIVED`
+- User Test Summary Waiver Reason: The completed FB-047 delta is the full currently implementable relaunch-decline preservation pass for the existing desktop runtime path and is already covered by fresh real-shortcut evidence, reusable multi-session decline and mixed decline/accept proof, production-path validation, and explicit dev boot verification. It does not add a new settings journey, persisted user-content path, or broader operator workflow that a filled manual User Test Summary would materially validate beyond that captured evidence.
+- Desktop User Test Summary Export: `Not required; waiver path`
 
 ## Seam Continuation Decision
 
-Continue Decision: `Continue`
-Next Active Seam: `Live Validation`
-Stop Condition: `Stop after FB-047 Live Validation only if repo truth, real shortcut applicability, User Test Summary classification, or decline-path ownership truth regresses beyond the admitted runtime/user-facing lane.`
-Continuation Action: `Run FB-047 Live Validation on this same branch, classify real desktop shortcut applicability and User Test Summary status, and confirm the hardened decline-preservation proof stays green on the shipped route.`
+Continue Decision: `Advance after LV-1 because backlog completion is implemented complete and the next legal phase is PR Readiness`
+Next Active Seam: `None`
+Stop Condition: `Reached PR Readiness gate after LV-1 completion`
+Continuation Action: `Prepare merge-target canon, selected-next truth, PR package details, and live PR state for the completed relaunch-decline preservation slice`
 
 ## Active Seam
 
@@ -263,4 +298,5 @@ Active seam: `None.`
 
 - WS-1 is complete and validated.
 - H-1 is complete and green.
-- `Live Validation` is now the next legal phase.
+- LV-1 is complete and green.
+- `PR Readiness` is now the next legal phase.

@@ -36,7 +36,7 @@ Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desk
 Latest Public Prerelease Title: Pre-Beta v1.6.10
 FB-046 is Released / Closed historical proof in v1.6.10-prebeta.
 Release debt is clear after publication, validation, and post-release canon closure.
-Current successor lane: FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 declined relaunch incoming-launch truthful exit proof is complete and validated there, H-1 decline-lifecycle hardening is complete / green, and `Live Validation` is next.
+Current successor lane: FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 declined relaunch incoming-launch truthful exit proof is complete and validated there, H-1 decline-lifecycle hardening is complete / green, LV-1 is complete / green, and `PR Readiness` is next.
 Active seam: None. This record is now preserved released historical truth.
 
 ## Branch Class

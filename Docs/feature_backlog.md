@@ -76,8 +76,8 @@ Historical Live Validation State: Complete on `feature/fb-046-active-session-rel
 PR Readiness State: Historical proof complete on `feature/fb-046-active-session-relaunch-reacquisition`; PR #92 merged into `main` at `36cf07495dc8e239b20b11afb5194355b77ffd8b`.
 Release Execution State: `v1.6.10-prebeta` is live at https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.10-prebeta on commit `36cf07495dc8e239b20b11afb5194355b77ffd8b`.
 Current Branch Objective: complete the full currently implementable FB-047 runtime/user-facing relaunch-decline preservation pass by proving repeated declined incoming launches preserve active ownership and exit truthfully.
-Next Legal Phase: Live Validation.
-Active Workstream Chain: Release debt is clear; FB-047 is the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 is complete and validated; H-1 is complete and green; `Backlog Completion State` is `Implemented Complete`; and `Live Validation` is the next legal phase.
+Next Legal Phase: PR Readiness.
+Active Workstream Chain: Release debt is clear; FB-047 is the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 is complete and validated; H-1 is complete and green; LV-1 is complete and green; `Backlog Completion State` is `Implemented Complete`; and `PR Readiness` is the next legal phase.
 
 ## Backlog Governance Sync
 
@@ -97,7 +97,7 @@ Open-candidate priority review:
 - FB-046 is now Released / Closed in `v1.6.10-prebeta`.
 - FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`.
 
-Current-branch clarity: latest public prerelease is `v1.6.10-prebeta`; FB-044 and FB-045 are released and closed in `v1.6.9-prebeta`; FB-046 is released and closed in `v1.6.10-prebeta`; release debt is clear; and FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`, with WS-1 complete, H-1 complete / green, `Backlog Completion State` at `Implemented Complete`, and `Live Validation` next.
+Current-branch clarity: latest public prerelease is `v1.6.10-prebeta`; FB-044 and FB-045 are released and closed in `v1.6.9-prebeta`; FB-046 is released and closed in `v1.6.10-prebeta`; release debt is clear; and FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`, with WS-1 complete, H-1 complete / green, LV-1 complete / green, `Backlog Completion State` at `Implemented Complete`, and `PR Readiness` next.
 
 ## Registry Items
 
@@ -269,7 +269,7 @@ Branch: feature/fb-047-active-session-relaunch-decline-preservation
 Canonical Workstream Doc: Docs/workstreams/FB-047_active_session_relaunch_decline_preservation.md
 Historical Branch Readiness Record: Docs/branch_records/feature_fb_047_active_session_relaunch_decline_preservation.md
 Branch Readiness: Historical complete. The branch objective, target end-state, admitted WS-1 slice, validation contract, rollback conditions, and same-branch backlog-completion posture remain preserved in the historical branch-readiness record.
-Workstream: WS-1 `declined relaunch incoming-launch truthful exit proof` is complete and validated; harness-driven decline proof now records explicit preserved-session success markers instead of a generic already-running skip; repeated incoming declined launches preserve the active settled session and never emit replacement-session markers; H-1 decline-lifecycle hardening is complete / green; `Backlog Completion State` is `Implemented Complete`; and `Live Validation` is next.
+Workstream: WS-1 `declined relaunch incoming-launch truthful exit proof` is complete and validated; harness-driven decline proof now records explicit preserved-session success markers instead of a generic already-running skip; repeated incoming declined launches preserve the active settled session and never emit replacement-session markers; H-1 decline-lifecycle hardening is complete / green; LV-1 real desktop shortcut evidence and reusable decline-lifecycle proof are complete / green; `Backlog Completion State` is `Implemented Complete`; and `PR Readiness` is next.
 Minimal Scope: Prove and refine the relaunch-decline lane across `desktop/single_instance.py`, `desktop/orin_desktop_launcher.pyw`, `desktop/orin_desktop_main.py`, and the minimum required reusable validator surfaces so declining replacement preserves the active settled session and cleanly terminates the incoming launch without dual ownership or false successor markers.
 Summary: Make relaunch decline as provable and truthful as accepted relaunch.
 Why it matters: The runtime should be just as explicit when the user keeps the current settled session as when the user accepts replacement.
