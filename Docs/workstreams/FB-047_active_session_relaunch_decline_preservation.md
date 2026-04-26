@@ -11,7 +11,11 @@
 
 ## Status
 
-- `In Progress`
+- `Merged unreleased (v1.6.11-prebeta)`
+
+## Target Version
+
+- `v1.6.11-prebeta`
 
 ## Canonical Branch
 
@@ -19,22 +23,22 @@
 
 ## Current Phase
 
-- Phase: `Live Validation`
+- Phase: `Release Readiness`
 
 ## Phase Status
 
-Repo State: `Active Branch`
-Current Active Branch: `feature/fb-047-active-session-relaunch-decline-preservation`
-Current Active Canonical Workstream Doc: `Docs/workstreams/FB-047_active_session_relaunch_decline_preservation.md`
+Merged-Unreleased Release-Debt Owner: FB-047 Active-session relaunch decline session-preservation proof
+Repo State: `No Active Branch`
+Repo State: No Active Branch
+Historical Active Branch Before Merge: `feature/fb-047-active-session-relaunch-decline-preservation`
+Historical Active Canonical Workstream Doc Before Merge: `Docs/workstreams/FB-047_active_session_relaunch_decline_preservation.md`
 Latest Public Prerelease: `v1.6.10-prebeta`
 Latest Public Release Commit: `36cf07495dc8e239b20b11afb5194355b77ffd8b`
 Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.10-prebeta`
 Latest Public Prerelease Title: `Pre-Beta v1.6.10`
 FB-046 is `Released / Closed` historical proof in `v1.6.10-prebeta`.
-Release debt is clear after publication, validation, and post-release canon closure.
-FB-047 is now the active promoted workstream on this branch.
-WS-1 is complete / validated, H-1 is complete / green, LV-1 is complete / green, `Backlog Completion State` is `Implemented Complete`, and `PR Readiness` is next.
-Active seam: `None.`
+Release debt is active after merge until `v1.6.11-prebeta` is published, validated, and post-release canon closure completes.
+Active seam: `None.` PR Readiness is complete, FB-048 is selected next as a branch-not-created `Registry-only` successor, and merged-main `Release Readiness` is next after merge.
 
 ## Branch Class
 
@@ -65,7 +69,7 @@ None.
 
 ## Next Legal Phase
 
-- `PR Readiness`
+- `Release Readiness`
 
 ## Purpose / Why It Matters
 
@@ -287,10 +291,10 @@ LV-1 validates the completed FB-047 relaunch-decline preservation slice chain ag
 
 ## Seam Continuation Decision
 
-Continue Decision: `Advance after LV-1 because backlog completion is implemented complete and the next legal phase is PR Readiness`
+Continue Decision: `Advance after PR-3 because backlog completion is implemented complete, PR Readiness is complete, and the next legal phase after merge is Release Readiness`
 Next Active Seam: `None`
-Stop Condition: `Reached PR Readiness gate after LV-1 completion`
-Continuation Action: `Prepare merge-target canon, selected-next truth, PR package details, and live PR state for the completed relaunch-decline preservation slice`
+Stop Condition: `Reached Release Readiness gate after PR package completion`
+Continuation Action: `Run file-frozen Release Readiness on updated main for v1.6.11-prebeta after merge`
 
 ## Active Seam
 
@@ -299,4 +303,101 @@ Active seam: `None.`
 - WS-1 is complete and validated.
 - H-1 is complete and green.
 - LV-1 is complete and green.
-- `PR Readiness` is now the next legal phase.
+- `Release Readiness` is now the next legal phase after merge.
+
+## Governance Drift Audit
+
+Governance Drift Found: No.
+
+- Merge-target canon is synchronized to merged-unreleased release-debt truth before PR green.
+- `Repo State` is `No Active Branch` in merge-target surfaces, so this package does not depend on a later post-merge active-branch cleanup.
+- FB-048 is explicitly selected next with `Branch: Not created`, so successor admission is not being confused with branch existence.
+- No docs-only bypass, planning-loop bypass, repair-only branch posture, or hidden continuation language is being used to claim partial completion for FB-047.
+
+## Historical PR Package State
+
+Historical Merged-Unreleased Release-Debt Owner At PR Package Time: FB-047 Active-session relaunch decline session-preservation proof
+Historical Repo State At PR Package Time: No Active Branch
+Target Version: v1.6.11-prebeta
+Latest Public Prerelease: v1.6.10-prebeta
+Release Debt: Active after merge until `v1.6.11-prebeta` is published, validated, and post-release canon closure completes
+Release Target: v1.6.11-prebeta
+Release Title: Pre-Beta v1.6.11
+Release Floor: patch prerelease
+Version Rationale: FB-047 remains a bounded runtime/user-facing relaunch-decline preservation refinement on the existing desktop startup family; it does not introduce a new product lane or materially expanded capability family
+Release Scope: completed FB-047 WS-1 declined relaunch incoming-launch truthful exit proof, H-1 decline lifecycle hardening, LV-1 real desktop shortcut evidence, reusable validation evidence, merged-unreleased release-debt truth, and selected-next FB-048 successor lock for the bounded runtime/user-facing lane only
+Release Artifacts: Tag v1.6.11-prebeta; release title Pre-Beta v1.6.11; rich Markdown release notes summarize the bounded FB-047 relaunch-decline preservation runtime/user-facing package, real shortcut evidence, and the FB-048 successor lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
+Post-Release Truth: FB-047 is Released / Closed in `v1.6.11-prebeta` after publication and validation; release debt then clears, and FB-048 Branch Readiness may begin only after updated `main` is revalidated and the first bounded runtime/user-facing relaunch signal-failure and wait-timeout truth slice is admitted
+Selected Next Workstream: FB-048 Active-session relaunch signal-failure and wait-timeout truth
+Next-Branch Creation Gate: After `v1.6.11-prebeta` is published and validated, updated `main` is revalidated, and FB-048 Branch Readiness admits the first bounded runtime/user-facing relaunch signal-failure and wait-timeout truth slice; branch creation remains blocked until then
+
+## Post-Merge State
+
+- Post-merge repo state: `No Active Branch` because FB-047 will own merged-unreleased release debt on `main` for `v1.6.11-prebeta`.
+- Pending release scope after merge: the completed bounded FB-047 relaunch-decline preservation slice chain only.
+- Successor state after merge: FB-048 remains selected next, `Registry-only`, and branch-not-created until `v1.6.11-prebeta` is published, validated, updated `main` is revalidated, and bounded Branch Readiness admits the first relaunch signal-failure and wait-timeout truth slice.
+
+## Release Window Audit
+
+Release Window Audit: PASS
+Window Scope: FB-047 WS-1 declined relaunch incoming-launch truthful exit proof, H-1 decline lifecycle hardening, LV-1 real shortcut validation, merge-target release-debt framing for `v1.6.11-prebeta`, and successor-lock selection of FB-048.
+Known Window Blockers Reviewed: missing merged-unreleased release-debt framing; missing selected-next successor lock after FB-047 completion; risk of self-selection drift; missing live PR state; and risk of widening beyond the bounded relaunch-decline lane.
+Remaining Known Release Blockers: None
+Another Pre-Release Repair PR Required: NO
+Release Window Split Waiver: None
+
+## PR Readiness Record
+
+PR Readiness validates the completed bounded FB-047 runtime slice chain for merge to `main`. This record aligns the `v1.6.11-prebeta` release-debt package, selects the next runtime/user-facing workstream, prepares durable PR package details, and then records live PR validation before reporting green.
+
+### PR-1 Merge-Target Canon Findings
+
+- Merge Target: `main`.
+- Head Branch: `feature/fb-047-active-session-relaunch-decline-preservation`.
+- Source-of-Truth Alignment: PASS. `Docs/Main.md`, `Docs/feature_backlog.md`, `Docs/prebeta_roadmap.md`, `Docs/workstreams/index.md`, and this workstream record align on FB-047 as the merged-unreleased release-debt owner for `v1.6.11-prebeta`.
+- Release-Debt Framing: PASS. `v1.6.10-prebeta` is the latest public prerelease; after merge, FB-047 becomes the merged-unreleased release-debt owner for `v1.6.11-prebeta`.
+- Release Target: `v1.6.11-prebeta`.
+- Release Title: `Pre-Beta v1.6.11`.
+- Release Floor: `patch prerelease`.
+- Version Rationale: `patch prerelease` remains required because the delivered FB-047 delta is a bounded runtime/user-facing relaunch-decline preservation refinement on the existing desktop startup family, not a new capability lane or materially expanded feature family.
+- Release Scope: complete WS-1 declined relaunch incoming-launch truthful exit proof, H-1 decline lifecycle hardening, LV-1 real shortcut evidence, selected-next successor lock, and PR package history.
+- Release Artifacts: Tag `v1.6.11-prebeta`; release title `Pre-Beta v1.6.11`; rich Markdown release notes summarize the bounded FB-047 relaunch-decline preservation runtime/user-facing package without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included.
+- Post-Release Truth: FB-047 is Released / Closed in `v1.6.11-prebeta` after publication and validation; release debt then clears, and FB-048 Branch Readiness may begin only after updated `main` is revalidated and the first bounded runtime/user-facing relaunch signal-failure and wait-timeout truth slice is admitted.
+
+### PR-2 Selected-Next Workstream Findings
+
+- Selected Next Workstream: FB-048 Active-session relaunch signal-failure and wait-timeout truth.
+- Selected Next Basis: FB-048 is the smallest repo-grounded runtime/user-facing successor after FB-047 because accepted relaunch success and declined relaunch preservation are now first-class proven surfaces, but the accepted incoming-launch failure lane still lacks equivalent proof when relaunch signaling fails or the current session does not release before the reacquire wait deadline.
+- Selected Next Record State At PR Package Time: `Registry-only`.
+- Selected Next Implementation Branch At PR Package Time: Not created.
+- Branch Creation Gate At PR Package Time: After `v1.6.11-prebeta` is published and validated, updated `main` is revalidated, and FB-048 Branch Readiness admits the first bounded runtime/user-facing relaunch signal-failure and wait-timeout truth slice.
+- Branch Containment At PR Package Time: PASS. No local or remote branch exists for FB-048, and no open FB-048 PR exists.
+
+### PR-3 PR Package Details
+
+- PR Title: `FB-047 Active-Session Relaunch Decline Preservation`
+- Base Branch: `main`
+- Head Branch: `feature/fb-047-active-session-relaunch-decline-preservation`
+- PR Summary: Deliver the bounded FB-047 runtime/user-facing relaunch-decline preservation slice by proving declined incoming launches preserve the settled active session, keep single-instance ownership with that session, and exit truthfully without false replacement-session markers; preserving real desktop shortcut and explicit dev boot proof; aligning merge-target canon for `v1.6.11-prebeta`; and selecting FB-048 as the next relaunch signal-failure and wait-timeout truth lane.
+- PR URL: pending live creation
+- PR State At PR Package Time: pending live creation
+- Review Thread State: pending live creation
+- Merge Readiness At PR Package Time: pending live creation
+
+### PR Readiness Completion Decision
+
+- PR-1 Result: Complete / green.
+- PR-2 Result: Complete / green.
+- PR-3 Result: Pending live PR creation and validation.
+- Decline Lifecycle Integrity: declined incoming launches now preserve the active settled owner, emit explicit preserved-session success markers, never leak replacement-session markers, and keep accepted-relaunch transfer truth isolated to the accept lane.
+- Next legal action after merge: file-frozen Release Readiness on updated `main` for `v1.6.11-prebeta`.
+
+### PR Readiness Validation Results
+
+- `python dev\orin_branch_governance_validation.py`: PASS; merged-unreleased release-debt package truth is green.
+- `python dev\orin_branch_governance_validation.py --pr-readiness-gate`: pending live PR creation and state validation.
+- `git diff --check`: PASS.
+- User-facing shortcut gate: PASS with exact markers in `## User Test Summary`.
+- User Test Summary results gate: WAIVED with exact markers in `## User Test Summary`.
+- Next-workstream selection gate: PASS. FB-048 is selected next, `Registry-only`, and branch-not-created.
+- Live PR state: pending live creation.
