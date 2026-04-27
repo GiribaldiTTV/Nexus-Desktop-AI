@@ -47,7 +47,7 @@ Do not use this layer to replace:
 
 ## Active Branch Authority Records
 
-- `None.`
+- `Docs/branch_records/feature_fb_048_active_session_relaunch_signal_failure_and_wait_timeout_truth.md`
 
 ## Historical Branch Authority Records
 

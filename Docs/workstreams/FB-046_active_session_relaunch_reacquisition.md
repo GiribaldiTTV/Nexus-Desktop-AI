@@ -30,13 +30,13 @@
 Repo State: `Historical Traceability`
 Historical Branch: feature/fb-046-active-session-relaunch-reacquisition
 Historical Active Canonical Workstream Doc Before Merge: Docs/workstreams/FB-046_active_session_relaunch_reacquisition.md
-Latest Public Prerelease: v1.6.10-prebeta
-Latest Public Release Commit: 36cf07495dc8e239b20b11afb5194355b77ffd8b
-Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.10-prebeta
-Latest Public Prerelease Title: Pre-Beta v1.6.10
+Latest Public Prerelease: v1.6.11-prebeta
+Latest Public Release Commit: 4ca70572fbc8033bc96fcd299dd309464e81393a
+Latest Public Prerelease Publication: https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.11-prebeta
+Latest Public Prerelease Title: Pre-Beta v1.6.11
 FB-046 is Released / Closed historical proof in v1.6.10-prebeta.
 Release debt is clear after publication, validation, and post-release canon closure.
-Current successor lane: FB-047 is now the active promoted workstream on `feature/fb-047-active-session-relaunch-decline-preservation`; WS-1 declined relaunch incoming-launch truthful exit proof is complete and validated there, H-1 decline-lifecycle hardening is complete / green, LV-1 is complete / green, and `PR Readiness` is next.
+Current successor lane: FB-047 is now Released / Closed in `v1.6.11-prebeta`, and FB-048 is the active Branch Readiness authority record on `feature/fb-048-active-session-relaunch-signal-failure-and-wait-timeout-truth`; WS-1 accepted relaunch failure-path truthful outcome proof is admitted there, and `Workstream` is next.
 Active seam: None. This record is now preserved released historical truth.
 
 ## Branch Class
@@ -320,7 +320,7 @@ Release Floor: patch prerelease
 Version Rationale: FB-046 remains a bounded runtime/user-facing relaunch-reacquisition refinement on the existing desktop startup family; it does not introduce a new product lane or materially expanded capability family
 Release Scope: completed FB-046 WS-1 accepted relaunch replacement-session settled re-entry proof, H-1 relaunch lifecycle hardening, LV-1 real desktop shortcut evidence, reusable validation evidence, merged-unreleased release-debt truth, and selected-next FB-047 successor lock for the bounded runtime/user-facing lane only
 Release Artifacts: Tag v1.6.10-prebeta; release title Pre-Beta v1.6.10; rich Markdown release notes summarize the bounded FB-046 relaunch-reacquisition runtime/user-facing package, real shortcut evidence, and the FB-047 successor lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-046 is Released / Closed in `v1.6.10-prebeta` after publication and validation; release debt then clears, and FB-047 Branch Readiness may begin only after updated `main` is revalidated and the first bounded runtime/user-facing relaunch-decline preservation slice is admitted
+Post-Release Truth: FB-046 is Released / Closed in `v1.6.10-prebeta`; FB-047 is Released / Closed in `v1.6.11-prebeta`; release debt is clear; and FB-048 is selected next, `Registry-only`, and active on `feature/fb-048-active-session-relaunch-signal-failure-and-wait-timeout-truth` until promotion.
 Selected Next Workstream: FB-047 Active-session relaunch decline session-preservation proof
 Next-Branch Creation Gate: After `v1.6.10-prebeta` is published and validated, updated `main` is revalidated, and FB-047 Branch Readiness admits the first bounded runtime/user-facing relaunch-decline preservation slice; branch creation remains blocked until then
 

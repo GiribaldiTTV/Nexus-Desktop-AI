@@ -7,11 +7,11 @@
 
 ## Record State
 
-- `Promoted`
+- `Closed`
 
 ## Status
 
-- `Merged unreleased (v1.6.11-prebeta)`
+- `Released (v1.6.11-prebeta)`
 
 ## Target Version
 
@@ -23,22 +23,21 @@
 
 ## Current Phase
 
-- Phase: `Release Readiness`
+- Phase: `Release Execution`
 
 ## Phase Status
 
-Merged-Unreleased Release-Debt Owner: FB-047 Active-session relaunch decline session-preservation proof
-Repo State: `No Active Branch`
-Repo State: No Active Branch
-Historical Active Branch Before Merge: `feature/fb-047-active-session-relaunch-decline-preservation`
+Repo State: `Historical Traceability`
+Historical Branch: `feature/fb-047-active-session-relaunch-decline-preservation`
 Historical Active Canonical Workstream Doc Before Merge: `Docs/workstreams/FB-047_active_session_relaunch_decline_preservation.md`
-Latest Public Prerelease: `v1.6.10-prebeta`
-Latest Public Release Commit: `36cf07495dc8e239b20b11afb5194355b77ffd8b`
-Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.10-prebeta`
-Latest Public Prerelease Title: `Pre-Beta v1.6.10`
-FB-046 is `Released / Closed` historical proof in `v1.6.10-prebeta`.
-Release debt is active after merge until `v1.6.11-prebeta` is published, validated, and post-release canon closure completes.
-Active seam: `None.` PR Readiness is complete, FB-048 is selected next as a branch-not-created `Registry-only` successor, and merged-main `Release Readiness` is next after merge.
+Latest Public Prerelease: `v1.6.11-prebeta`
+Latest Public Release Commit: `4ca70572fbc8033bc96fcd299dd309464e81393a`
+Latest Public Prerelease Publication: `https://github.com/GiribaldiTTV/Nexus-Desktop-AI/releases/tag/v1.6.11-prebeta`
+Latest Public Prerelease Title: `Pre-Beta v1.6.11`
+FB-047 is `Released / Closed` historical proof in `v1.6.11-prebeta`.
+Release debt is clear after publication, validation, and post-release canon closure.
+Current successor lane: FB-048 is now the active Branch Readiness authority record on `feature/fb-048-active-session-relaunch-signal-failure-and-wait-timeout-truth`; WS-1 accepted relaunch failure-path truthful outcome proof is admitted there; and `Workstream` is next.
+Active seam: `None.` This record is now preserved released historical truth.
 
 ## Branch Class
 
@@ -69,7 +68,7 @@ None.
 
 ## Next Legal Phase
 
-- `Release Readiness`
+- `None`
 
 ## Purpose / Why It Matters
 
@@ -319,23 +318,23 @@ Governance Drift Found: No.
 Historical Merged-Unreleased Release-Debt Owner At PR Package Time: FB-047 Active-session relaunch decline session-preservation proof
 Historical Repo State At PR Package Time: No Active Branch
 Target Version: v1.6.11-prebeta
-Latest Public Prerelease: v1.6.10-prebeta
-Release Debt: Active after merge until `v1.6.11-prebeta` is published, validated, and post-release canon closure completes
+Latest Public Prerelease: v1.6.11-prebeta
+Release Debt: Cleared after publication, validation, and post-release canon closure
 Release Target: v1.6.11-prebeta
 Release Title: Pre-Beta v1.6.11
 Release Floor: patch prerelease
 Version Rationale: FB-047 remains a bounded runtime/user-facing relaunch-decline preservation refinement on the existing desktop startup family; it does not introduce a new product lane or materially expanded capability family
 Release Scope: completed FB-047 WS-1 declined relaunch incoming-launch truthful exit proof, H-1 decline lifecycle hardening, LV-1 real desktop shortcut evidence, reusable validation evidence, merged-unreleased release-debt truth, and selected-next FB-048 successor lock for the bounded runtime/user-facing lane only
 Release Artifacts: Tag v1.6.11-prebeta; release title Pre-Beta v1.6.11; rich Markdown release notes summarize the bounded FB-047 relaunch-decline preservation runtime/user-facing package, real shortcut evidence, and the FB-048 successor lane without repeating the release title inside the notes body, and GitHub-generated `## What's Changed` plus `**Full Changelog**:` must be included
-Post-Release Truth: FB-047 is Released / Closed in `v1.6.11-prebeta` after publication and validation; release debt then clears, and FB-048 Branch Readiness may begin only after updated `main` is revalidated and the first bounded runtime/user-facing relaunch signal-failure and wait-timeout truth slice is admitted
+Post-Release Truth: FB-047 is Released / Closed in `v1.6.11-prebeta`; release debt is clear; and FB-048 Branch Readiness is complete on `feature/fb-048-active-session-relaunch-signal-failure-and-wait-timeout-truth` with WS-1 admitted.
 Selected Next Workstream: FB-048 Active-session relaunch signal-failure and wait-timeout truth
-Next-Branch Creation Gate: After `v1.6.11-prebeta` is published and validated, updated `main` is revalidated, and FB-048 Branch Readiness admits the first bounded runtime/user-facing relaunch signal-failure and wait-timeout truth slice; branch creation remains blocked until then
+Next-Branch Creation Gate: Satisfied during FB-048 Branch Readiness after `v1.6.11-prebeta` publication, validation, updated-`main` revalidation, and first-slice admission
 
 ## Post-Merge State
 
 - Post-merge repo state: `No Active Branch` because FB-047 will own merged-unreleased release debt on `main` for `v1.6.11-prebeta`.
 - Pending release scope after merge: the completed bounded FB-047 relaunch-decline preservation slice chain only.
-- Successor state after merge: FB-048 remains selected next, `Registry-only`, and branch-not-created until `v1.6.11-prebeta` is published, validated, updated `main` is revalidated, and bounded Branch Readiness admits the first relaunch signal-failure and wait-timeout truth slice.
+- Successor state after merge: FB-048 remains selected next, `Registry-only`, and active on `feature/fb-048-active-session-relaunch-signal-failure-and-wait-timeout-truth` with Branch Readiness complete and WS-1 admitted.
 
 ## Release Window Audit
 
