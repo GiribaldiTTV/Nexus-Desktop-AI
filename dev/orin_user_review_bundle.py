@@ -712,6 +712,7 @@ def _clear_readonly(function, path: str, _exc_info) -> None:
 
 
 def _clear_target(target: Path) -> None:
+    raise RuntimeError("Retired publication mutation route; use the installed selected USER publication owner.")
     try:
         shutil.rmtree(target, onexc=_clear_readonly)
     except TypeError:
@@ -955,6 +956,7 @@ def _legacy_stable_export_zip_path(review_root: Path, label: str) -> Path:
 
 
 def _remove_stale_same_label_export_zips(review_root: Path, label: str, export_zip: Path) -> None:
+    raise RuntimeError("Retired publication mutation route; use the installed selected USER publication owner.")
     safe_label = _sanitize_folder_name(label)
     timestamped_name = re.compile(rf"^{re.escape(safe_label)}-\d{{8}}-\d{{6}}\.zip$")
     candidates = [_legacy_stable_export_zip_path(review_root, label)]
@@ -993,6 +995,7 @@ def _timestamped_export_zip_name_failures(export_zip: Path, expected_label: str)
 
 
 def _write_export_zip(target: Path, export_zip: Path) -> None:
+    raise RuntimeError("Retired publication mutation route; use the installed selected USER publication owner.")
     if target in export_zip.parents or export_zip == target:
         raise ValueError(f"Refusing to write review zip inside bundle folder: {export_zip}")
     export_zip.parent.mkdir(parents=True, exist_ok=True)
@@ -11861,6 +11864,7 @@ def build_bundle(
     review_export_zip: Path | None,
     stage1_outcome: str,
 ) -> tuple[Path, Path]:
+    raise RuntimeError("Retired publication mutation route; use the installed selected USER publication owner.")
     custom_root = review_root_name != DEFAULT_REVIEW_ROOT_NAME
     custom_label = worktree_label is not None
     if (custom_root or custom_label) and not allow_custom_review_path:

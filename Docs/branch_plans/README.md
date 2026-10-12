@@ -29,28 +29,10 @@ Branch Vision and Branch Plan are separate contracts:
 
 The BP2 marker `SLC / Seam Plan:` remains valid for existing packets and historical traceability, but current plans must resolve that marker to a concrete Slice/SLC deliverable map plus seam sequence. Current source truth should prefer `Slice` for canonical package deliverables and use `SLC` only as an alias or historical ID.
 
-## Implementation-Bearing Route Requirement
+## Planning applicability
 
-Every active branch plan for a runtime, product, source-truth, helper, validator, or governance repair carrier must include an implementation-bearing route before BP1 begins. Branch Readiness Stage 2 is allowed to discover infrastructure prerequisites, lane groundwork, and route blockers; it admits the route green only after those blockers are resolved, deferred with a legal alternate route, or converted into an exact USER action gate. BP1 defines the vision for the selected route; BP2 plans how Codex will implement that route; BP3 verifies that the route is ready for bounded Workstream execution.
+A plan describes the approved objective, scope/owner, affected implementation, dependencies, proof, rollback and real USER decisions. Concrete deliverables can include code, documentation, governance enforcement or installation. Carry accepted planning and current actual approval with relevant deltas for an unchanged admitted repair. BP1/BP2/BP3 review applies when new product direction, a material plan/vision decision or branch/scope admission is actually required; it is not replayed merely because execution continues.
 
-BR1 must produce a `BR1 Candidate Viability / Grouping Matrix` before BR2 admits a route. The matrix compares USER-selectable candidates and must name the main feature/package objective, concrete feature outcome, implementation-bearing route class, behavior-change classification, support/infrastructure relationship, Family Feature Vision context, Deferred Feature Carryforward consumed, grouping recommendation, split reason when not grouped, expected Slice/SLC/seam map, proof path, largest safe coherent package explanation, tiny-branch sprawl review, blockers, and exact USER decision needed. Candidate matrix rows are review evidence, not active branch state, selected-next truth, or implementation approval.
-
-Planning-only, readiness-only, support-only, infrastructure-only, manifest-only, registry-only, proof-only, setup/skeleton-only, and choose-later candidates are invalid unless USER grants an exact setup/action gate and the packet names the concrete implemented behavior or control that the branch will enforce. Support work should be grouped into the implementation-bearing package when it shares the same FAM, package objective, route, owner/worktree, release timing, risk class, and validation/proof path. Splitting support or deferred carryforward into tiny branches requires an explicit split reason and future owner.
-
-Required active branch-plan route markers:
-
-- Selected Implementation Route:
-- Implementation Route Class:
-- Concrete Deliverable:
-- Implementation Output:
-- Infrastructure / Setup Relationship:
-- USER Action Gate:
-- Route Disposition:
-- Retarget / Rename Recommendation:
-
-`Selected Implementation Route:` must name a concrete deliverable, not only a planning question, lane label, setup theme, skeleton, packet, registry, or later branch selection. `Concrete Deliverable:` and `Implementation Output:` must identify the user-visible, runtime, source-truth, helper, validator, or governance behavior that this branch will actually complete if later gates are accepted. `Infrastructure / Setup Relationship:` must explain whether any repo/root/remote/lane/skeleton work is execution-enabling for that deliverable, future-gated by USER action, or out of scope.
-
-Real feature implementation means the branch names the behavior, control, surface, state transition, workflow, source-truth enforcement, helper behavior, validator behavior, or runtime behavior that Workstream will create, change, or enforce. Proofs, packets, readiness matrices, registries, setup themes, boundary-control labels, decision paths, and validation plans are not enough by themselves. A boundary-control route is valid only when the branch plan names the actual control behavior that will be implemented or enforced; proof of the boundary is validation evidence, not the deliverable.
 
 ## Concrete USER-Facing Feature Classification Gate
 
@@ -530,7 +512,7 @@ Runtime-focused plans must include:
 
 ## Element-to-Phase Proof Matrix
 
-Runtime/user-facing branches that plan, create, touch, affect, defer, or preserve product/runtime/UI/source-truth/helper/workflow elements must include a USER-reviewable `## Element-to-Phase Proof Matrix` before Workstream implementation begins or resumes.
+Runtime/user-facing branches that plan, create, touch, affect, defer, or preserve product/runtime/UI/source-truth/helper/workflow elements must carry reviewable proof paths for newly admitted or materially changed elements. Reuse accepted coverage for an unchanged approved repair; a repeated matrix is not a continuation prerequisite.
 
 The matrix extends the active Branch Runtime Engineering Plan from external operational state or an approved transition owner and points to the existing Element Validation Ledger owner. It proves the planned Workstream implementation path, Workstream proof path, Hardening proof path, Live Validation proof or waiver path, UTS / USER acceptance path, and current/future boundary for every element before implementation begins. It must not create a new global ledger or duplicate backlog, roadmap, worktree-slot, or Main live state.
 
@@ -549,7 +531,7 @@ Required table shape:
 
 Allowed `Element Classification` values are `Planned`, `Created`, `Touched`, `Affected`, `Deferred`, `Future`, `Dependency-Only`, and `Non-Gating Supporting`.
 
-Every planned/current created/touched/affected user-facing, runtime, UI, provider, validation/helper, source-truth, or workflow element must name a Workstream implementation path, Workstream proof path, Hardening proof path, Live Validation proof or waiver path, and UTS / USER acceptance path before Workstream implementation begins or resumes. Future/deferred/dependency-only/non-gating elements must name the boundary that keeps them out of current release gating. Element IDs must be unique inside the matrix. Missing or incomplete matrix coverage blocks Workstream entry or continuation on `Element-to-Phase Proof Matrix Missing` or `Element-to-Phase Proof Path Missing`.
+Every planned/current created/touched/affected user-facing, runtime, UI, provider, validation/helper, source-truth, or workflow element must name a Workstream implementation path, Workstream proof path, Hardening proof path, Live Validation proof or waiver path, and UTS / USER acceptance path when those elements are newly admitted or materially changed. Unchanged continuation carries accepted coverage. Future/deferred/dependency-only/non-gating elements must name the boundary that keeps them out of current release gating. Element IDs must be unique inside the matrix. Missing or incomplete matrix coverage blocks Workstream entry or continuation on `Element-to-Phase Proof Matrix Missing` or `Element-to-Phase Proof Path Missing`.
 
 ## Runtime Observability Decision Matrix
 
@@ -582,22 +564,8 @@ Rules:
 
 ## Branch Planning Review Packet
 
-BP3 `Workstream Entry / Orchestration Validation` is the pre-implementation review gate inside the `Branch Planning` phase. It must produce USER-reviewable evidence before implementation begins or resumes.
+At a genuine USER plan/implementation decision, return readable applicable planning evidence through the selected external publication owner. Identify one decision, its current owners/scope, affected proof, limits and exact needed approval. Honor requested full detail. An accepted current plan carries into in-scope continuation; another packet or ZIP is not required solely for repair progress. Evidence reviewability is not USER acceptance.
 
-Before USER can green-light Workstream implementation, Codex must return a full, non-compacted Branch Planning / Workstream Entry Review Digest and deliver its selected current review evidence through the current external USER lifecycle owner, routed by `Docs/governance_efficiency_operating_model.md#user-review-hub-rule` to the approved workstream collection.
-
-The bundle should copy the branch vision and planning files the USER needs to inspect, including:
-
-- `USER_BRANCH_VISION_REVIEW.md` when BP1 applies
-- `USER_BRANCH_PLAN_REVIEW.md` when BP2 applies
-- active external Branch Runtime Engineering Plan or transition-approved Branch Engineering Plan
-- Branch Vision Contract Snapshot owner
-- Element-to-Phase Proof Matrix owner
-- branch authority record
-- relevant Nexus Vision and family vision files
-- relevant UFD, Branch Change Intent Ledger, source-truth owner, validator/helper, fixture, or planning files
-
-The review must name exactly one primary USER-facing decision file for the current gate, distinguish supporting digests/checklists and source context, and map copied context back to source-truth paths. Evidence-set organization and transport follow the external USER lifecycle owner; these content roles do not prescribe top-level collections or a whole-folder package layout. The digest must report the local USER hub packet path, copied files, validation summary, exact Branch Planning or Workstream green-light decision requested, and pending USER decisions. Helper output may report branch/head/origin-main freshness, but USER-facing files should not center mutable technical proof metadata. Missing packet proof blocks Workstream entry on `Branch Planning Review Packet Missing`.
 
 ## USER Review Packet Human-Readability QA
 
@@ -762,26 +730,8 @@ Missing or shallow accepted BP1 trace, package summary, branch scope size test, 
 
 ## Workstream Entry Whole-Package Analysis Gate
 
-Runtime-focused branch plans with multiple admitted slices or seams must support whole-package Workstream Entry analysis before implementation begins or resumes.
+Review interacting deliverables and dependencies proportionately before their first implementation or a material change. One coherent slice is valid. Carry accepted direction/planning and qualified evidence into unchanged same-phase repair; only real new decisions, missing approval, safety/proof or phase boundaries block the affected action. Actual runtime/user-facing proof and human-result gates remain applicable.
 
-The active external branch planning owner must let the Workstream Entry packet identify:
-
-- all admitted slices/seams
-- completion strategy for the whole Workstream package
-- first-seam recommendation
-- seam dependency map
-- future-gated or non-included scope
-- preservation surfaces
-- validation plan
-- Hardening H1 expectations
-- Live Validation LV1 expectations
-- visual/user-facing proof requirements
-- UTS handoff criteria
-- exact implementation approval text
-
-First-seam selection alone is not enough. A Workstream Entry packet may recommend the entry implementation seam, but it must also prove that seam fits the full admitted branch package, that bounded continuation remains active until Workstream Green, a real blocker, or an explicit USER waiver, and that it does not create drift against later admitted seams. Missing whole-package analysis blocks Workstream entry on `Workstream Entry Whole-Package Analysis Missing`. This gate plans Hardening and Live Validation obligations; it does not authorize executing Hardening, Live Validation, UTS handoff, PR creation, merge, release work, or runtime implementation without the separately legal phase approval.
-
-Substantive BP3 artifact rule: BP3 `Workstream Entry / Orchestration Validation` must verify Workstream readiness against the accepted or waived BP1 and BP2 contracts. It must confirm implementation scope, orchestration order, validation plan, proof plan, rollback posture, drift controls, unresolved USER decisions, and blockers, then return a clear go/repair/blocked recommendation for Workstream Entry. For runtime/user-facing work, BP3 must confirm that the Runtime Observability Decision Matrix is complete, the exact normal USER desktop runtime launcher path is declared, troubleshooting-mode proof is consent-gated, launcher parity proof is required before troubleshooting launcher equivalence, photo/video proof is planned for visible closeout claims, unphotographable required claims are elevated to USER manual validation or waiver, and the USER packet will include raw evidence references. BP3 cannot be satisfied by helper-green hygiene, a first-seam-only packet, a generic command wall, or implementation-ready wording while BP1/BP2 USER gates remain pending. Weak BP3 packets block on `BP3 Template-Shell Review Artifact`, `Workstream Entry Whole-Package Analysis Missing`, `Packet Validation Treated As USER Acceptance`, or `Review Gate Bypass`.
 
 ## Vision Contract Snapshot Markers
 
@@ -990,23 +940,8 @@ Each overlapping file uses a repeatable block:
 
 When overlap evidence is missing, weak, stale, or conflicting, Codex must run `Rebaseline Overlap Failure Procedure` and return a packet with `Overall Overlap Gate Result:`, per-file `Per-File Result: PASS / WARN / BLOCKED`, `Recommended Resolution:`, `Validation Required:`, `USER Decision Needed:`, and `Rebaseline Mutation Status:`. Fallback evidence supports classification and USER decision-making only; after the effective point it cannot produce `PASS` without branch-owned change-intent evidence.
 
-## Lifecycle
+A new branch or material vision/plan/scope decision receives its applicable USER review. Existing accepted planning and actual implementation approval carry into their in-scope corrections. Workstream records the implemented delta and affected proof; no repeated BP1/BP2/BP3 packet, element ledger or single-slice waiver is required solely for that continuation. Preserve real runtime, phase and human-result prerequisites.
 
-Branch Readiness Stage 1 proposes the plan requirements and returns the USER planning-review decision needed.
-
- Branch Readiness Stage 2 creates or admits `D:\Nexus Desktop AI\Governance State\branches\<branch_slug>\branch_plan.md`, links it from the branch authority record through `Branch Runtime Engineering Plan Path:`, records `Engineering Plan Status:`, and keeps `Runtime Implementation Approval:` pending until a later USER decision admits runtime work. Stage 2 closeout must explicitly tell USER that the active external plan is now the object of the next review gate and that USER may accept, change, waive, or reject the plan before implementation.
-
-Branch Readiness Stage 2 may also deliver a USER-reviewable packet for the admitted branch through the current external USER lifecycle owner, routed by `Docs/governance_efficiency_operating_model.md#user-review-hub-rule`. The selected review must identify one primary active-gate decision and include the applicable external or transition branch plan, branch authority evidence pointer, branch-record index, relevant family/Nexus vision, source-truth routers and compact backlog/roadmap/validator/helper context needed before Workstream implementation approval. Stage 2 closeout must report the review folder path, copied files, validation summary, exact next USER decision requested, and pending USER decisions through helper output or Codex digest rather than making mutable branch status the focus of USER-facing files. Missing local USER hub packet proof, missing/shallow Branch Planning review files, stale packet, packet not loaded/digested, or missing USER response/digest/waiver blocks the handoff on `Branch Readiness Stage 2 Review Bundle Missing`, `BP1 Branch Vision Review Missing`, `BP2 Branch Plan Review Missing`, `USER Review Packet Stale`, or `USER Review Packet Not Digested`.
-
-Branch Readiness Stage 2 also creates or admits the `Element-to-Phase Proof Matrix` when the branch creates, touches, affects, defers, or preserves product/runtime/UI/source-truth elements. BP3 must return that matrix, or a concrete summary of it, for USER review before implementation begins or resumes.
-
-BP1 must return the `USER Branch Vision Review Gate` before engineering plan acceptance. BP2 must return the `USER Branch Plan Review Gate` before BP3 orchestration validation. BP3 must return Workstream Entry / Orchestration Validation before implementation begins or resumes for runtime/user-facing/source-truth work. The packet is the readable "what this branch intends to build and how Codex will build it" handoff, while the active external branch planning owner remains source truth. The BP3 digest must not omit the USER Review Packet: it must either record an explicit waiver or digest the primary review entrypoint, applicable Branch Planning review files, and retained review disposition (including ZIP identity and selected-evidence parity only while transport is pending) as a named `USER Review Packet Finding:` before any implementation approval text is legal. It must also report `USER Review Response:` and `Codex Response Digest:` so the next implementation packet proves USER design input was accepted, revised, rejected, deferred with waiver, or is still blocking.
-
-BP3 reads the accepted/waived BP1 and BP2 plan and returns whole-package analysis plus bounded Workstream package implementation approval text before implementation, naming the entry seam or initial seam sequence. Each Workstream seam updates plan-to-implementation traceability with planned item, changed files, validator proof, user-facing proof, and future-gated decisions.
-
-Workstream seam closeout updates the matrix with implemented, skipped, deferred, or future-gated status. Hardening compares actual implementation against the matrix. Live Validation compares observed behavior, user-facing proof, UTS posture, and waiver posture against the matrix. PR Readiness folds durable matrix outcomes into the branch record, workstream doc, family dossier, or Element Validation Ledger owner.
-
-If a Branch Vision Contract Snapshot is required, Workstream Entry also proves `Branch Vision Snapshot Status: Accepted`, `Open Vision Questions: None` or `Deferred With Waiver`, `USER Vision Green: Yes`, accepted implementation scope, accepted seam map, and accepted stop conditions before implementation begins.
 
 If USER feedback is meaningful to current branch scope, future branch scope, accepted vision, validation proof, or reusable product standards, Workstream Entry and later seam packets must either add or update a UFD item or state the no-action reason.
 

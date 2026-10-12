@@ -1,5 +1,7 @@
 # Governance Process Efficiency Reform Plan
 
+> Historical reform context and accepted evidence. This file grants no current execution authority. Current applicability follows `Docs/Main.md`, `Docs/phase_governance.md` and the selected installed external owner. Preserve dated facts as history.
+
 ## Purpose
 
 This source-truth planning record captures a repo-wide governance and source-truth audit focused on reducing execution errors, reducing prompt/token load, and improving branch-output quality without weakening the safety gates that protect the multi-worktree workflow.

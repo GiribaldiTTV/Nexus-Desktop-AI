@@ -42,6 +42,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.apply:
+        print("BLOCK: retired legacy mutation route; --apply is not current authority")
+        return 1
     root = resolve_path(args.root)
     root_issues = validate_canonical_root(root)
     lock_id = new_lock_id(args.lock_type)

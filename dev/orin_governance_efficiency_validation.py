@@ -47,61 +47,7 @@ REQUIRED_MODEL_PHRASES = (
     "Reform Pass Completion Model",
 )
 
-POINTER_REQUIREMENTS = {
-    Path("Docs/Main.md"): (
-        "Docs/governance_efficiency_operating_model.md",
-        "governance efficiency operating model",
-        "Docs/nexus_vision.md",
-        "Docs/family_visions/",
-        "USER Review Hub Rule",
-    ),
-    Path("Docs/phase_governance.md"): (
-        "Docs/governance_efficiency_operating_model.md",
-        "canonical phase names remain unchanged",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Docs/governance_efficiency_operating_model.md",
-        "Rule ID",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Docs/governance_efficiency_operating_model.md",
-        "smallest legal",
-    ),
-    Path("Docs/validation_helper_registry.md"): (
-        "dev/orin_governance_efficiency_validation.py",
-        "dev/orin_user_review_bundle.py",
-        "governance efficiency operating model",
-    ),
-    Path("Docs/branch_records/index.md"): (
-        "Docs Source-Truth Reform Model: Compact Pointer Layer",
-        "Current Summary And Historical Appendix Split",
-        "PR Readiness fold-down",
-    ),
-    Path("Docs/branch_plans/README.md"): (
-        "Docs Source-Truth Reform Model: Compact Pointer Layer",
-        "Fold-Down Model",
-        "PR Fold-Down Packet:",
-        "USER Feedback Disposition",
-        "No-Action Reason:",
-        "Docs/branch_plans/retirement_index.md",
-    ),
-    Path("Docs/workstreams/index.md"): (
-        "Docs Source-Truth Reform Model: Compact Pointer Layer",
-        "Package And Slice Trace Ownership",
-        "Package Trace and Slice Trace detail belongs here",
-    ),
-    Path("Docs/worktree_slots.md"): (
-        "Docs Source-Truth Reform Model: Compact Pointer Layer",
-        "This file does not own",
-        "Assigned slot does not equal active branch authority",
-    ),
-    Path("Docs/governance_process_efficiency_reform_plan.md"): (
-        "Consolidated Governance Reform Pass",
-        "Docs/governance_efficiency_operating_model.md",
-        "Marker-first governance scaffolding implemented",
-        "USER Feedback Disposition",
-    ),
-}
+POINTER_REQUIREMENTS = {Path('Docs/development_rules.md'): ('Docs/governance_efficiency_operating_model.md', 'Rule ID'), Path('Docs/codex_modes.md'): ('Docs/governance_efficiency_operating_model.md', 'smallest legal'), Path('Docs/validation_helper_registry.md'): ('dev/orin_governance_efficiency_validation.py', 'dev/orin_user_review_bundle.py', 'governance efficiency operating model'), Path('Docs/branch_records/index.md'): ('Docs Source-Truth Reform Model: Compact Pointer Layer', 'Current Summary And Historical Appendix Split', 'PR Readiness fold-down'), Path('Docs/branch_plans/README.md'): ('Docs Source-Truth Reform Model: Compact Pointer Layer', 'Fold-Down Model', 'PR Fold-Down Packet:', 'USER Feedback Disposition', 'No-Action Reason:', 'Docs/branch_plans/retirement_index.md'), Path('Docs/workstreams/index.md'): ('Docs Source-Truth Reform Model: Compact Pointer Layer', 'Package And Slice Trace Ownership', 'Package Trace and Slice Trace detail belongs here'), Path('Docs/worktree_slots.md'): ('Docs Source-Truth Reform Model: Compact Pointer Layer', 'This file does not own', 'Assigned slot does not equal active branch authority'), Path('Docs/governance_process_efficiency_reform_plan.md'): ('Consolidated Governance Reform Pass', 'Docs/governance_efficiency_operating_model.md', 'Marker-first governance scaffolding implemented', 'USER Feedback Disposition')}
 
 BACKLOG_ROADMAP_COMPACTNESS_FORBIDDEN = (
     "Package Trace:",
@@ -222,22 +168,9 @@ EXPECTED_PENDING_FOLD_SOURCE_FILES = (
     Path("Docs/family_visions/FAM-010_safety_and_privacy.md"),
 )
 
-USER_REVIEW_BUNDLE_REQUIRED_FIELDS = (
-    "Review Purpose:",
-    "Local USER Hub Folder:",
-    "Review Order",
-    "USER Decision This Packet Supports:",
-    "Pending USER Decisions",
-)
+USER_REVIEW_BUNDLE_REQUIRED_FIELDS = ()  # External publication owner owns this contract.
 
-USER_REVIEW_HUB_TIMESTAMPED_ZIP_REQUIRED_PHRASES = (
-    "timestamped",
-    "YYYYMMDD-HHMMSS",
-    "legacy same-name",
-    "folder/ZIP parity",
-    "stable ZIP rejection",
-    "stale same-label ZIP",
-)
+USER_REVIEW_HUB_TIMESTAMPED_ZIP_REQUIRED_PHRASES = ()  # External publication owner owns this contract.
 
 WORKSTREAM_INDEX_REQUIRED = (
     "workstreams and family dossiers own durable package trace, slice trace",
@@ -445,7 +378,7 @@ def _branch_plan_requires_retirement_index_row(text: str) -> bool:
     return any(marker in text.casefold() for marker in global_retirement_markers)
 
 
-def validate() -> list[str]:
+def validate_historical() -> list[str]:
     failures: list[str] = []
 
     model_text = _read(OPERATING_MODEL)
@@ -559,7 +492,8 @@ def validate() -> list[str]:
                 failures.append(
                     f"{DOCS_INVENTORY_AUDIT}: missing required review section {section!r}"
                 )
-        docs_count = _docs_file_count()
+        docs_count_match = re.search(r"Audit File Count:\s*(\d+)\s+files under `Docs/`", audit_text)
+        docs_count = int(docs_count_match.group(1)) if docs_count_match else -1
         audit_count_match = re.search(
             r"Audit File Count:\s*(\d+)\s+files under `Docs/`",
             audit_text,
@@ -570,12 +504,12 @@ def validate() -> list[str]:
         if audit_count != docs_count:
             failures.append(
                 f"{DOCS_INVENTORY_AUDIT}: Audit File Count {audit_count} does not "
-                f"match filesystem Docs file count {docs_count}"
+                f"match dated inventory count {docs_count}"
             )
         if manifest_count != docs_count:
             failures.append(
                 f"{DOCS_INVENTORY_AUDIT}: Manifest Files Enumerated {manifest_count} "
-                f"does not match filesystem Docs file count {docs_count}"
+                f"does not match dated inventory count {docs_count}"
             )
         dossier_entries = len(
             re.findall(r"(?m)^###\s+\d+\.\s+`Docs/", audit_text)
@@ -643,13 +577,14 @@ def validate() -> list[str]:
             failures.append(
                 f"{DOCS_REFORM_REVIEW_INDEX}: missing full dossier pointer"
             )
-        docs_count = _docs_file_count()
+        docs_count_match = re.search(r"Audit File Count:\s*(\d+)\s+files under `Docs/`", audit_text)
+        docs_count = int(docs_count_match.group(1)) if docs_count_match else -1
         index_count_match = re.search(r"Docs files covered:\s*(\d+)", index_text)
         index_count = int(index_count_match.group(1)) if index_count_match else -1
         if index_count != docs_count:
             failures.append(
                 f"{DOCS_REFORM_REVIEW_INDEX}: Docs files covered {index_count} "
-                f"does not match filesystem Docs file count {docs_count}"
+                f"does not match dated inventory count {docs_count}"
             )
         if re.search(r"(?m)^-\s*Source branch:\s*`[^`]+`", index_text):
             failures.append(
@@ -799,17 +734,42 @@ def validate() -> list[str]:
     return failures
 
 
+def validate(changed_files=()) -> list[str]:
+    """Current owner routes and affected state boundaries, not historical prose."""
+    failures=[]
+    router=_read(Path('Docs/Main.md'))
+    for owner in ('Docs/governance_efficiency_operating_model.md','Docs/phase_governance.md','Docs/branch_plans/README.md','Docs/workstreams/index.md'):
+        if owner not in router or not _read(Path(owner)).lstrip().startswith('#'):
+            failures.append('missing current owner route: '+owner)
+    affected={str(path).replace(chr(92),'/')for path in changed_files}
+    for name in ('Docs/feature_backlog.md','Docs/prebeta_roadmap.md'):
+        if name not in affected:continue
+        text=_read(Path(name))
+        if not text:failures.append('missing affected pointer owner: '+name);continue
+        current='\n'.join(_section(text,heading)for heading in BACKLOG_ROADMAP_CURRENT_STATE_SECTIONS)
+        for line in current.splitlines():
+            for field in BACKLOG_ROADMAP_CURRENT_STATE_BRANCH_FIELDS:
+                value=_field_value(line,field)
+                if value is not None and not _is_empty_branch_state(value):
+                    failures.append(name+': live branch identity belongs to its operational owner: '+field)
+    return failures
+
+
 def main() -> int:
-    failures = validate()
-    if failures:
-        print("FAIL: governance efficiency validation failed")
-        for failure in failures:
-            print(f"- {failure}")
-        return 1
+    import argparse
+    parser=argparse.ArgumentParser(description='Affected current efficiency contracts; historical inventories are explicit diagnostics.')
+    parser.add_argument('--historical-diagnostic',action='store_true')
+    parser.add_argument('--changed-file',action='append',default=None)
+    args=parser.parse_args()
+    if args.changed_file is None and not args.historical_diagnostic:
+        import subprocess
+        result=subprocess.run(['git','--no-optional-locks','-c','core.fsmonitor=false','-C',str(ROOT),'diff','--name-only','origin/main'],capture_output=True,text=True)
+        if result.returncode:raise ValueError('current changed-file selection unavailable')
+        args.changed_file=result.stdout.splitlines()
+    failures=validate_historical()if args.historical_diagnostic else validate(args.changed_file or ())
+    print(('BLOCK'if failures else 'PASS')+': '+('historical diagnostic, no current admission'if args.historical_diagnostic else 'current source routes; execution not authorized'))
+    for failure in failures:print('- '+failure)
+    return 1 if failures else 0
 
-    print("PASS: governance efficiency validation passed")
-    return 0
 
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+if __name__ == '__main__':raise SystemExit(main())

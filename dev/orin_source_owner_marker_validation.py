@@ -40,7 +40,7 @@ def strip_comments(p: Path) -> str:
     text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
     return re.sub(r"//.*", "", text)
 
-def validate() -> list[str]:
+def validate_historical_adoption() -> list[str]:
     fails: list[str] = []
     inv = read(INV) if (ROOT / INV).exists() else ""
     if not inv: fails.append(f"{INV}: inventory artifact is missing")
@@ -97,10 +97,43 @@ def validate() -> list[str]:
         if token not in branch_record: fails.append(f"Compact-AI preservation/fold-down source truth missing {token!r}")
     return fails
 
+def validate() -> list[str]:
+    """Current marker syntax and product exclusion; old inventory is not live authority."""
+    fails = []
+    for path in files():
+        seen = set()
+        for number, line in enumerate(read(path).splitlines(), 1):
+            if PFX not in line or not is_comment(path, line):
+                continue
+            values = dict(KV.findall(line))
+            if values.get('schema') != 'source-owner-v1' or not all(values.get(k) for k in ('owner', 'ledger', 'surface', 'status')):
+                fails.append(f'{path}:{number}: malformed source owner metadata')
+            if values.get('status') not in {'canonical', 'shared', 'external'}:
+                fails.append(f'{path}:{number}: unsupported source owner status')
+            if values.get('owner') not in {'FAM006-HUD', 'FAM007-AI', 'GOV-SOURCE-TRUTH', 'RELEASE-READINESS', 'VALIDATOR-HELPER', 'SHARED-DESKTOP-CORE', 'SHARED-DOCS', 'COMPACT-AI-PROTECTED', 'HISTORICAL-EVIDENCE'}:
+                fails.append(f'{path}:{number}: unsupported source owner role')
+            if not LEDGER.fullmatch(values.get('ledger', '')):
+                fails.append(f'{path}:{number}: malformed historical ledger reference')
+            if values.get('surface') in seen:
+                fails.append(f'{path}:{number}: duplicate source owner surface')
+            seen.add(values.get('surface'))
+    for path in PROD:
+        if not (ROOT / path).is_file():
+            fails.append(f'{path}: production surface missing')
+            continue
+        text = strip_comments(path).casefold()
+        for token in FORBID:
+            if token.casefold() in text:
+                fails.append(f'{path}: source owner metadata leaked into production')
+    return fails
+
 if __name__ == "__main__":
-    failures = validate()
-    if failures:
-        print("FAIL: source owner marker validation failed")
-        for f in failures: print(f"- {f}")
-        raise SystemExit(1)
-    print("PASS: source owner marker validation passed")
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--historical-adoption', action='store_true', help='Validate dated first-pass inventory as historical evidence.')
+    args = parser.parse_args()
+    failures = validate_historical_adoption() if args.historical_adoption else validate()
+    print('BLOCK' if failures else 'PASS', ': source owner metadata validation')
+    for failure in failures:
+        print('- ' + failure)
+    raise SystemExit(bool(failures))

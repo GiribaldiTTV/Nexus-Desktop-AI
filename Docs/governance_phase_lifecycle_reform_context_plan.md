@@ -1,5 +1,7 @@
 # Governance Phase Lifecycle Reform And USER Hub Context Plan
 
+> Historical reform context and accepted evidence. This file grants no current execution authority. Current applicability follows `Docs/Main.md`, `Docs/phase_governance.md` and the selected installed external owner. Preserve dated facts as history.
+
 Plan Label: Governance Phase Lifecycle Reform and USER Hub Context Plan
 
 Status: Active governance context plan for the standing Governance intake branch.

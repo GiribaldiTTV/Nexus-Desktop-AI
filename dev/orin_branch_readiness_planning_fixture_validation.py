@@ -14012,7 +14012,7 @@ line item, not a seam or separate branch.
     return failures
 
 
-def main() -> int:
+def historical_main() -> int:
     failures = validate()
     if failures:
         print("FAIL: Branch Readiness planning fixture validation failed")
@@ -14024,5 +14024,75 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+def main() -> int:
+    import argparse,hashlib,subprocess,sys,tempfile
+    import ast,copy
+    parser=argparse.ArgumentParser(description='Current binding/refusal fixtures; broad historical planning diagnostics are explicit.')
+    parser.add_argument('--historical-diagnostic',action='store_true')
+    args=parser.parse_args()
+    if args.historical_diagnostic:return historical_main()
+    failures=[]
+    tree=ast.parse((ROOT/'dev/orin_branch_governance_validation.py').read_bytes())
+    nodes=[node for node in tree.body if isinstance(node,ast.FunctionDef)and node.name=='_current_infrastructure_pr_proof']
+    current={};exec(compile(ast.Module(body=nodes,type_ignores=[]),'<current infrastructure PR fixtures>','exec'),current)
+    current_proof=current['_current_infrastructure_pr_proof']
+    facts={'head':'1'*40,'branch':'feature/fixture','mergeBase':'2'*40,'originMain':'2'*40,'dirt':[]}
+    assignment={'phase':'PR Readiness','base':'2'*40,'canonicalMainMutation':False}
+    qualification={'result':'PASS','sourceSHA256':'A'*64}
+    pr={'state':'OPEN','headRefName':'feature/fixture','headRefOid':'1'*40,'baseRefName':'main','isDraft':False,'mergeable':'MERGEABLE','statusCheckRollup':[{'__typename':'CheckRun','status':'COMPLETED','conclusion':'SUCCESS'}],'reviewDecision':'APPROVED'}
+    review={'result':'PASS','head':'1'*40,'reviewer':'/root/distinct-fixture-reviewer'}
+    scenarios=[('infra-positive',{}, {}, {}, {},'PASS'),('infra-missing-PR',{}, {},None,{},'PENDING'),('infra-missing-checks',{}, {},{'statusCheckRollup':[]},{},'PENDING'),('infra-missing-review',{}, {},{},None,'PENDING'),('infra-stale-head',{}, {},{'headRefOid':'0'*40},{},'BLOCK'),('infra-dirty',{'dirt':[' M file']},{},{},{},'BLOCK'),('infra-main-drift',{'originMain':'3'*40},{},{},{},'BLOCK'),('infra-stale-qualification',{}, {'sourceSHA256':'B'*64},{},{},'BLOCK'),('infra-skipped-only',{}, {},{'statusCheckRollup':[{'__typename':'CheckRun','status':'COMPLETED','conclusion':'SKIPPED'}]},{},'PENDING')]
+    for label,change_facts,change_q,change_pr,change_review,expected in scenarios:
+        result=current_proof({**facts,**change_facts},assignment,{**qualification,**change_q},'A'*64,None if change_pr is None else{**copy.deepcopy(pr),**change_pr},None if change_review is None else{**review,**change_review})
+        if result['result']!=expected:failures.append(label+': '+str(result))
+    for label,changes in [('infra-closed',{'state':'CLOSED'}),('infra-pending-plus-failure',{'statusCheckRollup':[{'__typename':'CheckRun','status':'IN_PROGRESS'},{'__typename':'CheckRun','status':'COMPLETED','conclusion':'FAILURE'}]}),('infra-pending-plus-requested-changes',{'statusCheckRollup':[{'__typename':'CheckRun','status':'IN_PROGRESS'}],'reviewDecision':'CHANGES_REQUESTED'})]:
+        result=current_proof(facts,assignment,qualification,'A'*64,{**copy.deepcopy(pr),**changes},review)
+        if result['result']!='BLOCK':failures.append(label+': adverse current evidence hidden as pending')
+    result=current_proof(facts,assignment,qualification,'A'*64,{**copy.deepcopy(pr),'statusCheckRollup':[],'reviewDecision':'CHANGES_REQUESTED'},review)
+    if result['result']!='BLOCK':failures.append('infra-no-checks-requested-changes: adverse review hidden as pending')
+    for label,changes,expected in [('infra-review-required',{'reviewDecision':'REVIEW_REQUIRED'},'PENDING'),('infra-review-null-unverified',{'reviewDecision':None},'PENDING'),('infra-review-null-not-required',{'reviewDecision':None,'capturedReviewPolicy':{'capture':'DIRECT_GITHUB_API','legacyRequiredReviews':0,'rulesRequiredReviews':0}},'PASS')]:
+        result=current_proof(facts,assignment,qualification,'A'*64,{**copy.deepcopy(pr),**changes},review)
+        if result['result']!=expected:failures.append(label+': '+str(result))
+    main_node=next(node for node in tree.body if isinstance(node,ast.FunctionDef)and node.name=='main')
+    infra=next(node for node in ast.walk(main_node)if isinstance(node,ast.If)and 'SOURCE_TRUTH_GOVERNANCE_INFRASTRUCTURE'in ast.unparse(node.test))
+    calls={node.func.id for node in ast.walk(infra)if isinstance(node,ast.Call)and isinstance(node.func,ast.Name)}
+    if calls&{'_parse_backlog_sections','_run_pr_readiness_gate','_run_release_readiness_health_gate'}:failures.append('current infrastructure dispatch reaches historical product gate')
+    cases=(('current-source',[], 'PASS'),('missing-assignment',['--worktree-confinement-gate'],'BLOCK'),
+           ('missing-PR-authority',['--pr-readiness-gate'],'BLOCK'),('missing-release-authority',['--release-readiness-health-gate'],'BLOCK'),
+           ('retired-standing-route',['--standing-governance-intake-gate'],'BLOCK'),
+           ('source-mode-authority',['--authorization-sha256','A'*64],'BLOCK'))
+    for label,operands,expected in cases:
+        result=subprocess.run([sys.executable,'-B',str(ROOT/'dev/orin_branch_governance_validation.py'),*operands],cwd=ROOT,capture_output=True,text=True,timeout=20)
+        try:
+            proof=json.loads(result.stdout)
+            if proof.get('result')!=expected or proof.get('executionAuthorized')is not False:raise ValueError('wrong disposition or implicit execution authority')
+        except (ValueError,TypeError)as error:failures.append(label+': '+str(error))
+    evidence=Path(r'D:\Nexus Desktop AI\USER\Governance\Checkpoint1-Completion-Scoped-Repair-20260911\continuation-000006\connected-repair-20261011')
+    count=len(cases)+len(scenarios)+8
+    with tempfile.TemporaryDirectory(prefix='product-binding-fixture-',dir=evidence)as directory:
+        folder=Path(directory);authority=folder/'owner.md';assignment=folder/'assignment.json'
+        approval=Path(r'C:\Users\anden\.codex\attachments\54ab6877-d801-47b3-8c1e-f48e70b2a2f2\Pasted text.txt')
+        digest=lambda path:hashlib.sha256(path.read_bytes()).hexdigest().upper()
+        git=lambda *args:subprocess.check_output(['git','-C',str(ROOT),*args],text=True,timeout=15).strip()
+        head=git('rev-parse','HEAD');branch=git('branch','--show-current');base=git('merge-base','HEAD','origin/main')
+        body=f'## Current Phase\n\nPhase: `Workstream`\nCurrent HEAD: `{head}`\nBranch: `{branch}`\nWorktree: `{ROOT}`\nPreserved Dirt Disposition: `SOLE_WRITER_PRESERVED`\n'
+        authority.write_text(body,encoding='utf8')
+        row={'root':str(ROOT),'head':head,'branch':branch,'base':base,'phase':'Workstream','owner':'fixture-only','scope':'read-only fixture','canonicalMainMutation':False,'authorizationSHA256':digest(approval),'selectedOwner':{'path':str(authority),'sha256':digest(authority)}}
+        for label,change,expected in [('valid-selected-read-only',{},'PASS'),('wrong-head',{'head':'0'*40},'BLOCK'),('wrong-root',{'root':str(folder)},'BLOCK'),('wrong-phase',{'phase':'Live Validation'},'BLOCK'),('wrong-approval',{'authorizationSHA256':'A'*64},'BLOCK'),('unselected-owner',{'selectedOwner':{'path':str(authority),'sha256':'A'*64}},'BLOCK'),('release-health-inapplicable',{'phase':'Release Readiness'},'BLOCK')]:
+            if label=='release-health-inapplicable':
+                authority.write_text(body.replace('`Workstream`','`Release Readiness`'),encoding='utf8');change['selectedOwner']={'path':str(authority),'sha256':digest(authority)}
+            assignment.write_text(json.dumps({**row,**change}),encoding='utf8')
+            operands=['--worktree-confinement-gate','--current-assignment',str(assignment),'--assignment-sha256',digest(assignment),'--approval-file',str(approval),'--authorization-sha256',digest(approval),'--current-authority',str(authority),'--current-authority-sha256',digest(authority)]
+            if label=='release-health-inapplicable':operands[0]='--release-readiness-health-gate'
+            run=subprocess.run([sys.executable,'-B',str(ROOT/'dev/orin_branch_governance_validation.py'),*operands],cwd=ROOT,capture_output=True,text=True,timeout=20)
+            try:
+                value=json.loads(run.stdout)
+                if value.get('result')!=expected or value.get('executionAuthorized')is not False:raise ValueError(str(value.get('failures')))
+            except (ValueError,TypeError)as error:failures.append(label+': '+str(error))
+            count+=1
+    print(('BLOCK'if failures else 'PASS')+f': {count} current binding/source/refusal fixtures; no actual operational assignment or execution authority created')
+    for failure in failures:print('- '+failure)
+    return 1 if failures else 0
+
+
+if __name__=='__main__':raise SystemExit(main())

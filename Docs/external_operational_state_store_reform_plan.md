@@ -1,4 +1,6 @@
 # External Operational State Store / Release Debt Abolition Reform Plan
+
+> Historical reform context and accepted evidence. This file grants no current execution authority. Current applicability follows `Docs/Main.md`, `Docs/phase_governance.md` and the selected installed external owner. Preserve dated facts as history.
 ## Purpose
 
 This planning reference preserves the agreed External Operational State Store / Release Debt Abolition reform so future Governance branch work can implement it without losing scope, sequencing, safeguards, or USER decisions.

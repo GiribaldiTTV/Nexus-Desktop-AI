@@ -101,20 +101,7 @@ PHASE_COMMANDS: dict[str, tuple[ValidationCommand, ...]] = {
 }
 
 
-ALWAYS_USEFUL_COMMANDS = (
-    ValidationCommand(
-        r"python dev\orin_release_body_validation.py",
-        "keeps public release-note governance from drifting during source-truth work",
-    ),
-    ValidationCommand(
-        r"python dev\orin_ai_provider_state_validation.py",
-        "keeps FAM-007 provider-state contracts green when shared docs move",
-    ),
-    ValidationCommand(
-        r"python -m compileall -q dev desktop Audio main.py",
-        "checks Python syntax for validator/helper/runtime surfaces",
-    ),
-)
+ALWAYS_USEFUL_COMMANDS = ()  # Unrelated checks are not routine prerequisites.
 
 
 def _run_git_diff_names() -> tuple[str, ...]:
@@ -171,7 +158,7 @@ def _surface_commands(changed_files: tuple[str, ...]) -> tuple[ValidationCommand
         commands.append(
             ValidationCommand(
                 r"python dev\orin_branch_governance_validation.py --release-readiness-health-gate",
-                "shared source-truth files changed, so release-readiness health must be rechecked",
+                "checks the affected source projection; recommendation is not executed proof",
             )
         )
     if "source_owner_marker" in normalized or "source-owner" in normalized:
@@ -185,10 +172,19 @@ def _surface_commands(changed_files: tuple[str, ...]) -> tuple[ValidationCommand
 
 
 def build_suite(phase: str, changed_files: tuple[str, ...]) -> list[ValidationCommand]:
-    commands = [*BASE_COMMANDS]
-    commands.extend(PHASE_COMMANDS.get(phase, ()))
-    commands.extend(_surface_commands(changed_files))
-    commands.extend(ALWAYS_USEFUL_COMMANDS)
+    commands = [ValidationCommand("git diff --check origin/main", "checks tracked prospective branch and uncommitted whitespace; untracked files need their applicable syntax checks")]
+    if any(path.replace(chr(92), '/').startswith(('Docs/', 'dev/orin_')) for path in changed_files):
+        commands.append(ValidationCommand(r"python -B dev\orin_branch_governance_validation.py", "validates current owner routes and applicable source contracts"))
+    if phase not in ('governance','branch-readiness'):
+        commands.extend(command for command in PHASE_COMMANDS.get(phase, ()) if "orin_branch_governance_validation.py --" not in command.command)
+    normalized={path.replace(chr(92),'/').casefold()for path in changed_files}
+    if any(path in normalized for path in ('dev/orin_governance_efficiency_validation.py','Docs/governance_efficiency_operating_model.md'.casefold(),'Docs/feature_backlog.md'.casefold(),'Docs/prebeta_roadmap.md'.casefold())):
+        affected=[path for path in changed_files if path.replace(chr(92),'/').casefold()in {'docs/feature_backlog.md','docs/prebeta_roadmap.md'}]
+        operands=''.join(' --changed-file '+subprocess.list2cmdline([path])for path in affected)
+        commands.append(ValidationCommand(r"python -B dev\orin_governance_efficiency_validation.py"+operands, "checks affected current route integrity and compact state boundaries"))
+    if 'dev/orin_branch_readiness_planning_fixture_validation.py' in normalized:
+        commands.append(ValidationCommand(r"python -B dev\orin_branch_readiness_planning_fixture_validation.py", "checks affected current binding refusal fixtures"))
+    commands.extend(command for command in _surface_commands(changed_files) if "orin_branch_governance_validation.py --" not in command.command)
     return _dedupe(commands)
 
 
@@ -226,7 +222,7 @@ def main() -> int:
         "--changed-file",
         action="append",
         default=None,
-        help="Changed file path. Omit to inspect git diff --name-only origin/main...HEAD.",
+        help="Changed file path. Omit to include committed, unstaged, staged and untracked changes.",
     )
     parser.add_argument("--format", choices=("text", "json"), default="text")
     args = parser.parse_args()

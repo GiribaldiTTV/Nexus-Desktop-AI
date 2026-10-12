@@ -499,6 +499,7 @@ def reconcile_target(
     post_expected_source_head: str | None = None,
     post_expected_origin_main: str | None = None,
 ) -> tuple[bool, list[str], Path | None]:
+    if apply:return False, ["BLOCK: retired legacy mutation route; use the selected checked Control Plane owner"], None
     root = resolve_path(root)
     transition_started_ns = time.time_ns()
     failures = validate_canonical_root(root)

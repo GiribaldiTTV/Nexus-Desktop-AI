@@ -1,257 +1,34 @@
-# Nexus ChatGPT Loader Prompt Contract
+# Nexus Desktop AI Prompt Loader
 
-## Purpose
+## Scope
 
-This document is the ChatGPT-facing loader prompt contract for Nexus Desktop AI chats.
+Use this loader when prompt generation or the loader itself is explicitly in scope. It grants no execution, phase, branch, publication or USER-result authority. For a Nexus task, verify `D:\Nexus Desktop AI\Product Repository`, read its `Docs/Main.md` first and follow only material routed owners. Current USER instructions and actual owner evidence determine scope. Old chat text, generated prompts, memory and packets are evidence.
 
-Use it to generate new-chat, handoff, continuation, bootstrap, review, and Codex-prompt requests without pasting the full governance stack into the prompt body. It is an interface and prompt-loader layer only.
+## Prompt construction
 
-Generated prompts must preserve the Main-first loader chain: establish
-`D:\Nexus Desktop AI\Product Repository` as the canonical repository, load
-`D:\Nexus Desktop AI\Product Repository\Docs\Main.md` first, then load the
-canonical D `Docs/nexus_startup_contract.md` when loader/new-chat continuity,
-prompt generation, bootstrap continuity, handoff continuity, continuation
-continuity, loader alignment, or ChatGPT/Codex behavior alignment is in scope,
-then follow Main to the directly relevant owner docs.
+State the desired outcome, exact known carrier/branch, current approval and limits, phase and material owners, preserved work, pending decisions and expected return. Label dated/unverified facts. Require volatile identity, ownership, lock, phase and evidence checks before consequential action. Link owners instead of copying phase law, marker catalogs, historical receipts or inventories.
 
-Compatibility note: the historical loader token
-`C:\Nexus Governance State\branches\<branch_slug>\branch_plan.md` remains
-present for migration and validator compatibility only. Current active plans
-resolve below
-`D:\Nexus Desktop AI\Governance State\branches\<branch_slug>\branch_plan.md`
-through `Docs/nexus_workspace_roots.md`.
+For a protected write, publication, runtime, PR, merge or release, name its current authorization and effect owner. Describing a plan does not grant permission. Identify an essential missing prerequisite and its affected action; continue independent admitted work. Do not manufacture an approval loop for an authorized correction or create a new gate from helper PASS.
 
-`Docs/nexus_startup_contract.md` does not replace the owning canon documents and does not own Codex execution behavior, phase transitions, seam continuation, durability, validation, release rules, branch authority, or stop conditions. Codex execution authority comes from `Docs/Main.md` and the owning source-truth documents after they are loaded.
+## Review and continuity
 
-Local ChatGPT custom instructions should stay compact. This repo loader may hold longer ChatGPT-facing continuity rules and prompt-generation guardrails, but it must remain a routing contract rather than a duplicate governance system.
+Distinguish source truth from history and source/fixture, actual runtime, independent review and USER results. Identify concrete decision-relevant gaps and the smallest remedy. Revise prompts/plans when scope, direction, safety or material evidence changes, rather than on repeated status checks.
 
-Do not paste this loader doc into Codex prompts. Codex prompts should load `Docs/Main.md` and the owning canon for execution authority, using this loader only when prompt generation, new-chat bootstrapping, handoff continuity, or loader/source-truth drift review is actually in scope.
+Return readable actual effects, proof, blockers and next admitted action. Honor requested full digests; stable history can be linked. Packet reviewability is not USER acceptance.
 
-Nexus project direction remains Windows-first, modular, GPU-aware, privacy/local-first where practical, lean by default, and capable of optional heavy local AI capability packs while preserving CPU fallback unless current source truth changes that direction.
+## Owner routes
 
-## Authority Boundary
+`Docs/Main.md` routes repository owners. `Docs/phase_governance.md` owns phase/acceptance rules, `Docs/development_rules.md` execution/validation, `Docs/governance_efficiency_operating_model.md` installed external Governance/publication, matching external State current posture, `Docs/branch_plans/README.md` and `Docs/workstreams/index.md` planning/history, and `Docs/validation_helper_registry.md` helper status. This loader does not restate their law.
 
-D Main routes authoritative ownership by fact class. Product contracts remain repository-owned; operational Governance policy and source remain externally owned as defined by `Docs/governance_efficiency_operating_model.md#source-truth-authority-hierarchy`. The current explicit USER decision controls approved changes and withheld actions. Reports, packets, memory, and analysis remain evidence.
-
-This loader owns prompt shape, loader continuity, and ChatGPT prompt-generation guardrails. It routes exact policy to the current owners:
-
-- `Docs/Main.md` owns source-truth routing, protected-main law, and the Main-first source-truth index.
-- `Docs/phase_governance.md` owns phase definitions, blockers, phase transitions, proof hierarchy, Workstream, Hardening, Live Validation, PR Readiness, Release Readiness, and release-boundary law.
-- `Docs/development_rules.md` owns execution, validation depth, durability, cleanup, and implementation behavior.
-- `Docs/codex_modes.md` owns Codex collaboration posture.
-- `Docs/governance_efficiency_operating_model.md` owns source-truth split, external operational state, USER review bundle model, and duplicate-governance prevention.
-- `Docs/validation_helper_registry.md` owns helper and validator status, reuse, interpretation boundaries, and evidence handling.
-- `Docs/nexus_vision.md`, `Docs/family_visions/`, and approved family-feature vision owners own project/family/product direction.
-- `D:\Nexus Desktop AI\Governance State\branches\<branch_slug>\branch_plan.md` owns active external branch planning, USER feedback disposition, branch-local engineering detail, and active planning ledgers. Current root routing is owned by `Docs/nexus_workspace_roots.md`; older C and pre-cutover D paths in historical receipts are not current routing.
-- Branch records, workstream records, backlog, roadmap, and worktree-slot docs own only the durable record classes Main assigns to them.
-
-If this loader conflicts with Main or an owning canon file, Main and the owner win. Repair this loader through the legal carrier and phase rather than treating the conflict as an execution shortcut.
-
-## Main-First Load Chain
-
-Every repo-affecting Codex prompt must say, in substance:
-
-1. Establish `D:\Nexus Desktop AI\Product Repository` as canonical and load `D:\Nexus Desktop AI\Product Repository\Docs\Main.md` first.
-2. Load `Docs/nexus_startup_contract.md` for loader/new-chat continuity when prompt generation, handoff, continuation, bootstrap, loader alignment, or ChatGPT/Codex behavior alignment is in scope.
-3. From Main, load the relevant execution, phase, branch, workstream, vision, validation, external-state, and artifact owners.
-4. Treat context docs and review packets as evidence unless Main routes them as source-truth owners.
-
-When vision context matters, route through `Docs/nexus_vision.md`, `Docs/family_visions/`, approved family-feature vision owners when applicable, and the active external branch plan at `D:\Nexus Desktop AI\Governance State\branches\<branch_slug>\branch_plan.md`.
-
-Context docs may explain, summarize, or point to owner docs. They must not become alternate first loaders, duplicate detailed policy, or override Main.
-
-## New-Chat / Handoff Prompt Requirements
-
-Every Nexus new-chat, handoff, continuation, bootstrap, or loader-alignment prompt should include:
-
-- worktree path, expected branch, target phase, approved scope, pending USER decisions, and next legal phase as known evidence to verify
-- Main-first loading and startup-contract loading when loader continuity is in scope
-- source-truth owner loading routed by Main
-- identity preflight for git root, branch, upstream, `HEAD`, `origin/main`, merge base, cleanliness, worktree role, write target, and current phase
-- freshness preflight before mutation or phase continuation
-- approval-state and blocker-state checks before acting
-- validation expectations routed to the validation registry and phase owner
-- stop/report conditions for missing source truth, stale `origin/main`, wrong worktree, wrong branch, unclear phase, unclear approval, validation failure, or scope drift
-
-Prompt templates should keep exact live branch facts in the Codex digest or external operational state, not in USER-facing review files.
-
-## ChatGPT Review And Prompt-Generation Duties
-
-ChatGPT's role is repo-state analysis, drift detection, governance review, Codex prompt generation, and Codex-output review. Codex executes. Repo source truth governs. Codex output is evidence, not authority.
-
-Planning-loop prevention belongs in ChatGPT preflight analysis. If planning-loop risk is detected, ChatGPT must block prompt generation and return analysis instead of an execution prompt. Once prompt generation is allowed, the prompt stays thin and neutral; phase and execution rules remain with their routed owners.
-
-ChatGPT may add evidence checks, review questions, validation reminders, source-truth checks, and candidate blockers for Codex to reconcile against the loaded repository governance files.
-
-ChatGPT must not act as Codex's governing authority by removing, replacing, narrowing, reordering, or prohibiting Codex-planned steps through ChatGPT-authored limiting phrases, restriction lists, or replacement logic. If ChatGPT sees a flaw, stale assumption, unsafe scope, governance mismatch, validation gap, or approval gap, it should surface the issue as an analysis finding with the exact USER decision needed.
-
-When reviewing Branch Planning output, ChatGPT should act as a substantive product, design, engineering, and governance reviewer rather than only an acceptance checker. Exact Branch Planning law remains owned by `Docs/phase_governance.md`, `Docs/branch_plans/README.md`, the active external branch plan, and routed vision owners. ChatGPT review should still ask whether the BP1/BP2/BP3 artifact is useful, specific, creative, complete, and accountable before USER accepts it.
-
-For BP1 review, ChatGPT should inspect the branch vision text itself: branch goal, end-state vision, Project/Family/Family Feature Vision fit, what USER will see, review, decide, and rely on, visual/interaction direction when relevant, real options and tradeoffs, Codex recommendations, missing options, USER design questions, deferred/future-gated ideas, and whether accepted ideas need a Project Vision, Family Vision, Family Feature Vision, or Branch Vision update.
-
-For BP2 review, ChatGPT should inspect whether the engineering plan genuinely implements the accepted or waived BP1 vision: largest safe coherent scope, Slice/SLC deliverables, seam sequence, affected files and surfaces, UI element groups, backend-to-visual truth mapping, proof requirements, non-circular evidence, validation helpers, rollback, risk controls, future-proofing, and whether the plan will produce a polished Nexus product rather than a minimal marker-green result.
-
-For BP3 review, ChatGPT should inspect whether Workstream Entry is genuinely ready: whole-package orchestration, BP1-to-BP2 traceability, entry seam or initial seam sequence, implementation order, validation/proof plan, Hardening and Live Validation carrydown, unresolved USER decisions, blockers, drift controls, rollback posture, and whether approval would accidentally authorize implementation beyond the accepted branch plan.
-
-For runtime, UI, UX, window, control, workflow, or operator-facing work, ChatGPT should explicitly review whether the output supports the NDAI Product Experience Contract qualities routed by source truth: deterministic, intuitive, immersive, predictable, reliable, and consistent. It should ask whether the proposed feature looks and feels Nexus-native, whether same-class controls and surfaces are compared against accepted references or templates, whether functionality will work for the intended user path, whether visual acceptance and proof are planned before implementation, and whether source truth needs a reference, template, primitive, or vision update.
-
-ChatGPT BP feedback should be classified so Codex and USER can route it safely: `Required Repair Before USER Acceptance`, `Recommended Improvement`, `Missing Option / Alternative`, `Vision Update Candidate`, `Reference / Template Candidate`, `Deferred / Future-Gated Candidate`, `Issue Candidate`, `USER Decision Needed`, or `No Action`. ChatGPT recommendations remain proposed evidence until USER accepts, revises, rejects, defers, or waives them; they do not become repo source truth or implementation authority by themselves.
-
-## Phase And Stage Progression Discipline
-
-This loader does not define phase law. Load and follow `Docs/phase_governance.md`, `Docs/development_rules.md`, active external branch planning, branch records, and relevant workstream records for exact phase rules.
-
-Prompt generation must preserve stage progression discipline:
-
-- current gate defects block next-stage approval until repaired, waived, or explicitly routed by source truth
-- reviewable packet status is not USER acceptance
-- Branch Readiness, Branch Planning, Workstream, Hardening, Live Validation, PR Readiness, Release Readiness, and release execution remain separately approved as routed by Main
-- Workstream Entry is BP3 inside Branch Planning when current source truth says so
-- release execution requires separate explicit USER approval
-
-For Workstream-specific prompt generation, load the current phase owner and preserve its current bounded-continuation markers. Routing phrases that must remain discoverable for validators and prompt review include: Seam Sequence; continue-or-stop; Next-Seam Continuation Required; entry seam, not a terminal boundary; Bounded means one active seam at a time, not one-seam Workstream authority.; A single-seam Workstream requires explicit USER waiver before Workstream may stop after one seam while the package or slice remains incomplete.; Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.; If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.; Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.; A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.; seams inside the current slice may be predeclared in canon or discovered from repo truth while the slice remains in progress; there is no repo-wide cap on how many slices a branch or workstream may carry; same-branch backlog completion is the branch-level default: later slices for the same backlog item stay on the same branch when scope, phase, risk, and validation authority remain green; continue seam-to-seam inside the current slice until all required seams are complete and the slice status is green; when a slice turns green during `Workstream`, advance immediately to the next admitted slice while `Completion Status` remains `In Progress`; `Workstream` reaches `Hardening` only when `Completion Status: Green`; green seam or green slice is continuation proof, not Hardening authority; `Completion Status: Green` means every admitted same-branch seam and slice for the current Workstream branch is complete, deferred, blocked, or explicitly waived in source truth; `Completion Status: Red` means a named blocker or waiver currently stops bounded Workstream continuation; `Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.; Phase Boundary Stop Required; A phase-exit seam named in `Next Active Seam` is a handoff target, not current-phase execution authority.; Bounded Workstream continuation ends at phase boundaries; it never crosses from Workstream into Hardening by inertia.; Codex must not execute Hardening, Live Validation, PR Readiness, Release Readiness, release work, or any other next phase in the same run unless USER explicitly admits that phase after reviewing the handoff.; Backlog Completion State; Backlog-Split User Approval; Backlog-Split Reason.
-
-These phrases are routing and validation anchors. The detailed rule owner remains `Docs/phase_governance.md`.
-
-## Approval And Identity Preflight
-
-Prompt generation should require a preflight before repo-affecting work:
-
-- current worktree path and git root
-- current branch and upstream
-- current `HEAD`, `origin/main`, and merge base
-- clean/dirty state and changed-file scope
-- active legal authority owner
-- current phase/stage and approved scope
-- pending USER decisions
-- next legal phase
-
-Generated prompts should request `Bounded State:` before mutation, with exact phase/stage, workspace, branch, write target, authority record, package/slice/seam, allowed scope, affected surfaces, validation contract, non-includes, pending USER decisions, stop/report conditions, and next legal phase.
-
-If any bounded-state field is missing, stale, or ambiguous, the prompt should stop on `Bounded State Missing`. Widening beyond the current bounded state requires `Bounded State User Waiver: Granted`; otherwise the prompt should stop on `Bounded State Waiver Missing`. Broad work requests do not authorize implementation; broad work requests do not authorize implementation without source-truth resolution to one exact active bounded seam or an explicit waiver.
-
-## Prompt Shape Doctrine
-
-Prompts should be thin, neutral, repo-aligned, evidence-driven, and source-truth based.
-
-Use positive scope framing: current authorization covers, source truth routes, pending USER approval checkpoint, stop and report, exact decision needed, and validation required.
-
-Avoid broad restriction walls, behavior-management lists, and freehand command boxes. Scope limits should come from current repo truth, branch authority, phase owner, active external planning owner, workstream record, and USER approval state.
-
-Prompt-generation output should not leak startup-contract narration into the generated Codex prompt body. The startup contract should load that authority; it should not leak startup-contract narration into the generated Codex prompt body.
-
-## Prompt Wording Scrub
-
-Before outputting a Codex prompt, ChatGPT or any prompt-generation layer should scrub wording into:
-
-- current authorization state
-- future USER approval checkpoints
-- source-truth facts and owner routes
-- phase, branch, worktree, and scope status
-- stop/report conditions
-- exact USER decisions needed
-
-Rewrite broad `do not`, `not allowed`, `this is not`, `never`, and `forbidden` language into source-truth state, blocker names, pending approvals, or exact stop/report conditions unless quoting durable repo law from the owning canon.
-
-If prompt wording cannot be made source-truth aligned without changing USER intent, report a prompt-generation blocker and ask for the exact USER decision needed.
-
-## Pre-PR Hardening Recommendation
-
-When review risk is high, ChatGPT may recommend a pre-PR hardening or drift pass. Exact PR Readiness, mergeability, bot-review, watcher, PR-comment, release-window, and post-merge rules are owned by `Docs/phase_governance.md`, `Docs/Main.md`, `Docs/pr_watcher_mode_contract.md`, branch records, and validation helpers routed by Main.
-
-source-truth and governance fixes ride real carriers. They do not create standalone repair-only branches by inertia. Use the current legitimate carrier only when source truth and USER approval make it legal; otherwise route the drift to Branch Readiness, Governance intake, release-support, or another owner that Main identifies.
-
-FAM-006 Monitoring and HUD selected-next truth is allowed only after explicit USER approval. Loader recommendations do not authorize a FAM-006 branch, package admission, runtime package, selected-next mutation, or single-slice waiver.
-
-## Connector / Plugin Evidence Handling
-
-Plugin and connector output is evidence, not authority. Generated prompts should request a `Plugin / Connector Use Plan:` when tool evidence affects phase advancement, PR/release decisions, source-truth repair, provider/API setup, private/public boundary work, or USER review proof.
-
-Connector auth/session state, API key state, current PR reactions, current review-thread state, temporary plugin output, and raw docs lookup text must not become repo source truth. GitHub and helper checks may own volatile live facts; durable repo docs should keep owner routing, accepted decisions, and historical receipts only.
-
-## Runtime Proof Prompt Anchors
-
-This loader does not own Live Validation law; `Docs/phase_governance.md` owns the phase/proof contract. Prompt generation for runtime, desktop, user-facing, launcher, Dev Toolkit, recording, file/folder, or validation-critical work must preserve these routing anchors when relevant:
-
-- `Exact USER Desktop Launcher Validation:`
-- `Launcher Parity Proof:`
-- `Troubleshooting Runtime Launcher Consent:`
-- `Photo Or Video Proof Missing`
-- `Unphotographable Proof Not Elevated To USER`
-- `Direct Runtime Proof Misclassified`
-- `Live Validation Evidence Packet Incomplete`
-
-Prompts must not convert helper/direct-runtime/troubleshooting evidence into USER-path proof unless source truth records the exact launcher waiver or launcher parity proof path.
-
-## Owner Routing
-
-This loader routes to owners instead of retaining copied validator marker catalogs.
-
-- Product phases, product acceptance, and release boundaries: `Docs/phase_governance.md`.
-- Operational Governance source, validation, evidence, and carrier placement: `Docs/governance_efficiency_operating_model.md#source-truth-authority-hierarchy` and the current external `policy/POLICY.md`.
-- Product helper ownership and legacy Governance-helper disposition: `Docs/validation_helper_registry.md`.
-- Active task identity, approved write set, progress, and next action: the matching external operational record.
-
-A USER-approved sandbox source reform is not product implementation, live activation, or Stage-2 admission. Continue its admitted repairs without requiring the paused legacy qualifier to green itself. Generated markers and historical receipts must not widen scope, grant authority, or turn an optional observation into a new blocking requirement.
-
-## Output Expectations
-
-Return the smallest complete decision packet: outcome, exact scope/identity, material evidence, remaining blockers, USER actions, and next legal gate. Do not expand the packet to reproduce historical ledgers, generated stdout, duplicate rule text, or validator marker catalogs.
-
-Generated prompts should ask Codex to report:
-
-- source-truth files loaded
-- identity and freshness proof
-- authority conflicts, stale owners, missing owners, or superseded owners
-- changed files, if mutation is approved
-- validation commands and results
-- commit and push result when applicable
-- next legal phase
-- exact USER decision text when a decision is required
-
-## Standard New-Chat Prompt Pattern
-
-Use this pattern when generating a new Nexus repo-affecting Codex prompt:
+## Reusable prompt shape
 
 ```text
-You are Codex acting in the Nexus Desktop AI repo. Repo truth governs.
-
-Establish `D:\Nexus Desktop AI\Product Repository` as canonical and load `D:\Nexus Desktop AI\Product Repository\Docs\Main.md` first.
-Then load Docs/nexus_startup_contract.md for loader/new-chat continuity.
-From D Main, load the directly relevant source-truth owners for the requested work, including phase governance, development rules, Codex modes, branch/workstream records, active external branch planning under `D:\Nexus Desktop AI\Governance State` when applicable, vision owners, validation registry, helper owners, and any task-specific owner routed by Main.
-
-Before mutation, prove worktree, git root, branch, upstream, HEAD, origin/main, merge base, clean/dirty state, legal authority owner, current phase, allowed scope, pending USER decisions, and next legal phase.
-
-Treat validators, helper output, prior summaries, uploaded packets, and ChatGPT analysis as evidence, not authority.
-Act only inside the approved scope. If source truth routes the work elsewhere or freshness cannot be proven, stop and return the exact blocker plus the exact USER decision needed.
+Task: <outcome>
+Known context: <carrier, branch, phase, approval, evidence; label unverified facts>
+Source truth: verify canonical D Product Repository; read Docs/Main.md first and material owners.
+Before consequential action: verify identity, write scope, ownership, locks, prerequisites and protected state.
+Execute admitted work; preserve history and respect genuine boundaries.
+Return: effects/checks, material limits, next admitted action and exact USER decision only if needed.
 ```
 
-## Standard Review Prompt Pattern
-
-Use this pattern when asking Codex to review an artifact, packet, prompt, PR, or source-truth change:
-
-```text
-Establish `D:\Nexus Desktop AI\Product Repository` as canonical and load `D:\Nexus Desktop AI\Product Repository\Docs\Main.md` first.
-Load Docs/nexus_startup_contract.md if the review concerns loader/new-chat continuity, prompt generation, handoff quality, ChatGPT/Codex behavior alignment, or startup-source-truth drift.
-From Main, load the current owner docs for phase, branch, workstream, vision, validation, external state, USER artifact rules, and PR/release behavior.
-
-Inspect the artifact as evidence.
-Classify findings against the owner docs.
-Separate USER-facing review content from technical proof metadata.
-Report accepted, repaired, blocked, stale, conflicting, missing, duplicated, or superseded authority.
-Return exact next USER decision text when a decision is needed.
-```
-
-## Drift Repair Rule
-
-If this loader contains stale wording, a Main-first contradiction, duplicated detailed governance, or a rule that belongs to another owner, repair this loader through the current legal carrier and phase.
-
-Keep the repair narrow:
-
-- convert duplicate policy into owner-routing language
-- update or retire stale validator marker requirements with their source owner rather than preserving contradictory defaults
-- avoid moving live operational state into repo docs
-- avoid changing phase law here unless Main routes the change to the owning canon and USER approval covers that broader repair
-- route operational Governance changes to the approved external source carrier; route repository product/interface patches to their approved repository carrier
-
-When validation and source truth disagree, diagnose the validator against the owner docs before patching it. Validators and helpers are evidence, not authority.
+Do not load this document by default.

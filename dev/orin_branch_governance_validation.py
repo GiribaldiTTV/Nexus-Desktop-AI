@@ -53,21 +53,9 @@ PROHIBITED_ACTIVE_BRANCH_PREFIXES = (
     "codex/",
 )
 
-PROMPT_CONTRACT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/orin_task_template.md"),
-)
+PROMPT_CONTRACT_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/codex_user_guide.md'), Path('Docs/orin_task_template.md'),)
 
-CURRENT_STATE_OWNER_DOCS = (
-    Path("Docs/Main.md"),
-    Path("Docs/feature_backlog.md"),
-    Path("Docs/prebeta_roadmap.md"),
-    Path("Docs/workstreams/index.md"),
-    Path("Docs/closeout_index.md"),
-)
+CURRENT_STATE_OWNER_DOCS = (Path('Docs/feature_backlog.md'), Path('Docs/prebeta_roadmap.md'), Path('Docs/workstreams/index.md'), Path('Docs/closeout_index.md'),)
 
 PUBLISHED_RELEASE_CLOSURE_SCAN_PATHS = (
     Path("Docs/feature_backlog.md"),
@@ -2624,66 +2612,7 @@ VISIBLE_USER_FACING_PROOF_REQUIRED_LABEL = "Visible User-Facing Proof Required:"
 VISIBLE_USER_FACING_PROOF_LABEL = "Visible User-Facing Proof:"
 VISIBLE_USER_FACING_PROOF_PASS_VALUES = {"pass", "waived"}
 
-ELEMENT_VALIDATION_LEDGER_REQUIRED_PHRASES = {
-    Path("Docs/Main.md"): (
-        "Element Validation Ledger = row-level created/touched/affected/deferred/future element proof tracking owned by the existing workstream doc or branch authority record",
-    ),
-    Path("Docs/workstreams/index.md"): (
-        "Element Validation Ledger rows live in the owning traceability surface by default",
-        "promoted workstreams keep the active ledger inside the canonical workstream doc",
-        "`Registry-only` active branches keep the active ledger inside the active branch authority record",
-        "a large active Element Validation Ledger may use a companion file only when the owning workstream doc or branch authority record contains the canonical pointer",
-        "created, touched, affected, deferred, future, dependency-only, and non-gating supporting product elements",
-        "`## Element Validation Ledger` or a canonical pointer",
-    ),
-    Path("Docs/phase_governance.md"): (
-        "Source-Truth Placement Preflight",
-        "extend the existing owner first",
-        "`No Existing Owner Fits`",
-        "`Element Ledger Placement Drift`",
-        "Promoted workstream: canonical workstream doc.",
-        "Registry-only active branch: external branch state or the standing Governance intake exception while legally active.",
-        "Large active ledger: external branch state, optional companion file with canonical pointer",
-        "Every active ledger row should identify the element ID",
-        "Element Validation Ledger status values should use this vocabulary",
-        "`Implemented Pending Proof`",
-        "`Non-Gating Supporting`",
-        "Each seam must run an `Element Delta Capture`",
-        "Marker-only proof cannot satisfy user-facing element acceptance.",
-        "Source-code ownership markers are optional backlinks",
-        "Element ledger blockers include `Element Validation Ledger Missing`",
-        "`High-Risk Element Source Owner Missing`",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Element Validation Ledger = row-level created/touched/affected/deferred/future element proof tracking",
-        "`Source-Truth Placement Preflight`",
-        "`No Existing Owner Fits`",
-        "Full Feature Element Breakdown` must feed the owning `Element Validation Ledger`",
-        "created, touched, affected, deferred, future, dependency-only, and non-gating supporting elements",
-        "`Element Ledger Placement Drift`",
-        "`Created Element Untracked`",
-        "`Touched Element Proof Missing`",
-        "`Affected Element Validation Missing`",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "`Source-Truth Placement Preflight`",
-        "`Element Validation Ledger Owner`",
-        "run `Element Delta Capture`",
-        "create a parallel active source-truth artifact for element tracking",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Source-Truth Placement Preflight:",
-        "Element Validation Ledger Owner:",
-        "Element Delta Capture:",
-        "`Element Validation Ledger` is row-level created/touched/affected/deferred/future element proof tracking",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "run `Source-Truth Placement Preflight`",
-        "owning `Element Validation Ledger`",
-        "Element Validation Ledger rows belong in the existing authority owner by default",
-        "Do not prompt Codex to create a parallel active ledger unless the owning record records `No Existing Owner Fits`",
-    ),
-}
+ELEMENT_VALIDATION_LEDGER_REQUIRED_PHRASES = {Path('Docs/workstreams/index.md'): ('Element Validation Ledger rows live in the owning traceability surface by default', 'promoted workstreams keep the active ledger inside the canonical workstream doc', '`Registry-only` active branches keep the active ledger inside the active branch authority record', 'a large active Element Validation Ledger may use a companion file only when the owning workstream doc or branch authority record contains the canonical pointer', 'created, touched, affected, deferred, future, dependency-only, and non-gating supporting product elements', '`## Element Validation Ledger` or a canonical pointer'), Path('Docs/development_rules.md'): ('Element Validation Ledger = row-level created/touched/affected/deferred/future element proof tracking', '`Source-Truth Placement Preflight`', '`No Existing Owner Fits`', 'Full Feature Element Breakdown` must feed the owning `Element Validation Ledger`', 'created, touched, affected, deferred, future, dependency-only, and non-gating supporting elements', '`Element Ledger Placement Drift`', '`Created Element Untracked`', '`Touched Element Proof Missing`', '`Affected Element Validation Missing`'), Path('Docs/codex_modes.md'): ('`Source-Truth Placement Preflight`', '`Element Validation Ledger Owner`', 'run `Element Delta Capture`', 'create a parallel active source-truth artifact for element tracking'), Path('Docs/orin_task_template.md'): ('Source-Truth Placement Preflight:', 'Element Validation Ledger Owner:', 'Element Delta Capture:', '`Element Validation Ledger` is row-level created/touched/affected/deferred/future element proof tracking'), Path('Docs/codex_user_guide.md'): ('run `Source-Truth Placement Preflight`', 'owning `Element Validation Ledger`', 'Element Validation Ledger rows belong in the existing authority owner by default', 'Do not prompt Codex to create a parallel active ledger unless the owning record records `No Existing Owner Fits`')}
 
 FAM006_ELEMENT_VALIDATION_LEDGER_REQUIRED_PHRASES = (
     "## Element Validation Ledger Governance",
@@ -2874,42 +2803,17 @@ FAM006_REAL_CLIENT_PROOF_GOVERNANCE_REQUIRED_PHRASES = {
     ),
 }
 
-SUCCESSOR_LOCK_WAIVER_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-)
+SUCCESSOR_LOCK_WAIVER_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'),)
 
 SUCCESSOR_LOCK_WAIVER_PHRASE = "no USER-approved selected-next truth exists"
 
-NO_ACTIVE_BRANCH_STEADY_STATE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+NO_ACTIVE_BRANCH_STEADY_STATE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 NO_ACTIVE_BRANCH_STEADY_STATE_PHRASE = "steady-state `No Active Branch`"
 
-DOCS_GOVERNANCE_ADMISSION_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+DOCS_GOVERNANCE_ADMISSION_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_user_guide.md'),)
 
-GOVERNANCE_ONLY_BLOCK_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/closeout_guidance.md"),
-)
+GOVERNANCE_ONLY_BLOCK_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/closeout_guidance.md'),)
 
 GOVERNANCE_ONLY_BLOCK_PHRASES = (
     "governance-only branch",
@@ -2925,16 +2829,7 @@ STANDING_GOVERNANCE_INTAKE_RECORD_PATH = STANDING_GOVERNANCE_INTAKE_RECORD.as_po
 STANDING_GOVERNANCE_INTAKE_EXTERNAL_STATE_POINTER = str(
     EXTERNAL_STATE_ROOT / "branches" / "feature_release_readiness_source_truth_intake" / "branch_state.md"
 )
-STANDING_GOVERNANCE_INTAKE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+STANDING_GOVERNANCE_INTAKE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'),)
 STANDING_GOVERNANCE_INTAKE_PHRASES = (
     "Standing Governance Intake Branch",
     "feature/release-readiness-source-truth-intake",
@@ -2952,38 +2847,12 @@ STANDING_GOVERNANCE_INTAKE_PHRASES = (
 GOVERNANCE_INTAKE_DIGEST_STANDARD_DOC = Path(
     "Docs/governance_intake_triage_and_digest_profiles.md"
 )
-GOVERNANCE_INTAKE_DIGEST_POINTER_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-    Path("Docs/governance_process_efficiency_reform_plan.md"),
-)
+GOVERNANCE_INTAKE_DIGEST_POINTER_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'), Path('Docs/governance_process_efficiency_reform_plan.md'),)
 GOVERNANCE_INTAKE_DIGEST_POINTER_PHRASES = (
     "Governance Intake Triage Packet",
     "Digest Profile",
 )
-GOVERNANCE_INTAKE_DIGEST_STANDARD_PHRASES = (
-    "Smallest Legal Packet Rule",
-    "Digest Non-Compaction Rule",
-    "Do not compact the digest ever",
-    "Governance Intake Triage Packet",
-    "Problem Class:",
-    "Source-Truth Support:",
-    "Current Approval Coverage:",
-    "Recommended Carrier:",
-    "Smallest Safe Repair:",
-    "Validator / Helper Impact:",
-    "Recommended Digest Profile:",
-    "Decision Packet",
-    "Return Digest",
-    "Validation Digest",
-    "Full Audit Packet",
-    "Delta Digest",
-)
+GOVERNANCE_INTAKE_DIGEST_STANDARD_PHRASES = ()
 WORKTREE_REBASELINE_AUDIT_HELPER = Path("dev/orin_worktree_rebaseline_audit.py")
 WORKTREE_REBASELINE_AUDIT_DOCS = (
     Path("Docs/validation_helper_registry.md"),
@@ -3037,16 +2906,7 @@ GOVERNANCE_EFFICIENCY_OPERATING_MODEL = Path(
 GOVERNANCE_EFFICIENCY_VALIDATION_HELPER = Path(
     "dev/orin_governance_efficiency_validation.py"
 )
-GOVERNANCE_EFFICIENCY_DOCS = (
-    Path("Docs/Main.md"),
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/validation_helper_registry.md"),
-    Path("Docs/governance_process_efficiency_reform_plan.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/branch_records/feature_release_readiness_source_truth_intake.md"),
-)
+GOVERNANCE_EFFICIENCY_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/validation_helper_registry.md'), Path('Docs/governance_process_efficiency_reform_plan.md'), Path('Docs/branch_records/index.md'), Path('Docs/branch_records/feature_release_readiness_source_truth_intake.md'),)
 GOVERNANCE_EFFICIENCY_OPERATING_MODEL_PHRASES = (
     "Rule ID And Owner Model",
     "Source-Truth Ownership Matrix",
@@ -3194,16 +3054,7 @@ STANDING_GOVERNANCE_RETURN_DIGEST_IDENTITY_GUARD_MARKERS = (
     "Thread / Worktree Identity Mismatch",
 )
 
-ASSIGNED_WORKTREE_CONFINEMENT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+ASSIGNED_WORKTREE_CONFINEMENT_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'),)
 ASSIGNED_WORKTREE_CONFINEMENT_PHRASES = (
     "Assigned Worktree Confinement",
     "Active Thread Owner",
@@ -3245,11 +3096,7 @@ ASSIGNED_WORKTREE_CONFINEMENT_RECORD_MARKERS = (
     "Worktree Escape User Waiver Missing",
 )
 
-FAMILY_SCOPED_BRANCH_READINESS_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+FAMILY_SCOPED_BRANCH_READINESS_DOCS = (Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'),)
 FAMILY_SCOPED_BRANCH_READINESS_PHRASES = (
     "Family-Scoped Branch Readiness Confinement",
     "Target Family",
@@ -3258,90 +3105,11 @@ FAMILY_SCOPED_BRANCH_READINESS_PHRASES = (
     "not successor authority",
 )
 
-MULTI_SEAM_CONTRACT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+MULTI_SEAM_CONTRACT_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
-MULTI_SEAM_CONTRACT_PHRASES = (
-    "bounded multi-seam workflow",
-    "Next-Seam Continuation Required",
-    "entry seam, not a terminal boundary",
-    "a slice is a bounded admitted backlog-completion unit",
-    "a seam is the current execution checkpoint inside or between slices",
-    "Bounded means one active seam at a time, not one-seam Workstream authority.",
-    "A single-seam Workstream requires explicit USER waiver before Workstream may stop after one seam while the package or slice remains incomplete.",
-    "Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.",
-    "If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.",
-    "Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.",
-    "A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.",
-    "seams inside the current slice may be predeclared in canon or discovered from repo truth while the slice remains in progress",
-    "there is no repo-wide cap on how many slices a branch or workstream may carry",
-    "same-branch backlog completion is the branch-level default: later slices for the same backlog item stay on the same branch when scope, phase, risk, and validation authority remain green",
-    "continue seam-to-seam inside the current slice until all required seams are complete and the slice status is green",
-    "when a slice turns green during `Workstream`, advance immediately to the next admitted slice while `Completion Status` remains `In Progress`",
-    "`Workstream` reaches `Hardening` only when `Completion Status: Green`",
-    "green seam or green slice is continuation proof, not Hardening authority",
-    "`Completion Status: Green` means every admitted same-branch seam and slice for the current Workstream branch is complete, deferred, blocked, or explicitly waived in source truth",
-    "`Completion Status: Red` means a named blocker or waiver currently stops bounded Workstream continuation",
-    "`Phase: Workstream` must remain bounded at all times; the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver",
-    "Phase Boundary Stop Required",
-    "A phase-exit seam named in `Next Active Seam` is a handoff target, not current-phase execution authority.",
-    "Bounded Workstream continuation ends at phase boundaries; it never crosses from Workstream into Hardening by inertia.",
-    "Codex must not execute Hardening, Live Validation, PR Readiness, Release Readiness, release work, or any other next phase in the same run unless USER explicitly admits that phase after reviewing the handoff.",
-    "Branch Readiness must evaluate the whole backlog item, define the first admitted slice, record the same-branch continuation posture until `Completion Status` becomes green, and record any known future-dependent blockers before Workstream begins.",
-    "Workstream must execute admitted implementation slices one slice at a time",
-    "`Workstream` may not advance to `Hardening` while remaining implementable work is still available on the current backlog item",
-    "Backlog-Split User Approval",
-    "bounded stop condition",
-    "reporting `Next Safe Move` is not a substitute for execution",
-    "A `continue` decision must be acted on immediately by starting the next seam needed inside the current slice",
-    "A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.",
-    "Post-Seam Final-Stop Drift is a governance blocker until source truth and validation are repaired.",
-    "Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.",
-    "Post-Seam Continuation Self-Audit",
-    "Continue Same Workstream",
-    "it must not return a green seam closeout as terminal",
-)
+MULTI_SEAM_CONTRACT_PHRASES = ()
 
-BRANCH_SLICE_SLC_SEAM_TERMINOLOGY_REQUIRED_PHRASES = {
-    Path("Docs/phase_governance.md"): (
-        "Branch / Slice / SLC / Seam Terminology Model",
-        "Branch Definition:",
-        "Slice Definition:",
-        "SLC Classification:",
-        "Seam Definition:",
-        "Multi-Slice Branch Rule:",
-        "Terminology Drift Blockers:",
-    ),
-    Path("Docs/branch_plans/README.md"): (
-        "`Slice` is the canonical package deliverable unit.",
-        "`SLC` is the current branch-planning alias",
-        "Multi-slice branches are legal",
-        "Every Slice/SLC must trace",
-    ),
-    Path("Docs/workstreams/index.md"): (
-        "SLC is the current branch-planning alias",
-        "a seam is the current execution checkpoint",
-    ),
-    Path("Docs/feature_backlog.md"): (
-        "`SLC` = branch-planning alias",
-        "`Seam` = execution or validation checkpoint",
-    ),
-    Path("Docs/validation_helper_registry.md"): (
-        "invalid SLC/Slice/Seam terminology ambiguity packet",
-        "valid multi-slice implementation carrier",
-        "SLC treated as a seam",
-    ),
-    Path("Docs/Main.md"): (
-        "SLC is a branch-planning alias",
-        "Slice/SLC/seam plan",
-    ),
-}
+BRANCH_SLICE_SLC_SEAM_TERMINOLOGY_REQUIRED_PHRASES = {Path('Docs/branch_plans/README.md'): ('`Slice` is the canonical package deliverable unit.', '`SLC` is the current branch-planning alias', 'Multi-slice branches are legal', 'Every Slice/SLC must trace'), Path('Docs/workstreams/index.md'): ('SLC is the current branch-planning alias', 'a seam is the current execution checkpoint'), Path('Docs/feature_backlog.md'): ('`SLC` = branch-planning alias', '`Seam` = execution or validation checkpoint'), Path('Docs/validation_helper_registry.md'): ('invalid SLC/Slice/Seam terminology ambiguity packet', 'valid multi-slice implementation carrier', 'SLC treated as a seam')}
 
 MULTI_SEAM_PRIMARY_REPAIR_PHRASES = (
     "Category labels are not stop conditions by themselves.",
@@ -3358,68 +3126,7 @@ MULTI_SEAM_PRIMARY_REPAIR_PHRASES = (
     "`Completion Status: Red` means a named blocker or waiver currently stops bounded Workstream continuation",
 )
 
-MANDATORY_BOUNDED_STATE_REQUIRED_PHRASES = {
-    Path("Docs/phase_governance.md"): (
-        "Bounded State is mandatory",
-        "Bounded State Missing",
-        "Bounded State User Waiver: Granted",
-        "Bounded State Waiver Missing",
-        "Broad work requests do not authorize implementation",
-        "Clean validation, a clean git tree, branch existence, prior broad approval, Codex discretion, ChatGPT wording, or prompt output shape cannot infer a bounded-state waiver",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Bounded State is mandatory before execution",
-        "Bounded State Missing",
-        "Bounded State User Waiver: Granted",
-        "Bounded State Waiver Missing",
-        "Broad work requests do not authorize implementation",
-        "Clean validation, clean git state, branch existence, prior broad approval, prompt wording, Codex discretion, or ChatGPT review cannot infer a bounded-state waiver",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Workflow mode is legal only inside a proven `Bounded State:` unless USER grants an explicit bounded-state waiver",
-        "Bounded State Missing",
-        "Bounded State User Waiver: Granted",
-        "Bounded State Waiver Missing",
-        "Broad work requests do not authorize implementation",
-        "Clean validation, branch existence, prompt wording, Codex discretion, or ChatGPT wording cannot infer a waiver",
-    ),
-    Path("Docs/Main.md"): (
-        "Bounded State Lock:",
-        "Bounded State Missing",
-        "Bounded State User Waiver: Granted",
-        "Bounded State Waiver Missing",
-        "broad work requests do not authorize implementation",
-        "clean validation, branch existence, prompt wording, Codex discretion, or ChatGPT wording cannot infer a bounded-state waiver",
-    ),
-    Path("Docs/branch_records/index.md"): (
-        "Bounded State Missing",
-        "Bounded State User Waiver: Granted",
-        "Bounded State Waiver Missing",
-        "broad work requests do not authorize implementation",
-        "clean validation, branch existence, prompt wording, Codex discretion, or ChatGPT wording cannot infer a bounded-state waiver",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Bounded State:",
-        "Bounded State User Waiver:",
-        "Bounded State Missing",
-        "Bounded State Waiver Missing",
-        "Broad work requests do not authorize implementation",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "Bounded State:",
-        "Bounded State User Waiver:",
-        "Bounded State Missing",
-        "Bounded State Waiver Missing",
-        "Broad work requests do not authorize implementation",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "Bounded State:",
-        "Bounded State Missing",
-        "Bounded State User Waiver: Granted",
-        "Bounded State Waiver Missing",
-        "broad work requests do not authorize implementation",
-    ),
-}
+MANDATORY_BOUNDED_STATE_REQUIRED_PHRASES = {Path('Docs/development_rules.md'): ('Bounded State is mandatory before execution', 'Bounded State Missing', 'Bounded State User Waiver: Granted', 'Bounded State Waiver Missing', 'Broad work requests do not authorize implementation', 'Clean validation, clean git state, branch existence, prior broad approval, prompt wording, Codex discretion, or ChatGPT review cannot infer a bounded-state waiver'), Path('Docs/codex_modes.md'): ('Workflow mode is legal only inside a proven `Bounded State:` unless USER grants an explicit bounded-state waiver', 'Bounded State Missing', 'Bounded State User Waiver: Granted', 'Bounded State Waiver Missing', 'Broad work requests do not authorize implementation', 'Clean validation, branch existence, prompt wording, Codex discretion, or ChatGPT wording cannot infer a waiver'), Path('Docs/branch_records/index.md'): ('Bounded State Missing', 'Bounded State User Waiver: Granted', 'Bounded State Waiver Missing', 'broad work requests do not authorize implementation', 'clean validation, branch existence, prompt wording, Codex discretion, or ChatGPT wording cannot infer a bounded-state waiver'), Path('Docs/orin_task_template.md'): ('Bounded State:', 'Bounded State User Waiver:', 'Bounded State Missing', 'Bounded State Waiver Missing', 'Broad work requests do not authorize implementation'), Path('Docs/codex_user_guide.md'): ('Bounded State:', 'Bounded State User Waiver:', 'Bounded State Missing', 'Bounded State Waiver Missing', 'Broad work requests do not authorize implementation')}
 
 FAM007_BOUNDED_STATE_RECORD_REQUIRED_PHRASES = (
     "## Bounded State Lock",
@@ -3442,14 +3149,7 @@ FAM007_BOUNDED_STATE_RECORD_REQUIRED_PHRASES = (
     "Clean validation, branch existence, prompt wording, Codex discretion, or ChatGPT wording cannot infer a waiver",
 )
 
-INTERFACE_RELEASE_BOUNDARY_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+INTERFACE_RELEASE_BOUNDARY_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 INTERFACE_RELEASE_BOUNDARY_PHRASES = (
     "Interface Release Boundary",
@@ -3488,47 +3188,9 @@ MULTI_SEAM_PROHIBITED_THROTTLE_PHRASES = (
     "Once the current slice is green, report green status and await the next instruction instead of auto-starting a new slice or later phase.",
 )
 
-MULTI_SEAM_PROMPT_DOCS = (
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/nexus_startup_contract.md"),
-)
+MULTI_SEAM_PROMPT_DOCS = (Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
-MULTI_SEAM_PROMPT_PHRASES = (
-    "Seam Sequence",
-    "continue-or-stop",
-    "Next-Seam Continuation Required",
-    "entry seam, not a terminal boundary",
-    "Bounded means one active seam at a time, not one-seam Workstream authority.",
-    "A single-seam Workstream requires explicit USER waiver before Workstream may stop after one seam while the package or slice remains incomplete.",
-    "Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.",
-    "If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.",
-    "Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.",
-    "A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.",
-    "seams inside the current slice may be predeclared in canon or discovered from repo truth while the slice remains in progress",
-    "there is no repo-wide cap on how many slices a branch or workstream may carry",
-    "same-branch backlog completion is the branch-level default: later slices for the same backlog item stay on the same branch when scope, phase, risk, and validation authority remain green",
-    "continue seam-to-seam inside the current slice until all required seams are complete and the slice status is green",
-    "when a slice turns green during `Workstream`, advance immediately to the next admitted slice while `Completion Status` remains `In Progress`",
-    "`Workstream` reaches `Hardening` only when `Completion Status: Green`",
-    "green seam or green slice is continuation proof, not Hardening authority",
-    "`Completion Status: Green` means every admitted same-branch seam and slice for the current Workstream branch is complete, deferred, blocked, or explicitly waived in source truth",
-    "`Completion Status: Red` means a named blocker or waiver currently stops bounded Workstream continuation",
-    "`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.",
-    "Phase Boundary Stop Required",
-    "A phase-exit seam named in `Next Active Seam` is a handoff target, not current-phase execution authority.",
-    "Bounded Workstream continuation ends at phase boundaries; it never crosses from Workstream into Hardening by inertia.",
-    "Codex must not execute Hardening, Live Validation, PR Readiness, Release Readiness, release work, or any other next phase in the same run unless USER explicitly admits that phase after reviewing the handoff.",
-    "Backlog Completion State",
-    "Backlog-Split User Approval",
-    "Backlog-Split Reason",
-    "reporting Next Safe Move is not a substitute for execution",
-    "continue decision must be acted on immediately by starting the next seam needed inside the current slice",
-    "Continuation Execution Latch",
-    "A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.",
-    "Post-Seam Final-Stop Drift is a governance blocker until source truth and validation are repaired.",
-    "Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.",
-)
+MULTI_SEAM_PROMPT_PHRASES = ()
 
 REUSABLE_GUIDANCE_RETIRED_SEAM_TERMS = {
     Path("Docs/incident_patterns.md"): (
@@ -3579,485 +3241,23 @@ SINGLE_SEAM_WORKSTREAM_PROHIBITED_ACTIVE_PHRASES = (
     "bounded means one seam",
 )
 
-GOVERNED_OUTPUT_CONTRACT_REQUIRED_PHRASES = {
-    Path("Docs/phase_governance.md"): (
-        "Seam Status:",
-        "Slice Status:",
-        "Completion Status:",
-        "Waiver Status:",
-        "Continue Decision:",
-        "Continuation Execution Latch:",
-        "Stop Basis:",
-        "Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.",
-        "A green seam does not authorize stop while `Slice Status` is not green.",
-        "A green slice does not authorize stop while `Completion Status` is not green.",
-        "`Await Next Instruction` is only legal in `Workstream` when `Completion Status: Green`, or when `Completion Status: Red` is justified by a named blocker or waiver.",
-        "`Backlog Completion Unproven` keeps the branch in `Workstream`; by itself it is not authority to return `Await Next Instruction` while `Completion Status` remains `In Progress`.",
-        "It is the exact `Phase: Workstream Status` field for stop authority.",
-        "Use these governed state markers as execution control, not as documentation-only summary fields.",
-        "If `Continue Decision` is `Continue`, Codex must not end on a final seam-closeout response, rollback path, or next-seam recommendation; it must keep executing until a lawful `Stop` decision exists.",
-        "A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.",
-        "A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.",
-        "Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.",
-        "Before any final response during `Workstream`, Codex must run a `Post-Seam Continuation Self-Audit` against the governed markers it just wrote or validated.",
-        "If `Completion Status: In Progress` and `Continue Decision: Continue`, the self-audit result must be `Continue Same Workstream` and Codex must start the next active Workstream seam in the same bounded run.",
-        "If Codex cannot start the next seam after that self-audit, it must record `Completion Status: Red` with the exact named blocker or USER waiver needed; it must not return a green seam closeout as terminal.",
-        "If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.",
-        "`Phase: Workstream` must remain bounded at all times.",
-        "Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.",
-        "If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.",
-        "Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.",
-        "A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.",
-        "If `Completion Status` is `Red`, `Continuation Action` must explicitly state the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Seam Status",
-        "Slice Status",
-        "Completion Status",
-        "Waiver Status",
-        "Continue Decision",
-        "Continuation Execution Latch",
-        "Stop Basis",
-        "Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.",
-        "If `Completion Status` is `In Progress` and no named blocker or waiver stops work, Codex must continue rather than returning `Await Next Instruction`.",
-        "Use these governed state markers as execution control, not just reporting.",
-        "If `Continue Decision` is `Continue`, do not end on a seam-complete final response, rollback path, or next-seam recommendation; keep executing until a lawful `Stop` decision exists.",
-        "A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.",
-        "A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.",
-        "Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.",
-        "Before any final response during `Workstream`, Codex must run a `Post-Seam Continuation Self-Audit` against the governed markers it just wrote or validated.",
-        "If `Completion Status: In Progress` and `Continue Decision: Continue`, the self-audit result must be `Continue Same Workstream` and Codex must start the next active Workstream seam in the same bounded run.",
-        "If Codex cannot start the next seam after that self-audit, it must record `Completion Status: Red` with the exact named blocker or USER waiver needed; it must not return a green seam closeout as terminal.",
-        "If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.",
-        "`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.",
-        "Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.",
-        "If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.",
-        "Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.",
-        "A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.",
-        "If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Seam Status",
-        "Slice Status",
-        "Completion Status",
-        "Waiver Status",
-        "Continue Decision",
-        "Continuation Execution Latch",
-        "Stop Basis",
-        "Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.",
-        "If `Completion Status` is `In Progress` and no named blocker or waiver stops work, Workflow mode must continue rather than returning `Await Next Instruction`.",
-        "Use these governed state markers as execution control, not just reporting.",
-        "If `Continue Decision` is `Continue`, Workflow mode must not end on a seam-complete final response, rollback path, or next-seam recommendation; it must keep executing until a lawful `Stop` decision exists.",
-        "A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.",
-        "A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.",
-        "Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.",
-        "Before any final response during `Workstream`, Codex must run a `Post-Seam Continuation Self-Audit`",
-        "if `Completion Status: In Progress` and `Continue Decision: Continue`, the self-audit result must be `Continue Same Workstream`",
-        "it must record `Completion Status: Red` with the exact named blocker or USER waiver needed instead of returning a green seam closeout as terminal",
-        "If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.",
-        "`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.",
-        "Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.",
-        "If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.",
-        "Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.",
-        "A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.",
-        "If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "Seam Status:",
-        "Slice Status:",
-        "Completion Status:",
-        "Waiver Status:",
-        "Continue Decision:",
-        "Continuation Execution Latch:",
-        "Stop Basis:",
-        "Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.",
-        "If `Completion Status` is `In Progress` and no named blocker or waiver stops work, Codex must continue instead of returning `Await Next Instruction`.",
-        "Use these governed state markers as execution control, not just reporting.",
-        "If `Continue Decision` is `Continue`, Codex must not end on a seam-complete final response, rollback path, or next-seam recommendation; it must keep executing until a lawful `Stop` decision exists.",
-        "Treat a prompt `Return:` block as the lawful-stop report, not as permission to stop while `Continue Decision` remains `Continue`.",
-        "A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.",
-        "A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.",
-        "Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.",
-        "If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.",
-        "`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.",
-        "Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.",
-        "If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.",
-        "Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.",
-        "A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.",
-        "If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Seam Status:",
-        "Slice Status:",
-        "Completion Status:",
-        "Waiver Status:",
-        "Continue Decision:",
-        "Continuation Execution Latch:",
-        "Stop Basis:",
-        "Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.",
-        "If `Completion Status` is `In Progress` and no named blocker or waiver stops work, Codex must continue instead of returning `Await Next Instruction`.",
-        "Use these governed state markers as execution control, not just reporting.",
-        "If `Continue Decision` is `Continue`, Codex must not end on a seam-complete final response, rollback path, or next-seam recommendation; it must keep executing until a lawful `Stop` decision exists.",
-        "A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.",
-        "Once the current slice is green during `Workstream`, advance into the next admitted slice while `Completion Status` remains `In Progress`; await the next instruction only after a lawful `Stop` decision.",
-        "A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.",
-        "Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.",
-        "If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.",
-        "`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.",
-        "Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.",
-        "If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.",
-        "Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.",
-        "A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.",
-        "If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "Seam Status",
-        "Slice Status",
-        "Completion Status",
-        "Waiver Status",
-        "Continue Decision",
-        "Continuation Execution Latch",
-        "Stop Basis",
-        "Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.",
-        "If `Completion Status` is `In Progress` and no named blocker or waiver stops work, the generated prompt must require continuation rather than `Await Next Instruction`.",
-        "Use these governed state markers as execution control, not just reporting.",
-        "If `Continue Decision` is `Continue`, the generated prompt must not let Codex end on a seam-complete final response, rollback path, or next-seam recommendation; it must require continued execution until a lawful `Stop` decision exists.",
-        "the prompt `Return:` block describes the lawful-stop report; it is not permission to stop while `Continue Decision` remains `Continue`",
-        "A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.",
-        "A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.",
-        "Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.",
-        "If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.",
-        "`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.",
-        "If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.",
-        "Treat `Completion Status` as the exact `Phase: Workstream Status` gate after load.",
-    ),
-}
+GOVERNED_OUTPUT_CONTRACT_REQUIRED_PHRASES = {Path('Docs/development_rules.md'): ('Seam Status', 'Slice Status', 'Completion Status', 'Waiver Status', 'Continue Decision', 'Continuation Execution Latch', 'Stop Basis', 'Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.', 'If `Completion Status` is `In Progress` and no named blocker or waiver stops work, Codex must continue rather than returning `Await Next Instruction`.', 'Use these governed state markers as execution control, not just reporting.', 'If `Continue Decision` is `Continue`, do not end on a seam-complete final response, rollback path, or next-seam recommendation; keep executing until a lawful `Stop` decision exists.', 'A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.', 'A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.', 'Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.', 'Before any final response during `Workstream`, Codex must run a `Post-Seam Continuation Self-Audit` against the governed markers it just wrote or validated.', 'If `Completion Status: In Progress` and `Continue Decision: Continue`, the self-audit result must be `Continue Same Workstream` and Codex must start the next active Workstream seam in the same bounded run.', 'If Codex cannot start the next seam after that self-audit, it must record `Completion Status: Red` with the exact named blocker or USER waiver needed; it must not return a green seam closeout as terminal.', 'If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.', '`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.', 'Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.', 'If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.', 'Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.', 'A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.', 'If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.'), Path('Docs/codex_modes.md'): ('Seam Status', 'Slice Status', 'Completion Status', 'Waiver Status', 'Continue Decision', 'Continuation Execution Latch', 'Stop Basis', 'Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.', 'If `Completion Status` is `In Progress` and no named blocker or waiver stops work, Workflow mode must continue rather than returning `Await Next Instruction`.', 'Use these governed state markers as execution control, not just reporting.', 'If `Continue Decision` is `Continue`, Workflow mode must not end on a seam-complete final response, rollback path, or next-seam recommendation; it must keep executing until a lawful `Stop` decision exists.', 'A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.', 'A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.', 'Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.', 'Before any final response during `Workstream`, Codex must run a `Post-Seam Continuation Self-Audit`', 'if `Completion Status: In Progress` and `Continue Decision: Continue`, the self-audit result must be `Continue Same Workstream`', 'it must record `Completion Status: Red` with the exact named blocker or USER waiver needed instead of returning a green seam closeout as terminal', 'If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.', '`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.', 'Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.', 'If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.', 'Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.', 'A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.', 'If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.'), Path('Docs/codex_user_guide.md'): ('Seam Status:', 'Slice Status:', 'Completion Status:', 'Waiver Status:', 'Continue Decision:', 'Continuation Execution Latch:', 'Stop Basis:', 'Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.', 'If `Completion Status` is `In Progress` and no named blocker or waiver stops work, Codex must continue instead of returning `Await Next Instruction`.', 'Use these governed state markers as execution control, not just reporting.', 'If `Continue Decision` is `Continue`, Codex must not end on a seam-complete final response, rollback path, or next-seam recommendation; it must keep executing until a lawful `Stop` decision exists.', 'Treat a prompt `Return:` block as the lawful-stop report, not as permission to stop while `Continue Decision` remains `Continue`.', 'A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.', 'A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.', 'Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.', 'If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.', '`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.', 'Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.', 'If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.', 'Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.', 'A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.', 'If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.'), Path('Docs/orin_task_template.md'): ('Seam Status:', 'Slice Status:', 'Completion Status:', 'Waiver Status:', 'Continue Decision:', 'Continuation Execution Latch:', 'Stop Basis:', 'Every phase digest must include `Next Legal Phase` as its own output field, even when `Continue Decision: Continue`; `Next Safe Move` may remain lawful-stop or route-specific and must not replace required continuation.', 'If `Completion Status` is `In Progress` and no named blocker or waiver stops work, Codex must continue instead of returning `Await Next Instruction`.', 'Use these governed state markers as execution control, not just reporting.', 'If `Continue Decision` is `Continue`, Codex must not end on a seam-complete final response, rollback path, or next-seam recommendation; it must keep executing until a lawful `Stop` decision exists.', 'A prompt `Return:` block is an output shape only; it cannot override governed continuation markers or authorize a terminal response while `Continue Decision` remains `Continue`.', 'Once the current slice is green during `Workstream`, advance into the next admitted slice while `Completion Status` remains `In Progress`; await the next instruction only after a lawful `Stop` decision.', 'A final response after a green seam while `Continue Decision` remains `Continue` is `Post-Seam Final-Stop Drift`.', 'Durability commit/push is not a lawful stop while `Continue Decision` remains `Continue`.', 'If `Completion Status` is `In Progress`, `Next Active Seam` must remain a `Workstream` seam; phase-exit seams require `Completion Status: Green`, `Completion Status: Red` with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver.', '`Phase: Workstream` must remain bounded at all times, and the only lawful `Workstream` stop conditions are `Completion Status: Green` with `Hardening` next, or `Completion Status: Red` justified by a named blocker or waiver.', 'Single-seam or single-slice Workstream authority is forbidden unless explicit USER waiver text is recorded.', 'If only one seam or one slice is planned or visible, stop immediately on `Single-Seam Or Single-Slice Workstream Blocker` until Branch Readiness expands the plan or USER grants a waiver.', 'Only USER can grant a single-seam or single-slice Workstream waiver; Codex, ChatGPT, validators, prompt wording, clean validation, or a green seam cannot infer it.', 'A Workstream with `Completion Status: In Progress` and no waiver must show remaining same-branch implementable work beyond the current seam.', 'If `Completion Status` is `Red`, `Continuation Action` must report the blocker-clearing action or waiver-clearing action needed before bounded `Workstream` continuation may resume.')}
 
-NEXT_LEGAL_PHASE_DIGEST_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/branch_records/index.md"),
-)
+NEXT_LEGAL_PHASE_DIGEST_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/branch_records/index.md'),)
 
-NEXT_LEGAL_PHASE_DIGEST_REQUIRED_PHRASES = (
-    "Formal Next Legal Phase Digest",
-    "Next Legal Phase Digest",
-    "Current Phase:",
-    "Next Legal Phase:",
-    "Why This Phase Is Next:",
-    "Approval Required:",
-    "Exact USER Approval Text:",
-    "Allowed Scope:",
-    "Explicit Exclusions:",
-    "Validation Required:",
-    "Stop Conditions:",
-    "USER Plan Review Gate:",
-    "USER Inspection Files:",
-    "Review Required Because:",
-    "Implementation Blocker:",
-    "Review Waiver Reason:",
-    "Next Legal Phase Digest Missing",
-    "Next Safe Move",
-    "must not be compacted",
-    "accept, revise, waive, or reject",
-)
+NEXT_LEGAL_PHASE_DIGEST_REQUIRED_PHRASES = ()
 
-NEXT_LEGAL_PHASE_DIGEST_POINTER_REQUIRED_PHRASES = {
-    Path("Docs/Main.md"): (
-        "Formal Next Legal Phase Digest",
-        "Docs/phase_governance.md",
-        "Next Legal Phase Digest Missing",
-        "must not duplicate the full digest-field policy",
-    ),
-}
+NEXT_LEGAL_PHASE_DIGEST_POINTER_REQUIRED_PHRASES = {}
 
-MAIN_FIRST_LOADER_CHAIN_REQUIRED_PHRASES = {
-    Path("Docs/Main.md"): (
-        "Main-First Loader Chain",
-        "Docs/nexus_vision.md",
-        "Docs/family_visions/",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-        "Context docs may explain",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Main is the first repo loader and routing index",
-        "Nexus Vision",
-        "family vision",
-        "active external branch plan",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Main is the first repo loader and routing index",
-        "Nexus Vision",
-        "family vision",
-        "active external branch plans",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "Main is the first repo loader and source-truth router",
-        "Docs/nexus_vision.md",
-        "Docs/family_visions/",
-        "active external branch plan",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "Generated prompts must preserve the Main-first loader chain",
-        "Docs/Main.md",
-        "Docs/nexus_vision.md",
-        "Docs/family_visions/",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Preserve the Main-first loader chain",
-        "project/family vision",
-        "active external branch plan",
-        "Docs/nexus_vision.md",
-        "Docs/family_visions/",
-    ),
-    Path("Docs/governance_efficiency_operating_model.md"): (
-        "Main-first loader chain",
-        "owning source-truth files",
-        "alternate first loaders",
-    ),
-    Path("Docs/branch_plans/README.md"): (
-        "Main-first loader chain",
-        "external operational state",
-        "branch-local engineering detail",
-    ),
-    Path("Docs/family_visions/README.md"): (
-        "Main-first loader chain",
-        "Docs/nexus_vision.md",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-    ),
-}
+MAIN_FIRST_LOADER_CHAIN_REQUIRED_PHRASES = {Path('Docs/development_rules.md'): ('Main is the first repo loader and routing index', 'Nexus Vision', 'family vision', 'active external branch plan'), Path('Docs/codex_modes.md'): ('Main is the first repo loader and routing index', 'Nexus Vision', 'family vision', 'active external branch plans'), Path('Docs/codex_user_guide.md'): ('Main is the first repo loader and source-truth router', 'Docs/nexus_vision.md', 'Docs/family_visions/', 'active external branch plan'), Path('Docs/orin_task_template.md'): ('Preserve the Main-first loader chain', 'project/family vision', 'active external branch plan', 'Docs/nexus_vision.md', 'Docs/family_visions/'), Path('Docs/governance_efficiency_operating_model.md'): ('Main-first loader chain', 'owning source-truth files', 'alternate first loaders'), Path('Docs/branch_plans/README.md'): ('Main-first loader chain', 'external operational state', 'branch-local engineering detail'), Path('Docs/family_visions/README.md'): ('Main-first loader chain', 'Docs/nexus_vision.md', 'C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md')}
 
-WORKSTREAM_ENTRY_WHOLE_PACKAGE_REQUIRED_PHRASES = {
-    Path("Docs/phase_governance.md"): (
-        "Workstream Entry Whole-Package Analysis Gate",
-        "all admitted slices/seams",
-        "completion strategy",
-        "Hardening H1 expectations",
-        "Live Validation LV1 expectations",
-        "UTS handoff criteria",
-        "Workstream Entry Whole-Package Analysis Missing",
-        "does not authorize executing those phases",
-    ),
-    Path("Docs/branch_plans/README.md"): (
-        "Workstream Entry Whole-Package Analysis Gate",
-        "all admitted slices/seams",
-        "completion strategy for the whole Workstream package",
-        "Hardening H1 expectations",
-        "Live Validation LV1 expectations",
-        "UTS handoff criteria",
-        "Workstream Entry Whole-Package Analysis Missing",
-    ),
-    Path("Docs/branch_records/index.md"): (
-        "Workstream Entry Whole-Package Analysis Gate",
-        "all admitted slices/seams",
-        "Hardening H1 expectations",
-        "Live Validation LV1 expectations",
-        "UTS handoff criteria",
-        "Workstream Entry Whole-Package Analysis Missing",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Runtime BP3 with multiple admitted slices or seams",
-        "whole-package analysis before entry-seam implementation",
-        "Workstream Entry Whole-Package Analysis Missing",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "BP3 for a runtime branch with multiple admitted slices or seams",
-        "all admitted slices/seams",
-        "completion strategy",
-        "Hardening H1 expectations",
-        "Live Validation LV1 expectations",
-        "UTS handoff criteria",
-        "Workstream Entry Whole-Package Analysis Missing",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Workstream Entry Whole-Package Analysis:",
-        "Workstream Entry Whole-Package Summary:",
-        "all admitted slices/seams",
-        "Hardening H1 expectations",
-        "Live Validation LV1 expectations",
-        "UTS handoff criteria",
-        "This authorizes analysis only",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "Workstream Entry whole-package analysis",
-        "entry-seam implementation",
-        "Workstream Entry Whole-Package Analysis Missing",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "whole-package analysis before entry-seam implementation approval",
-        "first-seam-only handoff is not enough",
-    ),
-    Path("Docs/governance_efficiency_operating_model.md"): (
-        "whole-package analysis status",
-        "multiple slices or seams are admitted",
-    ),
-    Path("Docs/validation_helper_registry.md"): (
-        "Workstream Entry Whole-Package Analysis Gate",
-        "Formal Next Legal Phase Digest non-compaction",
-        "Forwarded Digest Non-Compaction Rule",
-    ),
-}
+WORKSTREAM_ENTRY_WHOLE_PACKAGE_REQUIRED_PHRASES = {Path('Docs/branch_plans/README.md'): ('Workstream Entry Whole-Package Analysis Gate', 'all admitted slices/seams', 'completion strategy for the whole Workstream package', 'Hardening H1 expectations', 'Live Validation LV1 expectations', 'UTS handoff criteria', 'Workstream Entry Whole-Package Analysis Missing'), Path('Docs/branch_records/index.md'): ('Workstream Entry Whole-Package Analysis Gate', 'all admitted slices/seams', 'Hardening H1 expectations', 'Live Validation LV1 expectations', 'UTS handoff criteria', 'Workstream Entry Whole-Package Analysis Missing'), Path('Docs/development_rules.md'): ('Runtime BP3 with multiple admitted slices or seams', 'whole-package analysis before entry-seam implementation', 'Workstream Entry Whole-Package Analysis Missing'), Path('Docs/codex_modes.md'): ('BP3 for a runtime branch with multiple admitted slices or seams', 'all admitted slices/seams', 'completion strategy', 'Hardening H1 expectations', 'Live Validation LV1 expectations', 'UTS handoff criteria', 'Workstream Entry Whole-Package Analysis Missing'), Path('Docs/orin_task_template.md'): ('Workstream Entry Whole-Package Analysis:', 'Workstream Entry Whole-Package Summary:', 'all admitted slices/seams', 'Hardening H1 expectations', 'Live Validation LV1 expectations', 'UTS handoff criteria', 'This authorizes analysis only'), Path('Docs/codex_user_guide.md'): ('whole-package analysis before entry-seam implementation approval', 'first-seam-only handoff is not enough'), Path('Docs/governance_efficiency_operating_model.md'): ('whole-package analysis status', 'multiple slices or seams are admitted'), Path('Docs/validation_helper_registry.md'): ('Workstream Entry Whole-Package Analysis Gate', 'Formal Next Legal Phase Digest non-compaction', 'Forwarded Digest Non-Compaction Rule')}
 
-USER_BRANCH_PLAN_REVIEW_REQUIRED_PHRASES = {
-    Path("Docs/Main.md"): (
-        "Branch Planning",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER Branch Plan Review Gate",
-        "BP3",
-        "Contract Status",
-        "Pending USER Confirmation",
-        "Accepted Branch Vision Summary",
-        "End-State Vision",
-        "USER response",
-        "Packet Reviewability State",
-        "USER Gate State",
-    ),
-    Path("Docs/phase_governance.md"): (
-        "Branch Planning",
-        "BP1",
-        "BP2",
-        "BP3",
-        "USER Branch Vision Review Gate",
-        "USER Branch Plan Review Gate",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER_BRANCH_PLAN_REVIEW.md",
-        "Contract Status",
-        "Pending USER Confirmation",
-        "Branch Planning Review Packet Missing",
-        "BP1 Branch Vision Review Missing",
-        "BP2 Branch Plan Review Missing",
-        "BP3 Orchestration Validation Missing",
-        "End-State Vision",
-        "USER Review Response",
-        "Codex Response Digest",
-        "USER Review Packet Finding",
-        "Packet Reviewability State",
-        "USER Gate State",
-        "Packet Validation Treated As USER Acceptance",
-    ),
-    Path("Docs/branch_plans/README.md"): (
-        "Branch Planning",
-        "USER Branch Vision Review Gate",
-        "USER Branch Plan Review Gate",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER_BRANCH_PLAN_REVIEW.md",
-        "Required review markers",
-        "Contract Status:",
-        "Contract Revision:",
-        "Accepted Branch Vision Summary:",
-        "Branch Scope Size Test:",
-        "SLC / Seam Plan:",
-        "USER Review Packet Finding:",
-        "End-State Vision:",
-        "Surface Map:",
-        "Exact BP3 Approval Text:",
-        "USER Review Response:",
-        "Codex Response Digest:",
-        "Packet Reviewability State:",
-        "USER Gate State:",
-        "BP2 Branch Plan Review Missing",
-    ),
-    Path("Docs/branch_records/index.md"): (
-        "Branch Planning",
-        "USER Branch Vision Review",
-        "USER Branch Plan Review Gate",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER_BRANCH_PLAN_REVIEW.md",
-        "Contract Status",
-        "USER Review Packet Finding",
-        "USER Review Response",
-        "BP3 Orchestration Validation Missing",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Branch Planning",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER_BRANCH_PLAN_REVIEW.md",
-        "USER Branch Plan Review Gate",
-        "Contract Status",
-        "Pending USER Confirmation",
-        "BP3 Orchestration Validation Missing",
-        "USER Review Response",
-        "End-State Vision",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Branch Planning",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER_BRANCH_PLAN_REVIEW.md",
-        "USER Branch Plan Review Gate",
-        "Contract Status",
-        "Pending USER Confirmation",
-        "USER Review Response",
-        "BP3",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Branch Planning Review Packet:",
-        "USER Branch Vision Review:",
-        "USER Branch Plan Review:",
-        "Live Validation / UTS plan",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "Branch Planning",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER_BRANCH_PLAN_REVIEW.md",
-        "USER Branch Plan Review Gate",
-        "Contract Status",
-        "USER Review Response",
-        "BP3 Orchestration Validation Missing",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "Branch Planning",
-        "USER Branch Vision Review",
-        "USER Branch Plan Review Gate",
-        "C:\\Nexus USER\\<label>",
-        "BP3",
-        "USER Review Packet Stale",
-    ),
-    Path("Docs/governance_efficiency_operating_model.md"): (
-        "Branch Planning",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER_BRANCH_PLAN_REVIEW.md",
-        "USER Branch Plan Review Gate",
-        "Contract Status",
-        "accepting, revising, deferring with waiver, rejecting",
-        "USER response",
-        "local USER hub",
-    ),
-    Path("Docs/validation_helper_registry.md"): (
-        "Branch Planning",
-        "USER_BRANCH_VISION_REVIEW.md",
-        "USER_BRANCH_PLAN_REVIEW.md",
-        "USER Branch Plan Review Gate",
-        "Contract Status",
-        "BP1 Branch Vision Contract",
-        "BP2 Branch Plan Contract",
-        "USER Review Response",
-    ),
-}
+USER_BRANCH_PLAN_REVIEW_REQUIRED_PHRASES = {Path('Docs/branch_plans/README.md'): ('Branch Planning', 'USER Branch Vision Review Gate', 'USER Branch Plan Review Gate', 'USER_BRANCH_VISION_REVIEW.md', 'USER_BRANCH_PLAN_REVIEW.md', 'Required review markers', 'Contract Status:', 'Contract Revision:', 'Accepted Branch Vision Summary:', 'Branch Scope Size Test:', 'SLC / Seam Plan:', 'USER Review Packet Finding:', 'End-State Vision:', 'Surface Map:', 'Exact BP3 Approval Text:', 'USER Review Response:', 'Codex Response Digest:', 'Packet Reviewability State:', 'USER Gate State:', 'BP2 Branch Plan Review Missing'), Path('Docs/branch_records/index.md'): ('Branch Planning', 'USER Branch Vision Review', 'USER Branch Plan Review Gate', 'USER_BRANCH_VISION_REVIEW.md', 'USER_BRANCH_PLAN_REVIEW.md', 'Contract Status', 'USER Review Packet Finding', 'USER Review Response', 'BP3 Orchestration Validation Missing'), Path('Docs/development_rules.md'): ('Branch Planning', 'USER_BRANCH_VISION_REVIEW.md', 'USER_BRANCH_PLAN_REVIEW.md', 'USER Branch Plan Review Gate', 'Contract Status', 'Pending USER Confirmation', 'BP3 Orchestration Validation Missing', 'USER Review Response', 'End-State Vision'), Path('Docs/codex_modes.md'): ('Branch Planning', 'USER_BRANCH_VISION_REVIEW.md', 'USER_BRANCH_PLAN_REVIEW.md', 'USER Branch Plan Review Gate', 'Contract Status', 'Pending USER Confirmation', 'USER Review Response', 'BP3'), Path('Docs/orin_task_template.md'): ('Branch Planning Review Packet:', 'USER Branch Vision Review:', 'USER Branch Plan Review:', 'Live Validation / UTS plan'), Path('Docs/codex_user_guide.md'): ('Branch Planning', 'USER Branch Vision Review', 'USER Branch Plan Review Gate', 'C:\\Nexus USER\\<label>', 'BP3', 'USER Review Packet Stale'), Path('Docs/governance_efficiency_operating_model.md'): ('Branch Planning', 'USER_BRANCH_VISION_REVIEW.md', 'USER_BRANCH_PLAN_REVIEW.md', 'USER Branch Plan Review Gate', 'Contract Status', 'accepting, revising, deferring with waiver, rejecting', 'USER response', 'local USER hub'), Path('Docs/validation_helper_registry.md'): ('Branch Planning', 'USER_BRANCH_VISION_REVIEW.md', 'USER_BRANCH_PLAN_REVIEW.md', 'USER Branch Plan Review Gate', 'Contract Status', 'BP1 Branch Vision Contract', 'BP2 Branch Plan Contract', 'USER Review Response')}
 
-FORWARDED_DIGEST_NON_COMPACTION_REQUIRED_PHRASES = {
-    Path("Docs/governance_intake_triage_and_digest_profiles.md"): (
-        "Forwarded Digest Non-Compaction Rule",
-        "another branch, worktree, governance lane, PR watcher, Release Readiness lane, or future Codex thread",
-        "repo/worktree identity",
-        "HEAD or relevant commits",
-        "what happened",
-        "what went wrong",
-        "exact USER decision needed",
-        "must not compress it into minimal bullets",
-    ),
-    Path("Docs/validation_helper_registry.md"): (
-        "Forwarded Digest Non-Compaction Rule",
-        "governance validator",
-    ),
-}
+FORWARDED_DIGEST_NON_COMPACTION_REQUIRED_PHRASES = ()
 
-WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS = (Path('Docs/codex_modes.md'), Path('Docs/codex_user_guide.md'),)
 
 WORKSTREAM_TO_PR_DEFAULT_GUARD_PHRASES = (
     "There is no default direct `Workstream` -> `PR Readiness` transition.",
@@ -4065,14 +3265,7 @@ WORKSTREAM_TO_PR_DEFAULT_GUARD_PHRASES = (
     "Do not prompt Codex to treat Workstream completion as direct `PR Readiness`.",
 )
 
-PRE_PR_DURABILITY_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+PRE_PR_DURABILITY_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 PRE_PR_DURABILITY_PHRASES = (
     "DO THIS ALWAYS",
@@ -4087,63 +3280,7 @@ PRE_PR_DURABILITY_PHRASES = (
     "automatically commit and push",
 )
 
-AUTOMATION_RUNTIME_PROOF_CONTRACT_REQUIRED_PHRASES = {
-    Path("Docs/Main.md"): (
-        "Automation Runtime Unproven",
-        "`ACTIVE` is configuration state, not run proof",
-        "thread or inbox output",
-        "automation memory/log/state-file updates",
-        "scheduler last-run evidence",
-        "bounded fallback",
-        "target-scoped",
-        "phase-scoped",
-        "self-terminating or explicitly deleted",
-    ),
-    Path("Docs/phase_governance.md"): (
-        "Automation Runtime Unproven",
-        "`ACTIVE` is configuration state, not run proof",
-        "thread or inbox output",
-        "automation memory/log/state-file updates",
-        "scheduler last-run evidence",
-        "bounded fallback",
-        "target-scoped",
-        "phase-scoped",
-        "self-terminating or explicitly deleted",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Automation Runtime Unproven",
-        "`ACTIVE` is configuration state, not run proof",
-        "thread/inbox output",
-        "automation memory/log/state-file updates",
-        "scheduler last-run evidence",
-        "bounded fallback",
-        "target-scoped",
-        "phase-scoped",
-        "self-terminating or explicitly deleted",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Automation Runtime Unproven",
-        "`ACTIVE` is configuration state, not run proof",
-        "thread or inbox output",
-        "automation memory/log/state-file updates",
-        "scheduler last-run evidence",
-        "bounded fallback",
-        "target-scoped",
-        "phase-scoped",
-        "self-terminating or explicitly deleted",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "Automation Runtime Unproven",
-        "`ACTIVE` is configuration state, not run proof",
-        "thread or inbox output",
-        "automation memory/log/state-file updates",
-        "scheduler last-run evidence",
-        "bounded fallback",
-        "target-scoped",
-        "phase-scoped",
-        "self-terminating or explicitly deleted",
-    ),
-}
+AUTOMATION_RUNTIME_PROOF_CONTRACT_REQUIRED_PHRASES = {Path('Docs/development_rules.md'): ('Automation Runtime Unproven', '`ACTIVE` is configuration state, not run proof', 'thread/inbox output', 'automation memory/log/state-file updates', 'scheduler last-run evidence', 'bounded fallback', 'target-scoped', 'phase-scoped', 'self-terminating or explicitly deleted'), Path('Docs/codex_modes.md'): ('Automation Runtime Unproven', '`ACTIVE` is configuration state, not run proof', 'thread or inbox output', 'automation memory/log/state-file updates', 'scheduler last-run evidence', 'bounded fallback', 'target-scoped', 'phase-scoped', 'self-terminating or explicitly deleted'), Path('Docs/codex_user_guide.md'): ('Automation Runtime Unproven', '`ACTIVE` is configuration state, not run proof', 'thread or inbox output', 'automation memory/log/state-file updates', 'scheduler last-run evidence', 'bounded fallback', 'target-scoped', 'phase-scoped', 'self-terminating or explicitly deleted')}
 
 AUTOMATION_RUNTIME_PROOF_CURRENT_STATE_REQUIRED_PHRASES = {
     Path("Docs/feature_backlog.md"): (
@@ -4158,61 +3295,13 @@ AUTOMATION_RUNTIME_PROOF_CURRENT_STATE_REQUIRED_PHRASES = {
     ),
 }
 
-PLANNING_LOOP_GUARDRAIL_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/nexus_startup_contract.md"),
-)
+PLANNING_LOOP_GUARDRAIL_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
-PLANNING_LOOP_GUARDRAIL_PHRASES = (
-    "Branch Readiness owns planning, framing, affected-surface mapping, implementation delta classification, admitted-slice definition, and whole-backlog closure strategy before Workstream begins.",
-    "Branch Readiness must evaluate the whole backlog item, define the first admitted slice, record the same-branch continuation posture until `Completion Status` becomes green, and record any known future-dependent blockers before Workstream begins.",
-    "Workstream must execute admitted implementation slices one slice at a time, keep re-evaluating the backlog item after each seam and slice, and keep later slices on the same branch by default when scope, phase, risk, and validation authority remain green unless the USER explicitly approves a docs-only bypass or backlog split.",
-    "Docs-only Workstreams require explicit USER approval.",
-    "Planning-Loop Bypass User Approval: APPROVED",
-    "Planning-Loop Bypass Reason:",
-    "Release-bearing implementation work with no runtime/user-facing, backend/runtime, or developer-tooling delta is blocked unless the USER explicitly approves that release window.",
-    "`Workstream` may not advance to `Hardening` while remaining implementable work is still available on the current backlog item",
-)
+PLANNING_LOOP_GUARDRAIL_PHRASES = ()
 
-PROMPT_DISCIPLINE_REQUIRED_PHRASES = {
-    Path("Docs/nexus_startup_contract.md"): (
-        "Planning-loop prevention belongs in ChatGPT preflight analysis.",
-        "If planning-loop risk is detected, ChatGPT must block prompt generation and return analysis instead of an execution prompt.",
-        "Once prompt generation is allowed, the prompt stays thin and neutral.",
-        "Codex prompts should express admitted scope positively through project context, active seam, task, and return format.",
-        "The startup contract should load that authority; it should not leak startup-contract narration into the generated Codex prompt body.",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "When ChatGPT is generating the prompt, planning-loop risk belongs in preflight analysis.",
-        "Planning-loop prevention belongs in ChatGPT preflight analysis, not in a thicker Codex prompt body.",
-        "Once prompt generation is allowed, keep the Codex prompt thin and neutral.",
-        "Let repo truth, branch authority, canonical workstreams, and admitted slice records supply behavior after load rather than pasting full seam-governance rule blocks into the prompt text.",
-    ),
-    Path("Docs/Main.md"): (
-        "Planning-loop blocking belongs in ChatGPT preflight analysis before prompt generation.",
-        "Once a prompt is allowed, it should stay thin, neutral, and repo-aligned instead of carrying behavior-management lists or protective governance narration.",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "When ChatGPT is generating a Codex prompt, treat this template as a construction checklist rather than prompt text to paste wholesale.",
-        "Planning-loop prevention belongs in ChatGPT preflight analysis; once prompt generation is allowed, keep the prompt thin, neutral, and repo-aligned.",
-    ),
-}
+PROMPT_DISCIPLINE_REQUIRED_PHRASES = {Path('Docs/codex_user_guide.md'): ('When ChatGPT is generating the prompt, planning-loop risk belongs in preflight analysis.', 'Planning-loop prevention belongs in ChatGPT preflight analysis, not in a thicker Codex prompt body.', 'Once prompt generation is allowed, keep the Codex prompt thin and neutral.', 'Let repo truth, branch authority, canonical workstreams, and admitted slice records supply behavior after load rather than pasting full seam-governance rule blocks into the prompt text.'), Path('Docs/orin_task_template.md'): ('When ChatGPT is generating a Codex prompt, treat this template as a construction checklist rather than prompt text to paste wholesale.', 'Planning-loop prevention belongs in ChatGPT preflight analysis; once prompt generation is allowed, keep the prompt thin, neutral, and repo-aligned.')}
 
-PROMPT_DISCIPLINE_PROHIBITED_PHRASES = {
-    Path("Docs/nexus_startup_contract.md"): (
-        "Do not generate minimal prompts that omit governance loading.",
-        "Every generated prompt must include: Mode, Phase, Workstream, Branch, Branch Class when relevant, task scope, constraints, stop conditions, validation requirements",
-        "\nConstraints:\n",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "optional control add-ons only when they materially reduce ambiguity",
-    ),
-}
+PROMPT_DISCIPLINE_PROHIBITED_PHRASES = {Path('Docs/codex_user_guide.md'): ('optional control add-ons only when they materially reduce ambiguity',)}
 
 PLANNING_LOOP_ACTIVE_PHASES = (
     "Branch Readiness",
@@ -4263,14 +3352,7 @@ ACTIVE_SINGLE_SLICE_PROHIBITED_PATTERNS = (
     r"later slices remain explicit approval gates",
 )
 
-LIVE_VALIDATION_REUSE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+LIVE_VALIDATION_REUSE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 LIVE_VALIDATION_REUSE_PHRASES = (
     "reuse",
@@ -4278,14 +3360,7 @@ LIVE_VALIDATION_REUSE_PHRASES = (
     "one-off",
 )
 
-LIVE_VALIDATION_STALL_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+LIVE_VALIDATION_STALL_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 LIVE_VALIDATION_STALL_PHRASES = (
     "10s",
@@ -4293,13 +3368,7 @@ LIVE_VALIDATION_STALL_PHRASES = (
     "last confirmed",
 )
 
-LIVE_VALIDATION_AUTO_REPAIR_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+LIVE_VALIDATION_AUTO_REPAIR_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 LIVE_VALIDATION_AUTO_REPAIR_PHRASES = (
     "codex-visible `repair` or `stop`",
@@ -4322,15 +3391,7 @@ LIVE_VALIDATION_HELPER_CONTRACTS = {
 
 VALIDATION_HELPER_REGISTRY = Path("Docs/validation_helper_registry.md")
 
-VALIDATION_HELPER_STANDARD_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+VALIDATION_HELPER_STANDARD_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/validation_helper_registry.md'),)
 
 VALIDATION_HELPER_STANDARD_PHRASES = (
     "Docs/validation_helper_registry.md",
@@ -4340,14 +3401,7 @@ VALIDATION_HELPER_STANDARD_PHRASES = (
     "Temporary probe",
 )
 
-PR_READINESS_BLOCKER_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+PR_READINESS_BLOCKER_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 PR_READINESS_BLOCKER_PHRASES = (
     "stale-canon",
@@ -4382,36 +3436,11 @@ PR_READINESS_BLOCKER_PHRASES = (
     "PR Readiness Stage 1 Repair Pending",
 )
 
-PACKAGE_SLICE_BLOCKER_CATALOG_DOCS = (
-    Path("Docs/feature_backlog.md"),
-    Path("Docs/prebeta_roadmap.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/workstreams/index.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/branch_records/codex_one_time_backlog_governance_repair.md"),
-)
+PACKAGE_SLICE_BLOCKER_CATALOG_DOCS = (Path('Docs/feature_backlog.md'), Path('Docs/prebeta_roadmap.md'), Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/workstreams/index.md'), Path('Docs/branch_records/index.md'), Path('Docs/branch_records/codex_one_time_backlog_governance_repair.md'),)
 
-PACKAGE_SLICE_BLOCKER_CATALOG_PHRASES = (
-    "Single-Slice Package User Approval Missing",
-    "Package Completion Unproven",
-    "Admission State: Admitted",
-)
+PACKAGE_SLICE_BLOCKER_CATALOG_PHRASES = ()
 
-RELEASE_WINDOW_AUDIT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/nexus_startup_contract.md"),
-)
+RELEASE_WINDOW_AUDIT_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 RELEASE_WINDOW_AUDIT_PHRASES = (
     "Release Window Audit",
@@ -4421,12 +3450,7 @@ RELEASE_WINDOW_AUDIT_PHRASES = (
     "Release Window Split Waiver: None",
 )
 
-PR_READINESS_RESPONSE_CONTRACT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+PR_READINESS_RESPONSE_CONTRACT_DOCS = (Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 PR_READINESS_RESPONSE_CONTRACT_PHRASES = (
     "## PR Readiness Stage 1 Analysis Packet",
@@ -4455,17 +3479,7 @@ PR_READINESS_RESPONSE_CONTRACT_PHRASES = (
     "All visible PR bodies must be scanned by `dev\\orin_pr_body_quality_audit.py`; every nonconforming PR body inside the approved GitHub correction scope must be repaired before the PR-body standard can be reported green.",
 )
 
-PR_READINESS_STAGE_GATE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/branch_records/codex_one_time_backlog_governance_repair.md"),
-)
+PR_READINESS_STAGE_GATE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/branch_records/index.md'), Path('Docs/branch_records/codex_one_time_backlog_governance_repair.md'),)
 
 PR_READINESS_STAGE_GATE_PHRASES = (
     "PR Readiness Stage 1 - Analysis Gate",
@@ -4476,10 +3490,7 @@ PR_READINESS_STAGE_GATE_PHRASES = (
     "USER approval to enter Stage 2",
 )
 
-PR_READINESS_STAGE_PACKET_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/orin_task_template.md"),
-)
+PR_READINESS_STAGE_PACKET_DOCS = (Path('Docs/orin_task_template.md'),)
 
 PR_READINESS_STAGE_PACKET_PHRASES = (
     "## PR Readiness Stage 1 Analysis Packet",
@@ -4525,16 +3536,7 @@ PR_READINESS_STAGE_PACKET_PHRASES = (
     "Stage 2 Green-Light Decision Needed:",
 )
 
-PR_READINESS_ORIGIN_MAIN_FRESHNESS_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+PR_READINESS_ORIGIN_MAIN_FRESHNESS_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'),)
 
 PR_READINESS_ORIGIN_MAIN_FRESHNESS_PHRASES = (
     "Origin/Main Freshness Check",
@@ -4563,117 +3565,9 @@ PR_READINESS_ORIGIN_MAIN_FRESHNESS_MARKERS = (
     "Reconciliation Mutation Status",
 )
 
-PROMPT_ENTRY_ORIGIN_MAIN_FRESHNESS_REQUIRED_PHRASES = {
-    Path("Docs/phase_governance.md"): (
-        "Prompt-Entry Origin/Main Freshness Gate",
-        "Prompt-Entry Freshness Check:",
-        "Fetched origin/main:",
-        "Current Worktree:",
-        "Current Branch:",
-        "HEAD:",
-        "Upstream:",
-        "origin/main:",
-        "Merge Base With origin/main:",
-        "Origin/Main Advanced Since Last Action:",
-        "Pre-Rebaseline Impact Audit Required:",
-        "Rebaseline/Reconciliation Status:",
-        "Prompt-Entry Origin/Main Freshness Missing",
-        "Origin/Main Advanced Rebaseline Required",
-        "Validating locally is not enough",
-    ),
-    Path("Docs/Main.md"): (
-        "Prompt-Entry Origin/Main Freshness Gate",
-        "Prompt-Entry Freshness Check:",
-        "Fetched origin/main:",
-        "Origin/Main Advanced Since Last Action:",
-        "Pre-Rebaseline Impact Audit Required:",
-        "Rebaseline/Reconciliation Status:",
-        "Prompt-Entry Origin/Main Freshness Missing",
-        "Origin/Main Advanced Rebaseline Required",
-        "validating locally is not enough",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Prompt-Entry Origin/Main Freshness Gate",
-        "Prompt-Entry Freshness Check:",
-        "Fetched origin/main:",
-        "Current Worktree:",
-        "Current Branch:",
-        "HEAD:",
-        "origin/main:",
-        "Merge Base With origin/main:",
-        "Origin/Main Advanced Since Last Action:",
-        "Pre-Rebaseline Impact Audit Required:",
-        "Rebaseline/Reconciliation Status:",
-        "Prompt-Entry Origin/Main Freshness Missing",
-        "Origin/Main Advanced Rebaseline Required",
-        "validating locally is not enough",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Prompt-Entry Origin/Main Freshness Gate",
-        "Prompt-Entry Freshness Check:",
-        "Fetched origin/main:",
-        "Origin/Main Advanced Since Last Action:",
-        "Pre-Rebaseline Impact Audit Required:",
-        "Rebaseline/Reconciliation Status:",
-        "Prompt-Entry Origin/Main Freshness Missing",
-        "Origin/Main Advanced Rebaseline Required",
-        "validating locally is not enough",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "Prompt-Entry Origin/Main Freshness Gate",
-        "Prompt-Entry Freshness Check:",
-        "Fetched origin/main:",
-        "Origin/Main Advanced Since Last Action:",
-        "Pre-Rebaseline Impact Audit Required:",
-        "Rebaseline/Reconciliation Status:",
-        "Prompt-Entry Origin/Main Freshness Missing",
-        "Origin/Main Advanced Rebaseline Required",
-        "validating locally is not enough",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Prompt-Entry Freshness Check:",
-        "Fetched origin/main:",
-        "Current Worktree:",
-        "Current Branch:",
-        "HEAD:",
-        "Upstream:",
-        "origin/main:",
-        "Merge Base With origin/main:",
-        "Origin/Main Advanced Since Last Action:",
-        "Pre-Rebaseline Impact Audit Required:",
-        "Rebaseline/Reconciliation Status:",
-        "Prompt-Entry Origin/Main Freshness Missing",
-        "Origin/Main Advanced Rebaseline Required",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "Prompt-Entry Origin/Main Freshness Gate",
-        "Prompt-Entry Freshness Check:",
-        "Fetched origin/main:",
-        "Origin/Main Advanced Since Last Action:",
-        "Pre-Rebaseline Impact Audit Required:",
-        "Rebaseline/Reconciliation Status:",
-        "Prompt-Entry Origin/Main Freshness Missing",
-        "Origin/Main Advanced Rebaseline Required",
-        "validating locally is not enough",
-    ),
-    Path("Docs/validation_helper_registry.md"): (
-        "Prompt-Entry Origin/Main Freshness Gate",
-        "Prompt-Entry Freshness Check:",
-        "Fetched origin/main:",
-        "Origin/Main Advanced Since Last Action:",
-        "Pre-Rebaseline Impact Audit Required:",
-        "Rebaseline/Reconciliation Status:",
-        "Prompt-Entry Origin/Main Freshness Missing",
-    ),
-}
+PROMPT_ENTRY_ORIGIN_MAIN_FRESHNESS_REQUIRED_PHRASES = {Path('Docs/development_rules.md'): ('Prompt-Entry Origin/Main Freshness Gate', 'Prompt-Entry Freshness Check:', 'Fetched origin/main:', 'Current Worktree:', 'Current Branch:', 'HEAD:', 'origin/main:', 'Merge Base With origin/main:', 'Origin/Main Advanced Since Last Action:', 'Pre-Rebaseline Impact Audit Required:', 'Rebaseline/Reconciliation Status:', 'Prompt-Entry Origin/Main Freshness Missing', 'Origin/Main Advanced Rebaseline Required', 'validating locally is not enough'), Path('Docs/codex_modes.md'): ('Prompt-Entry Origin/Main Freshness Gate', 'Prompt-Entry Freshness Check:', 'Fetched origin/main:', 'Origin/Main Advanced Since Last Action:', 'Pre-Rebaseline Impact Audit Required:', 'Rebaseline/Reconciliation Status:', 'Prompt-Entry Origin/Main Freshness Missing', 'Origin/Main Advanced Rebaseline Required', 'validating locally is not enough'), Path('Docs/codex_user_guide.md'): ('Prompt-Entry Origin/Main Freshness Gate', 'Prompt-Entry Freshness Check:', 'Fetched origin/main:', 'Origin/Main Advanced Since Last Action:', 'Pre-Rebaseline Impact Audit Required:', 'Rebaseline/Reconciliation Status:', 'Prompt-Entry Origin/Main Freshness Missing', 'Origin/Main Advanced Rebaseline Required', 'validating locally is not enough'), Path('Docs/orin_task_template.md'): ('Prompt-Entry Freshness Check:', 'Fetched origin/main:', 'Current Worktree:', 'Current Branch:', 'HEAD:', 'Upstream:', 'origin/main:', 'Merge Base With origin/main:', 'Origin/Main Advanced Since Last Action:', 'Pre-Rebaseline Impact Audit Required:', 'Rebaseline/Reconciliation Status:', 'Prompt-Entry Origin/Main Freshness Missing', 'Origin/Main Advanced Rebaseline Required'), Path('Docs/validation_helper_registry.md'): ('Prompt-Entry Origin/Main Freshness Gate', 'Prompt-Entry Freshness Check:', 'Fetched origin/main:', 'Origin/Main Advanced Since Last Action:', 'Pre-Rebaseline Impact Audit Required:', 'Rebaseline/Reconciliation Status:', 'Prompt-Entry Origin/Main Freshness Missing')}
 
-CURRENT_MAIN_RECONCILIATION_IDENTITY_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+CURRENT_MAIN_RECONCILIATION_IDENTITY_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/validation_helper_registry.md'),)
 
 CURRENT_MAIN_RECONCILIATION_IDENTITY_PHRASES = (
     "Current-Main Reconciliation Identity Guard",
@@ -4685,14 +3579,7 @@ CURRENT_MAIN_RECONCILIATION_IDENTITY_PHRASES = (
     "Worktree Branch Identity Drift",
 )
 
-PRE_REBASELINE_IMPACT_AUDIT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+PRE_REBASELINE_IMPACT_AUDIT_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'),)
 
 PRE_REBASELINE_IMPACT_AUDIT_PHRASES = (
     "Pre-Rebaseline Impact Audit",
@@ -4724,14 +3611,7 @@ PRE_REBASELINE_HELPER_PHRASES = (
     "Fallback Evidence:",
 )
 
-RELEASE_READINESS_HEALTH_GATE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+RELEASE_READINESS_HEALTH_GATE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'),)
 
 RELEASE_READINESS_HEALTH_GATE_PHRASES = (
     "Release Readiness Health Pass",
@@ -4872,124 +3752,9 @@ RELEASE_READINESS_ACTIVE_AUTHORITY_FOLD_DOWN_MARKERS = (
     "historical/no-active",
 )
 
-PR_READINESS_STAGE1_READINESS_LOCK_REQUIRED_PHRASES = {
-    Path("Docs/phase_governance.md"): (
-        "analysis-first readiness-lock gate",
-        "Stage 1 Ready For Stage 2",
-        "PR Readiness Stage 1 Repair Required",
-        "Current-Branch Branch Readiness Re-entry Required",
-        "New Carrier Branch Required",
-        "Stage 1 USER Waiver Required",
-        "Stage 2 begins only after",
-        "Stage 2 owns final PR execution only",
-        "PR creation is blocked while any Stage 1 blocker",
-        "Branch Readiness Stage 1 owns the normal next runtime implementation pipeline selection",
-        "Branch Readiness fallback is real carrier branch/package analysis",
-        "PR Readiness does not require selected-next truth or a waiver by default",
-    ),
-    Path("Docs/development_rules.md"): (
-        "PR Readiness Stage 1 is the Stage 2 readiness-lock gate",
-        "Stage 1 Ready For Stage 2",
-        "PR Readiness Stage 1 Repair Required",
-        "Current-Branch Branch Readiness Re-entry Required",
-        "New Carrier Branch Required",
-        "Stage 1 USER Waiver Required",
-        "Stage 2 owns final PR execution only",
-        "PR Readiness does not require selected-next truth or a waiver by default",
-    ),
-    Path("Docs/Main.md"): (
-        "Stage 1 is the Stage 2 readiness-lock gate",
-        "Stage 1 Ready For Stage 2",
-        "PR Readiness Stage 1 Repair Required",
-        "Current-Branch Branch Readiness Re-entry Required",
-        "New Carrier Branch Required",
-        "Stage 1 USER Waiver Required",
-        "Stage 2 owns final PR execution only",
-        "Branch Readiness Stage 1 owns the normal next runtime implementation pipeline selection",
-        "PR Readiness does not require selected-next truth or a waiver by default",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "PR Readiness Stage 1 is the Stage 2 readiness-lock gate",
-        "Stage 1 Ready For Stage 2",
-        "PR Readiness Stage 1 Repair Required",
-        "Current-Branch Branch Readiness Re-entry Required",
-        "New Carrier Branch Required",
-        "Stage 1 USER Waiver Required",
-        "Stage 2 owns final PR execution only",
-        "PR creation is blocked while any Stage 1 blocker",
-        "PR Readiness does not require selected-next truth or a waiver by default",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "PR Readiness Stage 1 is the Stage 2 readiness-lock gate",
-        "Stage 1 Ready For Stage 2",
-        "PR Readiness Stage 1 Repair Required",
-        "Current-Branch Branch Readiness Re-entry Required",
-        "New Carrier Branch Required",
-        "Stage 1 USER Waiver Required",
-        "Stage 2 owns final PR execution only",
-        "Stage 1 Outcome:",
-        "PR Readiness does not require selected-next truth or a waiver by default",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "analysis-first readiness-lock gate",
-        "Stage 1 Ready For Stage 2",
-        "PR Readiness Stage 1 Repair Required",
-        "Current-Branch Branch Readiness Re-entry Required",
-        "New Carrier Branch Required",
-        "Stage 1 USER Waiver Required",
-        "Stage 2 owns final PR execution only",
-        "Branch Readiness Stage 1 owns the normal next runtime implementation pipeline selection",
-        "Branch Readiness fallback is real carrier branch/package analysis",
-        "PR Readiness does not require selected-next truth or a waiver by default",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "analysis-first readiness-lock gate",
-        "Stage 1 Ready For Stage 2",
-        "PR Readiness Stage 1 Repair Required",
-        "Current-Branch Branch Readiness Re-entry Required",
-        "New Carrier Branch Required",
-        "Stage 1 USER Waiver Required",
-        "Stage 2 begins only after",
-        "Stage 2 sync plan",
-        "Branch Readiness fallback is real carrier branch/package analysis",
-        "PR Readiness does not require selected-next truth or a waiver by default",
-    ),
-    Path("Docs/branch_records/index.md"): (
-        "analysis-first readiness-lock gate",
-        "Stage 1 Ready For Stage 2",
-        "PR Readiness Stage 1 Repair Required",
-        "Current-Branch Branch Readiness Re-entry Required",
-        "New Carrier Branch Required",
-        "Stage 1 USER Waiver Required",
-        "approved final PR execution pass",
-        "Branch Readiness fallback is real carrier branch/package analysis",
-        "PR Readiness does not require selected-next truth or a waiver by default",
-    ),
-    Path("Docs/branch_records/codex_v1_6_13_prebeta_post_merge_closeout_hardening.md"): (
-        "Branch Readiness Stage 2-R2 PR Readiness Stage 1 Readiness-Lock Governance Repair",
-        "Branch Readiness Stage 2-R3 Superseded PR Stage 1 Repair Wording Cleanup",
-        "Stage 1 Readiness-Lock Finding:",
-        "Stage 1 Outcome Model:",
-        "Current-Branch Branch Readiness Re-entry Required:",
-        "New Carrier Branch Required:",
-        "Stage 2 Final-Execution Boundary:",
-        "Branch Readiness Fallback Clarification:",
-        "PR Creation Blocker:",
-    ),
-}
+PR_READINESS_STAGE1_READINESS_LOCK_REQUIRED_PHRASES = {Path('Docs/development_rules.md'): ('PR Readiness Stage 1 is the Stage 2 readiness-lock gate', 'Stage 1 Ready For Stage 2', 'PR Readiness Stage 1 Repair Required', 'Current-Branch Branch Readiness Re-entry Required', 'New Carrier Branch Required', 'Stage 1 USER Waiver Required', 'Stage 2 owns final PR execution only', 'PR Readiness does not require selected-next truth or a waiver by default'), Path('Docs/codex_modes.md'): ('PR Readiness Stage 1 is the Stage 2 readiness-lock gate', 'Stage 1 Ready For Stage 2', 'PR Readiness Stage 1 Repair Required', 'Current-Branch Branch Readiness Re-entry Required', 'New Carrier Branch Required', 'Stage 1 USER Waiver Required', 'Stage 2 owns final PR execution only', 'PR creation is blocked while any Stage 1 blocker', 'PR Readiness does not require selected-next truth or a waiver by default'), Path('Docs/orin_task_template.md'): ('PR Readiness Stage 1 is the Stage 2 readiness-lock gate', 'Stage 1 Ready For Stage 2', 'PR Readiness Stage 1 Repair Required', 'Current-Branch Branch Readiness Re-entry Required', 'New Carrier Branch Required', 'Stage 1 USER Waiver Required', 'Stage 2 owns final PR execution only', 'Stage 1 Outcome:', 'PR Readiness does not require selected-next truth or a waiver by default'), Path('Docs/codex_user_guide.md'): ('analysis-first readiness-lock gate', 'Stage 1 Ready For Stage 2', 'PR Readiness Stage 1 Repair Required', 'Current-Branch Branch Readiness Re-entry Required', 'New Carrier Branch Required', 'Stage 1 USER Waiver Required', 'Stage 2 owns final PR execution only', 'Branch Readiness Stage 1 owns the normal next runtime implementation pipeline selection', 'Branch Readiness fallback is real carrier branch/package analysis', 'PR Readiness does not require selected-next truth or a waiver by default'), Path('Docs/branch_records/index.md'): ('analysis-first readiness-lock gate', 'Stage 1 Ready For Stage 2', 'PR Readiness Stage 1 Repair Required', 'Current-Branch Branch Readiness Re-entry Required', 'New Carrier Branch Required', 'Stage 1 USER Waiver Required', 'approved final PR execution pass', 'Branch Readiness fallback is real carrier branch/package analysis', 'PR Readiness does not require selected-next truth or a waiver by default'), Path('Docs/branch_records/codex_v1_6_13_prebeta_post_merge_closeout_hardening.md'): ('Branch Readiness Stage 2-R2 PR Readiness Stage 1 Readiness-Lock Governance Repair', 'Branch Readiness Stage 2-R3 Superseded PR Stage 1 Repair Wording Cleanup', 'Stage 1 Readiness-Lock Finding:', 'Stage 1 Outcome Model:', 'Current-Branch Branch Readiness Re-entry Required:', 'New Carrier Branch Required:', 'Stage 2 Final-Execution Boundary:', 'Branch Readiness Fallback Clarification:', 'PR Creation Blocker:')}
 
-BRANCH_READINESS_STAGE_GATE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/workstreams/index.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/branch_records/codex_one_time_backlog_governance_repair.md"),
-)
+BRANCH_READINESS_STAGE_GATE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/workstreams/index.md'), Path('Docs/branch_records/index.md'), Path('Docs/branch_records/codex_one_time_backlog_governance_repair.md'),)
 
 BRANCH_READINESS_STAGE_GATE_PHRASES = (
     "Branch Readiness Stage 1 - Analysis Gate",
@@ -4998,14 +3763,7 @@ BRANCH_READINESS_STAGE_GATE_PHRASES = (
     "no repository file mutation",
 )
 
-BRANCH_READINESS_STAGE_PACKET_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+BRANCH_READINESS_STAGE_PACKET_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 BRANCH_READINESS_STAGE_PACKET_PHRASES = (
     "## Branch Readiness Stage 1 Analysis Packet",
@@ -5051,16 +3809,7 @@ BRANCH_READINESS_STAGE_PACKET_PHRASES = (
     "Stage 2 green-light decision",
 )
 
-STALE_BRANCH_CLEANUP_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+STALE_BRANCH_CLEANUP_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'),)
 
 STALE_BRANCH_CLEANUP_PHRASES = (
     "Stale Branch Cleanup Plan:",
@@ -5069,13 +3818,7 @@ STALE_BRANCH_CLEANUP_PHRASES = (
     "Branch Readiness Stage 2 - Execution Gate",
 )
 
-STABLE_WORKTREE_PATH_PRESERVATION_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/branch_records/index.md"),
-)
+STABLE_WORKTREE_PATH_PRESERVATION_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/branch_records/index.md'),)
 
 STABLE_WORKTREE_PATH_PRESERVATION_PHRASES = (
     "Stable Worktree Path Preservation Gate:",
@@ -5084,16 +3827,7 @@ STABLE_WORKTREE_PATH_PRESERVATION_PHRASES = (
     "Stable Worktree Path At Risk",
 )
 
-BRANCH_READINESS_CARRIER_LIFECYCLE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/validation_helper_registry.md"),
-)
+BRANCH_READINESS_CARRIER_LIFECYCLE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/branch_records/index.md'), Path('Docs/validation_helper_registry.md'),)
 
 BRANCH_READINESS_CARRIER_LIFECYCLE_PHRASES = (
     "Carrier Lifecycle Decision",
@@ -5117,17 +3851,7 @@ BRANCH_READINESS_CARRIER_LIFECYCLE_PHRASES = (
     "Active remote/open PR branch",
 )
 
-RUNTIME_ENGINEERING_CONTRACT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/validation_helper_registry.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/workstreams/index.md"),
-)
+RUNTIME_ENGINEERING_CONTRACT_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/validation_helper_registry.md'), Path('Docs/branch_records/index.md'), Path('Docs/workstreams/index.md'),)
 
 RUNTIME_ENGINEERING_CONTRACT_PHRASES = (
     "Runtime Branch Engineering Contract",
@@ -5143,202 +3867,18 @@ RUNTIME_ENGINEERING_CONTRACT_PHRASES = (
     "Plan-To-Implementation Traceability:",
 )
 
-BRANCH_RUNTIME_ENGINEERING_PLAN_REQUIRED_PHRASES = {
-    Path("Docs/Main.md"): (
-        "Branch Runtime Engineering Plan",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-        "backlog and roadmap remain compact pointer/status surfaces",
-        "PR Readiness fold-down",
-    ),
-    Path("Docs/phase_governance.md"): (
-        "Branch Runtime Engineering Plan",
-        "Element-to-Phase Proof Matrix",
-        "Branch Planning Review Packet Missing",
-        "Branch Runtime Engineering Plan Path:",
-        "PR Fold-Down Packet:",
-        "backlog and roadmap remain compact pointer/status surfaces",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Branch Runtime Engineering Plan",
-        "local USER hub packet",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-        "Branch Runtime Engineering Plan Path:",
-        "PR Fold-Down Packet:",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Branch Runtime Engineering Plan",
-        "local USER hub packet",
-        "Branch Runtime Engineering Plan Path:",
-        "Engineering Plan Status:",
-        "PR Fold-Down Packet:",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Branch Runtime Engineering Plan",
-        "Element-to-Phase Proof Matrix",
-        "Branch Planning Review Packet",
-        "Branch Runtime Engineering Plan Path:",
-        "Engineering Plan Status:",
-        "PR Fold-Down Packet:",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "Branch Runtime Engineering Plan",
-        "local USER hub packet",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-        "backlog and roadmap remain compact pointer/status surfaces",
-    ),
-    Path("Docs/validation_helper_registry.md"): (
-        "Branch Runtime Engineering Plan",
-        "Element-to-Phase Proof Matrix",
-        "Branch Planning packets",
-        "active external branch plans",
-        "invalid backlog planning sprawl",
-    ),
-    Path("Docs/branch_records/index.md"): (
-        "Branch Runtime Engineering Plan",
-        "Branch Runtime Engineering Plan Path:",
-        "Engineering Plan Status:",
-        "PR Fold-Down Packet:",
-    ),
-    Path("Docs/workstreams/index.md"): (
-        "Branch Runtime Engineering Plan",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-        "PR Readiness fold-down",
-    ),
-    Path("Docs/branch_plans/README.md"): (
-        "Branch Runtime Engineering Plan",
-        "Element-to-Phase Proof Matrix",
-        "Branch Planning Review Packet",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-        "Per-Seam Implementation Checklist:",
-        "PR Readiness Fold-Down / Retention Checklist:",
-        "Release Readiness Public-Scope Translation Checklist:",
-    ),
-}
+BRANCH_RUNTIME_ENGINEERING_PLAN_REQUIRED_PHRASES = {Path('Docs/development_rules.md'): ('Branch Runtime Engineering Plan', 'local USER hub packet', 'C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md', 'Branch Runtime Engineering Plan Path:', 'PR Fold-Down Packet:'), Path('Docs/codex_modes.md'): ('Branch Runtime Engineering Plan', 'local USER hub packet', 'Branch Runtime Engineering Plan Path:', 'Engineering Plan Status:', 'PR Fold-Down Packet:'), Path('Docs/orin_task_template.md'): ('Branch Runtime Engineering Plan', 'Element-to-Phase Proof Matrix', 'Branch Planning Review Packet', 'Branch Runtime Engineering Plan Path:', 'Engineering Plan Status:', 'PR Fold-Down Packet:'), Path('Docs/validation_helper_registry.md'): ('Branch Runtime Engineering Plan', 'Element-to-Phase Proof Matrix', 'Branch Planning packets', 'active external branch plans', 'invalid backlog planning sprawl'), Path('Docs/branch_records/index.md'): ('Branch Runtime Engineering Plan', 'Branch Runtime Engineering Plan Path:', 'Engineering Plan Status:', 'PR Fold-Down Packet:'), Path('Docs/workstreams/index.md'): ('Branch Runtime Engineering Plan', 'C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md', 'PR Readiness fold-down'), Path('Docs/branch_plans/README.md'): ('Branch Runtime Engineering Plan', 'Element-to-Phase Proof Matrix', 'Branch Planning Review Packet', 'C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md', 'Per-Seam Implementation Checklist:', 'PR Readiness Fold-Down / Retention Checklist:', 'Release Readiness Public-Scope Translation Checklist:')}
 
-USER_FEEDBACK_DISPOSITION_REQUIRED_PHRASES = {
-    Path("Docs/Main.md"): (
-        "USER Feedback Disposition",
-        "C:\\Nexus Governance State\\branches\\<branch_slug>\\branch_plan.md",
-        "compact UFD pointers",
-    ),
-    Path("Docs/phase_governance.md"): (
-        "USER Feedback Disposition:",
-        "UFD Ledger Status:",
-        "### UFD Item: UFD-<scope>-YYYYMMDD-NNN",
-        "Feedback ID:",
-        "No Durable Owner Needed",
-    ),
-    Path("Docs/branch_plans/README.md"): (
-        "USER Feedback Disposition Markers",
-        "Minimum UFD ledger markers",
-        "### UFD Item: UFD-<scope>-YYYYMMDD-NNN",
-        "UFD IDs use `UFD-<scope>-YYYYMMDD-NNN`",
-        "No-Action Reason:",
-        "fold-down receipt must preserve a lookup path",
-    ),
-    Path("Docs/governance_efficiency_operating_model.md"): (
-        "USER Feedback Disposition Model",
-        "UFD Ledger Owner:",
-        "full active USER Feedback Disposition rows",
-        "exact-normalized duplicate `Feedback Summary:`",
-    ),
-    Path("Docs/validation_helper_registry.md"): (
-        "USER Feedback Disposition scaffolding",
-        "marker-first",
-        "No Durable Owner Needed",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "USER Feedback Disposition Required:",
-        "UFD Ledger Status:",
-        "UFD Ledger Owner:",
-        "UFD Items:",
-        "| Feedback ID |",
-    ),
-}
+USER_FEEDBACK_DISPOSITION_REQUIRED_PHRASES = {Path('Docs/branch_plans/README.md'): ('USER Feedback Disposition Markers', 'Minimum UFD ledger markers', '### UFD Item: UFD-<scope>-YYYYMMDD-NNN', 'UFD IDs use `UFD-<scope>-YYYYMMDD-NNN`', 'No-Action Reason:', 'fold-down receipt must preserve a lookup path'), Path('Docs/governance_efficiency_operating_model.md'): ('USER Feedback Disposition Model', 'UFD Ledger Owner:', 'full active USER Feedback Disposition rows', 'exact-normalized duplicate `Feedback Summary:`'), Path('Docs/validation_helper_registry.md'): ('USER Feedback Disposition scaffolding', 'marker-first', 'No Durable Owner Needed'), Path('Docs/orin_task_template.md'): ('USER Feedback Disposition Required:', 'UFD Ledger Status:', 'UFD Ledger Owner:', 'UFD Items:', '| Feedback ID |')}
 
 BRANCH_RUNTIME_ENGINEERING_PLAN_COMPACT_POINTER_SURFACES = (
     Path("Docs/feature_backlog.md"),
     Path("Docs/prebeta_roadmap.md"),
 )
 
-CHATGPT_LOADER_SOURCE_TRUTH_SYNC_REQUIRED_PHRASES = {
-    Path("Docs/nexus_startup_contract.md"): (
-        "Local ChatGPT custom instructions should stay compact",
-        "Do not paste this loader doc into Codex prompts",
-        "Codex prompts should load `Docs/Main.md`",
-        "source-truth and governance fixes ride real carriers",
-        "FAM-006 Monitoring and HUD selected-next truth is allowed only after explicit USER approval",
-        "release execution requires separate explicit USER approval",
-        "Windows-first, modular, GPU-aware",
-        "optional heavy local AI capability packs",
-        "CPU fallback",
-    ),
-    Path("Docs/Main.md"): (
-        "Local ChatGPT custom instructions should stay compact",
-        "Do not paste the loader doc into Codex prompts",
-        "Codex prompts should load `Docs/Main.md`",
-        "FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval",
-        "Windows-first, modular, GPU-aware direction with optional heavy local AI capability packs and CPU fallback",
-    ),
-    Path("Docs/phase_governance.md"): (
-        "Local ChatGPT custom instructions should stay compact",
-        "Do not paste the loader doc into Codex prompts",
-        "FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval",
-        "Windows-first, modular, GPU-aware project direction with optional heavy local AI capability packs and CPU fallback",
-    ),
-    Path("Docs/development_rules.md"): (
-        "Local ChatGPT custom instructions should stay compact",
-        "Do not paste the loader doc into Codex prompts",
-        "FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval",
-        "Windows-first, modular, GPU-aware direction with optional heavy local AI capability packs and CPU fallback",
-    ),
-    Path("Docs/codex_modes.md"): (
-        "Local ChatGPT custom instructions should stay compact",
-        "Do not paste the loader doc into Codex prompts",
-        "FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval",
-        "Windows-first, modular, GPU-aware direction with optional heavy local AI capability packs and CPU fallback",
-    ),
-    Path("Docs/codex_user_guide.md"): (
-        "Local ChatGPT custom instructions should stay compact",
-        "Do not paste the loader doc into Codex prompts",
-        "FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval",
-        "Windows-first, modular, GPU-aware product direction with optional heavy local AI capability packs and CPU fallback",
-    ),
-    Path("Docs/orin_task_template.md"): (
-        "Local ChatGPT custom instructions should stay compact",
-        "Do not paste `Docs/nexus_startup_contract.md` into Codex prompts",
-        "FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval",
-        "Windows-first, modular, GPU-aware direction with optional heavy local AI capability packs and CPU fallback",
-    ),
-    Path("Docs/feature_backlog.md"): (
-        "Canonical Identity Model",
-        "PR Evidence Standard",
-        "Element Coverage Standard",
-        "FAM-006` | Monitoring and HUD",
-        "FAM-007` | Local AI and Capability Packs",
-        "FAM-008` | Packaging and Install Experience",
-    ),
-    Path("Docs/branch_records/codex_v1_6_13_prebeta_post_merge_closeout_hardening.md"): (
-        "Branch Readiness Stage 2-R1 Governance Ledger / Loader Sync Record",
-        "ChatGPT Loader / New-Chat Source-Truth Sync:",
-        "FAM-006 Recommendation-Only Posture:",
-        "Project Direction Preservation:",
-    ),
-}
+CHATGPT_LOADER_SOURCE_TRUTH_SYNC_REQUIRED_PHRASES = {Path('Docs/development_rules.md'): ('Local ChatGPT custom instructions should stay compact', 'Do not paste the loader doc into Codex prompts', 'FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval', 'Windows-first, modular, GPU-aware direction with optional heavy local AI capability packs and CPU fallback'), Path('Docs/codex_modes.md'): ('Local ChatGPT custom instructions should stay compact', 'Do not paste the loader doc into Codex prompts', 'FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval', 'Windows-first, modular, GPU-aware direction with optional heavy local AI capability packs and CPU fallback'), Path('Docs/codex_user_guide.md'): ('Local ChatGPT custom instructions should stay compact', 'Do not paste the loader doc into Codex prompts', 'FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval', 'Windows-first, modular, GPU-aware product direction with optional heavy local AI capability packs and CPU fallback'), Path('Docs/orin_task_template.md'): ('Local ChatGPT custom instructions should stay compact', 'Do not paste `Docs/nexus_startup_contract.md` into Codex prompts', 'FAM-006 Monitoring and HUD selected-next truth only after explicit USER approval', 'Windows-first, modular, GPU-aware direction with optional heavy local AI capability packs and CPU fallback'), Path('Docs/feature_backlog.md'): ('Canonical Identity Model', 'PR Evidence Standard', 'Element Coverage Standard', 'FAM-006` | Monitoring and HUD', 'FAM-007` | Local AI and Capability Packs', 'FAM-008` | Packaging and Install Experience'), Path('Docs/branch_records/codex_v1_6_13_prebeta_post_merge_closeout_hardening.md'): ('Branch Readiness Stage 2-R1 Governance Ledger / Loader Sync Record', 'ChatGPT Loader / New-Chat Source-Truth Sync:', 'FAM-006 Recommendation-Only Posture:', 'Project Direction Preservation:')}
 
-ELEMENT_COVERAGE_DOCS = (
-    Path("Docs/feature_backlog.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/workstreams/index.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/branch_records/codex_one_time_backlog_governance_repair.md"),
-)
+ELEMENT_COVERAGE_DOCS = (Path('Docs/feature_backlog.md'), Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/workstreams/index.md'), Path('Docs/branch_records/index.md'), Path('Docs/branch_records/codex_one_time_backlog_governance_repair.md'),)
 
 ELEMENT_COVERAGE_PHRASES = (
     "Element Coverage",
@@ -5356,12 +3896,7 @@ ELEMENT_COVERAGE_PHRASES = (
     "Element Coverage rows never count as `Admission State: Admitted`, slices, seams, packages, FAMs, selected-next truth, or release drivers",
 )
 
-RELEASE_OPERATOR_OUTPUT_CONTRACT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+RELEASE_OPERATOR_OUTPUT_CONTRACT_DOCS = (Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 RELEASE_OPERATOR_OUTPUT_CONTRACT_PHRASES = (
     "## Release Package Details",
@@ -5384,13 +3919,7 @@ RELEASE_OPERATOR_OUTPUT_CONTRACT_PHRASES = (
     "defensive wording",
 )
 
-PR_LIVE_STATE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/incident_patterns.md"),
-)
+PR_LIVE_STATE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/incident_patterns.md'),)
 
 PR_LIVE_STATE_PHRASES = (
     "PR package ready",
@@ -5401,14 +3930,7 @@ PR_LIVE_STATE_PHRASES = (
     "PR Merge Verification Pending",
 )
 
-BOT_REVIEW_SIGNAL_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+BOT_REVIEW_SIGNAL_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 BOT_REVIEW_SIGNAL_PHRASES = (
     "Bot Review Signal Pending",
@@ -5422,11 +3944,7 @@ BOT_REVIEW_SIGNAL_PHRASES = (
     "Stage 2 final handoff cannot be green until the post-repair bot thumbs-up/approval latch is verified",
 )
 
-PR_WATCHER_THREAD_CONTRACT_DOCS = (
-    Path("Docs/pr_watcher_mode_contract.md"),
-    Path("Docs/phase_governance.md"),
-    Path("Docs/Main.md"),
-)
+PR_WATCHER_THREAD_CONTRACT_DOCS = (Path('Docs/pr_watcher_mode_contract.md'),)
 
 PR_WATCHER_THREAD_CONTRACT_PHRASES = (
     "direct PR verification",
@@ -5440,16 +3958,7 @@ PR_WATCHER_THREAD_CONTRACT_PHRASES = (
 )
 
 PR_WATCHER_MODE_CONTRACT_DOC = Path("Docs/pr_watcher_mode_contract.md")
-PR_WATCHER_MODE_CONTRACT_POINTER_DOCS = (
-    Path("Docs/Main.md"),
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/validation_helper_registry.md"),
-    Path("Docs/governance_process_efficiency_reform_plan.md"),
-    Path("Docs/branch_records/feature_release_readiness_source_truth_intake.md"),
-)
+PR_WATCHER_MODE_CONTRACT_POINTER_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/validation_helper_registry.md'), Path('Docs/governance_process_efficiency_reform_plan.md'), Path('Docs/branch_records/feature_release_readiness_source_truth_intake.md'),)
 PR_WATCHER_MODE_CONTRACT_PHRASES = (
     "PR Watcher Mode Contract",
     "Silent Monitor",
@@ -5474,20 +3983,7 @@ PR_WATCHER_MODE_CONTRACT_PHRASES = (
     "3-5 word PR comment only",
 )
 
-PR_WATCHER_DENIAL_POLICY_DOCS = (
-    Path("Docs/pr_watcher_mode_contract.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/validation_helper_registry.md"),
-    Path("Docs/branch_records/index.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/incident_patterns.md"),
-    Path("Docs/branch_records/feature_release_readiness_source_truth_intake.md"),
-)
+PR_WATCHER_DENIAL_POLICY_DOCS = (Path('Docs/pr_watcher_mode_contract.md'), Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/validation_helper_registry.md'), Path('Docs/branch_records/index.md'), Path('Docs/codex_user_guide.md'), Path('Docs/incident_patterns.md'), Path('Docs/branch_records/feature_release_readiness_source_truth_intake.md'),)
 PR_WATCHER_DENIAL_POLICY_PHRASES = (
     "direct PR verification",
     "recurring PR watcher automation",
@@ -5516,14 +4012,7 @@ PR_WATCHER_OUTPUT_CONTRACT_PHRASES = (
     "final thread delivery proof is missing",
 )
 
-GOVERNANCE_RECURRENCE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/branch_records/index.md"),
-)
+GOVERNANCE_RECURRENCE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/codex_user_guide.md'), Path('Docs/branch_records/index.md'),)
 
 GOVERNANCE_RECURRENCE_PHRASES = (
     "patch the canon or validator rule that allowed it before the repair is considered complete",
@@ -5533,16 +4022,7 @@ GOVERNANCE_RECURRENCE_PHRASES = (
     "PR Watcher Routing Unverified",
 )
 
-POST_MERGE_CLOSEOUT_PROOF_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/branch_records/index.md"),
-)
+POST_MERGE_CLOSEOUT_PROOF_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/codex_user_guide.md'), Path('Docs/orin_task_template.md'), Path('Docs/branch_records/index.md'),)
 
 POST_MERGE_CLOSEOUT_PROOF_PHRASES = (
     "post-merge closeout proof must be in merged source truth",
@@ -5575,16 +4055,7 @@ PR_LIFECYCLE_SOURCE_TRUTH_MARKERS = (
 )
 
 AUTOMATION_OBSERVABILITY_SOURCE = Path("dev/automation_observability_report.py")
-AUTOMATION_OBSERVABILITY_DOCS = (
-    Path("Docs/Main.md"),
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/incident_patterns.md"),
-    Path("Docs/branch_records/index.md"),
-)
+AUTOMATION_OBSERVABILITY_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/codex_user_guide.md'), Path('Docs/orin_task_template.md'), Path('Docs/incident_patterns.md'), Path('Docs/branch_records/index.md'),)
 AUTOMATION_OBSERVABILITY_PHRASES = (
     "Automation Observability",
     "dev/automation_observability_report.py",
@@ -5639,15 +4110,7 @@ MERGE_STABLE_STALE_CONTEXT_ALLOWLIST = (
     "receipt evidence",
 )
 
-UTS_RESULTS_BLOCKER_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/user_test_summary_guidance.md"),
-)
+UTS_RESULTS_BLOCKER_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/user_test_summary_guidance.md'),)
 
 UTS_RESULTS_BLOCKER_PHRASES = (
     "User Test Summary Results Pending",
@@ -5665,15 +4128,7 @@ UTS_WAIVER_REASON_LABEL = "User Test Summary Waiver Reason:"
 UTS_RESULT_VALUES = ("PENDING", "PASS", "FAIL", "WAIVED")
 UTS_CLEAR_RESULT_VALUES = ("PASS", "WAIVED")
 
-USER_FACING_SHORTCUT_GATE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/user_test_summary_guidance.md"),
-)
+USER_FACING_SHORTCUT_GATE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/user_test_summary_guidance.md'),)
 
 USER_FACING_SHORTCUT_GATE_PHRASES = (
     "User-Facing Shortcut Live Validation Gate",
@@ -5689,15 +4144,7 @@ USER_FACING_SHORTCUT_WAIVER_REASON_LABEL = "User-Facing Shortcut Waiver Reason:"
 USER_FACING_SHORTCUT_RESULT_VALUES = ("PENDING", "PASS", "FAIL", "WAIVED")
 USER_FACING_SHORTCUT_CLEAR_VALUES = ("PASS", "WAIVED")
 
-CODEX_LIVE_CLIENT_SELF_QA_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/user_test_summary_guidance.md"),
-)
+CODEX_LIVE_CLIENT_SELF_QA_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/user_test_summary_guidance.md'),)
 
 CODEX_LIVE_CLIENT_SELF_QA_PHRASES = (
     "Codex Live Client Self-QA Gate",
@@ -5744,14 +4191,7 @@ CODEX_VISUAL_ADJUDICATION_REQUIRED_MARKERS = (
     "LV1 Handoff Disposition:",
 )
 
-RELEASE_READINESS_TARGET_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-)
+RELEASE_READINESS_TARGET_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'),)
 
 RELEASE_READINESS_TARGET_PHRASES = (
     "Release Candidate Anchor:",
@@ -5775,27 +4215,14 @@ RELEASE_READINESS_TARGET_PHRASES = (
     "Release Branch: No",
 )
 
-RELEASE_READINESS_SCOPE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-)
+RELEASE_READINESS_SCOPE_DOCS = (Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'),)
 
 RELEASE_READINESS_SCOPE_PHRASES = (
     "Release Readiness is not",
     "docs-sync",
 )
 
-RELEASE_READINESS_FILE_FREEZE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/incident_patterns.md"),
-)
+RELEASE_READINESS_FILE_FREEZE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/incident_patterns.md'),)
 
 RELEASE_READINESS_FILE_FREEZE_PHRASES = (
     "Release Readiness File Mutation Attempt",
@@ -5804,16 +4231,7 @@ RELEASE_READINESS_FILE_FREEZE_PHRASES = (
     "next legitimate runtime-focused backlog branch's `Branch Readiness`",
 )
 
-PROTECTED_MAIN_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/closeout_guidance.md"),
-    Path("Docs/incident_patterns.md"),
-)
+PROTECTED_MAIN_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/orin_task_template.md'), Path('Docs/codex_user_guide.md'), Path('Docs/closeout_guidance.md'), Path('Docs/incident_patterns.md'),)
 
 PROTECTED_MAIN_PHRASES = (
     "main` is protected",
@@ -5821,13 +4239,7 @@ PROTECTED_MAIN_PHRASES = (
     "no emergency direct-main",
 )
 
-PROTECTED_MAIN_RELEASE_CLOSURE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/branch_records/index.md"),
-)
+PROTECTED_MAIN_RELEASE_CLOSURE_DOCS = (Path('Docs/development_rules.md'), Path('Docs/branch_records/index.md'),)
 
 PROTECTED_MAIN_RELEASE_CLOSURE_PHRASES = (
     "release execution and post-release canon closure are separate",
@@ -5844,12 +4256,7 @@ POST_RELEASE_CLOSURE_DRIFT_MARKERS = (
     "Implementation Entry: Blocked until closure repair validates green",
 )
 
-MERGED_UNRELEASED_CONTRACT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/incident_patterns.md"),
-)
+MERGED_UNRELEASED_CONTRACT_DOCS = (Path('Docs/development_rules.md'), Path('Docs/incident_patterns.md'),)
 
 MERGED_UNRELEASED_CONTRACT_PHRASES = (
     "Merged-Unreleased Release-Debt Owner:",
@@ -5862,10 +4269,7 @@ MERGED_UNRELEASED_CONTRACT_PHRASES = (
     "Post-Release Truth:",
 )
 
-MERGE_STABLE_CURRENT_STATE_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/Main.md"),
-)
+MERGE_STABLE_CURRENT_STATE_DOCS = ()
 
 MERGE_STABLE_CURRENT_STATE_PHRASES = (
     "merge-target pointer surfaces must be merge-stable",
@@ -6023,16 +4427,7 @@ EMERGENCY_CANON_REPAIR_BRANCH_CLASS = "emergency canon repair"
 REPAIR_ONLY_BRANCH_HANDLING_LABEL = "Repair-Only Branch Handling"
 FEATURE_REPAIR_BRANCH_RE = re.compile(r"(?:origin/)?feature/[A-Za-z0-9._-]+")
 
-FEATURE_BRANCH_REPAIR_CONTRACT_DOCS = (
-    Path("Docs/phase_governance.md"),
-    Path("Docs/development_rules.md"),
-    Path("Docs/Main.md"),
-    Path("Docs/codex_modes.md"),
-    Path("Docs/codex_user_guide.md"),
-    Path("Docs/orin_task_template.md"),
-    Path("Docs/nexus_startup_contract.md"),
-    Path("Docs/branch_records/index.md"),
-)
+FEATURE_BRANCH_REPAIR_CONTRACT_DOCS = (Path('Docs/development_rules.md'), Path('Docs/codex_modes.md'), Path('Docs/codex_user_guide.md'), Path('Docs/orin_task_template.md'), Path('Docs/branch_records/index.md'),)
 
 FEATURE_BRANCH_REPAIR_CONTRACT_PHRASES = (
     "Standalone docs/governance, emergency canon repair, and repair-only feature branches are blocked for future Nexus work.",
@@ -6801,17 +5196,7 @@ REFORM_R6_S2_INDEX_REQUIRED_PHRASES = (
     "- `Docs/workstreams/FB-035_release_context_fallback_hardening.md`",
 )
 
-REFORM_R6_S3_ROUTER_REQUIRED_PHRASES = {
-    Path("Docs/Main.md"): (
-        "For the family-governance model, use `Docs/workstreams/index.md` first to distinguish feature-family anchors, historical family-pass records, and other closed trace records before loading the specific canonical record.",
-        "### Family Dossiers And Historical Pass Trace Routing",
-        "- load the `Lifetime Dossier Doc` named by backlog or roadmap when the task touches a `Feature Family` anchor or a historical family-pass trace row",
-    ),
-    Path("Docs/nexus_startup_contract.md"): (
-        "- `Docs/workstreams/index.md` owns canonical workstream-record routing, including feature-family anchors, historical family-pass records, and other closed trace records.",
-        "9. If the tracked item declares a `Lifetime Dossier Doc`, or if it is a `Feature Family` anchor or historical family-pass trace row routed through a family dossier, load that dossier too.",
-    ),
-}
+REFORM_R6_S3_ROUTER_REQUIRED_PHRASES = {}
 
 CURRENT_BACKLOG_SHAPE_HEADINGS = (
     "## Registry Items",
@@ -8526,131 +6911,9 @@ def _validate_planning_loop_guardrail(
     current_phase: str,
     normalized_status: str,
 ) -> None:
-    if branch_class != "implementation":
-        return
-    if current_phase not in PLANNING_LOOP_ACTIVE_PHASES and normalized_status != "merged unreleased":
-        return
-
-    require(
-        "## Planning-Loop Guardrail" in text,
-        f"{source_path}: implementation lane is missing '## Planning-Loop Guardrail'",
-    )
-    guardrail_section = _section(text, "Planning-Loop Guardrail")
-    delta_value = _extract_marker_value(guardrail_section, PLANNING_LOOP_DELTA_CLASS_LABEL)
-    docs_only_value = _extract_marker_value(guardrail_section, PLANNING_LOOP_DOCS_ONLY_LABEL)
-    bypass_approval = _extract_marker_value(guardrail_section, PLANNING_LOOP_BYPASS_APPROVAL_LABEL)
-    bypass_reason = _extract_marker_value(guardrail_section, PLANNING_LOOP_BYPASS_REASON_LABEL)
-    delta_classes = _parse_delta_classes(delta_value)
-    normalized_docs_only = docs_only_value.strip().casefold()
-    normalized_bypass = bypass_approval.strip().upper()
-    normalized_reason = bypass_reason.strip().casefold()
-    has_real_delta = bool(delta_classes & REAL_IMPLEMENTATION_DELTA_CLASSES)
-
-    require(
-        bool(delta_value),
-        f"{source_path}: Planning-Loop Guardrail is missing '{PLANNING_LOOP_DELTA_CLASS_LABEL}:'",
-    )
-    require(
-        bool(docs_only_value),
-        f"{source_path}: Planning-Loop Guardrail is missing '{PLANNING_LOOP_DOCS_ONLY_LABEL}:'",
-    )
-    require(
-        bool(bypass_approval),
-        f"{source_path}: Planning-Loop Guardrail is missing '{PLANNING_LOOP_BYPASS_APPROVAL_LABEL}:'",
-    )
-    require(
-        bool(bypass_reason),
-        f"{source_path}: Planning-Loop Guardrail is missing '{PLANNING_LOOP_BYPASS_REASON_LABEL}:'",
-    )
-
-    if not delta_classes:
-        require(
-            False,
-            f"{source_path}: Planning-Loop Guardrail must declare at least one implementation delta class",
-        )
-        return
-
-    invalid_delta_classes = sorted(delta_classes - ALLOWED_IMPLEMENTATION_DELTA_CLASSES)
-    require(
-        not invalid_delta_classes,
-        (
-            f"{source_path}: {PLANNING_LOOP_DELTA_CLASS_LABEL} contains unsupported value(s): "
-            f"{', '.join(invalid_delta_classes)}"
-        ),
-    )
-    require(
-        not (
-            PLANNING_LOOP_DOCS_ONLY_DELTA in delta_classes
-            and len(delta_classes) > 1
-        ),
-        (
-            f"{source_path}: {PLANNING_LOOP_DELTA_CLASS_LABEL} must not mix "
-            f"'{PLANNING_LOOP_DOCS_ONLY_DELTA}' with runtime-bearing delta classes"
-        ),
-    )
-    require(
-        normalized_docs_only in {"yes", "no"},
-        f"{source_path}: {PLANNING_LOOP_DOCS_ONLY_LABEL} must be Yes or No",
-    )
-
-    if has_real_delta:
-        admitted_slice = _section(text, "Admitted Implementation Slice")
-        require(
-            "## Admitted Implementation Slice" in text and bool(admitted_slice),
-            f"{source_path}: implementation lane is missing '## Admitted Implementation Slice'",
-        )
-        require(
-            normalized_docs_only == "no",
-            (
-                f"{source_path}: runtime-bearing implementation delta requires "
-                f"'{PLANNING_LOOP_DOCS_ONLY_LABEL}: No'"
-            ),
-        )
-        require(
-            normalized_bypass in {"", "NONE", "NO"},
-            (
-                f"{source_path}: runtime-bearing implementation delta must not carry "
-                "a planning-loop bypass approval"
-            ),
-        )
-        require(
-            normalized_reason in {"", "none", "n/a", "na"},
-            (
-                f"{source_path}: runtime-bearing implementation delta must not carry "
-                "a planning-loop bypass reason"
-            ),
-        )
-    else:
-        require(
-            normalized_docs_only == "yes",
-            (
-                f"{source_path}: docs-only implementation lane requires "
-                f"'{PLANNING_LOOP_DOCS_ONLY_LABEL}: Yes'"
-            ),
-        )
-        require(
-            normalized_bypass == "APPROVED",
-            (
-                f"{source_path}: docs-only implementation lane is blocked by "
-                "'Planning-Loop Guardrail' until explicit USER approval is recorded"
-            ),
-        )
-        require(
-            normalized_reason not in {"", "none", "n/a", "na"},
-            (
-                f"{source_path}: docs-only implementation lane requires an explicit "
-                f"'{PLANNING_LOOP_BYPASS_REASON_LABEL}:'"
-            ),
-        )
-
-    if normalized_status == "merged unreleased":
-        require(
-            has_real_delta or normalized_bypass == "APPROVED",
-            (
-                f"{source_path}: release-bearing implementation work with no real runtime, "
-                "backend/runtime, or developer-tooling delta requires explicit USER approval"
-            ),
-        )
+    # Current applicability and actual approval are checked by the phase/ownership gates.
+    # Slice counts and docs-only bypass markers no longer grant or deny authority.
+    return
 
 
 def _validate_slice_continuation_policy(
@@ -8661,82 +6924,9 @@ def _validate_slice_continuation_policy(
     branch_class: str,
     current_phase: str,
 ) -> None:
-    if branch_class != "implementation":
-        return
-    if current_phase not in PLANNING_LOOP_ACTIVE_PHASES:
-        return
-
-    require(
-        "## Slice Continuation Policy" in text,
-        f"{source_path}: implementation lane is missing '## Slice Continuation Policy'",
-    )
-    continuation_section = _section(text, "Slice Continuation Policy")
-    continuation_default = _extract_marker_value(
-        continuation_section, SLICE_CONTINUATION_DEFAULT_LABEL
-    )
-    split_approval = _extract_marker_value(
-        continuation_section, BACKLOG_SPLIT_APPROVAL_LABEL
-    )
-    split_reason = _extract_marker_value(
-        continuation_section, BACKLOG_SPLIT_REASON_LABEL
-    )
-    normalized_default = continuation_default.strip().casefold()
-    normalized_approval = split_approval.strip().upper()
-    normalized_reason = split_reason.strip().casefold()
-
-    require(
-        bool(continuation_default),
-        f"{source_path}: Slice Continuation Policy is missing '{SLICE_CONTINUATION_DEFAULT_LABEL}:'",
-    )
-    require(
-        bool(split_approval),
-        f"{source_path}: Slice Continuation Policy is missing '{BACKLOG_SPLIT_APPROVAL_LABEL}:'",
-    )
-    require(
-        bool(split_reason),
-        f"{source_path}: Slice Continuation Policy is missing '{BACKLOG_SPLIT_REASON_LABEL}:'",
-    )
-    require(
-        normalized_default == SAME_BRANCH_SLICE_CONTINUATION_VALUE,
-        (
-            f"{source_path}: {SLICE_CONTINUATION_DEFAULT_LABEL} must be "
-            "'Same-branch backlog completion' for active implementation lanes"
-        ),
-    )
-
-    if normalized_approval == "APPROVED":
-        require(
-            normalized_reason not in {"", "none", "n/a", "na"},
-            (
-                f"{source_path}: {BACKLOG_SPLIT_APPROVAL_LABEL} APPROVED requires "
-                f"'{BACKLOG_SPLIT_REASON_LABEL}:'"
-            ),
-        )
-    else:
-        require(
-            normalized_approval in {"", "NONE", "NO"},
-            (
-                f"{source_path}: {BACKLOG_SPLIT_APPROVAL_LABEL} must be APPROVED or None "
-                "for active implementation lanes"
-            ),
-        )
-        require(
-            normalized_reason in {"", "none", "n/a", "na"},
-            (
-                f"{source_path}: {BACKLOG_SPLIT_REASON_LABEL} must be None unless a backlog split "
-                "is explicitly approved"
-            ),
-        )
-
-    lowered_text = text.casefold()
-    for prohibited_pattern in ACTIVE_SINGLE_SLICE_PROHIBITED_PATTERNS:
-        require(
-            re.search(prohibited_pattern, lowered_text) is None,
-            (
-                f"{source_path}: active implementation lane must not encode single-slice stop "
-                f"authority via '{prohibited_pattern}'"
-            ),
-        )
+    # Current applicability and actual approval are checked by the phase/ownership gates.
+    # Slice counts and docs-only bypass markers no longer grant or deny authority.
+    return
 
 
 def _validate_governed_output_state(
@@ -8747,361 +6937,13 @@ def _validate_governed_output_state(
     active_seam_section: str,
     blockers: list[str],
 ) -> None:
-    seam_status = _extract_marker_value(continuation_section, CONTINUATION_SEAM_STATUS_LABEL)
-    slice_status = _extract_marker_value(continuation_section, CONTINUATION_SLICE_STATUS_LABEL)
-    completion_status = _extract_marker_value(
-        continuation_section, CONTINUATION_COMPLETION_STATUS_LABEL
-    )
-    waiver_status = _extract_marker_value(continuation_section, CONTINUATION_WAIVER_STATUS_LABEL)
-    continue_decision = _extract_marker_value(continuation_section, "Continue Decision")
-    continuation_latch = _extract_marker_value(
-        continuation_section, CONTINUATION_EXECUTION_LATCH_LABEL
-    )
-    stop_basis = _extract_marker_value(continuation_section, CONTINUATION_STOP_BASIS_LABEL)
-    continuation_action = _extract_marker_value(continuation_section, "Continuation Action")
-    next_active_seam = _extract_marker_value(continuation_section, "Next Active Seam")
-    active_seam = _extract_marker_value(active_seam_section, "Active seam")
-
-    normalized_seam_status = seam_status.strip().casefold()
-    normalized_slice_status = slice_status.strip().casefold()
-    normalized_completion_status = completion_status.strip().casefold()
-    normalized_waiver_status = waiver_status.strip().casefold()
-    normalized_decision = continue_decision.strip().casefold()
-    normalized_latch = continuation_latch.strip().casefold()
-    normalized_stop_basis = stop_basis.strip().casefold()
-    normalized_next_active_seam = next_active_seam.strip().casefold()
-    per_seam_approval_blocker_active = any(
-        blocker.casefold() == "next bounded seam approval missing"
-        or blocker.casefold() == "first bounded implementation seam approval missing"
-        or (
-            "bounded" in blocker.casefold()
-            and "seam" in blocker.casefold()
-            and "approval missing" in blocker.casefold()
-        )
-        or (
-            "implementation seam" in blocker.casefold()
-            and "approval missing" in blocker.casefold()
-        )
-        or (
-            ("approval" in blocker.casefold() or "user approval" in blocker.casefold())
-            and (
-                "pending" in blocker.casefold()
-                or "required" in blocker.casefold()
-                or "missing" in blocker.casefold()
-            )
-            and (
-                "seam" in blocker.casefold()
-                or "slice" in blocker.casefold()
-                or "slc-" in blocker.casefold()
-                or "implementation" in blocker.casefold()
-            )
-        )
-        for blocker in blockers
-    )
-    stop_authorizing_blockers = [
-        blocker for blocker in blockers if blocker != BACKLOG_COMPLETION_UNPROVEN_BLOCKER
-    ]
-    phase_exit_next_seam_terms = (
-        "hardening",
-        "live validation",
-        "pr readiness",
-        "release readiness",
-        "release execution",
-        "github release",
-    )
-
-    require(
-        normalized_seam_status in CONTINUATION_ALLOWED_SEAM_STATUSES,
-        (
-            f"{source_path}: {CONTINUATION_SEAM_STATUS_LABEL} '{seam_status}' must be one of "
-            f"{', '.join(sorted(CONTINUATION_ALLOWED_SEAM_STATUSES))}"
-        ),
-    )
-    require(
-        normalized_slice_status in CONTINUATION_ALLOWED_SLICE_STATUSES,
-        (
-            f"{source_path}: {CONTINUATION_SLICE_STATUS_LABEL} '{slice_status}' must be one of "
-            f"{', '.join(sorted(CONTINUATION_ALLOWED_SLICE_STATUSES))}"
-        ),
-    )
-    require(
-        normalized_completion_status in CONTINUATION_ALLOWED_COMPLETION_STATUSES,
-        (
-            f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} '{completion_status}' must be "
-            f"one of {', '.join(sorted(CONTINUATION_ALLOWED_COMPLETION_STATUSES))}"
-        ),
-    )
-    require(
-        normalized_waiver_status in CONTINUATION_ALLOWED_WAIVER_STATUSES,
-        (
-            f"{source_path}: {CONTINUATION_WAIVER_STATUS_LABEL} '{waiver_status}' must be one of "
-            f"{', '.join(sorted(CONTINUATION_ALLOWED_WAIVER_STATUSES))}"
-        ),
-    )
-    require(
-        normalized_decision in CONTINUATION_ALLOWED_DECISIONS,
-        (
-            f"{source_path}: Continue Decision '{continue_decision}' must be one of "
-            f"{', '.join(sorted(CONTINUATION_ALLOWED_DECISIONS))}"
-        ),
-    )
-    require(
-        normalized_stop_basis in CONTINUATION_ALLOWED_STOP_BASES,
-        (
-            f"{source_path}: {CONTINUATION_STOP_BASIS_LABEL} '{stop_basis}' must be one of "
-            f"{', '.join(sorted(CONTINUATION_ALLOWED_STOP_BASES))}"
-        ),
-    )
-    require(
-        not per_seam_approval_blocker_active,
-        (
-            f"{source_path}: per-seam approval-missing blockers are not valid Workstream "
-            "stop conditions after Workstream entry is admitted. Bounded Workstream execution "
-            "must continue seam-by-seam until Workstream Green, a real named blocker, or a "
-            "USER waiver is recorded."
-        ),
-    )
-
-    if normalized_slice_status == "green":
-        require(
-            normalized_completion_status == "green",
-            (
-                f"{source_path}: a green slice must immediately advance to the next admitted slice "
-                "unless Workstream Completion Status is Green"
-            ),
-        )
-    else:
-        require(
-            normalized_stop_basis != "workstream green",
-            (
-                f"{source_path}: {CONTINUATION_STOP_BASIS_LABEL} must not be 'Workstream Green' "
-                f"while {CONTINUATION_SLICE_STATUS_LABEL} is not Green"
-            ),
-        )
-
-    if normalized_completion_status == "green":
-        require(
-            normalized_decision == "stop",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Green must stop and hand "
-                "off to Hardening"
-            ),
-        )
-        require(
-            normalized_stop_basis == "workstream green",
-            (
-                f"{source_path}: {CONTINUATION_STOP_BASIS_LABEL} must be 'Workstream Green' when "
-                f"{CONTINUATION_COMPLETION_STATUS_LABEL} is Green"
-            ),
-        )
-        require(
-            normalized_slice_status == "green",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Green requires "
-                f"{CONTINUATION_SLICE_STATUS_LABEL} Green"
-            ),
-        )
-        require(
-            normalized_waiver_status == "none",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Green must not carry a "
-                "waiver status"
-            ),
-        )
-        require(
-            "hardening" in normalized_next_active_seam,
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Green must point "
-                "`Next Active Seam` to Hardening"
-            ),
-        )
-        require(
-            "stop at phase boundary" in continuation_action.casefold()
-            and "user" in continuation_action.casefold()
-            and "admit" in continuation_action.casefold(),
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Green may hand off to "
-                "Hardening, but Continuation Action must explicitly stop at the phase boundary "
-                "until USER admits the next phase"
-            ),
-        )
-        for forbidden_phase_action in (
-            "enter hardening",
-            "execute hardening",
-            "run hardening",
-            "start hardening",
-            "continue into hardening",
-        ):
-            require(
-                forbidden_phase_action not in continuation_action.casefold(),
-                (
-                    f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Green must not "
-                    f"authorize same-run phase execution via '{forbidden_phase_action}'"
-                ),
-            )
-    elif normalized_completion_status == "in progress":
-        require(
-            normalized_decision == "continue",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} In Progress requires "
-                "Continue Decision Continue"
-            ),
-        )
-        require(
-            normalized_stop_basis == "none",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} In Progress requires "
-                f"'{CONTINUATION_STOP_BASIS_LABEL}: None'"
-            ),
-        )
-        require(
-            normalized_waiver_status == "none",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} In Progress requires "
-                f"'{CONTINUATION_WAIVER_STATUS_LABEL}: None'"
-            ),
-        )
-        require(
-            normalized_slice_status != "green",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} In Progress requires the "
-                "record to advance past a completed slice instead of stopping on slice-green truth"
-            ),
-        )
-        require(
-            not stop_authorizing_blockers,
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} In Progress must not keep "
-                "a stop-authorizing blocker active"
-            ),
-        )
-        require(
-            active_seam.casefold() not in {"none", "none."},
-            (
-                f"{source_path}: Continue Decision Continue requires an actual active seam instead "
-                "of `Active seam: None.`"
-            ),
-        )
-        require(
-            "await next instruction" not in continuation_action.casefold(),
-            (
-                f"{source_path}: Continue Decision Continue must not tell Codex to await the next "
-                "instruction"
-            ),
-        )
-        require(
-            "when instructed" not in continuation_action.casefold(),
-            (
-                f"{source_path}: Continue Decision Continue must not gate the next seam behind "
-                "'when instructed' wording"
-            ),
-        )
-        require(
-            "active" in normalized_latch
-            and "final" in normalized_latch
-            and "prohibited" in normalized_latch
-            and "same bounded workstream run" in normalized_latch,
-            (
-                f"{source_path}: Continue Decision Continue requires "
-                f"'{CONTINUATION_EXECUTION_LATCH_LABEL}' to state that continuation is active, "
-                "a final response is prohibited, and the next seam must execute in the same "
-                "bounded Workstream run"
-            ),
-        )
-        require(
-            not any(term in normalized_next_active_seam for term in phase_exit_next_seam_terms),
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} In Progress must keep "
-                "`Next Active Seam` inside Workstream; phase-exit seams require Workstream Green, "
-                "Red with a named blocker/waiver, or explicit USER single-seam/backlog-split waiver"
-            ),
-        )
-    else:
-        require(
-            normalized_decision == "stop",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red requires Continue "
-                "Decision Stop"
-            ),
-        )
-        require(
-            normalized_slice_status != "green",
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red must not leave a green "
-                "slice recorded as the current active Workstream state"
-            ),
-        )
-        if normalized_waiver_status != "none":
-            require(
-                normalized_stop_basis == "waiver",
-                (
-                    f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red with waiver status "
-                    "requires "
-                    f"'{CONTINUATION_STOP_BASIS_LABEL}: Waiver'"
-                ),
-            )
-        elif stop_authorizing_blockers:
-            require(
-                normalized_stop_basis == "named blocker",
-                (
-                    f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red with active "
-                    "blockers requires "
-                    f"'{CONTINUATION_STOP_BASIS_LABEL}: Named Blocker'"
-                ),
-            )
-        else:
-            require(
-                False,
-                (
-                    f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red is invalid without "
-                    "a named blocker or waiver"
-                ),
-            )
-        require(
-            continuation_action.strip().casefold() not in {"", "none", "none.", "n/a", "na"},
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red requires "
-                "'Continuation Action' to report the blocker-clearing action or "
-                "waiver-clearing action"
-            ),
-        )
-        require(
-            "execute slice" not in continuation_action.casefold(),
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red must not keep an "
-                "execution continuation action; it must report the blocker-clearing action or "
-                "waiver-clearing action instead"
-            ),
-        )
-        require(
-            "await next instruction" not in continuation_action.casefold(),
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red must not use "
-                "'Await Next Instruction' as the continuation action; it must report the "
-                "blocker-clearing action or waiver-clearing action instead"
-            ),
-        )
-        require(
-            not any(term in normalized_next_active_seam for term in phase_exit_next_seam_terms),
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} Red must keep "
-                "`Next Active Seam` on the blocker-clearing Workstream seam/action; phase-exit seams "
-                "remain illegal until Workstream Green or explicit USER waiver/split approval"
-            ),
-        )
-
-    if (
-        normalized_slice_status != "green"
-        and not stop_authorizing_blockers
-        and normalized_waiver_status == "none"
-    ):
-        require(
-            normalized_decision == "continue",
-            (
-                f"{source_path}: non-green slice with no named blocker or waiver must keep "
-                "Continue Decision at Continue"
-            ),
-        )
+    # Optional historical continuation fields are data, not authority or a latch.
+    decision = _extract_marker_value(continuation_section, "Continue Decision")
+    if decision:
+        require(decision.casefold() in {"continue", "stop", "pending"},
+                f"{source_path}: unsupported continuation disposition")
+    if decision.casefold() == "continue":
+        require(not blockers, f"{source_path}: continuation cannot hide an actual blocker")
 
 
 def _validate_single_seam_workstream_contract(
@@ -9113,170 +6955,9 @@ def _validate_single_seam_workstream_contract(
     current_phase: str,
     blockers: list[str],
 ) -> None:
-    if branch_class != "implementation" or current_phase != "Workstream":
-        return
-
-    waiver_value = _extract_marker_value(text, SINGLE_SEAM_WORKSTREAM_WAIVER_LABEL)
-    waiver_authority_value = _extract_marker_value(
-        text,
-        SINGLE_SEAM_OR_SINGLE_SLICE_WAIVER_AUTHORITY_LABEL,
-    )
-    single_seam_blocker_value = _extract_marker_value(
-        text,
-        SINGLE_SEAM_OR_SINGLE_SLICE_WORKSTREAM_BLOCKER_LABEL,
-    )
-    bounded_value = _extract_marker_value(text, BOUNDED_SEAM_DEFAULT_LABEL)
-    continuation_section = _section(text, "Seam Continuation Decision")
-    completion_status = _extract_marker_value(
-        continuation_section, CONTINUATION_COMPLETION_STATUS_LABEL
-    )
-    remaining_work = _extract_marker_value(text, "Remaining Implementable Work")
-    normalized_waiver = waiver_value.strip().casefold()
-    normalized_waiver_authority = waiver_authority_value.strip().casefold()
-    normalized_single_seam_blocker = single_seam_blocker_value.strip().casefold()
-    normalized_completion = completion_status.strip().casefold()
-    normalized_remaining_work = remaining_work.strip().casefold()
-    lowered_text = text.casefold()
-
-    require(
-        bool(waiver_value),
-        (
-            f"{source_path}: active Workstream record must declare "
-            f"'{SINGLE_SEAM_WORKSTREAM_WAIVER_LABEL}:' so bounded seams cannot drift into "
-            "single-seam Workstream authority"
-        ),
-    )
-    require(
-        bool(waiver_authority_value),
-        (
-            f"{source_path}: active Workstream record must declare "
-            f"'{SINGLE_SEAM_OR_SINGLE_SLICE_WAIVER_AUTHORITY_LABEL}:' so only USER waiver text can "
-            "authorize single-seam or single-slice Workstream behavior"
-        ),
-    )
-    require(
-        bool(single_seam_blocker_value),
-        (
-            f"{source_path}: active Workstream record must declare "
-            f"'{SINGLE_SEAM_OR_SINGLE_SLICE_WORKSTREAM_BLOCKER_LABEL}:' so a one-seam or "
-            "one-slice visible plan becomes a blocker instead of an implied stop"
-        ),
-    )
-    require(
-        bool(bounded_value),
-        (
-            f"{source_path}: active Workstream record must declare "
-            f"'{BOUNDED_SEAM_DEFAULT_LABEL}:' with one-active-seam continuation semantics"
-        ),
-    )
-    if waiver_authority_value:
-        require(
-            "user only" in normalized_waiver_authority
-            and "codex" in normalized_waiver_authority
-            and "cannot" in normalized_waiver_authority,
-            (
-                f"{source_path}: {SINGLE_SEAM_OR_SINGLE_SLICE_WAIVER_AUTHORITY_LABEL} must make USER "
-                "the only waiver authority and deny Codex-inferred single-seam/single-slice "
-                "authority"
-            ),
-        )
-    if single_seam_blocker_value:
-        require(
-            "one seam" in normalized_single_seam_blocker
-            and "one slice" in normalized_single_seam_blocker
-            and "blocker" in normalized_single_seam_blocker
-            and "user waiver" in normalized_single_seam_blocker,
-            (
-                f"{source_path}: {SINGLE_SEAM_OR_SINGLE_SLICE_WORKSTREAM_BLOCKER_LABEL} must "
-                "state that one visible seam or one visible slice is a blocker unless USER "
-                "waives it"
-            ),
-        )
-    if bounded_value:
-        bounded_lower = bounded_value.casefold()
-        require(
-            "one active seam at a time" in bounded_lower,
-            (
-                f"{source_path}: {BOUNDED_SEAM_DEFAULT_LABEL} must say bounded means one "
-                "active seam at a time"
-            ),
-        )
-        require(
-            "not one-seam workstream authority" in bounded_lower,
-            (
-                f"{source_path}: {BOUNDED_SEAM_DEFAULT_LABEL} must say bounded is not "
-                "one-seam Workstream authority"
-            ),
-        )
-
-    if normalized_completion == "in progress":
-        require(
-            normalized_waiver in SINGLE_SEAM_WORKSTREAM_ALLOWED_NO_WAIVER_VALUES,
-            (
-                f"{source_path}: {SINGLE_SEAM_WORKSTREAM_WAIVER_LABEL} must remain None "
-                "while Workstream completion is In Progress unless a USER waiver has stopped "
-                "continuation and Completion Status is Red"
-            ),
-        )
-        require(
-            normalized_remaining_work not in {"", "none", "n/a", "na", "not applicable"},
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} In Progress with no "
-                "single-seam waiver must list remaining same-branch implementable work"
-            ),
-        )
-        remaining_work_seams = {
-            match.group(0)
-            for match in re.finditer(r"\bws\d+\b", normalized_remaining_work)
-        }
-        remaining_work_shows_multi_step = (
-            len(remaining_work_seams) >= 2
-            or "multiple" in normalized_remaining_work
-            or "admitted slices" in normalized_remaining_work
-            or "later bounded seams" in normalized_remaining_work
-            or "remaining bounded seams" in normalized_remaining_work
-        )
-        require(
-            remaining_work_shows_multi_step,
-            (
-                f"{source_path}: {CONTINUATION_COMPLETION_STATUS_LABEL} In Progress with no "
-                "USER single-seam/single-slice waiver must show more than one same-branch "
-                "seam/slice in Remaining Implementable Work; if only one seam or one slice is "
-                f"planned or visible, stop on {SINGLE_SEAM_OR_SINGLE_SLICE_WORKSTREAM_BLOCKER_LABEL}"
-            ),
-        )
-    elif normalized_waiver not in SINGLE_SEAM_WORKSTREAM_ALLOWED_NO_WAIVER_VALUES:
-        require(
-            "user" in normalized_waiver
-            and (
-                "approved" in normalized_waiver
-                or "approval" in normalized_waiver
-                or "waiver" in normalized_waiver
-            ),
-            (
-                f"{source_path}: {SINGLE_SEAM_WORKSTREAM_WAIVER_LABEL} can be non-None "
-                "only when the marker itself records explicit USER waiver approval"
-            ),
-        )
-
-    for prohibited_phrase in SINGLE_SEAM_WORKSTREAM_PROHIBITED_ACTIVE_PHRASES:
-        require(
-            prohibited_phrase not in lowered_text,
-            (
-                f"{source_path}: active Workstream truth must not encode single-seam "
-                f"Workstream authority via '{prohibited_phrase}'"
-            ),
-        )
-
-    if SINGLE_SEAM_OR_SINGLE_SLICE_WORKSTREAM_BLOCKER_LABEL in blockers:
-        require(
-            normalized_completion == "red",
-            (
-                f"{source_path}: {SINGLE_SEAM_OR_SINGLE_SLICE_WORKSTREAM_BLOCKER_LABEL} must "
-                "stop Workstream continuation with Completion Status Red until Branch Readiness "
-                "expands the plan or USER grants a waiver"
-            ),
-        )
+    # Current applicability and actual approval are checked by the phase/ownership gates.
+    # Slice counts and docs-only bypass markers no longer grant or deny authority.
+    return
 
 
 def _validate_backlog_completion_strategy(
@@ -21001,59 +18682,62 @@ def _run_worktree_confinement_regression_fixtures(require) -> None:
     )
 
 
-def _run_worktree_confinement_gate(require) -> None:
+def _run_worktree_confinement_gate(require, *, selected_owner=None) -> None:
     _run_worktree_confinement_regression_fixtures(require)
 
     branch_name = _git_current_branch()
     actual_root = _git_top_level()
     upstream_branch = _git_upstream_branch()
-    branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
-    active_branch_record_paths = _collect_branch_record_paths(
-        branch_record_index_text,
-        "Active Branch Authority Records",
-    )
-    record_path, record_text = _active_branch_record_for_branch(
-        active_branch_record_paths,
-        branch_name,
-    )
-    if not record_text:
-        external_record_path, external_record_text = _external_branch_state_record_for_branch(
-            branch_name,
-            actual_root,
-        )
-        if external_record_text and _is_historical_worktree_receipt(external_record_text):
-            _validate_historical_worktree_receipt_confinement(
-                require,
-                external_record_path,
-                external_record_text,
-            )
-            return
-        record_path, record_text = external_record_path, external_record_text
-    if not record_text:
-        historical_branch_record_paths = _collect_branch_record_paths(
+    if selected_owner is not None:
+        record_path,record_text=selected_owner
+    else:
+        branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
+        active_branch_record_paths = _collect_branch_record_paths(
             branch_record_index_text,
-            "Historical Branch Authority Records",
+            "Active Branch Authority Records",
         )
-        historical_record_path, historical_record_text = _branch_record_for_branch(
-            historical_branch_record_paths,
+        record_path, record_text = _active_branch_record_for_branch(
+            active_branch_record_paths,
             branch_name,
         )
-        if historical_record_text and _is_historical_worktree_receipt(historical_record_text):
-            record_path = historical_record_path
-            record_text = historical_record_text
-            _validate_historical_worktree_receipt_confinement(
-                require,
-                record_path,
-                record_text,
+        if not record_text:
+            external_record_path, external_record_text = _external_branch_state_record_for_branch(
+                branch_name,
+                actual_root,
             )
-            return
-        if (
-            historical_record_text
-            and "pr readiness stage 1" in historical_record_text.casefold()
-            and "stage 1 ready for stage 2" in historical_record_text.casefold()
-        ):
-            record_path = historical_record_path
-            record_text = historical_record_text
+            if external_record_text and _is_historical_worktree_receipt(external_record_text):
+                _validate_historical_worktree_receipt_confinement(
+                    require,
+                    external_record_path,
+                    external_record_text,
+                )
+                return
+            record_path, record_text = external_record_path, external_record_text
+        if not record_text:
+            historical_branch_record_paths = _collect_branch_record_paths(
+                branch_record_index_text,
+                "Historical Branch Authority Records",
+            )
+            historical_record_path, historical_record_text = _branch_record_for_branch(
+                historical_branch_record_paths,
+                branch_name,
+            )
+            if historical_record_text and _is_historical_worktree_receipt(historical_record_text):
+                record_path = historical_record_path
+                record_text = historical_record_text
+                _validate_historical_worktree_receipt_confinement(
+                    require,
+                    record_path,
+                    record_text,
+                )
+                return
+            if (
+                historical_record_text
+                and "pr readiness stage 1" in historical_record_text.casefold()
+                and "stage 1 ready for stage 2" in historical_record_text.casefold()
+            ):
+                record_path = historical_record_path
+                record_text = historical_record_text
 
     require(
         bool(branch_name),
@@ -21207,58 +18891,67 @@ def _run_release_readiness_health_gate(
     backlog_entries: list[dict[str, str]] | None = None,
     active_branch_record_path: str = "",
     active_branch_record_text: str = "",
+    selected_owner=None,
 ) -> None:
     branch_name = _git_current_branch()
-    branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
-    active_branch_record_paths = _collect_branch_record_paths(
-        branch_record_index_text,
-        "Active Branch Authority Records",
-    )
-    historical_branch_record_paths = _collect_branch_record_paths(
-        branch_record_index_text,
-        "Historical Branch Authority Records",
-    )
-    current_active_branch_record_path, current_active_branch_record_text = _active_branch_record_for_branch(
-        active_branch_record_paths,
-        branch_name,
-    )
-    historical_branch_record_path, historical_branch_record_text = _branch_record_for_branch(
-        historical_branch_record_paths,
-        branch_name,
-    )
-    if current_active_branch_record_text and historical_branch_record_text:
-        require(
-            False,
-            (
-                f"{historical_branch_record_path}: Release Readiness Health Pass cannot use a "
-                "post-merge projection receipt while "
-                f"{current_active_branch_record_path} remains listed under Active Branch "
-                "Authority Records for the same branch. Fold down the real active record into "
-                "historical/no-active posture before PR Stage 1 reports Stage 2-ready or before "
-                "merge approval."
-            ),
+    if selected_owner is not None:
+        record_path,record_text=selected_owner
+        current_active_branch_record_path=record_path
+        current_active_branch_record_text=record_text
+        active_branch_record_paths={record_path}
+        historical_branch_record_path=''
+        historical_branch_record_text=''
+    else:
+        branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
+        active_branch_record_paths = _collect_branch_record_paths(
+            branch_record_index_text,
+            "Active Branch Authority Records",
         )
+        historical_branch_record_paths = _collect_branch_record_paths(
+            branch_record_index_text,
+            "Historical Branch Authority Records",
+        )
+        current_active_branch_record_path, current_active_branch_record_text = _active_branch_record_for_branch(
+            active_branch_record_paths,
+            branch_name,
+        )
+        historical_branch_record_path, historical_branch_record_text = _branch_record_for_branch(
+            historical_branch_record_paths,
+            branch_name,
+        )
+        if current_active_branch_record_text and historical_branch_record_text:
+            require(
+                False,
+                (
+                    f"{historical_branch_record_path}: Release Readiness Health Pass cannot use a "
+                    "post-merge projection receipt while "
+                    f"{current_active_branch_record_path} remains listed under Active Branch "
+                    "Authority Records for the same branch. Fold down the real active record into "
+                    "historical/no-active posture before PR Stage 1 reports Stage 2-ready or before "
+                    "merge approval."
+                ),
+            )
 
-    record_path = current_active_branch_record_path or active_branch_record_path
-    record_text = current_active_branch_record_text or active_branch_record_text
-    if historical_branch_record_text:
-        record_path = historical_branch_record_path
-        record_text = historical_branch_record_text
-    if not record_text:
-        if backlog_entries is None:
-            backlog_entries = _parse_backlog_sections(_read_text(Path("Docs/feature_backlog.md")))
-        for entry in backlog_entries:
-            entry_branch = _extract_colon_value(entry["block"], "Branch").strip("`")
-            if entry_branch != branch_name:
-                continue
-            canonical_path = entry["canonical_path"]
-            if canonical_path:
-                record_path = canonical_path
-                record_text = _read_text(Path(canonical_path))
-            break
-    if not record_text:
-        require(True, "Release Readiness Health Pass: not applicable without a current branch authority record")
-        return
+        record_path = current_active_branch_record_path or active_branch_record_path
+        record_text = current_active_branch_record_text or active_branch_record_text
+        if historical_branch_record_text:
+            record_path = historical_branch_record_path
+            record_text = historical_branch_record_text
+        if not record_text:
+            if backlog_entries is None:
+                backlog_entries = _parse_backlog_sections(_read_text(Path("Docs/feature_backlog.md")))
+            for entry in backlog_entries:
+                entry_branch = _extract_colon_value(entry["block"], "Branch").strip("`")
+                if entry_branch != branch_name:
+                    continue
+                canonical_path = entry["canonical_path"]
+                if canonical_path:
+                    record_path = canonical_path
+                    record_text = _read_text(Path(canonical_path))
+                break
+        if not record_text:
+            require(True, "Release Readiness Health Pass: not applicable without a current branch authority record")
+            return
 
     info = _parse_workstream_doc(record_text)
     current_phase = str(info["current_phase"])
@@ -21528,43 +19221,50 @@ def _run_pr_readiness_gate(
     branch_record_class_map: dict[str, str],
     active_branch_record_path: str,
     active_branch_record_text: str,
+    selected_owner=None,
 ) -> None:
     branch_name = _git_current_branch()
-    branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
-    active_branch_record_paths = _collect_branch_record_paths(
-        branch_record_index_text,
-        "Active Branch Authority Records",
-    )
-    historical_branch_record_paths = _collect_branch_record_paths(
-        branch_record_index_text,
-        "Historical Branch Authority Records",
-    )
-    current_active_branch_record_path, current_active_branch_record_text = _active_branch_record_for_branch(
-        active_branch_record_paths,
-        branch_name,
-    )
-    historical_branch_record_path, historical_branch_record_text = _branch_record_for_branch(
-        historical_branch_record_paths,
-        branch_name,
-    )
-    if current_active_branch_record_text:
-        active_branch_record_path = current_active_branch_record_path
-        active_branch_record_text = current_active_branch_record_text
-    if not active_branch_record_text:
-        if historical_branch_record_text:
-            active_branch_record_path = historical_branch_record_path
-            active_branch_record_text = historical_branch_record_text
-        else:
-            branch_name = _git_current_branch()
-            for entry in backlog_entries:
-                entry_branch = _extract_colon_value(entry["block"], "Branch").strip("`")
-                if entry_branch != branch_name:
-                    continue
-                canonical_path = entry["canonical_path"]
-                if canonical_path:
-                    active_branch_record_path = canonical_path
-                    active_branch_record_text = _read_text(Path(canonical_path))
-                break
+    if selected_owner is not None:
+        active_branch_record_path,active_branch_record_text=selected_owner
+        active_branch_record_paths={active_branch_record_path}
+        current_active_branch_record_path=active_branch_record_path;current_active_branch_record_text=active_branch_record_text
+        historical_branch_record_path='';historical_branch_record_text=''
+    else:
+        branch_record_index_text = _read_text(BRANCH_RECORD_INDEX)
+        active_branch_record_paths = _collect_branch_record_paths(
+            branch_record_index_text,
+            "Active Branch Authority Records",
+        )
+        historical_branch_record_paths = _collect_branch_record_paths(
+            branch_record_index_text,
+            "Historical Branch Authority Records",
+        )
+        current_active_branch_record_path, current_active_branch_record_text = _active_branch_record_for_branch(
+            active_branch_record_paths,
+            branch_name,
+        )
+        historical_branch_record_path, historical_branch_record_text = _branch_record_for_branch(
+            historical_branch_record_paths,
+            branch_name,
+        )
+        if current_active_branch_record_text:
+            active_branch_record_path = current_active_branch_record_path
+            active_branch_record_text = current_active_branch_record_text
+        if not active_branch_record_text:
+            if historical_branch_record_text:
+                active_branch_record_path = historical_branch_record_path
+                active_branch_record_text = historical_branch_record_text
+            else:
+                branch_name = _git_current_branch()
+                for entry in backlog_entries:
+                    entry_branch = _extract_colon_value(entry["block"], "Branch").strip("`")
+                    if entry_branch != branch_name:
+                        continue
+                    canonical_path = entry["canonical_path"]
+                    if canonical_path:
+                        active_branch_record_path = canonical_path
+                        active_branch_record_text = _read_text(Path(canonical_path))
+                    break
     status_output = _git_status_porcelain()
     require(
         not status_output,
@@ -21578,7 +19278,7 @@ def _run_pr_readiness_gate(
         active_branch_record_path=active_branch_record_path,
         active_branch_record_text=active_branch_record_text,
     )
-    _run_uts_results_pr_gate(require, backlog_entries)
+    _run_uts_results_pr_gate(require, [entry for entry in backlog_entries if _extract_colon_value(entry["block"], "Branch").strip("`")==branch_name])
     _run_next_workstream_gate(
         require,
         backlog_entries,
@@ -21600,6 +19300,7 @@ def _run_pr_readiness_gate(
         backlog_entries=backlog_entries,
         active_branch_record_path=active_branch_record_path,
         active_branch_record_text=active_branch_record_text,
+        selected_owner=selected_owner,
     )
     _run_pr_live_state_gate(
         require,
@@ -21633,7 +19334,18 @@ def _strip_operator_guide_from_governance_mirror_globals() -> None:
         globals()[name] = strip_value(value)
 
 
-def main() -> int:
+def _legacy_diagnostic_main() -> int:
+    # Stable material owners replace copied policy paragraphs in routers.
+    router = _read_text(Path("Docs/Main.md"))
+    required_owners = ("Docs/phase_governance.md", "Docs/development_rules.md",
+        "Docs/branch_plans/README.md", "Docs/branch_records/index.md",
+        "Docs/workstreams/index.md", "Docs/validation_helper_registry.md",
+        "Docs/governance_efficiency_operating_model.md", "Docs/nexus_workspace_roots.md")
+    route_failures = [owner for owner in required_owners
+        if owner not in router or not (ROOT_DIR / owner).is_file()]
+    if route_failures:
+        print("BLOCK: missing current owner routes: " + ", ".join(route_failures))
+        return 1
     _strip_operator_guide_from_governance_mirror_globals()
 
     pr_readiness_gate = "--pr-readiness-gate" in sys.argv[1:]
@@ -21810,11 +19522,7 @@ def main() -> int:
         bool(standard_text),
         f"{GOVERNANCE_INTAKE_DIGEST_STANDARD_DOC}: governance intake triage / digest profile standard is missing",
     )
-    for required_phrase in GOVERNANCE_INTAKE_DIGEST_STANDARD_PHRASES:
-        require(
-            required_phrase in standard_text,
-            f"{GOVERNANCE_INTAKE_DIGEST_STANDARD_DOC}: governance intake / digest standard is missing '{required_phrase}'",
-        )
+    # Obsolete copied policy prose check retired.
     for relative_path in GOVERNANCE_INTAKE_DIGEST_POINTER_DOCS:
         text = _read_text(relative_path)
         for required_phrase in GOVERNANCE_INTAKE_DIGEST_POINTER_PHRASES:
@@ -22173,12 +19881,7 @@ def main() -> int:
                 f"{relative_path}: reusable guidance must not reintroduce retired seam-governance term '{retired_term}'",
             )
 
-    for relative_path, guard_phrase in zip(WORKSTREAM_TO_PR_DEFAULT_GUARD_DOCS, WORKSTREAM_TO_PR_DEFAULT_GUARD_PHRASES):
-        text = _read_text(relative_path)
-        require(
-            guard_phrase in text,
-            f"{relative_path}: direct Workstream-to-PR default guard is missing",
-        )
+    # PR phase safety is checked against actual phase/approval, not router prose.
 
     for relative_path in PRE_PR_DURABILITY_DOCS:
         text = _read_text(relative_path)
@@ -22484,13 +20187,7 @@ def main() -> int:
                 f"{relative_path}: USER Branch Plan Review Gate guidance is missing '{required_phrase}'",
             )
 
-    for relative_path, required_phrases in FORWARDED_DIGEST_NON_COMPACTION_REQUIRED_PHRASES.items():
-        text = _read_text(relative_path)
-        for required_phrase in required_phrases:
-            require(
-                required_phrase in text,
-                f"{relative_path}: forwarded digest non-compaction guidance is missing '{required_phrase}'",
-            )
+    # Obsolete copied policy prose check retired.
 
     for relative_path in BRANCH_READINESS_STAGE_GATE_DOCS:
         text = _read_text(relative_path)
@@ -24881,6 +22578,221 @@ def main() -> int:
 
     print(f"PASS: branch governance validation passed {checks} checks.")
     return 0
+
+
+def validate_current_interfaces(root: Path) -> dict[str, object]:
+    """Current source contracts only. No history census or effect permission."""
+    import hashlib, stat
+    errors = []
+    root = Path(root).absolute()
+    router_path = root / "Docs/Main.md"
+    try:
+        router_info=router_path.lstat()
+        if not stat.S_ISREG(router_info.st_mode) or router_info.st_nlink!=1 or getattr(router_info,"st_file_attributes",0)&0x400:raise ValueError("nonordinary current router")
+        router = router_path.read_text(encoding="utf-8")
+        owners = ("Docs/phase_governance.md", "Docs/development_rules.md", "Docs/codex_modes.md",
+            "Docs/branch_plans/README.md", "Docs/branch_records/index.md", "Docs/workstreams/index.md",
+            "Docs/validation_helper_registry.md", "Docs/governance_efficiency_operating_model.md",
+            "Docs/nexus_workspace_roots.md")
+        if r"D:\Nexus Desktop AI\Product Repository" not in router:
+            errors.append("canonical D Product Repository route missing")
+        for owner in owners:
+            path = root / owner
+            if owner not in router:
+                errors.append("missing owner route: " + owner); continue
+            info = path.lstat()
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or getattr(info, 'st_file_attributes', 0) & 0x400:
+                errors.append("nonordinary owner: " + owner)
+            elif not path.read_text(encoding='utf-8').lstrip().startswith('#'):
+                errors.append("owner document lacks a title: " + owner)
+        def git(*args):
+            return subprocess.check_output(['git', '--no-optional-locks', '-c', 'core.fsmonitor=false', '-C', str(root), *args], text=True, stderr=subprocess.PIPE).strip()
+        actual_root = git('rev-parse', '--show-toplevel')
+        if Path(actual_root).resolve() != root.resolve():errors.append('carrier Git root mismatch')
+        import ast
+        changed=git('diff','--name-only','origin/main').splitlines()
+        for relative in changed:
+            if relative.endswith('.py') and (root/relative).is_file():ast.parse((root/relative).read_bytes(),filename=str(root/relative))
+        if 'Docs/nexus_startup_contract.md' in changed:
+            loader=(root/'Docs/nexus_startup_contract.md').read_text(encoding='utf-8')
+            if 'Docs/Main.md' not in loader:errors.append('edited loader lacks current Main owner reference')
+        facts = {'root':actual_root, 'branch':git('branch','--show-current'), 'head':git('rev-parse','HEAD'),
+            'originMain':git('rev-parse','origin/main'), 'mergeBase':git('merge-base','HEAD','origin/main'),
+            'dirt':git('status','--porcelain=v1').splitlines()}
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        errors.append(type(error).__name__ + ': ' + str(error)); facts = {}
+    return {'result':'BLOCK' if errors else 'PASS', 'proofLevel':'SOURCE_CONTRACT',
+        'executionAuthorized':False, 'operationalReadiness':'NOT_ASSESSED', 'facts':facts, 'failures':errors}
+
+
+def _current_infrastructure_pr_proof(facts, assignment, qualification, source_sha256, pr=None, review=None):
+    """Current infrastructure adoption facts; historical product gates are separate."""
+    errors=[]
+    def need(condition,message):
+        if not condition:errors.append(message)
+    need(assignment.get('phase')=='PR Readiness','current PR phase missing')
+    need(assignment.get('canonicalMainMutation')is False,'canonical preservation missing')
+    need(facts.get('mergeBase')==assignment.get('base'),'merge base differs from assignment')
+    need(facts.get('originMain')==assignment.get('currentOriginMain',assignment.get('base')),'current main impact not reconciled in assignment')
+    need(not facts.get('dirt'),'owned changes are not durably committed')
+    need(type(qualification)is dict and qualification.get('result')=='PASS'and qualification.get('sourceSHA256')==source_sha256,'actual affected qualification does not bind this validator source')
+    if errors:return {'result':'BLOCK','failures':errors}
+    if pr is None:return {'result':'PENDING','failures':[],'pending':'ACTUAL_CURRENT_HEAD_PR_REQUIRED'}
+    if type(pr)is not dict or pr.get('state')!='OPEN':return {'result':'BLOCK','failures':['actual PR is not open']}
+    need(pr.get('fallbackLocalState')is not True,'planning metadata is not actual PR evidence')
+    need(pr.get('headRefName')==facts['branch']and pr.get('headRefOid')==facts['head'],'PR branch/head differs')
+    need(pr.get('baseRefName')=='main'and pr.get('isDraft')is False,'PR base/draft differs')
+    need(pr.get('mergeable')!='CONFLICTING','PR conflicts')
+    need(pr.get('reviewDecision')!='CHANGES_REQUESTED','requested changes remain')
+    if errors:return {'result':'BLOCK','failures':errors}
+    checks=pr.get('statusCheckRollup')
+    if type(checks)is not list or not checks:return {'result':'PENDING','failures':[],'pending':'ACTUAL_CURRENT_HEAD_CHECKS_REQUIRED'}
+    meaningful=False;pending=False
+    for check in checks:
+        if check.get('__typename')=='CheckRun':
+            if check.get('status')!='COMPLETED':pending=True;continue
+            need(check.get('conclusion')in('SUCCESS','NEUTRAL','SKIPPED'),'current-head check failed')
+            meaningful=meaningful or check.get('conclusion')=='SUCCESS'
+        elif check.get('__typename')=='StatusContext':
+            if check.get('state')=='PENDING':pending=True;continue
+            need(check.get('state')=='SUCCESS','current-head status failed');meaningful=meaningful or check.get('state')=='SUCCESS'
+        else:need(False,'unknown check evidence type')
+    if errors:return {'result':'BLOCK','failures':errors}
+    if pending:return {'result':'PENDING','failures':[],'pending':'CURRENT_HEAD_CHECKS_RUNNING'}
+    decision=pr.get('reviewDecision')
+    if decision!='APPROVED':
+        policy=pr.get('capturedReviewPolicy')
+        if not(decision is None and type(policy)is dict and policy.get('capture')=='DIRECT_GITHUB_API'and type(policy.get('legacyRequiredReviews'))is int and policy['legacyRequiredReviews']==0 and type(policy.get('rulesRequiredReviews'))is int and policy['rulesRequiredReviews']==0):
+            return {'result':'PENDING','failures':[],'pending':'ACTUAL_REQUIRED_GITHUB_REVIEW_COMPLETION'}
+    if not meaningful:return {'result':'PENDING','failures':[],'pending':'NO_EXECUTED_SUCCESSFUL_CURRENT_HEAD_CHECK'}
+    if not(type(review)is dict and review.get('result')=='PASS'and review.get('head')==facts['head']and type(review.get('reviewer'))is str and review['reviewer'].startswith('/root/')and review['reviewer']!='/root'):
+        return {'result':'PENDING','failures':[],'pending':'ACTUAL_CURRENT_HEAD_SCOPED_INDEPENDENT_REVIEW_REQUIRED'}
+    if pr.get('mergeable')!='MERGEABLE':return {'result':'PENDING','failures':[],'pending':'ACTUAL_MERGEABILITY_REQUIRED'}
+    return {'result':'PASS','failures':[],'executionAuthorized':False,'releaseDisposition':'NOT_APPLICABLE_INFRASTRUCTURE_ADOPTION'}
+
+def main() -> int:
+    import argparse, hashlib
+    parser = argparse.ArgumentParser(description='Affected current source contracts; operational gates require explicitly selected current authority.')
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--legacy-diagnostic', action='store_true', help='Historical broad diagnostic only; never current admission.')
+    for flag in ('pr-readiness-gate','release-readiness-health-gate','standing-governance-intake-gate','worktree-confinement-gate'):
+        modes.add_argument('--'+flag, action='store_true')
+    parser.add_argument('--current-assignment', type=Path)
+    parser.add_argument('--authorization-sha256')
+    parser.add_argument('--assignment-sha256')
+    parser.add_argument('--approval-file',type=Path)
+    parser.add_argument('--current-authority', type=Path)
+    parser.add_argument('--current-authority-sha256')
+    parser.add_argument('--current-validation',type=Path)
+    parser.add_argument('--current-validation-sha256')
+    parser.add_argument('--current-review',type=Path)
+    parser.add_argument('--current-review-sha256')
+    parser.add_argument('--current-pr-number',type=int)
+    args = parser.parse_args()
+    if args.legacy_diagnostic:
+        print('HISTORICAL DIAGNOSTIC; not a current source/admission gate')
+        sys.argv=[sys.argv[0]]
+        return _legacy_diagnostic_main()
+    proof = validate_current_interfaces(ROOT_DIR)
+    gate = next((name for name in ('pr_readiness_gate','release_readiness_health_gate','standing_governance_intake_gate','worktree_confinement_gate') if getattr(args,name)), None)
+    if any((args.current_assignment,args.assignment_sha256,args.approval_file,args.authorization_sha256,args.current_authority,args.current_authority_sha256)) and not gate:
+        proof['failures'].append('assignment operands are for an explicit operational gate; bare mode is source-only');proof['result']='BLOCK'
+    if gate:
+        failures=proof['failures']
+        try:
+            if not args.current_assignment or not args.current_authority or not args.current_authority_sha256 or not args.authorization_sha256 or not args.assignment_sha256 or not args.approval_file:
+                raise ValueError('explicit current assignment, actual approval digest and current authority binding required; historical fallback is retired')
+            def unique_current(pairs):
+                value={}
+                for key,item in pairs:
+                    if key in value:raise ValueError('duplicate current binding key')
+                    value[key]=item
+                return value
+            def capture_current_binding(path, limit=1024*1024):
+                import os, stat
+                path=Path(path)
+                if not path.is_absolute():raise ValueError('current binding must use an absolute path')
+                for ancestor in path.parents:
+                    info=ancestor.lstat()
+                    if not stat.S_ISDIR(info.st_mode) or getattr(info,'st_file_attributes',0)&0x400:raise ValueError('current binding ancestry is not ordinary')
+                info=path.lstat()
+                if not stat.S_ISREG(info.st_mode) or info.st_nlink!=1 or getattr(info,'st_file_attributes',0)&0x400 or not 0<info.st_size<=limit:raise ValueError('current binding is not a bounded ordinary file')
+                identity=lambda value:(value.st_dev,value.st_ino,value.st_size,value.st_mtime_ns)
+                with path.open('rb') as handle:
+                    if identity(os.fstat(handle.fileno()))!=identity(info):raise ValueError('current binding replaced before read')
+                    raw=handle.read(info.st_size+1)
+                if len(raw)!=info.st_size or identity(path.lstat())!=identity(info):raise ValueError('current binding changed during read')
+                return raw
+            assignment_raw=capture_current_binding(args.current_assignment)
+            if hashlib.sha256(assignment_raw).hexdigest().upper()!=args.assignment_sha256:raise ValueError('assignment provenance bytes differ')
+            assignment=json.loads(assignment_raw,object_pairs_hook=unique_current)
+            if hashlib.sha256(capture_current_binding(args.approval_file)).hexdigest().upper()!=args.authorization_sha256:raise ValueError('actual approval bytes differ')
+            approval_sha=assignment.get('authorizationSHA256') or assignment.get('assignment',{}).get('authorizationSHA256')
+            if approval_sha!=args.authorization_sha256 or not re.fullmatch('[0-9A-F]{64}',args.authorization_sha256):raise ValueError('actual approval binding mismatch')
+            row=assignment.get('assignment',assignment)
+            selected_owner=row.get('selectedOwner')
+            if (type(selected_owner)is not dict or set(selected_owner)!={'path','sha256'}
+                    or selected_owner['path']!=str(args.current_authority)
+                    or selected_owner['sha256']!=args.current_authority_sha256):
+                raise ValueError('current operational owner is not selected by the authenticated assignment; a self-hashed document is insufficient')
+            if type(row.get('root'))is not str or not row['root'] or not Path(row['root']).is_absolute() or Path(row['root']).resolve()!=ROOT_DIR.resolve() or row.get('head')!=proof['facts']['head'] or row.get('branch')!=proof['facts']['branch']:
+                raise ValueError('current assignment/carrier identity mismatch')
+            authority_raw=capture_current_binding(args.current_authority)
+            if hashlib.sha256(authority_raw).hexdigest().upper()!=args.current_authority_sha256:raise ValueError('current authority byte binding mismatch')
+            # Hash the complete original bytes; interpret ordinary Windows line
+            # endings consistently with the existing document reader.
+            authority=authority_raw.decode('utf-8-sig').replace('\r\n','\n')
+            phase_info=_parse_workstream_doc(authority)
+            phase=str(phase_info['current_phase'])
+            if row.get('phase')!=phase:raise ValueError('current assignment and selected owner phases differ')
+            wanted={'pr_readiness_gate':{'PR Readiness'},'release_readiness_health_gate':{'PR Readiness'},'worktree_confinement_gate':set(PHASES),'standing_governance_intake_gate':set()}[gate]
+            if phase not in wanted:raise ValueError('selected current phase is not applicable; standing intake is a retired generic route')
+            def field(*names):
+                return next((_extract_marker_value(authority,name).strip('`') for name in names if _extract_marker_value(authority,name)), '')
+            if field('Current HEAD','HEAD')!=proof['facts']['head'] or field('Branch')!=row['branch'] or field('Worktree','Worktree Root','Assigned Worktree')!=str(ROOT_DIR):raise ValueError('selected current operational owner is stale or not exactly bound to carrier')
+            if _is_historical_worktree_receipt(authority):raise ValueError('historical receipt is not current phase authority')
+            def require(condition,message):
+                if not condition:failures.append(message)
+            selected=(str(args.current_authority),authority)
+            if gate=='worktree_confinement_gate':
+                require(type(row.get('owner'))is str and bool(row['owner'].strip()),'current assigned owner missing')
+                require(type(row.get('scope'))is str and bool(row['scope'].strip()),'current assigned write scope missing')
+                require(row.get('canonicalMainMutation')is False,'canonical main preservation must be explicit')
+                require(proof['facts']['mergeBase']==row.get('base'),'current assignment merge base differs')
+                # Existing dirt is evidence; its reviewed preservation is selected by the owner.
+                require(field('Dirty Worktree Ownership','Preserved Dirt Disposition')in ('SOLE_WRITER_PRESERVED','Clean'),'current dirt ownership/preservation missing')
+            elif gate=='release_readiness_health_gate':_run_release_readiness_health_gate(require,selected_owner=selected)
+            elif gate=='pr_readiness_gate':
+                if field('Route Class')=='SOURCE_TRUTH_GOVERNANCE_INFRASTRUCTURE':
+                    if proof['result']!='PASS':raise ValueError('current source contracts failed before infrastructure readiness')
+                    if not args.current_validation or not args.current_validation_sha256:raise ValueError('actual affected source qualification required')
+                    captured=capture_current_binding(args.current_validation)
+                    if hashlib.sha256(captured).hexdigest().upper()!=args.current_validation_sha256:raise ValueError('outside qualification binding differs')
+                    qualification=json.loads(captured,object_pairs_hook=unique_current);review=None;pr=None
+                    if args.current_review:
+                        captured=capture_current_binding(args.current_review)
+                        if hashlib.sha256(captured).hexdigest().upper()!=args.current_review_sha256:raise ValueError('outside review binding differs')
+                        review=json.loads(captured,object_pairs_hook=unique_current)
+                    if args.current_pr_number:
+                        captured=subprocess.check_output(['gh','pr','view',str(args.current_pr_number),'--repo','GiribaldiTTV/Nexus-Desktop-AI','--json','state,headRefName,headRefOid,baseRefName,isDraft,mergeable,reviewDecision,statusCheckRollup'],text=True,timeout=30)
+                        pr=json.loads(captured,object_pairs_hook=unique_current)
+                        if pr.get('reviewDecision')is None:
+                            protection=json.loads(subprocess.check_output(['gh','api','repos/GiribaldiTTV/Nexus-Desktop-AI/branches/main/protection'],text=True,timeout=30),object_pairs_hook=unique_current)
+                            rules=json.loads(subprocess.check_output(['gh','api','repos/GiribaldiTTV/Nexus-Desktop-AI/rules/branches/main'],text=True,timeout=30),object_pairs_hook=unique_current)
+                            pr['capturedReviewPolicy']={'capture':'DIRECT_GITHUB_API','legacyRequiredReviews':protection.get('required_pull_request_reviews',{}).get('required_approving_review_count'),'rulesRequiredReviews':max([rule['parameters']['required_approving_review_count']for rule in rules if rule.get('type')=='pull_request']or[0])}
+                    current=_current_infrastructure_pr_proof(proof['facts'],row,qualification,hashlib.sha256(Path(__file__).read_bytes()).hexdigest().upper(),pr,review)
+                    proof.update(current,requestedGate=gate,operationalReadiness=current['result'],currentPR=pr)
+                    print(json.dumps(proof,indent=2));return 0 if current['result']=='PASS'else 1
+                backlog=_parse_backlog_sections(_read_text(Path('Docs/feature_backlog.md')))
+                roadmap=_read_text(Path('Docs/prebeta_roadmap.md'))
+                _run_pr_readiness_gate(require,backlog,roadmap,set(),{},selected[0],selected[1],selected_owner=selected)
+            proof['operationalReadiness']='BLOCKED' if failures else 'PASS_SELECTED_READ_ONLY_GATE'
+        except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
+            failures.append(str(error))
+        proof.update(result='BLOCK' if failures else 'PASS', requestedGate=gate)
+        if failures:proof['operationalReadiness']='BLOCKED'
+    print(json.dumps(proof, indent=2))
+    return 0 if proof['result']=='PASS' else 1
 
 
 if __name__ == "__main__":

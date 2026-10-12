@@ -168,6 +168,7 @@ def state_manifest_payload(
 
 
 def atomic_write_text(path: Path, content: str) -> None:
+    raise ExternalStateError("Retired legacy mutation route; use the selected checked Control Plane owner. --apply is not authority.")
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
         "w",
@@ -184,6 +185,7 @@ def atomic_write_text(path: Path, content: str) -> None:
 
 
 def atomic_write_bytes(path: Path, content: bytes) -> None:
+    raise ExternalStateError("Retired legacy mutation route; use the selected checked Control Plane owner. --apply is not authority.")
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
         "wb",
@@ -236,6 +238,7 @@ def iter_state_files(root: Path) -> list[Path]:
 
 
 def copy_tree_snapshot(source: Path, destination: Path) -> list[dict[str, str]]:
+    raise ExternalStateError("Retired legacy mutation route; use the selected checked Control Plane owner. --apply is not authority.")
     source = resolve_path(source)
     destination = resolve_path(destination)
     copied: list[dict[str, str]] = []

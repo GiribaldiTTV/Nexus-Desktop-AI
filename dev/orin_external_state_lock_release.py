@@ -31,6 +31,7 @@ def _before_release_atomic_replacement(_lock_path: Path, _expected_bytes: bytes)
 
 
 def release_lock(root: Path, lock_id: str, reason: str, apply: bool) -> tuple[bool, list[str]]:
+    if apply:return False, ["BLOCK: retired legacy mutation route; use the selected checked Control Plane owner"]
     root = resolve_path(root)
     failures = validate_canonical_root(root)
     failures.extend(validate_initialized_root(root))
