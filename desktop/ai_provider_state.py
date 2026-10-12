@@ -1,4 +1,3 @@
-# NEXUS-SOURCE-OWNER: schema=source-owner-v1; owner=FAM007-AI; ledger=SRCOWN-FIRSTPASS-FAM007-AI-007; surface=provider-state-contract; status=shared
 """Provider/no-provider and foundation-readiness state contract for FAM-007.
 
 This module owns local-only FAM-007 scaffolds. It does not load models, call
@@ -51,14 +50,8 @@ FAM007_PROVIDER_USER_OPERATED_CONSENT_UX_FOUNDATION_STATE_ID = (
 FAM007_PROVIDER_SETUP_COMPLETION_FOUNDATION_STATE_ID = (
     "fam007-provider-setup-completion-foundation"
 )
-OWNER_AI_OPERATIONAL_FOUNDATION_GATES_STATE_ID = (
-    "fam007-owner-ai-operational-foundation-gates"
-)
 OWNER_AI_OPERATIONAL_FOUNDATION_GATES_SCHEMA_VERSION = (
     "owner-ai-operational-foundation-gates.v1"
-)
-OWNER_AI_OPERATIONAL_FOUNDATION_GATES_BRANCH = (
-    "feature/fam-007-owner-ai-operational-foundation-gates"
 )
 
 NO_PROVIDER_MODE = "no-provider"
@@ -144,8 +137,6 @@ DEVELOPER_LANE_BOUNDARY_PRIVATE_SETUP_BLOCKED = "developer-lane-private-setup-bl
 OWNER_LANE_BOUNDARY_PRIVATE_SETUP_BLOCKED = "owner-lane-private-setup-blocked"
 PRIVATE_SETUP_BOUNDARY_BLOCKED = "private-setup-blocked"
 SLC005_ENFORCEMENT_PROOF_SCHEMA_VERSION = "slc005-enforcement-proof.v1"
-SLC005_ENFORCEMENT_PROOF_STATE = "workstream-enforcement-proof-green"
-SLC005_ENFORCEMENT_HARDENING_HANDOFF_STATE = "ready-for-hardening-h1"
 MODEL_WORKLOAD_METADATA_PLANNED = "model-workload-metadata-planned"
 DATA_CLASSIFICATION_LOCAL_ONLY = "data-classification-local-only"
 DATA_CLASSIFICATION_SCHEMA_VERSION = "data-classification.v1"
@@ -181,34 +172,6 @@ CONTRACT_READY_MARKER = "contract-ready"
 UI_READY_MARKER = "ui-ready"
 VALIDATOR_READY_MARKER = "validator-ready"
 FUTURE_IMPLEMENTATION_GATED_MARKER = "future-implementation-gated"
-OWNER_AI_GATE_SLICE_IDS = (
-    "SLC-001",
-    "SLC-002",
-    "SLC-003",
-    "SLC-004",
-    "SLC-005",
-    "SLC-006",
-)
-OWNER_AI_GATE_SEAM_RECORDS = (
-    ("SLC-001", "Seam 1", "Define protected classes and public-safe exclusion contract"),
-    ("SLC-001", "Seam 2", "Enforce public packet/repo/bundle exclusion checks"),
-    ("SLC-001", "Seam 3", "Preserve acceptance/fold-down boundary for protected-asset policy"),
-    ("SLC-002", "Seam 1", "Define disabled provider/runtime state contract"),
-    ("SLC-002", "Seam 2", "Plan USER-facing disabled-state copy and review packet wording"),
-    ("SLC-002", "Seam 3", "Add no-execution proof linkage for BP3"),
-    ("SLC-003", "Seam 1", "Separate cache consent from memory consent"),
-    ("SLC-003", "Seam 2", "Plan blocked persistence states and consent error states"),
-    ("SLC-003", "Seam 3", "Preserve source-truth placement for future memory/cache policy"),
-    ("SLC-004", "Seam 1", "Define explicit install-intent state model"),
-    ("SLC-004", "Seam 2", "Plan blocked pending-install state and visible route-back"),
-    ("SLC-004", "Seam 3", "Link install-intent gates to protected artifact and provider-state proof"),
-    ("SLC-005", "Seam 1", "Define lane identity without private setup"),
-    ("SLC-005", "Seam 2", "Plan readiness gates for later private setup approval"),
-    ("SLC-005", "Seam 3", "Validate lane-readiness copy in USER-facing packet"),
-    ("SLC-006", "Seam 1", "Define future prerequisite schema names and blocked states"),
-    ("SLC-006", "Seam 2", "Plan no-real-memory/no-real-agent proof and public-safe examples"),
-    ("SLC-006", "Seam 3", "Link schema gates to BP3 whole-package orchestration"),
-)
 OWNER_AI_PROTECTED_ARTIFACT_CLASSES = (
     "owner-private-prompts",
     "owner-private-memory",
@@ -12498,8 +12461,6 @@ def build_slc005_enforcement_proof_contract() -> dict[str, object]:
 
     return {
         "schema": SLC005_ENFORCEMENT_PROOF_SCHEMA_VERSION,
-        "slc": "SLC-005",
-        "state": SLC005_ENFORCEMENT_PROOF_STATE,
         "proofScope": (
             "provider-model-execution",
             "prompt-acceptance-send",
@@ -12508,12 +12469,6 @@ def build_slc005_enforcement_proof_contract() -> dict[str, object]:
             "memory-learning-personalization",
             "private-developer-owner-setup",
             "hidden-network-behavior",
-        ),
-        "validationSurfaces": (
-            "desktop/ai_provider_state.py",
-            "dev/orin_ai_provider_state_validation.py",
-            "dev/orin_public_leak_prevention_validation.py",
-            "dev/fixtures/fam007_public_leak_prevention/public_leak_prevention_fixture_set.json",
         ),
         "blockedBehaviorMatrix": {
             "providerModelExecution": {
@@ -12524,7 +12479,6 @@ def build_slc005_enforcement_proof_contract() -> dict[str, object]:
                 "runtimeProviderExecutionEnabled": False,
                 "providerExecutionGateState": PROVIDER_EXECUTION_GATE_DISABLED,
                 "modelExecutionGateState": MODEL_EXECUTION_GATE_DISABLED,
-                "userGate": "USER-ACTION-FAM007-PROVIDER-MODEL-EXECUTION",
             },
             "promptSend": {
                 "promptAcceptance": "disabled",
@@ -12549,7 +12503,6 @@ def build_slc005_enforcement_proof_contract() -> dict[str, object]:
                 "cacheIsNotMemory": True,
                 "runtimeCacheBehaviorEnabled": False,
                 "runtimeCacheState": "inactive",
-                "userGate": "USER-GATE-FAM007-RUNTIME-CACHE-BEHAVIOR",
             },
             "memory": {
                 "memoryConsentState": "blocked-pending-user-memory-approval",
@@ -12561,7 +12514,6 @@ def build_slc005_enforcement_proof_contract() -> dict[str, object]:
                 "memoryWriteEnabled": False,
                 "realOwnerMemoryEnabled": False,
                 "realOwnerAgentsEnabled": False,
-                "userGate": "USER-ACTION-FAM007-MEMORY-LEARNING-PERSONALIZATION",
             },
             "privateSetup": {
                 "privateSetupBoundaryState": PRIVATE_SETUP_BOUNDARY_BLOCKED,
@@ -12626,46 +12578,18 @@ def build_slc005_enforcement_proof_contract() -> dict[str, object]:
                 "expectedOutcome": "blocked",
             },
         ),
-        "hardeningHandoff": {
-            "state": SLC005_ENFORCEMENT_HARDENING_HANDOFF_STATE,
-            "nextLegalPhase": "Hardening H1",
-            "workstreamGreenCandidate": True,
-            "providerModelExecutionAuthorized": False,
-            "promptSendAuthorized": False,
-            "downloadsAuthorized": False,
-            "runtimeCacheBehaviorAuthorized": False,
-            "memoryLearningPersonalizationAuthorized": False,
-            "privateSetupAuthorized": False,
-            "hiddenNetworkBehaviorAuthorized": False,
-        },
     }
 
 
 def build_owner_ai_operational_foundation_gates_state() -> dict[str, object]:
     """Build the public-safe FAM-007 Owner AI foundation gate contract."""
 
-    seam_records = tuple(
-        {
-            "slc": slc,
-            "seam": seam,
-            "name": name,
-            "status": "implemented-public-safe-gate-contract",
-        }
-        for slc, seam, name in OWNER_AI_GATE_SEAM_RECORDS
-    )
     return {
         "schema": OWNER_AI_OPERATIONAL_FOUNDATION_GATES_SCHEMA_VERSION,
-        "branch": OWNER_AI_OPERATIONAL_FOUNDATION_GATES_BRANCH,
         "packageId": PACKAGE_ID,
-        "stateId": OWNER_AI_OPERATIONAL_FOUNDATION_GATES_STATE_ID,
-        "state": "implemented-public-safe-gate-contract",
-        "sliceIds": OWNER_AI_GATE_SLICE_IDS,
-        "seams": seam_records,
         "protectedArtifactExclusion": {
             "protectedClasses": OWNER_AI_PROTECTED_ARTIFACT_CLASSES,
             "publicExclusionTargets": OWNER_AI_PUBLIC_EXCLUSION_TARGETS,
-            "repoPacketBundleChecksRequired": True,
-            "acceptedPolicyFoldDownRequired": True,
             "ownerPrivateMaterialAllowed": False,
             "privateDevMaterialAllowed": False,
             "privatePathAllowed": False,
@@ -12685,7 +12609,6 @@ def build_owner_ai_operational_foundation_gates_state() -> dict[str, object]:
             "downloadsNetworkExternalCalls": "blocked",
             "networkEgressState": NETWORK_EGRESS_BLOCKED,
             "externalCallsEnabled": False,
-            "bp3NoExecutionProofLink": "accepted-bp3-no-provider-no-runtime-proof",
         },
         "consentStateGates": {
             "cacheConsentState": "blocked-pending-user-cache-approval",
@@ -12708,7 +12631,6 @@ def build_owner_ai_operational_foundation_gates_state() -> dict[str, object]:
             "capabilityPackInstallBlocked": True,
             "capabilityPackUpdateBlocked": True,
             "capabilityPackUninstallBlocked": True,
-            "protectedArtifactAndProviderProofLinked": True,
         },
         "laneReadinessGates": {
             "userPublicLane": {
@@ -12749,17 +12671,6 @@ def build_owner_ai_operational_foundation_gates_state() -> dict[str, object]:
             "realOwnerMemoryEnabled": False,
             "realOwnerAgentsEnabled": False,
             "publicSafeExamplesOnly": True,
-            "bp3WholePackageOrchestrationLink": "accepted-bp3-slc-006-whole-package-link",
-        },
-        "futureUserGates": {
-            "privateDevRepo": "USER-ACTION-FAM007-DEV-PRIVATE-REPO-CREATE",
-            "privateOwnerRepo": "USER-ACTION-FAM007-OWNER-PRIVATE-REPO-CREATE",
-            "githubDesktopPrivateRemote": "USER-ACTION-FAM007-GITHUB-DESKTOP-PRIVATE-REMOTE-SETUP",
-            "providerModelExecution": "USER-ACTION-FAM007-PROVIDER-MODEL-EXECUTION",
-            "runtimeCacheBehavior": "USER-GATE-FAM007-RUNTIME-CACHE-BEHAVIOR",
-            "memoryLearningPersonalization": "USER-ACTION-FAM007-MEMORY-LEARNING-PERSONALIZATION",
-            "realOwnerMemory": "USER-GATE-FAM007-REAL-OWNER-MEMORY",
-            "realOwnerAgents": "USER-GATE-FAM007-REAL-OWNER-AGENTS",
         },
         "forbiddenMaterialPresence": {
             "privateRemoteUrl": False,
@@ -12774,17 +12685,6 @@ def build_owner_ai_operational_foundation_gates_state() -> dict[str, object]:
             "privateHostingSecret": False,
         },
         "slc005EnforcementProof": build_slc005_enforcement_proof_contract(),
-        "hardeningHandoff": {
-            "state": "ready-for-hardening-h1",
-            "nextLegalPhase": "Hardening H1",
-            "workstreamGreenCandidate": True,
-            "privateSetupAuthorized": False,
-            "providerModelExecutionAuthorized": False,
-            "runtimeCacheBehaviorAuthorized": False,
-            "memoryLearningPersonalizationAuthorized": False,
-            "realOwnerMemoryAuthorized": False,
-            "realOwnerAgentsAuthorized": False,
-        },
     }
 
 

@@ -4,7 +4,7 @@
 
 This family vision records durable product direction for the Nexus desktop shell, visual language, operator UI, settings presentation, user-facing desktop interaction surfaces, and coherent UI/UX implementation packages.
 
-FAM-002 is the shared Desktop Interface / UI presentation authority for Nexus. It is normally consumed by other FAM branches when those branches implement their own user-facing surfaces, rather than opened as a standalone worktree by default.
+FAM-002 supplies shared presentation and interaction rules for Nexus-owned desktop surfaces. The feature owning a surface retains its behavior.
 
 ## Vision Summary
 
@@ -12,14 +12,14 @@ The Desktop Interface should feel intentional, native to Nexus, and visually coh
 
 ## Accepted Direction
 
-- Keep user-facing surfaces polished enough for USER review before Live Validation handoff.
-- Use branch plans to settle concrete layout, control, proof, and acceptance details before implementation.
+- Inspect affected user-facing surfaces in their real rendered and interactive states.
+- Define the layout, control states, accessibility, and behavior expected for each affected surface.
 - Preserve visual identity, control hierarchy, and reviewability as product requirements, not cosmetic afterthoughts.
 - Keep dev/proof scaffolding out of production UI unless explicitly admitted.
 - Resident status panels, tray-opened panels, Global Settings, AI Status / Command Center, and quick-access configuration surfaces should follow the Nexus visual hierarchy instead of becoming generic utility popups.
 - Tray-accessible surfaces should keep the tray as a doorway: compact entry in the tray, full explanation and configuration in polished Nexus windows.
 - Visible diagnostics, failure, degraded-state, recovery, support-bundle, manual-reporting, and repair-option panels consume FAM-002 presentation standards when they are shown to the USER.
-- Consuming FAM branches inherit FAM-002 presentation standards when their accepted Family Vision, FFV, branch plan, and proof path require UI work for their own feature behavior.
+- Feature surfaces use FAM-002 presentation rules when shared desktop controls or window behavior apply.
 - FAM-003 owns resident tray doorway behavior while consuming FAM-002 presentation standards; FAM-006 owns Recording Studio / Log Viewer behavior and related UI; FAM-007 owns AI Status / Command Center behavior and related UI; FAM-008 owns installer, setup, shortcut, update, patch/restart, and tray-visibility education behavior and related UI.
 
 ## NDAI Window Chrome And Immersion Contract
@@ -28,7 +28,7 @@ FAM-002 owns the reusable presentation law for Nexus-owned windows and panels. F
 
 The expected presentation is Nexus-native: custom product framing or chrome, coherent title/header treatment, matching close/minimize/back/settings affordances where applicable, consistent card/button/list/scrollbar language, readable spacing and density, and deliberate disabled/degraded/recovery states. A consuming FAM may specialize the layout for its feature, but it must inherit this presentation grammar or record a USER-approved exception.
 
-Platform exceptions must be explicit. OS file pickers, OS security prompts, provider-auth surfaces, installer/update flows that require platform trust affordances, and temporary troubleshooting-only diagnostics may use platform chrome only when the branch classifies the exception, explains why Nexus-native chrome is not appropriate, and includes the exception in BP2/BP3 proof and Live Validation visual adjudication.
+Platform-native file pickers, OS security prompts, provider authentication, and installer trust surfaces may use platform chrome when that treatment protects the user or follows platform requirements. Keep the exception visually and behaviorally clear.
 
 ## Top-Level Window Control Grammar Standard
 
@@ -42,15 +42,15 @@ Top-level control clusters must remain Nexus-native rather than default Windows 
 
 FAM-002 owns the reusable presentation and geometry standard for Nexus-owned product windows. Any Nexus-owned standalone, top-level, restorable, independently opened, movable, resizable, or geometry-persisted product window must define safe default position/size behavior and a USER-accessible reset path so the USER can recover from offscreen placement, missing-monitor movement, corrupted saved geometry, too-small/too-large windows, or layout changes.
 
-The reset route must preserve Nexus presentation grammar: clear language, predictable placement, visible recovery feedback, and no debug-looking utility popup unless a platform/native or troubleshooting exception is recorded. Consuming FAM branches own their feature window behavior and proof. FAM-003 owns the resident access / quick-actions / settings route when the reset action is a global or user-accessible Nexus command. Child panels, anchored panels, OS dialogs, temporary dev/proof tools, or non-restorable surfaces may be Not Applicable only when the branch records the reason and proof path.
+The reset route must preserve Nexus presentation grammar: clear language, predictable placement, visible recovery feedback, and no debug-looking utility popup unless a platform/native or troubleshooting exception is recorded. Each feature owns its window behavior and verification. FAM-003 owns the resident access / quick-actions / settings route when the reset action is a global or user-accessible Nexus command. Child panels, anchored panels, OS dialogs, temporary dev/proof tools, or non-restorable surfaces may be Not Applicable only when the reason is technically justified.
 
 ## Window Geometry And Resize Contract Standard
 
-FAM-002 also owns the reusable presentation law for window geometry, resize, responsive layout, and size-state composition. `Docs/ui_reference_catalog/UIREF-007_window_geometry_resize_contract.md` is the promoted source-truth contract for minimum/default/maximum/fullscreen policy, breakpoint/reflow behavior, DPI and display-scale posture, multi-monitor and portrait/narrow-monitor proof, content overflow handling, sparse wide-state prevention, and per-FAM dependency carrydown.
+FAM-002 also owns the reusable presentation law for window geometry, resize, responsive layout, and size-state composition. `Docs/ui_reference_catalog/UIREF-007_window_geometry_resize_contract.md` is the product reference for minimum/default/maximum/fullscreen policy, breakpoint/reflow behavior, DPI and display-scale posture, multi-monitor and portrait/narrow-monitor proof, content overflow handling, sparse wide-state prevention, and feature-specific behavior.
 
-Same-class Nexus-owned windows should feel deterministic, intuitive, immersive, predictable, reliable, and consistent across size states. A compact tool window may stay compact or define a purposeful wide-state treatment. A dashboard / parent-class window may grow, but the extra room must be meaningful through composition, reflow, richer density, or bounded scroll. A detached child window or detached child dashboard must say whether it behaves like its parent, owns independent geometry, or needs a USER-approved exception.
+Same-class Nexus-owned windows should feel deterministic, intuitive, immersive, predictable, reliable, and consistent across size states. A compact tool window may stay compact or define a purposeful wide-state treatment. A dashboard / parent-class window may grow, but the extra room must be meaningful through composition, reflow, richer density, or bounded scroll. A detached child window or detached child dashboard must say whether it behaves like its parent, owns independent geometry, or needs a justified product exception.
 
-Consuming FAM branches own their feature-specific layout, backend behavior, proof, and USER packet. They must classify affected windows, cite UIREF-007 when geometry/resize applies, compare against the accepted reference set, and record any issue candidates or exceptions before claiming product readiness. FAM-002 supplies the visual/geometry grammar; it does not directly mutate FAM-003/FAM-006/FAM-007/FAM-008 runtime UI by inference.
+Each feature owns its layout and behavior while using the relevant geometry and resize rules. Verify affected sizes, display scales, and exception states before calling that surface ready.
 
 ## Reusable Component Grammar
 
@@ -63,15 +63,15 @@ FAM-002 supplies reusable presentation grammar for:
 - scrollbars, dropdowns, list rows, input fields, folder/file pickers when Nexus owns the presentation, and compact/expanded layout density
 - USER-facing proof readability, so validation or diagnostics surfaces remain understandable product surfaces instead of debug walls
 
-Consuming FAM branches may specialize this grammar for their own feature surfaces, but they must name the inherited FAM-002 grammar, classify any platform-native exception, and prove visible inheritance before USER handoff. A branch that introduces a new button family, new window frame, new dialog shell, unique glow/color family, or custom layout density must record whether it is inherited, a USER-accepted new grammar, or a repair/blocker.
+A feature may specialize the shared grammar for a real product need, but should retain recognizable controls, accessible states, and consistent window behavior.
 
-Bounded carry-in exception: when an active consuming FAM branch exposes a returned-UTS visual-system failure caused by missing shared primitive code, that branch may implement the smallest required branch-local shared primitive candidate if the USER explicitly approves that carrier, the primitive is scoped to the active failure, and the branch records the source path, UIREF/FAM-002 seed, consuming surfaces, proof obligations, rollback posture, and non-promotion boundary. This does not globally promote the primitive or authorize sibling worktree mutation.
+When a missing shared primitive causes a real visual or interaction defect, implement the smallest reusable primitive that fixes the affected surface and verify the rendered result.
 
 ## Future-Proof UI Composition Standard
 
 FAM-002 expects Nexus-owned UI to be composed so foreseeable same-class additions can be added without hand-tuning a new one-off visual or layout system. A row, card, control cluster, dropdown, filter, list, dialog, status panel, scrollbar, or window frame should derive its size, spacing, alignment, state treatment, and overflow behavior from the inherited grammar, accepted reference, template, shared primitive, content contract, or named constraint. For example, a value column should derive from label/content rules plus a fixed gutter or documented constraint, not from a magic pixel that only works for the current row count or current screenshot.
 
-Future-proof composition does not authorize future feature implementation. It requires the current UI to preserve extension boundaries, future-gated items, and proof expectations. If a consuming branch cannot derive a same-class UI element from an approved FAM-002 rule, UIREF record, template, or shared primitive, it must record `Reference Gap`, `Template Gap`, `Shared Primitive Gap`, `Source-Truth Gap`, or `Exception Needed` and route the gap rather than silently creating a new product grammar.
+Future-proof composition should leave room for foreseeable same-class additions without adding unavailable features or relying on screenshot-tuned layouts.
 
 ## Component Anatomy And Element-Group Acceptance
 
@@ -87,26 +87,23 @@ For shared UI components such as close/minimize/back/settings affordances, prima
 - input behavior for mouse, keyboard, focus, scroll, resize, close, save, discard, cancel, and delete paths when applicable
 - inherited reference surface, accepted grammar, or USER-approved exception
 
-Element-group acceptance must be deterministic enough that a future branch can compare a new component to the inherited Nexus grammar. Vague verdicts such as `looks good`, `NDAI-ish`, `matches generally`, `better`, `closer`, `improved`, `looks acceptable`, `good enough`, or `seems fine` are not enough. Final visual acceptance requires mapped evidence, reference or exception, inspected state coverage, and a PASS / REPAIR / STOP / WAIVED_WITH_REASON / USER Review Required disposition.
+Judge affected elements against concrete rendered behavior, reference examples, accessibility, and interaction states. Vague visual praise alone cannot establish a usable component.
 
-Same-class shared elements should be implemented through the same primitive path where source truth admits one. If a branch must vary only the inline text, the code should preserve identical height, gutter symmetry, typography, radius, border, glow, hover, focus, pressed, disabled, and accessibility behavior rather than restyling each instance by eye.
+Same-class shared elements should use the same primitive when practical. Text-only variations should retain height, gutter symmetry, typography, radius, border, glow, interaction states, and accessibility.
 
 ## Consumption Model
 
-- Default Rule: FAM-002 is consumed-by-default by feature-owning FAM branches.
-- Consuming-FAM Implementation Rule: a consuming FAM may implement FAM-002-aligned UI when the UI is necessary to complete that FAM's accepted feature behavior, Family Feature Vision, branch plan, and validation proof.
-- Branch Exception Rule: a dedicated FAM-002 branch or worktree is allowed only when USER admits a concrete Desktop Interface feature category that no consuming FAM owns.
-- Ownership Split: FAM-002 supplies presentation law; the consuming FAM owns the feature behavior, feature-specific UI implementation, runtime proof, and fold-down receipt.
-- Non-Capture Rule: consuming FAMs must not use FAM-002 as a reason to redesign unrelated app-wide UI, absorb another FAM's feature behavior, or bypass cross-FAM dependency classification.
+- FAM-002 rules apply to product surfaces that use shared desktop presentation.
+- The feature owning a surface implements its behavior while using the applicable FAM-002 rules.
+- Shared desktop components may be implemented centrally when they benefit multiple real product surfaces.
+- Ownership Split: FAM-002 supplies shared presentation rules; the consuming feature owns its behavior, feature-specific UI implementation, and validation of visible states.
+- Non-Capture Rule: consuming features apply FAM-002 only to relevant shared presentation, preserve other features' behavior, and account for real product dependencies.
 - Failure/Recovery UI Rule: FAM-002 supplies visual hierarchy, control grammar, disabled/degraded affordance, and panel presentation law for visible diagnostics or recovery UI; FAM-001 owns fatal launcher/runtime recovery meaning, and the consuming FAM owns feature-specific failure behavior.
 
 ## Implementation Boundaries
 
 - This vision does not admit a UI overhaul by itself.
-- This vision does not create a default FAM-002 worktree, selected-next branch, or generic UI-polish carrier.
 - This vision does not admit tray implementation, shortcut mutation, installer behavior, AI Command Center implementation, or privacy-state runtime behavior by itself.
-- Active Desktop Interface branches must carry accepted Branch Vision Snapshot, UFD disposition, and proof expectations before Workstream implementation.
-- Durable implementation history belongs in the relevant workstream or structured branch receipt.
 
 ## Canonical Pointers
 
@@ -116,4 +113,3 @@ Same-class shared elements should be implemented through the same primitive path
 - Resident access FFV: `Docs/family_feature_visions/F3-FF01.md`
 - Backlog registry: `Docs/feature_backlog.md`
 - Roadmap posture: `Docs/prebeta_roadmap.md`
-- Durable planning owner: `Docs/workstreams/FB-031_nexus_desktop_ai_ui_ux_overhaul_planning.md`

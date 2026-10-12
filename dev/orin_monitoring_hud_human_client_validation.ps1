@@ -3883,7 +3883,6 @@ function Save-Manifest {
         userInspectableContextScreenshotRoot = $UserContextScreenshotRoot
         userInspectableElementScreenshotRoot = $UserElementScreenshotRoot
         runtimeLog = $script:RuntimeLogPath
-        formalUtsTouched = $false
         shortcutResolution = $script:ShortcutResolution
         proofClasses = [ordered]@{
             staticProof = "supporting-only"
@@ -4140,7 +4139,7 @@ try {
             @{ Id = "ncp_manage_custom_groups_clickable_with_dashboard_open"; Title = "NCP Manage Custom Groups remains outside focused FAM-006 Recording proof" },
             @{ Id = "tray_create_custom_task_duplicate_guard"; Title = "Tray Create Custom Task duplicate-dialog guard remains outside focused FAM-006 Recording proof" }
         )) {
-            Add-Step -Id $skippedStep.Id -Title $skippedStep.Title -Status "PASS" -Detail "Scoped out by -SkipNcpRegressionChecks for focused FAM-006 Recording/returned-UTS repair validation; this is not product acceptance of unrelated NCP behavior." -Evidence @{ scope = "outside-current-fam006-recording-repair"; proofDisposition = "not-tested-in-focused-run" }
+            Add-Step -Id $skippedStep.Id -Title $skippedStep.Title -Status "NOT_RUN" -Detail "Scoped out by -SkipNcpRegressionChecks for focused FAM-006 Recording/returned-UTS repair validation; this is not product acceptance of unrelated NCP behavior." -Evidence @{ scope = "outside-current-fam006-recording-repair"; proofDisposition = "not-tested-in-focused-run" }
         }
     } else {
         $ncpTrayIconOpenEvidence = Invoke-TrayIconActivation -ExpectedMarker "RENDERER_MAIN|COMMAND_OVERLAY_READY|phase=entry" -TimeoutSeconds $ActionTimeoutSeconds -Label "NCP tray icon left-click open"
@@ -4441,7 +4440,7 @@ try {
             @{ Id = "tray_exit_accept_prompt_visible"; Title = "Tray Exit accept path shows visible confirmation" },
             @{ Id = "tray_exit_accept_shuts_down_promptly"; Title = "Tray Exit Yes closes runtime promptly" }
         )) {
-            Add-Step -Id $skippedExitStep.Id -Title $skippedExitStep.Title -Status "PASS" -Detail "Scoped out by -SkipNcpRegressionChecks for focused FAM-006 Recording/returned-UTS repair validation; this is not product acceptance of unrelated tray shutdown behavior." -Evidence @{ screenshot = $exitScopeShot; scope = "outside-current-fam006-recording-repair"; proofDisposition = "not-tested-in-focused-run" }
+            Add-Step -Id $skippedExitStep.Id -Title $skippedExitStep.Title -Status "NOT_RUN" -Detail "Scoped out by -SkipNcpRegressionChecks for focused FAM-006 Recording/returned-UTS repair validation; this is not product acceptance of unrelated tray shutdown behavior." -Evidence @{ screenshot = $exitScopeShot; scope = "outside-current-fam006-recording-repair"; proofDisposition = "not-tested-in-focused-run" }
         }
     } else {
         $exitEvidence = Invoke-TrayAction -ActionName "Exit Nexus Desktop AI" -ExpectedMarker "RENDERER_MAIN|TRAY_SHUTDOWN_CONFIRMATION_REQUESTED|source=menu" -TimeoutSeconds $ActionTimeoutSeconds

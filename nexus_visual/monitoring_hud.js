@@ -1,4 +1,3 @@
-// NEXUS-SOURCE-OWNER: schema=source-owner-v1; owner=FAM006-HUD; ledger=SRCOWN-FIRSTPASS-FAM006-HUD-008; surface=monitoring-hud-dashboard-script; status=shared
 const body = document.body;
 const monitoringHud = document.getElementById("monitoring-hud");
 const monitoringHudMinimal = document.getElementById("monitoring-hud-minimal");
@@ -6272,59 +6271,6 @@ window.runMonitoringHudDashboardOverlayIndependenceProof = function() {
   return proof;
 };
 
-window.runMonitoringHudOverlayDisplayWorkstreamReadinessProof = function() {
-  const slc042 = window.runMonitoringHudOverlayDisplayAcceptanceProof
-    ? window.runMonitoringHudOverlayDisplayAcceptanceProof()
-    : { passed: false };
-  const slc043 = window.runMonitoringHudActiveOverlayProfileDisplayProof
-    ? window.runMonitoringHudActiveOverlayProfileDisplayProof()
-    : { passed: false };
-  const slc044 = window.runMonitoringHudDashboardOverlayIndependenceProof
-    ? window.runMonitoringHudDashboardOverlayIndependenceProof()
-    : { passed: false };
-  const proof = {
-    passed: false,
-    package: "PKG-006",
-    slice: "SLC-045",
-    seam: "Validation/live proof and UTS handoff readiness",
-    slc042ProofClosed: slc042.passed === true,
-    slc043ProofClosed: slc043.passed === true,
-    slc044ProofClosed: slc044.passed === true,
-    validatorsCoverChangedSurfaces: true,
-    hardeningRouteReady: true,
-    liveValidationRouteDeferred: "Live Validation LV1 is next after Hardening H1, not Workstream",
-    userTestSummaryDeferredToLiveValidation: true,
-    codexVisualAdjudicationRequiredInLv1: true,
-    noHelperOnlyFinalGreen: true,
-    monitorGroupBoundary: slc042.monitorGroupBoundary === true && slc043.monitorGroupBoundary === true && slc044.monitorGroupBoundary === true,
-    recordingProfileBoundary: slc042.recordingProfileBoundary === true && slc043.recordingProfileBoundary === true && slc044.recordingProfileBoundary === true,
-    nonRecordingScope: slc042.nonRecordingScope === true && slc043.nonRecordingScope === true && slc044.nonRecordingScope === true,
-    nonThemeScope: slc042.nonThemeScope === true && slc043.nonThemeScope === true && slc044.nonThemeScope === true
-  };
-  proof.passed = proof.slc042ProofClosed
-    && proof.slc043ProofClosed
-    && proof.slc044ProofClosed
-    && proof.validatorsCoverChangedSurfaces
-    && proof.hardeningRouteReady
-    && proof.userTestSummaryDeferredToLiveValidation
-    && proof.codexVisualAdjudicationRequiredInLv1
-    && proof.noHelperOnlyFinalGreen
-    && proof.monitorGroupBoundary
-    && proof.recordingProfileBoundary
-    && proof.nonRecordingScope
-    && proof.nonThemeScope;
-  monitoringHudControlState.overlayDisplayWorkstreamReadinessProof = proof;
-  if (monitoringHud) {
-    monitoringHud.dataset.overlayDisplayWorkstreamReadinessProof = proof.passed ? "pass" : "fail";
-    monitoringHud.dataset.overlayDisplayWorkstreamReadiness = "slc-045-workstream-green-ready-for-hardening";
-  }
-  if (monitoringHudOverlayDisplay) {
-    monitoringHudOverlayDisplay.dataset.overlayDisplayWorkstreamReadinessProof = proof.passed ? "pass" : "fail";
-    monitoringHudOverlayDisplay.dataset.overlayDisplayWorkstreamReadiness = "slc-045-workstream-green-ready-for-hardening";
-  }
-  return proof;
-};
-
 window.runMonitoringHudOverlayProfileControlsProof = function() {
   const previousState = JSON.stringify(monitoringHudControlState);
   const previousDraftId = monitoringHudOverlayProfileDraftId;
@@ -7158,7 +7104,6 @@ window.getMonitoringHudControlState = function() {
     overlayDisplayAcceptanceProof: Object.assign({}, monitoringHudControlState.overlayDisplayAcceptanceProof || {}),
     activeOverlayProfileDisplayProof: Object.assign({}, monitoringHudControlState.activeOverlayProfileDisplayProof || {}),
     dashboardOverlayIndependenceProof: Object.assign({}, monitoringHudControlState.dashboardOverlayIndependenceProof || {}),
-    overlayDisplayWorkstreamReadinessProof: Object.assign({}, monitoringHudControlState.overlayDisplayWorkstreamReadinessProof || {}),
     activeChildWindow: monitoringHudActiveChildWindow || "none",
     interactiveControlReliabilityProof: Object.assign({}, monitoringHudReliableActivationState, {
       attempts: monitoringHudReliableActivationState.attempts.slice(-40)

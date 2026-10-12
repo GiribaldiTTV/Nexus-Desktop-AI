@@ -2,28 +2,7 @@
 
 ## Purpose
 
-This document preserves a stable assessment of typed-first hardening expectations for the Nexus Command Prompt interaction surface.
-
-It is a planning and reference document.
-It does not own backlog identity, roadmap sequencing, workstream closure, or branch-readiness decisions.
-
-Use this document to:
-
-- describe the hardening domains that matter for the desktop command surface
-- summarize the current merged baseline
-- clarify what kinds of future issues would justify renewed hardening work
-
-## Relationship To The Source-Of-Truth Stack
-
-This document is downstream of:
-
-- `Docs/orin_interaction_architecture.md` for interaction-system design
-- `Docs/orchestration.md` for runtime and failure-handling boundaries
-- `Docs/feature_backlog.md` for tracked identity
-- `Docs/prebeta_roadmap.md` for sequencing and release posture
-- `Docs/workstreams/` for promoted execution and closure records
-
-It should support future planning and assessment without replacing those layers.
+This document describes the typed-first Nexus Command Prompt interaction surface and the failure classes that matter to its reliability. It does not define voice behavior, Action Studio authoring, or unrelated UI changes.
 
 ## Current Surface Definition
 
@@ -62,9 +41,9 @@ The meaningful hardening domains for the current command surface are:
 
 ## Current Merged Baseline Assessment
 
-Current repo truth supports the following baseline assessment:
+Current product behavior supports the following baseline assessment:
 
-- the typed-first command surface is stable enough for current pre-Beta use
+- the typed-first command surface is stable enough for current typed-first use
 - the current command-state transitions are bounded and understandable
 - confirmation before execution is preserved
 - keyboard-first ambiguous-choice resolution is present
@@ -85,24 +64,6 @@ Future NCP hardening work should be justified by one or more of the following:
 
 Future work should not be justified only by vague polish pressure or by re-opening already settled behavior without fresh evidence.
 
-## What This Assessment Should Not Be Used For
+## Scope Boundary
 
-This document should not be used to:
-
-- declare a lane active or closed
-- recommend branch readiness or closure
-- replace a workstream record
-- restate backlog or roadmap state
-- authorize automatic expansion into voice, Action Studio, or broader interaction redesign
-
-Those decisions belong in the backlog, roadmap, and canonical workstream layers.
-
-## Planning Boundary
-
-This assessment is healthiest when it is used as:
-
-- a reusable reference for future typed-first interaction hardening questions
-- a guardrail against re-opening settled command-surface behavior without evidence
-- a way to distinguish stable command-surface expectations from future broader interaction ambitions
-
-It is drifting if it turns into a branch memo, a closure checklist, or a hidden workstream record.
+A reproduced regression, newly discovered failure class, or new command capability can justify targeted hardening. Stable behavior should remain stable unless current evidence shows a defect. Voice invocation, Action Studio authoring, and broader shortcut customization have separate product contracts.

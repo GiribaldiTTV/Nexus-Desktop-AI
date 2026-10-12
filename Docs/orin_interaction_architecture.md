@@ -5,7 +5,7 @@
 This document defines the interaction-system architecture for Nexus Desktop AI and the ORIN persona.
 
 It is a planning and boundary reference.
-It does not own workstream status, backlog state, roadmap sequencing, or release closure.
+It describes interaction behavior, not current implementation status.
 
 Use this document to define:
 
@@ -20,13 +20,11 @@ This document is downstream of:
 
 - `Docs/architecture.md` for desktop/runtime ownership boundaries
 - `Docs/ai_runtime_and_trust_architecture.md` for AI-native runtime/trust architecture, permission-state, deterministic routing, Trust Journal, routines, and capability-pack boundaries
-- `Docs/phase_governance.md` for governed execution and closeout posture
 - `Docs/nexus_vision.md` for product identity and release-stage framing
 - `Docs/orchestration.md` for runtime behavior and orchestration boundaries
 - `Docs/boot_access_design.md` for future pre-desktop trust and access boundaries
 - `Docs/feature_backlog.md` for tracked identity
 - `Docs/prebeta_roadmap.md` for sequencing and release posture
-- `Docs/workstreams/` for promoted feature-state, evidence, and closure history
 
 This document does not replace those layers.
 It defines the stable interaction model that future work should align to.
@@ -245,7 +243,7 @@ When AI planning introduces routines, ambient assistance, daily continuity, cont
 - Trust Journal / AI Activity Journal events where policy requires them
 - no silent escalation from suggestion to execution
 
-Routine and ambient-assistance planning is not implementation approval. Branch Readiness must classify the concept, define the user-facing workflow, and obtain USER approval before Workstream implementation.
+Routine and ambient assistance must remain disabled until their user-facing workflow, invocation control, consent, failure behavior, and privacy impact are defined and verified.
 
 ## Release-Stage View
 
@@ -256,7 +254,7 @@ At architecture level:
 - `Full` may later widen into richer voice, authoring, and profile capabilities
 
 The release-stage view belongs here only as interaction-system framing.
-Specific sequencing belongs in the roadmap and specific execution belongs in workstream records.
+Implementation sequencing belongs to the affected product work.
 
 ## Explicit Deferrals
 

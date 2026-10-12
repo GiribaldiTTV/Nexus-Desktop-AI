@@ -7,7 +7,6 @@ This repository is the engineering workspace for `Nexus Desktop AI`.
 `ARIA` remains a future optional persona rather than a currently shipped surface.
 
 This README is a repository orientation document.
-For merged governance, planning, routing, and lifecycle truth, start with `Docs/Main.md`.
 
 ## Current Product And Runtime Truth
 
@@ -58,20 +57,6 @@ Top-level folders currently include:
 - `nexus_visual/` for current visual assets and bridge-side UI resources
 - `logs/` for local runtime artifacts
 
-## Source-Of-Truth Routing
-
-Use the merged canon through:
-
-- `Docs/Main.md` for routing authority
-- `Docs/development_rules.md` for development governance
-- `Docs/codex_modes.md` for collaboration and analysis/execution posture
-
-From there, route into the layer that owns the truth you need:
-
-- `Docs/feature_backlog.md` for tracked identity and registry state
-- `Docs/prebeta_roadmap.md` for sequencing and release posture
-- `Docs/workstreams/index.md` for canonical workstream records
-- `Docs/closeout_index.md` and `Docs/closeouts/nexus_prebeta_rebaseline_through_v1.2.9-prebeta.md` for historical and epoch summaries
 
 ## Naming Boundary
 
@@ -94,6 +79,3 @@ It is not, by itself:
 
 - a release checklist
 - a public marketing page
-- a substitute for the source-of-truth stack in `Docs/`
-
-When repo orientation and source-of-truth docs disagree, validate live repo truth first and then route through `Docs/Main.md`.

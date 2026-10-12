@@ -6,13 +6,11 @@ param(
     [switch]$RunInteractionSelfQA,
     [switch]$VisibleClient,
     [switch]$ActiveUserFacingClient,
-    [switch]$PrepareLiveValidationUserTestSummary,
     [switch]$RecordingOptionCSelfQA,
     [switch]$Rar3DProof,
     [switch]$Rar3EProof,
     [switch]$SupplementalRuntimeProof,
     [switch]$UserConfirmedACSupplementProof,
-    [string]$ProofSeam = "",
     [string]$ExactDesktopShortcutPath = "",
     [int]$InteractionStepDelayMilliseconds = 250,
     [int]$FinalClientHoldSeconds = 0
@@ -191,7 +189,6 @@ function New-Paths {
         ShortVideoFrameRoot = Join-Path $ArtifactRoot "short_video_frames"
         ShortVideo = Join-Path $ArtifactRoot "monitoring_hud_lv1_short_video.mp4"
         ShortVideoEvidence = Join-Path $screenshotEvidenceRoot "monitoring_hud_lv1_short_video.mp4"
-        UserTestSummary = "D:\Nexus Desktop AI Data\USER\UTS - FAM-006.txt"
         AbortSignal = Join-Path $ArtifactRoot "startup_abort.signal"
     }
 }
@@ -1018,140 +1015,15 @@ function Save-Manifest([object]$Paths, [string]$PythonExe) {
     $coreWorkerwCoordinateRebaseReady = [bool](
         $observedMarkers | Where-Object { $_ -match "CORE_VISUALIZATION_WORKERW_COORDINATE_REBASE_READY" }
     )
-    $manifestSeam = $ProofSeam
-    if (-not $manifestSeam) {
-        if ($PrepareLiveValidationUserTestSummary) {
-            $manifestSeam = "Live Validation LV1 - Monitoring HUD Product Surface Live Validation"
-        }
-        else {
-            $manifestSeam = "Dashboard-specific active-client proof - no UTS export"
-        }
-    }
-    $userTestSummaryExportRefreshed = [bool]($PrepareLiveValidationUserTestSummary -and $script:ManifestStatus -eq "PASS")
     $manifest = [pscustomobject]@{
         status = $script:ManifestStatus
-        package = "PKG-006"
-        slice = "SLC-029"
-        seam = $manifestSeam
-        proofStandard = "Photo/video is the only accepted proof class for visible USER-facing Live Validation claims; code, DOM, marker, log, manifest, and helper output are diagnostics only. Claims that cannot be proven in a named photo or video frame must be elevated to USER validation. LV1 must launch through the exact USER Desktop shortcut path, not a direct renderer/private launcher path. A per-element visual inventory and returned issue-form coverage matrix are required for the current/affected USER-facing surfaces. Pre-LV Visual Purpose Conformance must prove the window looks like its accepted vision/purpose contract before LV functional proof starts."
-        lv1PhotoVideoOnlyProofRule = $true
-        lv1NonVisualClaimUserElevationRequired = $true
-        lv1ExactUserDesktopShortcutRequired = $true
-        preLiveVisualPurposeConformanceGate = [pscustomobject]@{
-            status = "REQUIRED_BEFORE_FUNCTIONAL_LV"
-            purpose = "prove-window-looks-like-accepted-vision-contract-before-proving-behavior"
-            proofOrder = @(
-                "source-truth-purpose-contract",
-                "photo-video-element-group-visual-adjudication",
-                "shared-primitive-reference-comparison",
-                "state-and-affordance-visual-adjudication",
-                "functional-interaction-proof"
-            )
-            requiredElementGroups = @(
-                "title/header group",
-                "window control cluster",
-                "primary and secondary buttons",
-                "body/background fill and opacity",
-                "state rows and dividers",
-                "copy/typography",
-                "hover/focus/pressed/disabled states",
-                "error/empty/blocked states",
-                "resize/placement affordances",
-                "purpose-specific composition"
-            )
-            allowedDispositions = @("PASS", "REPAIR", "BLOCKED", "WAIVED_WITH_REASON")
-            invalidPassBasis = @(
-                "helper PASS",
-                "manifest PASS",
-                "runtime marker",
-                "DOM marker",
-                "code says control exists",
-                "screenshot exists without visual adjudication",
-                "functional click proof before visual-purpose proof"
-            )
-            requiredStopCondition = "Any missing or non-green unwaived element-group row blocks UTS handoff and routes to repair before functional LV closeout."
-        }
-        studioVisualInheritanceMatrix = [pscustomobject]@{
-            status = "REQUIRES_CODEX_PHOTO_VIDEO_ADJUDICATION"
-            proofAuthority = "photo-video-comparison-not-runtime-self-attestation"
-            referenceSurfaces = @("HUD Dashboard", "Overlay Profile Settings", "Manage Monitors")
-            targetSurfaces = @("Recording Studio", "Log Viewer")
-            requiredReferenceLabels = @(
-                "02_recording_card_target_status_visual_contract",
-                "02_overlay_profile_normal_path_created_draft_recording_mirror",
-                "03_manage_monitors_open_state"
-            )
-            requiredTargetLabels = @(
-                "02_recording_studio_native_window_ready_state",
-                "02_recording_studio_native_log_saved_tracking_state",
-                "02_log_viewer_studio_native_window_shell_state",
-                "02_log_viewer_c3_shell_open_unfocused_before_start_stop",
-                "02_log_viewer_c3_shell_open_unfocused_after_start_stop"
-            )
-            requiredComparisonDimensions = @(
-                "window chrome",
-                "full-window body/background continuity",
-                "absence of transparent or see-through void regions",
-                "background color and opacity",
-                "button grammar",
-                "typography",
-                "row and divider treatment",
-                "glow and shadow restraint",
-                "spacing and compact density",
-                "hover focus disabled states",
-                "button focus state must not masquerade as hover after click"
-            )
-            invalidPassBasis = @(
-                "runtime visual marker",
-                "screenshot existence",
-                "manifest PASS",
-                "helper PASS",
-                "generic standalone window shell",
-                "Dashboard card clone"
-            )
-        }
+        evidenceScope = "Monitoring HUD technical desktop observation; visual quality requires direct inspection"
+        visualEvidenceLimit = "Markers, logs, and helper status are diagnostics; they do not establish user-facing visual acceptance"
         exactUserDesktopShortcutLaunchProof = $script:LaunchProof
-        returnedUtsDeterminismGateStatus = (Get-ReturnedUtsDeterminismGateStatus)
-        returnedUtsDeterminismGates = @(Get-ReturnedUtsDeterminismGates)
-        lv1ScreenshotAndShortVideoProofRequired = $true
-        lv1DetailedPerElementScreenshotsRequired = $true
-        lv1RealUserFacingDesktopLauncherRequired = $true
-        primaryInterfaceReleaseSurface = "monitoring-hud-dashboard-control-panel"
-        dashboardFirstWorkstreamHandoff = "ws31-dashboard-control-panel-acceptance-baseline"
-        dashboardOnlyAcceptanceBaseline = "ws31-dashboard-control-panel"
-        currentInterfaceReleaseGate = "dashboard-only-current-branch"
-        overlayAcceptanceGate = "deferred-non-gating-supporting-evidence"
-        interfaceBundleUserApproval = "not-granted"
+        screenshotAndShortVideoObserved = [bool]($script:ScreenshotPath -and $script:ShortVideoProof)
+        userFacingDesktopLauncherObserved = [bool]$script:LaunchProof
         overlayDisplayAcceptance = "deferred-non-gating"
         coreRepairClassification = "dependency-repair-only"
-        dashboardFirstProofPath = $true
-        dashboardSpecificProofRefreshReady = $true
-        dashboardSpecificStaticLiveProofReady = $true
-        elementValidationLedger = "Docs/branch_records/feature_fam_006_monitoring_hud_product_surface_element_ledger.md"
-        elementLedgerAlignedUserTestSummary = [bool]$PrepareLiveValidationUserTestSummary
-        dashboardUserTestSummaryExportRefreshed = $userTestSummaryExportRefreshed
-        dashboardUserTestSummaryExportPath = if ($userTestSummaryExportRefreshed) { $Paths.UserTestSummary } else { "" }
-        dashboardUserTestSummaryReturnedResults = "live-validation-stage-1-only"
-        overlayProfileValidationProof = [pscustomobject]@{
-            seam = "SLC-041 Overlay Profile validation and live desktop proof"
-            focusedWebViewProofRequired = $true
-            fullDesktopScreenshotsAreContextOnly = $true
-            perElementUserInspectableScreenshotsRequired = $true
-            photoOrVideoProofOnlyForVisibleClaims = $true
-            nonVisualClaimsRequireUserElevation = $true
-            exactUserDesktopShortcutLaunchRequired = $true
-            realUserFacingDesktopLauncherIsPrimaryLv1Path = $true
-            formalUserTestSummaryBoundary = "Live Validation Stage 1 only after human-client precheck PASS or USER waiver"
-            workstreamAndHardeningNoUtsExport = -not [bool]$PrepareLiveValidationUserTestSummary
-            proofChain = @(
-                "SLC-037 Overlay Profile data/state foundation",
-                "SLC-038 Dashboard selector and Overlay Profile Settings controls",
-                "SLC-039 settings-window monitor membership mapping",
-                "Returned-UTS selector-first Overlay Profile settings with search/filter and max-five visible monitor target",
-                "Returned-UTS Manage Monitors compact read-only Overlay Profile context",
-                "SLC-041 focused validator and live desktop proof readiness"
-            )
-        }
         dashboardSpecificProof = [pscustomobject]@{
             beforeLaunchFullVirtualDesktopScreenshot = [bool]$script:BeforeScreenshotPath
             afterLaunchFullVirtualDesktopScreenshot = [bool]$script:ScreenshotPath
@@ -1163,9 +1035,6 @@ function Save-Manifest([object]$Paths, [string]$PythonExe) {
             activeUserFacingClient = [bool]$ActiveUserFacingClient
             activeClientProofClassification = "supporting-only-unless-launched-through-exact-user-desktop-shortcut"
             interactionSelfQA = $script:InteractionManifestStatus
-            dashboardOnlyCurrentInterfaceGate = $true
-            overlayAcceptanceDeferredNonGating = $true
-            coreRepairDependencyOnly = $true
             dashboardStandaloneWindowTravelReady = [bool]$dashboardStandaloneWindowTravelReady
             dashboardClippingBoundaryReady = [bool]$dashboardClippingBoundaryReady
             dashboardCoreOverlayDecouplingReady = [bool]$dashboardCoreOverlayDecouplingReady
@@ -1176,8 +1045,6 @@ function Save-Manifest([object]$Paths, [string]$PythonExe) {
             dashboardWarningControlsReady = [bool]$dashboardWarningControlsReady
             noFakeTelemetryPosture = $observedMarkers -contains "MONITORING_HUD_STATUS_BEHAVIOR_READY"
             userTestSummaryExportRefreshed = $userTestSummaryExportRefreshed
-            userTestSummaryPhaseBoundary = "live-validation-stage-1-only"
-            returnedUserTestSummaryDigestReserved = $true
         }
         python = $PythonExe
         runtimeLog = $Paths.RuntimeLog
@@ -1252,282 +1119,7 @@ function Save-Manifest([object]$Paths, [string]$PythonExe) {
     $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $Paths.Manifest -Encoding utf8
 }
 
-function Get-ReturnedUtsDeterminismGates() {
-    return @(
-        [pscustomobject]@{
-            id = "RETURNED_UTS_PROFILE_LOG_CONSISTENCY_GATE"
-            issueId = "FAM006-RUTS-001"
-            title = "Profile-specific recording/log consistency"
-            status = "PASS"
-            requiredProof = "Selected profile identity, profile monitor set, recording target snapshot, generated native log contents, and profile/log consistency must be checked together."
-            stopLossReason = "Closed by runtime readback proof: native NDAI log rows now must match the selected profile id/name and selected monitor set."
-            futureGreenCondition = "Normal USER-path LV proof records profileLogConsistencyPassed=true and row profile/monitor ids matching the selected target snapshot."
-        }
-        [pscustomobject]@{
-            id = "RETURNED_UTS_RECORDING_STUDIO_MANUAL_BUTTON_GATE"
-            issueId = "FAM006-RUTS-002"
-            title = "Recording Studio visible manual button path"
-            status = "PASS"
-            requiredProof = "The visible Dashboard Recording card button must be clicked through the normal USER path and distinguished from helper foreground, native direct-launch, and seeded/sandbox launch paths."
-            stopLossReason = "Closed by normal visible-button activation and reopen proof: the button is always openable and stale requested-state no longer blocks native reactivation."
-            futureGreenCondition = "LV manifest contains real OS click proof for the visible Recording Studio button and focused native Recording Studio evidence from that same path."
-        }
-        [pscustomobject]@{
-            id = "RETURNED_UTS_LOG_VIEWER_VISUAL_SYSTEM_GATE"
-            issueId = "FAM006-RUTS-003"
-            title = "Log Viewer FAM-006 feature-studio primitive adoption"
-            status = "PASS"
-            requiredProof = "Focused Log Viewer screenshots must be adjudicated against AI Control Center / UIREF-001 / UIREF-002 / UIREF-003 primitive grammar instead of passing from screenshot existence, generic shell presence, Dashboard-card-clone markers, or FAM-006 self-comparison. Native/export path rows must be visible, contained, non-wrapping, and intentionally middle-elided when full paths are too long. REC/LOG-style title badges are not accepted for the studio window header grammar."
-            stopLossReason = "Closed only when Log Viewer proves FAM-006 compact log access shell composition, AI-Control-Center shared primitive geometry/state behavior, native/export folder rows, title-badge-free text header, and contained native/export folder rows, or direct code-to-visual proof that the same rendered DOM/CSS primitive path is consumed."
-            futureGreenCondition = "LV visual adjudication records source-truth-mapped verdicts for Log Viewer standalone chrome, rows, buttons, typography, density, window shape, state language, title/header treatment, and path-row readability against AI Control Center / UIREF references."
-        }
-        [pscustomobject]@{
-            id = "RETURNED_UTS_USER_VISIBLE_STORAGE_MODEL_GATE"
-            issueId = "FAM006-RUTS-004"
-            title = "User-visible storage/folder model"
-            status = "PASS"
-            requiredProof = "Native/export folder labels and paths must be inspected for public/user-facing suitability and must not expose worktree, branch, developer, owner-only, or FAM implementation concepts unless source truth explicitly permits it."
-            stopLossReason = "Closed by product-surface folder naming and Live Validation internal-path leakage checks for native/export roots."
-            futureGreenCondition = "LV proof classifies native and exported log paths against accepted storage/package vision and fails closed on internal-path leakage or source-truth ambiguity."
-        }
-        [pscustomobject]@{
-            id = "RETURNED_UTS_RECORDING_STUDIO_UI_ACTIVATION_GATE"
-            issueId = "FAM006-RUTS-005"
-            title = "Recording Studio UI visual proof depends on normal activation"
-            status = "PASS"
-            requiredProof = "Recording Studio UI visual proof must be blocked when the Studio cannot be activated through the normal visible USER path; helper-launched screenshots are supporting evidence only. Focused screenshots must also prove AI-Control-Center shared-rendered button grammar, title-badge-free text header, and contained native-log text, or direct code-to-visual proof that the same rendered DOM/CSS primitive path is consumed."
-            stopLossReason = "Closed by requiring explicit-user-open Recording Studio proof before focused Studio screenshots can pass, then requiring FAM-006 detached controller composition plus UIREF/shared primitive parity instead of Dashboard-card or main-window cloning, FAM-006 self-comparison, or REC-title-badge chrome."
-            futureGreenCondition = "Manual visible-button activation passes first, then focused Recording Studio screenshots are visually adjudicated against FAM-006 feature-studio source truth plus UIREF shared primitives for compact controller chrome, rows, buttons, typography, density, window shape, title/header treatment, native-log text containment, and state language."
-        }
-    )
-}
 
-function Get-ReturnedUtsDeterminismGateStatus() {
-    $open = @(Get-ReturnedUtsDeterminismGates | Where-Object { $_.status -ne "PASS" })
-    if ($open.Count -eq 0) {
-        return "PASS"
-    }
-    return "BLOCKED"
-}
-
-function Assert-ReturnedUtsDeterminismGatesClear([object]$Paths) {
-    $open = @(Get-ReturnedUtsDeterminismGates | Where-Object { $_.status -ne "PASS" })
-    if ($open.Count -eq 0) {
-        Step $Paths "returned-UTS determinism gates PASS: no open stop-loss gates remain"
-        return
-    }
-    $summary = @($open | ForEach-Object { "$($_.issueId)/$($_.id)=$($_.status)" }) -join "; "
-    throw "Live Validation LV1 UTS export blocked by returned-UTS determinism gates: $summary. Product/runtime fixes are withheld; rerun only after the normal USER-path proof closes these gates."
-}
-
-function Save-UserTestSummaryHandoff([object]$Paths) {
-    $desktopRoot = Split-Path -Parent $Paths.UserTestSummary
-    if (-not (Test-Path -LiteralPath $desktopRoot)) {
-        New-Item -ItemType Directory -Force -Path $desktopRoot | Out-Null
-    }
-    $currentBranch = "unknown"
-    try {
-        $branchProbe = & git -C $rootDir branch --show-current 2>$null
-        if (-not [string]::IsNullOrWhiteSpace($branchProbe)) {
-            $currentBranch = [string]$branchProbe
-        }
-    } catch {}
-
-    $precheckManifestPath = Join-Path $rootDir "dev\logs\fam_006_human_client_validation\latest_manifest.json"
-    $precheckById = @{}
-    $precheckManifestStatus = "NOT TESTED"
-    $precheckManifestSummary = "Codex Precheck Manifest: NOT TESTED - desktop shortcut/tray precheck manifest was not found at $precheckManifestPath."
-    $precheckProofClassesSummary = "Proof Classes: NOT TESTED - no proof-class manifest available."
-    if (Test-Path -LiteralPath $precheckManifestPath) {
-        try {
-            $precheckManifest = Get-Content -LiteralPath $precheckManifestPath -Raw | ConvertFrom-Json
-            $precheckManifestStatus = [string]$precheckManifest.status
-            foreach ($step in @($precheckManifest.steps)) {
-                if ($step.id) {
-                    $precheckById[[string]$step.id] = $step
-                }
-            }
-            $proofClassPairs = @()
-            if ($precheckManifest.proofClasses) {
-                foreach ($property in $precheckManifest.proofClasses.PSObject.Properties) {
-                    $proofClassPairs += "$($property.Name)=$($property.Value)"
-                }
-            }
-            $precheckManifestSummary = "Codex Human-Client Precheck Manifest: $precheckManifestStatus - $precheckManifestPath"
-            $precheckProofClassesSummary = "Proof Classes: $($proofClassPairs -join '; ')"
-        }
-        catch {
-            $precheckManifestStatus = "FAIL"
-            $precheckManifestSummary = "Codex Human-Client Precheck Manifest: FAIL - unable to parse $precheckManifestPath ($($_.Exception.Message))."
-            $precheckProofClassesSummary = "Proof Classes: FAIL - manifest parse error."
-        }
-    }
-    if ($precheckManifestStatus -ne "PASS") {
-        throw "Live Validation LV1 UTS export blocked: missing or failed Codex human-client precheck manifest at $precheckManifestPath. Run dev\orin_monitoring_hud_human_client_validation.ps1 and repair any FAIL steps before generating the formal UTS."
-    }
-
-    function Format-ShortcutPrecheckLine([string[]]$StepIds, [string]$FallbackReason) {
-        $missing = @()
-        $failed = @()
-        $details = @()
-        foreach ($stepId in $StepIds) {
-            if (-not $precheckById.ContainsKey($stepId)) {
-                $missing += $stepId
-                continue
-            }
-            $step = $precheckById[$stepId]
-            $status = ""
-            if ($step.PSObject.Properties.Name -contains "codexPrecheck") {
-                $status = [string]$step.codexPrecheck
-            }
-            if ([string]::IsNullOrWhiteSpace($status)) {
-                $status = [string]$step.status
-            }
-            $proofClass = ""
-            if ($step.PSObject.Properties.Name -contains "proofClass") {
-                $proofClass = [string]$step.proofClass
-            }
-            if ([string]::IsNullOrWhiteSpace($proofClass)) {
-                $proofClass = "unspecified"
-            }
-            $details += "$stepId=$status ($proofClass)"
-            if ($status -ne "PASS") {
-                $failed += "$stepId=$status"
-            }
-        }
-        if ($missing.Count -gt 0) {
-            return "Codex Precheck: NOT TESTED - missing human-client shortcut/tray/window precheck step(s): $($missing -join ', '). $FallbackReason"
-        }
-        if ($failed.Count -gt 0) {
-            return "Codex Precheck: FAIL through human-client mouse/shortcut/tray path - $($failed -join '; ')."
-        }
-        return "Codex Precheck: PASS through human-client mouse/shortcut/tray path - $($details -join '; ')."
-    }
-
-    $precheckShortcutAlignment = Format-ShortcutPrecheckLine @("shortcut_targets_active_worktree", "visible_desktop_shortcut_double_clicked", "launch_settled_visible_desktop", "launch_settled_tray_available") "LV1 cannot claim unrestricted green handoff for shortcut/worktree alignment without visible USER desktop shortcut click proof or USER waiver."
-    $precheckStep1 = Format-ShortcutPrecheckLine @("shortcut_targets_active_worktree", "visible_desktop_shortcut_double_clicked", "launch_settled_tray_available") "LV1 cannot claim unrestricted green handoff for shortcut launch without visible USER desktop shortcut click proof or USER waiver."
-    $precheckStep2 = Format-ShortcutPrecheckLine @("enable_hud_opens_dashboard", "close_dashboard_from_tray_before_move", "open_dashboard_from_tray_before_move", "close_dashboard_from_tray", "open_dashboard_from_tray", "disable_hud_recovers") "LV1 cannot claim unrestricted green handoff for tray Dashboard lifecycle without USER waiver."
-    $precheckStep3 = Format-ShortcutPrecheckLine @("tray_exit_confirmation_visible", "tray_exit_cancel_preserves_session", "tray_exit_accept_prompt_visible", "tray_exit_accept_shuts_down_promptly") "LV1 cannot claim unrestricted green handoff for tray Exit confirmation without USER waiver."
-    $precheckNcpInteraction = Format-ShortcutPrecheckLine @("dashboard_mouse_move", "ncp_tray_icon_left_click_opens", "ncp_tray_menu_state_changes_to_close", "ncp_opens_with_dashboard_visible", "ncp_tray_icon_left_click_closes", "ncp_create_custom_task_clickable_with_dashboard_open", "ncp_create_custom_group_clickable_with_dashboard_open", "ncp_manage_custom_tasks_clickable_with_dashboard_open", "ncp_manage_custom_groups_clickable_with_dashboard_open") "LV1 cannot claim unrestricted green handoff for Dashboard-visible NCP tray toggle/state interaction without USER waiver."
-    $precheckTrayAuthoring = Format-ShortcutPrecheckLine @("tray_create_custom_task_duplicate_guard") "LV1 cannot claim unrestricted green handoff for tray authoring duplicate-dialog safety without USER waiver."
-    $precheckResizeDiscoverability = Format-ShortcutPrecheckLine @("dashboard_move_fluidity", "dashboard_resize_cursor_alignment", "dashboard_resize_corner_arc_diagonal_zone", "dashboard_resize_cursor_transition_discovery", "dashboard_mouse_resize_corner", "dashboard_mouse_resize_right_edge", "dashboard_mouse_resize_bottom_edge", "dashboard_resize_grow_during_drag_visual_proof", "dashboard_resize_shrink_during_drag_visual_proof", "dashboard_resize_fluidity", "dashboard_mouse_resize") "LV1 cannot claim unrestricted green handoff for Dashboard movement/resize discoverability/fluidity without USER waiver."
-    $precheckFirstOpenStability = Format-ShortcutPrecheckLine @("dashboard_first_open_stability_sequence") "LV1 cannot claim unrestricted green handoff for #123 first-open stability without real shortcut screenshot-sequence proof or USER waiver."
-    $precheckSettingsPanel = Format-ShortcutPrecheckLine @("dashboard_settings_opens_with_real_mouse", "dashboard_settings_double_click_does_not_maximize", "dashboard_settings_done_closes_with_real_mouse") "LV1 cannot claim unrestricted green handoff for Dashboard Settings unless the real mouse Dashboard IA-card path opens and closes the panel without native maximize drift or USER waiver."
-    $precheckTopChromeClose = Format-ShortcutPrecheckLine @("dashboard_top_chrome_close_hides_dashboard", "dashboard_reopens_after_top_chrome_close") "LV1 cannot claim unrestricted green handoff for Dashboard window-level Close unless the visible Close control hides only the Dashboard and tray reopen works or USER waiver."
-    $precheckHudPersistence = Format-ShortcutPrecheckLine @("hud_feature_enabled_state_persisted") "LV1 cannot claim unrestricted green handoff for HUD Feature state persistence without USER waiver."
-    $precheckRecordingWindowLaunchers = Format-ShortcutPrecheckLine @("recording_studio_visible_button_opens_native_window", "log_viewer_studio_visible_button_opens_native_window") "LV1 cannot claim the FAM-006 Recording Studio or Log Viewer launch path is green unless visible Dashboard buttons open their standalone native windows from the real shortcut/tray path."
-    $precheckHumanClientRun = Format-ShortcutPrecheckLine @("visible_desktop_shortcut_double_clicked", "launch_settled_visible_desktop", "launch_settled_tray_available", "enable_hud_opens_dashboard", "recording_studio_visible_button_opens_native_window", "log_viewer_studio_visible_button_opens_native_window", "dashboard_first_open_stability_sequence", "dashboard_settings_opens_with_real_mouse", "dashboard_top_chrome_close_hides_dashboard", "tray_exit_confirmation_visible") "LV1 cannot claim unrestricted green handoff for FAM-006 Recording/HUD affected surfaces without real-human client precheck coverage or USER waiver."
-    $precheckNcpAdvisory = Format-ShortcutPrecheckLine @("ncp_tray_icon_left_click_opens", "ncp_tray_icon_left_click_closes", "ncp_create_custom_task_clickable_with_dashboard_open", "ncp_create_custom_group_clickable_with_dashboard_open", "ncp_manage_custom_tasks_clickable_with_dashboard_open", "ncp_manage_custom_groups_clickable_with_dashboard_open") "NCP tray/authoring coverage is advisory for this FAM-006 Recording UTS unless current branch diff/source truth marks NCP as an affected surface."
-    $requiredPrecheckLines = @(
-        $precheckShortcutAlignment,
-        $precheckStep1,
-        $precheckStep2,
-        $precheckRecordingWindowLaunchers,
-        $precheckHumanClientRun
-    )
-    $precheckBlockers = @($requiredPrecheckLines | Where-Object { $_ -match "Codex Precheck: (NOT TESTED|FAIL)" })
-    if ($precheckBlockers.Count -gt 0) {
-        throw "Live Validation LV1 UTS export blocked: required visible desktop shortcut / human-client proof is missing or failed. $($precheckBlockers -join ' | ')"
-    }
-    $activeClientPrecheck = "Codex Precheck: PASS as supporting live-helper evidence only - LV1 primary path remains the real user-facing desktop launcher/human-client manifest; direct-runtime or active-client helper proof cannot replace that path when the shortcut is feasible."
-    $visualScreenshotPrecheck = "Codex Precheck: PASS as supporting focused screenshot evidence only - detailed per-element screenshots are exported to the USER-inspectable OneDrive screenshot folder and full-desktop screenshots are context only. USER visual confirmation is still required."
-    $deferredBoundaryPrecheck = "Codex Precheck: PASS through source-truth, static validation, sandbox validation, and active-client manifest boundary proof - USER is not being asked to accept deferred/future scope."
-
-    # Keep the local USER hub UTS as a short USER questionnaire focused on the
-    # active Live Validation seam; detailed ledger/proof evidence stays in manifests.
-    $content = @"
-Nexus Desktop AI - User Test Summary
-Worktree Label: FAM-006
-Workstream: FAM-006 Active Overlay Recording Runtime Implementation
-Current Phase: Live Validation Stage 1 User Test Summary handoff
-Branch: $currentBranch
-Date: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss zzz")
-Status: DRAFT HANDOFF COPY - NOT RETURNED RESULTS
-
-How To Use This File
-- Launch and test from the red FAM-006 desktop shortcut.
-- This pass is focused on Dashboard Recording Start/Stop, native NDAI log save/readback proof, Log Viewer native/export folder shell behavior, issue #258 Overlay Profile restart persistence, and the Recording card visual-system fit.
-- Confirmed items from previous returned UTS passes are treated as closed unless they visibly regress during this pass.
-- For each active issue below, write PASS, FAIL, or WAIVED plus a short note.
-- If an active issue FAILS, describe exactly what you saw and attach/screenshot separately if useful.
-- Return this file to Codex when complete. Codex will digest the results into source truth.
-
-Codex Precheck Summary
-- Red shortcut/worktree validation: PASS through the governed FAM-006 desktop shortcut.
-- Human-client proof: PASS at $precheckManifestPath.
-- Visible desktop shortcut proof: $precheckStep1
-- Recording Studio / Log Viewer button proof: $precheckRecordingWindowLaunchers
-- NCP tray/authoring advisory, not active Recording UTS blocker: $precheckNcpAdvisory
-- Live proof root for this handoff: $($Paths.Root)
-- USER-inspectable screenshot folder: $($Paths.ScreenshotEvidenceRoot)
-- USER-inspectable per-element screenshot folder: $($Paths.ElementScreenshotEvidenceRoot)
-- USER-inspectable short video: $($script:ShortVideoProof.userInspectablePath)
-- Screenshot rule: review the detailed focused element screenshots, especially the Recording card ready, recording-active, Recording Studio opened/focused states, native-log saved/readback, Log Viewer pre-session/requested/opened states, target/status mirror, and standalone-window visual-system contract states. Full-desktop screenshots are locator/context evidence only and do not satisfy per-element UI acceptance.
-- Step 7 - #137 Dashboard Rounded Corners On Light Background: preserved as precheck/source-truth evidence; no black rectangular native corner extends beyond the visible rounded Dashboard chrome.
-- Overlay/display release acceptance is deferred and non-gating.
-
-Vision-To-Proof Matrix For This Handoff
-- Project Vision / FAM-002 window standard -> Recording Studio and Log Viewer must look like polished Nexus standalone windows, not generic utility dialogs. Evidence: focused native-window screenshots and short video.
-- Feature-studio primitive adoption -> Recording Studio and Log Viewer composition must match their FAM-006 compact controller/log-shell purpose while same-class shared/global element groups consume accepted AI Control Center/UIREF geometry, state, typography, button, row, and compact control primitives. FAM-006/HUD windows provide compact-studio context, not self-acceptance.
-- FAM-006 Family Vision -> new FAM-006 windows may specialize composition for Recording and Log Viewer purpose, but shared primitives such as frame, header, controls, buttons, rows, typography, color, glow, opacity, density, and state behavior must consume accepted shared primitives or direct rendered-primitive paths where same-class, while composition follows Recording controller / Log Viewer shell purpose rather than AI Control Center main-window cloning. REC/LOG-style title badges are not accepted in the standalone studio header grammar for this repair.
-- FAM-006 Recording Feature Vision -> Dashboard card, Recording Studio, Log Viewer shell, native/export boundaries, and active Overlay Profile target mirror must remain branch-specific and future-gated where planned. Evidence: Recording card states, native-log readback, Log Viewer folder shell screenshots, and manifest proof.
-- Live Validation proof rule -> proof must be visible in photo/video or elevated to USER. Evidence: desktop-shortcut human-client manifest, focused screenshots, and this UTS.
-- Current repair focus -> Log Viewer native/export path rows must be readable and contained: no clipped wrapping, no branch/worktree leakage, full path available through tooltip/proof, and visible display intentionally middle-elided when needed.
-- Studio Visual Primitive Comparator Matrix -> compare Recording Studio and Log Viewer first against the FAM-006 feature-studio purpose contract, then against AI Control Center / UIREF-001 / UIREF-002 / UIREF-003 for same-class shared primitives for full-window body/background continuity, absence of transparent void regions, window chrome, color/opacity, typography, row/divider treatment, button grammar, glow/shadow restraint, spacing/density, hover/focus/disabled states, and proof that button focus does not masquerade as hover after click. Compare HUD Dashboard, Overlay Profile Settings, and Manage Monitors only as secondary context, not as self-acceptance baselines. Runtime markers, manifest PASS, helper PASS, or screenshot existence are not visual acceptance.
-
-Brief Issue List
-- Closed by USER confirmation: prior Overlay Profiles / HUD sizing issue IDs remain closed unless regression appears during this retest.
-- Deferred/source-truth-carried: UTS-HUD-009 Polling Rate live provider cadence, because external/provider telemetry cadence remains outside this HUD repair.
-- Active repaired seam requiring focused USER retest: Dashboard Recording Start/Stop, Recording Studio visible-button activation, Recording Studio FAM-006 feature-studio primitive adoption, native NDAI log save/readback, Log Viewer native/export folder shell behavior, Log Viewer FAM-006 feature-studio primitive adoption, issue #258 Overlay Profile persistence, Recording card Dashboard-card visual-system inheritance, and active Overlay Profile target mirroring.
-
-Active Issues To Test
-
-FAM006-LV1-REC-001 - Dashboard Recording Card Visual-System Inheritance
-Expected: The Recording card appears as its own Dashboard card, separate from HUD Overlay. It must visually match the established Dashboard card system: same dark card chrome, badge style, row/divider treatment, typography scale, spacing, button style, active Start/Stop affordance, glow/hover/focus behavior, and layout density. The Recording card must not look like a custom green boxed table or a separate visual system.
-USER Result / Notes:
-
-FAM006-LV1-REC-002 - Recording Target Mirrors Active Overlay Profile
-Expected: The Recording card target overlay profile follows the active Overlay Profile. When the default profile is active, the Recording card shows Default Overlay Profile and its active monitor count. When a new Overlay Profile draft is created, the Recording card immediately mirrors that unsaved draft as the current recording target/session state with 0 active monitors, while persistence still waits for Save. After multiple profiles are saved, switching the Active Overlay Profile must update the Recording card target overlay profile and active monitor count.
-USER Result / Notes:
-
-FAM006-LV1-REC-003 - Dashboard Start/Stop Saves Native NDAI Log
-Expected: The Dashboard Quick Access Start Recording button starts a visible recording state for the active Overlay Profile. Stop Recording stops the session and produces a saved/readback-complete native NDAI log. Normal product flow must not auto-create Excel/CSV output; CSV is only a manual validation/export artifact until a future USER-approved export system exists. The USER-facing Recording card should show a simple target/status and save/readback result while Recording Studio owns focused control/status and Log Viewer stays available for native/export folder access. Tray controls, export/share, Native Log Loader, and provider/model behavior remain future-gated.
-USER Result / Notes:
-
-FAM006-LV1-REC-004 - Issue #258 Overlay Profile Persists Across Restart
-Expected: Create or save a new Overlay Profile, close/restart Nexus through the tested desktop path or equivalent helper-instructed lifecycle, reopen it, and confirm the profile still exists and remains selectable/usable. The Recording card should still mirror the active Overlay Profile after restart.
-USER Result / Notes:
-
-FAM006-LV1-REC-005 - Dashboard Card Holder Equal Insets
-Expected: The Dashboard card holder gives each card equal left and right visual inset inside the holder. The scrollbar gutter must not make the cards look offset or leave a wider right-side gap than the left-side gap.
-USER Result / Notes:
-
-FAM006-LV1-REC-006 - Recording Studio Unique Child Controller Visual Contract
-Expected: Clicking the visible Recording Studio button on the Dashboard Recording card opens a real unique child / standalone-capable Recording Studio window. The window does not need Dashboard cards, but its composition must be an ultra-lightweight detached recording controller while same-class shared element groups consume AI-Control-Center/UIREF shared-rendered or direct rendered primitives: compact dark Nexus frame, compact title/header treatment, compact min/close control cluster, primary/secondary button grammar, hover/focus/pressed/disabled states, typography, color/opacity, glow/shadow restraint, spacing, compact density, title-badge-free text header, contained target/status text, no resize affordance, and polished non-generic window shape.
-USER Result / Notes:
-
-FAM006-LV1-REC-007 - Log Viewer Unique Child Log Access Shell Visual Contract
-Expected: Clicking Log Viewer opens a real unique child / standalone-capable shell window for native/export log folder access. The shell does not need Dashboard cards, but its composition must be a compact current-branch log access shell while same-class shared element groups consume AI-Control-Center/UIREF shared-rendered or direct rendered primitives: compact dark Nexus frame, compact title/header treatment, compact min/close control cluster, primary/secondary button grammar, hover/focus/pressed/disabled states, typography, color/opacity, glow/shadow restraint, spacing, compact density, title-badge-free text header, top-level edge resize behavior, no attached-child corner grip, and polished non-generic window shape. Native/export path rows must be visually contained and readable: no clipped wrapping, no branch/worktree leakage, full path retained as tooltip/proof, and middle-elided display where the full path is too long for the compact window.
-USER Result / Notes:
-
-Issue Regression Checks, If Any
-- Spot-check Overlay Profiles selector/create/dirty guard/delete only if testing the Recording target mirror reveals an obvious regression in those previously closed areas.
-  USER Result / Notes:
-- Spot-check Dashboard button alignment and compact Dashboard sizing only if the Recording card appears to disturb the surrounding Dashboard layout.
-  USER Result / Notes:
-- Spot-check Monitor Group / Overlay Profile / Recording Profile concept separation only if Overlay Profile deletion or creation appears to mix those concepts.
-  USER Result / Notes:
-
-Final USER Result
-- PASS / FAIL / WAIVED:
-- If FAIL, which active issue ID(s) remain:
-- If PASS, any non-blocking follow-up ideas:
-- If WAIVED, waiver reason:
-"@
-
-    Set-Content -LiteralPath $Paths.UserTestSummary -Value $content -Encoding utf8
-    Step $Paths "refreshed Live Validation Stage 1 User Test Summary handoff: $($Paths.UserTestSummary)"
-}
 
 function Quote-ProcessArgument([string]$Value) {
     '"' + ($Value -replace '"', '\"') + '"'
@@ -2142,16 +1734,13 @@ try {
     Step $paths "settling Dashboard-first client before full-desktop screenshot"
     Start-Sleep -Milliseconds 1500
     Capture-Screen $paths "after_launch"
-    if ($effectiveRunInteractionSelfQA -or $PrepareLiveValidationUserTestSummary) {
+    if ($effectiveRunInteractionSelfQA) {
         $script:ShortVideoProof = New-ShortVideoProof -Paths $paths -SourceRoots @($paths.ElementScreenshotEvidenceRoot, $paths.InteractionEvidenceRoot, $paths.Root) -MinimumFrames 5
         if ($script:ShortVideoProof.status -ne "PASS") {
             throw "LV1 short video/frame-sequence proof missing or failed: $($script:ShortVideoProof.reason)"
         }
         Step $paths "generated mandatory LV1 short video proof: $($script:ShortVideoProof.path)"
         Step $paths "copied mandatory LV1 user-inspectable short video proof: $($script:ShortVideoProof.userInspectablePath)"
-    }
-    if ($PrepareLiveValidationUserTestSummary) {
-        Assert-ReturnedUtsDeterminismGatesClear $paths
     }
     $script:ManifestStatus = "PASS"
     $exitCode = 0
@@ -2173,15 +1762,6 @@ finally {
     }
     Stop-TrackedDesktopRuntime $paths "final cleanup"
     Save-Manifest $paths $pythonExe
-    if ($PrepareLiveValidationUserTestSummary -and $script:ManifestStatus -eq "PASS") {
-        Save-UserTestSummaryHandoff $paths
-    }
-    elseif ($PrepareLiveValidationUserTestSummary) {
-        Step $paths "blocked User Test Summary export: LV1 manifest status is $script:ManifestStatus; repair Codex-visible defects before UTS handoff"
-    }
-    else {
-        Step $paths "skipped User Test Summary export: UTS is Live Validation Stage 1 only"
-    }
     if ($script:ManifestStatus -eq "PASS") {
         Write-Output "PASS: FAM-006 Monitoring/HUD live desktop proof captured at $($paths.Root)"
     }

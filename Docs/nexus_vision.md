@@ -2,47 +2,9 @@
 
 ## Purpose
 
-This document is the project-wide product vision contract for Nexus Desktop AI and the ORIN assistant layer.
+This is the project-wide product vision for Nexus Desktop AI and ORIN. It defines intended experience, trust, visual consistency, and release-stage meaning. Family visions and feature documents supply the specific surfaces, behaviors, and dependencies. Intended capabilities must not be mistaken for implemented behavior.
 
-It does not own:
-
-- workstream closure
-- backlog identity
-- roadmap sequencing
-- phase governance, proof ownership, or validation stop-loss rules
-- family-specific implementation detail
-- active external branch execution plans
-
-Use it for product direction, experience intent, and release-stage meaning.
-
-Family-specific vision records live under `Docs/family_visions/` when a broad feature family needs durable USER-reviewed product direction. USER-approved Family Feature Vision records, when created under the recommended `Docs/family_feature_visions/` pattern, own durable feature-category direction inside one family between Family Vision and active Branch Vision. The preferred durable FFV model uses compact IDs such as `F7-FF01` and element IDs such as `F7-FF01-E01`, with human-readable category titles inside the file and index. Selected feature-bearing branch routes require the relevant Family Feature Vision before BP1 unless the route is non-product and records `Family Feature Vision Not Applicable`; shallow, slice-specific, branch-route-specific, or pointer-stale feature-vision files do not satisfy BP1. Active external branch plans under `C:\Nexus Governance State\branches\<branch_slug>\branch_plan.md` own the Branch Vision Contract Snapshot and implementation checklist for the current branch only; repo branch-plan files are historical receipts after fold-down.
-
-Edition-specific AI deployment planning lives in `Docs/family_visions/FAM-007_ai_edition_capability_trust_boundary_release_plan.md`. That plan records the public-safe Owner / Dev / Public edition capability model, private-repo separation, Public-to-Dev migration direction, GitHub Desktop setup guidance, and release breakpoints without authorizing runtime AI, provider/model execution, memory, packaging, licensing, or private repo implementation. It also owns the Shared Core Experience / Capability Envelope model: Public, Dev, and Owner editions should preserve the same normal NDAI usability, visual and interaction grammar, privacy/troubleshooting expectations, backend-to-visual truth, and Product Experience Contract while separating capability access, private state, installed identity, update channels, and trust boundaries.
-
-## Vision Ownership Chain
-
-Project Vision, Family Vision, Family Feature Vision, and Branch Vision are separate source-truth layers.
-
-The required carrydown chain is:
-
-```text
-Project Vision -> Family Vision -> Family Feature Vision -> Branch Vision Contract Snapshot -> BP2/BP3 engineering plan -> Workstream/Hardening/Live Validation proof
-```
-
-Each lower layer must consume and specialize the layer above it. It must not replace the higher-level owner, duplicate broad principles by copy/paste, or invent missing durable feature direction when the correct owner is absent.
-
-Layer ownership:
-
-- `Docs/nexus_vision.md` owns project-wide product direction, experience intent, Project UI Vision, release-stage meaning, and durable product standards that apply across families.
-- `Docs/family_visions/` owns broad durable product direction for one FAM, including family-specific UI/interaction carrydown from the Project Vision.
-- `Docs/family_visions/FAM-002_desktop_interface.md` owns reusable Desktop Interface presentation standards that other FAMs normally consume when implementing their own user-facing surfaces; consuming FAMs still own their feature behavior, feature-specific UI implementation, and proof path.
-- USER-approved `Docs/family_feature_visions/` records, once created, own detailed durable feature-category direction inside one FAM, including deferred carryforward and feature-specific proof expectations.
-- The active external branch plan owns the Branch Vision Contract Snapshot and branch-local implementation choices after USER acceptance or waiver.
-- BP1 consumes the vision chain and turns it into a branch-specific USER review contract.
-- BP2 and BP3 translate the accepted or waived BP1 contract into engineering, orchestration, proof, rollback, and validation plans.
-- Workstream, Hardening, Live Validation, PR Readiness, and Release Readiness must compare claims against the accepted vision chain instead of treating validator output, screenshots, logs, or branch-local prose as product truth by themselves.
-
-Backlog and roadmap files are compact registry, sequencing, and pointer layers. They may point to the vision owners, but they do not own full durable product vision narrative or active Branch Vision state.
+The Public, Dev, and Owner editions share the same normal product experience while separating capability access, private state, installed identity, update channels, and trust boundaries. The edition model is described in `Docs/family_visions/FAM-007_ai_edition_capability_trust_boundary_release_plan.md`.
 
 ## Core Product Goal
 
@@ -96,7 +58,7 @@ The system should not rely on:
 
 - hidden state
 - unexplained automation
-- accidental authority drift between launcher, renderer, planning docs, and user-facing reporting
+- contradictions between launcher, runtime state, renderer, and user-facing reporting
 
 ## NDAI Product Experience Contract
 
@@ -109,11 +71,11 @@ These six qualities are project-wide product standards, not optional style prefe
 - immersive: Nexus-owned surfaces should feel like one coherent NDAI product layer, not disconnected Windows utilities, mismatched branch-made widgets, generic native shells, visually unrelated tools, or feature-specific one-off control systems
 - predictable: controls, layouts, state labels, assistant responses, recovery paths, disabled paths, confirmation flows, geometry behavior, and handoff behavior should follow recognizable patterns across the product
 - reliable: the product should truthfully expose what works, what failed, what is unavailable, what is deferred, what is blocked, what can be retried, what needs setup, and what requires USER decision or waiver
-- consistent: same-class Nexus-owned elements should share visual grammar, placement logic, state behavior, proof expectations, and backend truth mapping across families and windows unless a source-truth owner records a deliberate USER-approved exception
+- consistent: same-class Nexus-owned elements should share visual grammar, placement logic, state behavior, proof expectations, and backend truth mapping across families and windows unless a deliberate product exception is justified and verified
 
 The contract applies to both visible product experience and supporting runtime truth. A visually polished surface that hides failed or unavailable backend state is not reliable. A backend path that works only through hidden state, branch-local assumptions, or inconsistent UI labels is not deterministic or intuitive. A control that looks unrelated to the accepted Nexus grammar breaks immersion and consistency even if it technically functions.
 
-Text labels, feature-specific data, feature-owned state payloads, and backend ownership may differ by family. The underlying control family, interaction grammar, state mapping, recovery behavior, and proof expectation should remain recognizable unless BP1/BP2/BP3 accepts a deliberate exception and defines how that exception will be proved.
+Text labels, feature-specific data, feature-owned state payloads, and backend ownership may differ by family. The underlying control family, interaction grammar, state mapping, recovery behavior, and proof expectation should remain recognizable unless a deliberate exception is justified and verified.
 
 ### Implementation And Experience Parity Standard
 
@@ -122,8 +84,8 @@ Nexus should behave as one product. Same-class elements and same-purpose behavio
 The expected parity is not blind copy/paste of every feature. It is product and implementation sameness where the USER experiences the same kind of thing:
 
 - a Nexus window frame should feel and behave like the Nexus window frame everywhere it appears
-- a close, minimize, back, settings, start, stop, retry, save, open-folder, select, dropdown, filter, toggle, list, status badge, warning, blocked-state, and recovery action should use the same visual grammar and interaction-state grammar unless an admitted source-truth exception says otherwise
-- a button should not silently change size, border language, hover glow, focus behavior, disabled style, typography, or placement logic simply because a different branch created it
+- a close, minimize, back, settings, start, stop, retry, save, open-folder, select, dropdown, filter, toggle, list, status badge, warning, blocked-state, and recovery action should use the same visual grammar and interaction-state grammar unless a verified product exception warrants it
+- a button should not silently change size, border language, hover glow, focus behavior, disabled style, typography, or placement logic simply because a different feature created it
 - a status line should not claim ready, blocked, unavailable, deferred, failed, or successful unless the backend/runtime truth that owns that state can prove the same meaning
 - a recovery or fallback action should follow the same user-understandable pattern across windows even when the feature-specific recovery code differs
 - an assistant or AI-facing status should separate implemented, not implemented, provider blocked, local-only, deferred, failed, and user-action-required states with the same plain-language trust posture across all relevant surfaces
@@ -134,13 +96,9 @@ USER-facing parity means same-class visual elements should match or intentionall
 
 Immersion is explicit: the USER should be able to move between the AI Control Center, HUD Dashboard, Recording Studio, Log Viewer Studio, Global Settings, tray-opened surfaces, diagnostics/recovery surfaces, and future Nexus windows without feeling that each was built by a different product. A surface breaks immersion when it uses default Windows title bars for Nexus-owned product UI, mismatched control clusters, inconsistent button/card/list/dropdown grammar, unexplained status wording, hidden backend truth, or branch-specific styling that makes the USER relearn the product.
 
-Permitted differences must be deliberate, visible in the planning/proof chain, and bounded. A branch may vary content, domain-specific layout, density, feature-specific data, edition-specific copy, or platform-native surfaces when the difference improves clarity, trust, accessibility, or platform safety. The branch must name the exception, name the owner, explain the USER-facing reason, map the backend/runtime truth, and define the visual/proof comparison that will keep the exception from becoming drift.
+Permitted differences must be deliberate and bounded. A feature may vary content, domain-specific layout, density, edition-specific copy, or platform-native surfaces when the difference improves clarity, trust, accessibility, or platform safety. The result still needs truthful runtime mapping and a comparable user experience.
 
-Future-proofing is part of this contract, but it is not permission to implement future scope. A current feature should be built so foreseeable same-class additions can extend the same layout, state, lifecycle, proof, and UI-visible truth model without brittle one-off rewrites. Layout should derive from accepted tokens, contracts, content rules, gutters, constraints, reference standards, templates, or shared primitives where they exist. Runtime behavior should derive from named state owners, lifecycle transitions, inputs/outputs, failure/recovery meaning, logging/proof hooks, and UI-visible truth mapping. Magic pixel values, hand-tuned screenshots, default-size-only proof, one-state-only proof, and hidden backend assumptions are acceptable only when named, justified, source-owned, and proven across the relevant states. If a branch needs a template, shared primitive, reference standard, or source-truth rule that is not yet approved, it must record `Template Gap`, `Shared Primitive Gap`, `Reference Gap`, or `Source-Truth Gap` instead of inventing the missing standard locally.
-
-Family Vision, Family Feature Vision, Branch Vision, BP2/BP3 engineering plans, Workstream implementation, Hardening, Live Validation, UTS, PR Readiness, Release Readiness, and Rebaseline Adoption & Reconciliation must compare applicable claims against this contract. When a branch cannot prove one of these qualities for an in-scope feature, surface, runtime state, or assistant interaction, it must classify the result as repaired, waived by USER, deferred with owner/trigger/proof expectation, issue-candidate, source-truth gap, reference gap, or blocker instead of reporting green by validator output, screenshots, or prose alone.
-
-The Vision Contract is the broad product law. It defines what Nexus must become and which qualities every feature must preserve. A Reference Standard is the detailed accepted comparator for a class of behavior, UI, UX, runtime, proof, privacy, recovery, or trust work. A Template is a USER-approved scaffold or starting implementation. A Shared Primitive is reusable code, component, token, helper, or module intended to produce consistent output by construction. These terms must not be collapsed: a Vision Contract is not a Reference Standard, a Reference Standard is not a Template, a Template is not a Shared Primitive, a screenshot is not a standard, validator green is not USER acceptance, and branch-local evidence becomes durable product law only after USER-approved source-truth promotion.
+Future-proofing means foreseeable same-class additions can extend the same layout, state, and lifecycle model without brittle one-off rewrites. Use content rules, constraints, shared primitives, and explicit state ownership where they exist. This does not authorize implementing speculative future features.
 
 ## Project UI Vision
 
@@ -152,32 +110,14 @@ Durable UI principles:
 - reliability: surfaces should expose state, failures, disabled paths, and recovery options plainly instead of hiding uncertainty
 - futuristic feel: the UI should look intentional and Nexus-native, but visual ambition must not reduce clarity, accessibility, or task completion
 - understandable interaction: controls, status labels, and assistant messages should explain what they do, what they changed, and what remains blocked
-- consistency: similar actions such as Close, Open, Save, Start, Stop, Select Folder, Clear, Retry, and Export should use consistent placement, labels, affordances, and disabled/degraded states unless BP1/BP2/BP3 accepts a deliberate product-wide exception
-- window continuity: user-facing Nexus windows should remember USER-moved placement across sessions where technically feasible, restore safely when a saved location is unavailable or off-screen, and make any product-wide exception explicit in BP1/BP2/BP3
+- consistency: similar actions such as Close, Open, Save, Start, Stop, Select Folder, Clear, Retry, and Export should use consistent placement, labels, affordances, and disabled/degraded states unless a deliberate product-wide exception is justified and verified
+- window continuity: user-facing Nexus windows should remember USER-moved placement across sessions where technically feasible, restore safely when a saved location is unavailable or off-screen, and make any product-wide exception explicit in the feature behavior
 - fail-proof behavior: risky actions should be reversible, confirmed when needed, recoverable, or safely disabled until their prerequisites are proven
 - readability: layout density, contrast, typography, spacing, and state hierarchy should keep operator-facing information legible under normal desktop use
-- versatility and changeability: future configuration, skins, layouts, modes, and edition-specific behavior are valid product goals, but they must be introduced through governed vision/plan/proof layers rather than ad hoc branch styling
+- versatility and changeability: future configuration, skins, layouts, modes, and edition-specific behavior are valid product goals, but they must be introduced through coherent product design rather than ad hoc styling
 - standard control language: families may specialize controls for their surface, but they should inherit the project-wide control grammar before creating unique widgets, button families, folder pickers, or start/stop flows
 
-Family Vision records carry these principles by reference and specialize them only where the FAM has a real product reason. Family Feature Vision records specialize them further for one durable feature category. Branch Vision, BP2, BP3, Workstream, Hardening, and Live Validation must preserve the accepted UI carrydown or record the exact USER-approved exception and proof path.
-
-### Vision Contract Product Detail Quality Bar
-
-Vision contracts are product contracts, not filing instructions. Project Vision, Family Vision, Family Feature Vision, and Branch Vision layers must describe the actual Nexus product outcome, user experience, visible surfaces, trust/recovery behavior, visual standards, interaction model, proof expectations, and non-goals that future work must honor.
-
-A durable vision layer is weak when it only says what the file is for, lists where work should be routed, repeats governance procedure, or says future branches should define the product later. Procedure may appear as compact owner routing, but the durable value of a vision file is the product/design detail it preserves.
-
-Required product-detail anchors for vision work:
-
-- user-visible outcome and end-state experience
-- Nexus fit and family/feature purpose
-- surfaces, windows, controls, status states, and interaction flow when visible UI is involved
-- trust, privacy, failure, recovery, disabled, blocked, or unavailable states when the feature can affect user confidence
-- standard control language and visual inheritance expectations
-- explicit non-goals and future-gated boundaries
-- proof expectations that can later be tested without letting helper output replace product judgment
-
-Invalid vision-only content includes placeholder descriptions, copied source-file lists, branch-local implementation steps without product meaning, SLC/slice/seam labels as the product vision, or "define later" wording for a required product decision. If a lower vision layer discovers durable product detail that the higher layer must own, the branch must route the new fact to the correct vision owner or record a durable deferred disposition before advancing.
+Family and feature documents specialize these principles only when they have a real product reason. Product detail should explain user outcomes, surfaces, trust and recovery states, visual behavior, explicit non-goals, and checks that can verify them.
 
 ### NDAI UI Immersion And Window Chrome Standard
 
@@ -192,9 +132,9 @@ Surface classification:
 - `Diagnostic / Developer Surface`: a temporary or explicit troubleshooting/proof surface that is not presented as the normal product UI.
 - `External Surface`: a provider, browser, OS, GitHub, or third-party UI surface that Nexus can open or route to but does not visually own.
 
-Default Windows title bars, unstyled native utility windows, generic dialog shells, mismatched button families, and platform-looking popups are invalid for final `Nexus-Owned Product Surface` surfaces unless the branch records an approved platform exception and proof path. Allowed exception candidates include OS file pickers, OS security/permission prompts, installer or update surfaces that must use platform trust affordances, browser/provider-auth surfaces, or temporary troubleshooting-only diagnostics that are explicitly not the product UI. Even then, BP1/BP2/BP3 and Live Validation must classify the exception and prove it is deliberate rather than accidental drift.
+Default Windows title bars, unstyled native utility windows, generic dialog shells, mismatched button families, and platform-looking popups are invalid for final `Nexus-Owned Product Surface` surfaces unless a platform-native exception is justified and verified. Allowed exception candidates include OS file pickers, OS security/permission prompts, installer or update surfaces that must use platform trust affordances, browser/provider-auth surfaces, or temporary troubleshooting-only diagnostics that are explicitly not the product UI. Even then, the product should make the exception deliberate and visually coherent.
 
-FAM-002 is the shared Desktop Interface presentation authority, not the sole owner of every user-facing UI implementation. A consuming FAM branch may implement FAM-002-aligned UI work when that UI is necessary to complete the consuming FAM's accepted Family Vision, Family Feature Vision, Branch Vision Contract Snapshot, BP2/BP3 plan, and proof path. Project Vision owns the global UI principles; FAM-002 owns reusable presentation contracts and control hierarchy; each FAM owns the UI/UX of its own feature behavior; each FFV owns the concrete surface, user flow, and proof expectations for its feature category.
+FAM-002 is the shared Desktop Interface presentation authority, not the sole owner of every user-facing UI implementation. A consuming FAM branch may implement FAM-002-aligned UI work when that UI is necessary to complete the consuming FAM's feature behavior and technical requirements. Project Vision owns the global UI principles; FAM-002 owns reusable presentation contracts and control hierarchy; each FAM owns the UI/UX of its own feature behavior; each feature document describes the concrete surface, user flow, and checks for its category.
 
 ## Runtime Observability And USER Proof
 
@@ -209,21 +149,21 @@ Durable product direction:
 - elevated diagnostic logging, Dev Toolkit inspection, provider-visible data, support bundles, or exported evidence must not be enabled silently
 - product UI should present client-like product folders and labels; it should not expose worktree, branch, FAM, developer, owner-only, or internal implementation paths unless a source-truth owner explicitly admits that product-facing concept
 - developer/proof/evidence paths may use worktree, branch, FAM, or validation-lane labels only when they are clearly developer or validation evidence, not product UI
-- branches that create runtime/user-facing behavior must classify fatal, recoverable, degraded, blocked, disabled/deferred, and unavailable-prerequisite behavior through the Runtime Failure / Recovery Carrydown Gate in `Docs/phase_governance.md` before treating the feature as closeout-ready
+- branches that create runtime/user-facing behavior must classify fatal, recoverable, degraded, blocked, disabled/deferred, and unavailable-prerequisite behavior before treating the feature as ready
 
 Formal user-facing proof has a stricter bar than internal diagnosis:
 
 - a visible or user-facing behavior claim is closeout-grade only when proved through photo, video, or ordered frame-sequence evidence from the relevant USER-facing runtime path
 - runtime logs, markers, manifests, helper output, and Dev Toolkit events are supporting evidence for diagnosis and consistency; they do not replace photo/video proof for visible USER-facing acceptance
-- if a required claim cannot be proved in photo/video, Codex must elevate that claim to USER manual validation, explicit USER waiver, or a named blocker instead of calling it proven
-- formal Live Validation for desktop/user-facing behavior must use the exact normal USER desktop runtime launcher path declared for the branch unless a launcher parity proof and USER approval allow the troubleshooting runtime launcher to serve as equivalent proof for that exact claim
+- if a required claim cannot be proved in photo/video, the result must remain unverified until a real user observation or suitable direct evidence exists
+- user-facing runtime verification for desktop/user-facing behavior must use the exact normal USER desktop runtime launcher path declared for the branch unless verified launcher parity shows the diagnostic path is equivalent for that exact claim
 
 Future two-launcher model:
 
-- `Normal Desktop Runtime Launcher`: starts normal NDAI for ordinary USER operation and owns default formal Live Validation proof
+- `Normal Desktop Runtime Launcher`: starts normal NDAI for ordinary USER operation and owns default user-facing runtime verification proof
 - `Troubleshooting Runtime Launcher`: starts NDAI in troubleshooting mode for consented diagnostics, validation, or support
 - `Launcher Parity Proof`: proves both launchers start the same product runtime/build, use the same product data roots and user-visible behavior, and differ only by admitted diagnostic flags, diagnostic evidence roots, log level, and troubleshooting disclosure
-- if launcher parity is missing, fails, or the claim being validated could be affected by troubleshooting-mode differences, Live Validation must use the normal USER desktop runtime launcher or stop for USER waiver/manual validation
+- if launcher parity is missing, fails, or the claim being validated could be affected by troubleshooting-mode differences, user-facing runtime verification must use the normal USER desktop runtime launcher or leave the claim unverified
 
 ## AI-Native Operating Experience
 
@@ -239,9 +179,9 @@ The durable direction is:
 - AI state, provider state, permission state, cache state, privacy state, and refusal/uncertainty posture should be visible in plain language when they matter
 - trust UX should be calm, explainable, reversible, and understandable to non-technical users
 
-Cross-family AI architecture, permission-state, deterministic routing, Trust Journal, AI Operational Cache Governance, routine/continuity boundaries, competitive-integrity boundaries, and capability-pack architecture live in `Docs/ai_runtime_and_trust_architecture.md`.
+Cross-family AI architecture, permission-state, deterministic routing, Trust Journal, AI operational cache controls, routine/continuity boundaries, competitive-integrity boundaries, and capability-pack architecture live in `Docs/ai_runtime_and_trust_architecture.md`.
 
-Family-specific direction remains with the family visions. Active branches still require Branch Readiness, accepted branch vision, USER Branch Plan Review, implementation approval, and validation before runtime AI, provider/model work, memory, cache implementation, camera/microphone/desktop vision, installer behavior, or release work can begin.
+Family-specific direction remains with the family visions. Runtime AI, provider/model work, memory, cache, camera/microphone/desktop vision, and installer behavior require their specific user consent, privacy boundaries, technical safeguards, and verification before activation.
 
 ## Release-Stage Meaning
 
@@ -310,11 +250,7 @@ The durable feature-category owner is `Docs/family_feature_visions/F3-FF01.md`. 
 
 This section records public-safe FAM-007 local AI and capability-pack direction.
 
-It is product intent and planning truth only.
-It does not admit implementation, local models, provider runtime code, memory/indexing, voice/Core sync, setup behavior, or release work by itself.
-The USER-provided `Nexus AI Product Contract v0.6.2` is planning evidence for this direction, not repo source truth and not a full imported contract.
-
-`PKG-007` package/slice admission, when recorded by the active FAM-007 Branch Readiness Stage 2 authority, is source-truth readiness only and does not authorize runtime implementation.
+This is future product intent, not evidence that provider execution, memory, indexing, setup, or heavy local models are available. Those features require their own consent, privacy safeguards, technical implementation, and verification.
 
 FAM-007 should be staged so the base app remains useful without a local LLM and heavy local AI remains optional capability-pack work rather than default installer bloat.
 
@@ -371,15 +307,13 @@ FAM-007 should be staged so the base app remains useful without a local LLM and 
 
 - do not treat this section as current implementation truth
 - do not introduce large local models or heavy local inference in the current release
-- do not admit FAM-007 implementation without a later Branch Readiness revalidation and explicit USER approval
-- do not mark `PKG-007` or its slices as `Admitted` from vision text alone; admission requires the active branch authority and USER approval
-- do not import private/internal-only planning wholesale into public source truth
-- do not mutate or repurpose the parked `codex/ai-llm-lab` branch by inertia
-- do not reinterpret current workstream, validation, or release-posture docs through this future section
-
+- do not enable provider/model behavior without explicit user consent and technical safeguards
+- do not treat vision text as evidence that provider/model behavior already works
+- do not put private prompts, plans, or personal data in public product material
+- - 
 ### Public-Safe Planning Carry-Forward
 
-The first FAM-007 package should likely be a foundation package, not a full assistant implementation.
+The first public-safe AI experience should establish truthful local behavior before provider or model execution.
 
 Public-safe planning principles to carry forward:
 
@@ -396,22 +330,13 @@ Public-safe planning principles to carry forward:
 
 ## Historical Relationship
 
-The public Nexus release line begins after the preserved Nexus historical release line.
-
-That means:
-
-- older Nexus releases remain preserved as historical records
-- they do not define the active public Nexus release line
-- current vision and current release posture should be expressed in Nexus / ORIN terms unless a section is explicitly historical
+Older Nexus releases remain historical records. They do not define the current public Nexus experience or imply that future capabilities are implemented.
 
 ## Relationship To Other Canon Layers
 
 - use `Docs/architecture.md` for architectural boundaries
-- use `Docs/ai_runtime_and_trust_architecture.md` for cross-family AI runtime/trust architecture, AI operational cache governance, permission-state, deterministic routing, Trust Journal, and capability-pack architecture
-- use `Docs/phase_governance.md` for governed execution phases, proof authority, and closeout discipline
+- use `Docs/ai_runtime_and_trust_architecture.md` for cross-family AI runtime/trust architecture, AI operational cache controls, permission-state, deterministic routing, Trust Journal, and capability-pack architecture
 - use `Docs/orchestration.md` for orchestration behavior and runtime ownership
 - use `Docs/boot_access_design.md` for future boot-access planning
-- use `Docs/prebeta_roadmap.md` for sequencing and release posture
-- use `Docs/family_visions/FAM-007_ai_edition_capability_trust_boundary_release_plan.md` for public-safe Owner / Dev / Public edition boundaries and release breakpoints
-- use USER-approved Family Feature Vision records under the recommended `Docs/family_feature_visions/` compact-ID pattern for durable feature-category direction and deferred carryforward inside one family when Family Vision is too broad and active branch planning is too branch-local; selected feature-bearing branch routes require this layer before BP1 when source truth says the feature category needs durable middle vision detail
-- use `Docs/workstreams/...` for promoted workstream history
+- use `Docs/family_visions/FAM-007_ai_edition_capability_trust_boundary_release_plan.md` for Public, Dev, and Owner edition trust boundaries
+- use `Docs/family_feature_visions/` for concrete feature-category behavior and deferred product dependencies.

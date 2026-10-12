@@ -4,7 +4,7 @@
 
 This file is retained only as no-loss source material while safety/privacy direction is folded into existing backlog-family visions and architecture owners.
 
-It is not an active backlog family, not a worktree lane, not a package owner, and not a FAM number reservation. The next USER-approved backlog family may reuse the next available FAM number after `FAM-008`.
+This is retained product-design source, not a standalone active feature family. Safety and privacy requirements apply within product features that handle the affected data or actions.
 
 Local-first privacy, consent, provider-visible data boundaries, safety gates, secrets handling, data egress controls, and future AI safety posture now fold into the implementing family vision and `Docs/ai_runtime_and_trust_architecture.md` where relevant.
 
@@ -18,7 +18,7 @@ Safety and Privacy should be visible product behavior, not hidden policy. Users 
 - Local-only, local-network, external API, and no-provider modes should be visible when those modes exist.
 - Provider-visible data must be explicit before prompts, provider setup, or model execution occur.
 - Public, Dev, and Owner privacy boundaries must remain separate: Owner-private memory/prompts/secrets and Dev-only tooling must not leak into public source, public artifacts, or Public Edition runtime.
-- Secrets, memory, indexing, learning, and personalization require dedicated USER-approved planning before implementation.
+- Secrets handling, memory, indexing, learning, and personalization require explicit user consent where they use personal data, visible controls, defined privacy boundaries, and tested failure and recovery behavior before they are enabled.
 - AI operational cache privacy belongs here for visibility, provenance, sensitivity classes, profile/user isolation, encryption expectations, Local-Only Mode, Privacy Lockdown behavior, stale-cache refusal, provider-cache sanitization, Trust Journal cache events, and clear-cache safety; cache remains distinct from memory.
 - Permission state must be enforced app state, not a verbal promise; sensitive capability classes must be denied, revoked, privacy-blocked, safety-blocked, or provider-blocked in behavior as well as UI.
 - Trust Journal / AI Activity Journal direction belongs here for plain-language visibility into provider/network use, permission-blocked attempts, sensitive capability access, cache events, safety refusals, privacy lockdown, and competitive-integrity blocks.
@@ -30,8 +30,8 @@ Safety and Privacy should be visible product behavior, not hidden policy. Users 
 ## Implementation Boundaries
 
 - This vision does not admit provider execution, network calls, memory/indexing, secrets handling, external APIs, or capability-pack execution.
-- Future safety/privacy implementation must be owned by the backlog family whose surface is changing, with Branch Readiness approval, accepted vision, validation proof, and clear rollback/disable behavior.
-- Active branches that consume AI-native safety/privacy architecture must cite `Docs/ai_runtime_and_trust_architecture.md` and prove permission-state, Trust Journal, Local-Only, Privacy Lockdown, provider-visible-data, cache privacy, and sensitive-capability boundaries before Workstream implementation.
+- Safety/privacy controls belong to the product feature handling the affected data or action and must offer clear disable and recovery behavior.
+- AI-related features must verify permission state, Trust Journal behavior, Local-Only mode, Privacy Lockdown, provider-visible data, cache privacy, and sensitive-capability boundaries before treating those controls as usable.
 
 ## Fold Targets
 

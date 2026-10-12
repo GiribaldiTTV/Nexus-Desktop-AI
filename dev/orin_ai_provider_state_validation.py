@@ -1,4 +1,3 @@
-# NEXUS-SOURCE-OWNER: schema=source-owner-v1; owner=FAM007-AI; ledger=SRCOWN-FIRSTPASS-FAM007-AI-007; surface=fam007-provider-state-validator; status=shared
 """Validate the FAM-007 no-provider/provider-privacy scaffold."""
 
 from __future__ import annotations
@@ -52,10 +51,6 @@ from desktop.ai_provider_state import (  # noqa: E402
     NO_PROVIDER_INTERACTION_AFFORDANCE,
     NO_PROVIDER_MODE,
     NO_PROVIDER_PRIVACY_SCOPE,
-    OWNER_AI_GATE_SEAM_RECORDS,
-    OWNER_AI_GATE_SLICE_IDS,
-    OWNER_AI_OPERATIONAL_FOUNDATION_GATES_BRANCH,
-    OWNER_AI_OPERATIONAL_FOUNDATION_GATES_STATE_ID,
     OWNER_AI_OPERATIONAL_FOUNDATION_GATES_SCHEMA_VERSION,
     OWNER_LANE_BOUNDARY_PRIVATE_SETUP_BLOCKED,
     PACKAGE_ID,
@@ -87,9 +82,7 @@ from desktop.ai_provider_state import (  # noqa: E402
     LEARNING_DISABLED,
     SECRET_BOUNDARY_NO_SECRETS,
     CONSENT_ENVELOPE_REQUIRED,
-    SLC005_ENFORCEMENT_HARDENING_HANDOFF_STATE,
     SLC005_ENFORCEMENT_PROOF_SCHEMA_VERSION,
-    SLC005_ENFORCEMENT_PROOF_STATE,
     AUDIT_ENVELOPE_PLANNED,
     GOLDEN_PROVIDER_STATE_FIXTURES,
     VALIDATOR_EXPANSION_ACTIVE,
@@ -1050,54 +1043,9 @@ def _validate_owner_ai_operational_foundation_gates_state(
         "Owner AI operational foundation gates schema mismatch",
         failures,
     )
-    _require(
-        state.get("branch") == OWNER_AI_OPERATIONAL_FOUNDATION_GATES_BRANCH,
-        "Owner AI operational foundation gates branch mismatch",
-        failures,
-    )
-    _require(
-        state.get("stateId") == OWNER_AI_OPERATIONAL_FOUNDATION_GATES_STATE_ID,
-        "Owner AI operational foundation gates state ID mismatch",
-        failures,
-    )
-    _require(
-        tuple(state.get("sliceIds", ())) == OWNER_AI_GATE_SLICE_IDS,
-        "Owner AI operational foundation gates must preserve SLC-001 through SLC-006",
-        failures,
-    )
-    seams = tuple(state.get("seams", ()))
-    _require(
-        len(seams) == len(OWNER_AI_GATE_SEAM_RECORDS) == 18,
-        "Owner AI operational foundation gates must preserve all 18 accepted seams",
-        failures,
-    )
-    expected_seams = {
-        (slc, seam, name)
-        for slc, seam, name in OWNER_AI_GATE_SEAM_RECORDS
-    }
-    actual_seams = {
-        (
-            str(seam.get("slc", "")),
-            str(seam.get("seam", "")),
-            str(seam.get("name", "")),
-        )
-        for seam in seams
-        if isinstance(seam, dict)
-    }
-    _require(
-        actual_seams == expected_seams,
-        "Owner AI operational foundation gates seam records must match accepted BP2/BP3 seams",
-        failures,
-    )
-
     protected = state.get("protectedArtifactExclusion", {})
     _require(isinstance(protected, dict), "Owner AI protected artifact gate missing", failures)
     if isinstance(protected, dict):
-        _require(
-            protected.get("repoPacketBundleChecksRequired") is True,
-            "Owner AI protected artifact gate must require repo/packet/bundle checks",
-            failures,
-        )
         for field in (
             "ownerPrivateMaterialAllowed",
             "privateDevMaterialAllowed",
@@ -1167,7 +1115,6 @@ def _validate_owner_ai_operational_foundation_gates_state(
             "capabilityPackInstallBlocked",
             "capabilityPackUpdateBlocked",
             "capabilityPackUninstallBlocked",
-            "protectedArtifactAndProviderProofLinked",
         ):
             _require(install.get(field) is True, f"Owner AI install-intent gate must set {field}=true", failures)
 
@@ -1225,12 +1172,6 @@ def _validate_owner_ai_operational_foundation_gates_state(
         _require(
             slc005_proof.get("schema") == SLC005_ENFORCEMENT_PROOF_SCHEMA_VERSION,
             "SLC-005 enforcement proof schema mismatch",
-            failures,
-        )
-        _require(slc005_proof.get("slc") == "SLC-005", "SLC-005 enforcement proof SLC mismatch", failures)
-        _require(
-            slc005_proof.get("state") == SLC005_ENFORCEMENT_PROOF_STATE,
-            "SLC-005 enforcement proof state mismatch",
             failures,
         )
         expected_scope = {
@@ -1385,47 +1326,6 @@ def _validate_owner_ai_operational_foundation_gates_state(
             for canary in canaries:
                 if isinstance(canary, dict):
                     _require(canary.get("expectedOutcome") == "blocked", "SLC-005 negative canaries must expect blocked outcome", failures)
-
-        proof_handoff = slc005_proof.get("hardeningHandoff", {})
-        _require(isinstance(proof_handoff, dict), "SLC-005 proof Hardening handoff missing", failures)
-        if isinstance(proof_handoff, dict):
-            _require(
-                proof_handoff.get("state") == SLC005_ENFORCEMENT_HARDENING_HANDOFF_STATE,
-                "SLC-005 proof Hardening handoff state mismatch",
-                failures,
-            )
-            _require(
-                proof_handoff.get("nextLegalPhase") == "Hardening H1"
-                and proof_handoff.get("workstreamGreenCandidate") is True,
-                "SLC-005 proof must hand off to Hardening H1 as a green candidate",
-                failures,
-            )
-            for field in (
-                "providerModelExecutionAuthorized",
-                "promptSendAuthorized",
-                "downloadsAuthorized",
-                "runtimeCacheBehaviorAuthorized",
-                "memoryLearningPersonalizationAuthorized",
-                "privateSetupAuthorized",
-                "hiddenNetworkBehaviorAuthorized",
-            ):
-                _require(proof_handoff.get(field) is False, f"SLC-005 proof handoff must set {field}=false", failures)
-
-    handoff = state.get("hardeningHandoff", {})
-    _require(isinstance(handoff, dict), "Owner AI Hardening handoff missing", failures)
-    if isinstance(handoff, dict):
-        _require(handoff.get("nextLegalPhase") == "Hardening H1", "Owner AI next legal phase must be Hardening H1", failures)
-        _require(handoff.get("workstreamGreenCandidate") is True, "Owner AI Workstream green candidate missing", failures)
-        for field in (
-            "privateSetupAuthorized",
-            "providerModelExecutionAuthorized",
-            "runtimeCacheBehaviorAuthorized",
-            "memoryLearningPersonalizationAuthorized",
-            "realOwnerMemoryAuthorized",
-            "realOwnerAgentsAuthorized",
-        ):
-            _require(handoff.get(field) is False, f"Owner AI handoff must set {field}=false", failures)
-
 
 def validate() -> list[str]:
     failures: list[str] = []
@@ -3727,28 +3627,6 @@ def validate() -> list[str]:
             ),
             _slice_between(renderer, "class AIControlCenterDialog"),
         )
-    )
-    branch_record = _read("Docs/branch_records/feature_fam_007_provider_boundary_no_provider_shell.md")
-    active_activation_branch_record = _read(
-        "Docs/branch_records/feature_fam_007_local_ai_provider_activation_foundation.md"
-    )
-    active_execution_branch_record = _read(
-        "Docs/branch_records/feature_fam_007_local_ai_provider_execution_readiness_gates.md"
-    )
-    execution_branch_plan = _read(
-        "Docs/branch_plans/feature_fam_007_local_ai_provider_execution_readiness_gates.md"
-    )
-    active_path_consent_branch_record = _read(
-        "Docs/branch_records/feature_fam_007_local_ai_provider_path_and_consent_readiness.md"
-    )
-    path_consent_branch_plan = _read(
-        "Docs/branch_plans/feature_fam_007_local_ai_provider_path_and_consent_readiness.md"
-    )
-    active_readiness_branch_record = _read(
-        "Docs/branch_records/feature_fam_007_local_ai_provider_runtime_readiness.md"
-    )
-    continuation_branch_record = _read(
-        "Docs/branch_records/feature_fam_007_local_ai_foundation_runtime_continuation.md"
     )
 
     normalized_renderer = renderer.replace("\r\n", "\n")
@@ -10591,217 +10469,6 @@ def validate() -> list[str]:
             failures,
         )
 
-    for needle in (
-        "FAM-007 Local AI Provider Execution Readiness Gates",
-        "Current Workstream State: `Green - bounded multi-seam execution-readiness implementation complete; H1 and LV1 reviewed and green`",
-        "Current Hardening State: `Green - H1 compared the local-only execution-readiness implementation against the admitted Workstream plan",
-        "Current Live Validation State: `Green - LV1 classified this branch as disabled/status-only local execution-readiness scaffolding",
-        "Workstream Completion State: `Green - H1 Green / LV1 Green / PR Readiness Stage 1 repair recorded and ready for PR Readiness Stage 2 after USER approval`",
-        "Hardening H1 Status: `Green`",
-        "Live Validation LV1 State: `Green - completed with static Core/Desktop/ORIN source-truth and provider-state validator proof`",
-        "LV Classification: `disabled/status-only local execution-readiness scaffold`",
-        "User Test Summary Results: `WAIVED`",
-        "User-Facing Shortcut Validation: `WAIVED - no shortcut or installer work exists in this branch scope`",
-        "Codex Live Client Self-QA: `WAIVED -",
-        "Next Legal Phase: `PR Readiness Stage 2 / PR creation for FAM-007 Local AI Provider Execution Readiness Gates`",
-        "PR Readiness Stage 1 Outcome: `Stage 1 Ready For Stage 2 - current branch scope and validation are clean after bounded Stage 1 repair",
-        "Pre-PR Live State: `No live PR - PR Readiness Stage 2 / PR creation approval missing",
-        "Next Workstream User Waiver: Granted - USER approved selected-next defer/waiver for this PR-readiness pass.",
-        "Release Window Audit: PASS",
-        "Seam Family 1 - Execution Readiness Gate Contract: `Green`",
-        "Seam Family 2 - Provider Path And Adapter Selection Contract: `Green`",
-        "Seam Family 3 - Prompt Path And Model Execution Proof Contract: `Green`",
-        "Seam Family 4 - Safety, Consent, Network, And Data Gate Alignment: `Green`",
-        "Seam Family 5 - Functional-AI Release Gate And v1.8.0 Criteria: `Green`",
-        "Seam Family 6 - Core/Desktop Execution Readiness UI And Validator Planning: `Green`",
-        "provider-execution-readiness-state.v1",
-        "provider-execution-readiness-config.v1",
-        "execution_unavailable",
-        "execution_blocked_by_activation",
-        "execution_blocked_by_provider_path",
-        "execution_blocked_by_adapter",
-        "execution_blocked_by_prompt_gate",
-        "execution_blocked_by_model_gate",
-        "execution_blocked_by_consent",
-        "execution_blocked_by_safety",
-        "execution_blocked_by_network",
-        "execution_blocked_by_policy",
-        "execution_ready_future_gated",
-        "execution_ready_but_not_approved",
-        "functional_ai_execution_ready_future_version",
-        "provider-path-not-selected",
-        "adapter-selection-null-local",
-        "prompt-send-disabled",
-        "model-execution-disabled",
-        "provider-visible-data-execution-none",
-        "functional-ai-release-gate-pending",
-        "v1.8.0-prebeta-release-gate-pending-functional-ai",
-        "Provider SDK integration remains a pending USER decision",
-        "Provider/model execution remains a pending USER decision",
-        "Memory indexing, retrieval, learning, persistence, personalization, or long-term adaptation remains a pending USER decision",
-    ):
-        _require(needle in active_execution_branch_record, f"active FAM-007 execution record is missing {needle!r}", failures)
-
-    for needle in (
-        "Branch Runtime Engineering Plan: FAM-007 Local AI Provider Execution Readiness Gates",
-        "Engineering Plan Status: `Implemented, H1 Green, LV1 Green, and PR Readiness Stage 1 ready for Stage 2 - bounded Workstream implementation maps the accepted plan into local-only execution-readiness state, UI, validator fixtures, source-truth proof, hardening review, disabled/status-only LV1 waiver, and selected-next/pre-PR live-state repair; PR Readiness Stage 2 / PR creation remains pending USER approval.`",
-        "PR Readiness Stage 1 Result: `Ready for Stage 2 - selected-next defer/waiver truth, pre-PR live-state truth, post-merge No Active Branch projection",
-        "Hardening H1 Result: `Green - H1 compared implementation against this plan",
-        "Live Validation LV1 Result: `Green - disabled/status-only local execution-readiness scaffold validated through static Core/Desktop/ORIN source-truth and provider-state validator proof",
-        "Runtime Implementation Approval: `Granted - USER approved bounded Workstream implementation for this local-only execution-readiness gates branch; provider/model execution remains pending USER decision.`",
-        "Plan-To-Implementation Traceability Table: `Implemented - planned execution-readiness state maps to actual file desktop/ai_provider_state.py; planned provider path and adapter selection map to actual local config/schema fields; planned prompt/model gates map to actual disabled prompt/model/provider execution fields; planned UI copy maps to actual Core/Desktop/ORIN status surfaces; validator implementation traces no prompt send, no model execution, provider-visible data none, blocked network egress, deferred memory/learning/personalization, and v1.8.0 criteria pending.`",
-        "Workstream Completion Evidence: `Green - all admitted execution-readiness seam families implemented as local-only contracts, state, UI posture, validator fixtures, and source-truth proof.",
-        "provider-execution-readiness-state.v1",
-        "provider-execution-readiness-config.v1",
-        "provider-visible data none",
-        "prompt/provider sends disabled",
-        "v1.8.0-prebeta",
-    ):
-        _require(needle in execution_branch_plan, f"active FAM-007 execution branch plan is missing {needle!r}", failures)
-
-    for needle in (
-        "FAM-007 Local AI Provider Activation Foundation",
-        "Provider Activation Contract and Gate Model: `Green`",
-        "Provider Adapter Boundary and Null Activation Surface: `Green`",
-        "Prompt/Execution Gate and Functional-AI Criteria: `Green`",
-        "Capability Pack, Consent, and Safety Gate Alignment: `Green`",
-        "Core/Desktop Activation Posture and Validator Planning: `Green`",
-        "Workstream Completion State: `Green - H1 and LV1 complete; PR Readiness Stage 1 selected-next/defer repair recorded; ready for PR Readiness Stage 2 after USER approval`",
-        "Current Hardening State: `Green - H1 validated",
-        "Hardening H1 State: `Green - completed after accepted Workstream completion evidence`",
-        "Hardening Next Legal Phase: `Live Validation LV1 after USER approval`",
-        "Current Live Validation State: `Green - LV1 classified this branch as disabled/status-only local activation foundation scaffolding",
-        "Live Validation LV1 State: `Green - completed with static Core/Desktop/ORIN source-truth and provider-state validator proof`",
-        "LV Classification: `disabled/status-only local activation foundation scaffold`",
-        "User Test Summary Results: `WAIVED`",
-        "User-Facing Shortcut Validation: `WAIVED -",
-        "Codex Live Client Self-QA: `WAIVED -",
-        "Live Validation LV1 Next Legal Phase: `PR Readiness Stage 1 after USER approval`",
-        "PR Readiness Stage 1 Repair USER Approval: `Granted - USER approved selected-next defer/waiver truth",
-        "Pre-PR Live State: `No live PR - PR Readiness Stage 2 / PR creation approval missing",
-        "Post-Merge Branch Authority Projection: `PASS -",
-        "Next Workstream User Waiver: Granted - USER approved selected-next defer/waiver",
-        "Selected Next Workstream: None - USER-approved selected-next defer/waiver",
-        "Selected Next Implementation Branch: Not created",
-        "Release Window Audit: PASS",
-        "provider-activation-state.v1",
-        "provider-activation-config.v1",
-        "activation_unavailable",
-        "activation_blocked_by_readiness",
-        "activation_blocked_by_consent",
-        "activation_blocked_by_capability",
-        "activation_blocked_by_manifest",
-        "activation_blocked_by_adapter",
-        "activation_eligible_future_gated",
-        "activation_ready_but_execution_gated",
-        "functional_ai_ready_future_version",
-        "null-local-adapter",
-        "prompt-execution-disabled",
-        "model-execution-disabled",
-        "provider-execution-disabled",
-        "functional-ai-criteria-pending",
-        "v1.8.0-prebeta-readiness-pending",
-        "Provider SDK integration remains a pending USER decision",
-        "Provider/model execution remains a pending USER decision",
-        "Memory indexing, retrieval, learning, persistence, personalization, or long-term adaptation remains a pending USER decision",
-    ):
-        _require(needle in active_activation_branch_record, f"active FAM-007 activation record is missing {needle!r}", failures)
-
-    for needle in (
-        "FAM-007 Local AI Provider Runtime Readiness and Setup Eligibility",
-        "SLC-017/SLC-018 Provider Readiness Contract",
-        "SLC-017/SLC-018 Consent and Configuration Transition Contract",
-        "SLC-031/SLC-032 Capability-Pack Eligibility and Install-Intent Posture",
-        "SLC-035/SLC-036 Core/Desktop Readiness UI and Validator Fixtures",
-        "Provider Readiness Contract: `Green`",
-        "Consent and Configuration Transition Contract: `Green`",
-        "Capability-Pack Eligibility and Install-Intent Posture: `Green`",
-        "Core/Desktop Readiness UI and Validator Fixtures: `Green`",
-        "Workstream Completion State: `Green - ready for Hardening H1 after USER approval`",
-        "Hardening H1 Proof Review Status: `Green - Hardening H1 proof review completed",
-        "Hardening H1 Result: `PASS - no runtime, UI, validator, or Engineering Contract defect repair was required",
-        "Live Validation LV1 USER Approval: `Granted - USER approved Live Validation LV1",
-        "Current Live Validation Seam: `Live Validation LV1 - FAM-007 Local AI Provider Runtime Readiness and Setup Eligibility`",
-        "Live Validation LV1 Result: `PASS - disabled/status-only local readiness scaffold",
-        "User Test Summary Results: `WAIVED`",
-        "User-Facing Shortcut Validation: `WAIVED`",
-        "Codex Live Client Self-QA: `WAIVED`",
-        "PR Readiness Stage 1 Repair USER Approval: `Historical - USER approved selected-next defer/waiver truth and pre-PR live-state truth before PR #165",
-        "Current PR Readiness State: `Closed by PR #165 merge",
-        "Pre-PR Live State: Historical only - PR #165 was created and merged",
-        "Post-Merge Branch Authority Projection: `PASS -",
-        "Next Workstream User Waiver: Granted - USER approved selected-next defer/waiver",
-        "Selected Next Workstream: None - USER-approved selected-next defer/waiver",
-        "Selected Next Implementation Branch: Not created",
-        "Release Window Audit: PASS",
-        "Governance Drift Found:",
-        "Next Legal Seam: `Release Readiness Stage 1 rerun after Governance RRI-20260519-001 merges",
-        "provider-readiness-state.v1",
-        "provider-readiness-config.v1",
-        "setup_available_future_gated",
-        "provider_ready_but_execution_gated",
-        "readiness_manifest_invalid_install_blocked",
-        "Capability-pack eligibility: blocked",
-        "Install intent: blocked",
-        "Provider SDK integration remains a pending USER decision",
-        "Provider/model execution remains a pending USER decision",
-        "Memory indexing, retrieval, learning, or persistence remains a pending USER decision",
-    ):
-        _require(needle in active_readiness_branch_record, f"active FAM-007 readiness record is missing {needle!r}", failures)
-
-    for needle in (
-        "SLC-017/SLC-018 No-Provider Shell And Provider-Privacy State",
-        "SLC-017/SLC-018 Provider Selection And Consent Boundary Scaffold",
-        "SLC-017/SLC-018 Assisted Desktop Mode No-Provider Interaction And Consent Surface",
-        "SLC-018 Local Provider Registry And Configuration State",
-        "SLC-031 Hardware/GPU/CPU Capability Planning Scaffold",
-        "SLC-032 Model And Capability-Pack Lifecycle Planning Scaffold",
-        "SLC-033 Data Classification Memory Context Consent Audit Secrets Planning Scaffold",
-        "SLC-034 Windows Resilience Platform Posture Planning Scaffold",
-        "SLC-035 Persona Core Voice Planning Boundary",
-        "SLC-036 Validation Eval Abuse Release Proof Gates",
-        "Hardening H1 - FAM-007 Provider Boundary And No-Provider Shell Local-Only Scaffold Chain",
-        "Live Validation LV1 USER Approval: `Granted - USER approved Live Validation LV1",
-        "Current Live Validation Seam: `Live Validation LV1 - FAM-007 Provider Boundary And No-Provider Shell Applicability And No-Provider Surface Proof`",
-        "User Test Summary Results: `WAIVED`",
-        "Codex Live Client Self-QA: `WAIVED`",
-        "PR Readiness Execution User Approval Missing",
-        "model downloads",
-        "real provider SDK integration",
-        "AI Product Contract v0.6.2",
-    ):
-        _require(needle in branch_record, f"branch record is missing {needle!r}", failures)
-
-    for needle in (
-        "SLC-017/SLC-018 Local AI Foundation Runtime Continuation - Provider Boundary Interaction Plan",
-        "SLC-031/SLC-032 Local Capability-Readiness Continuation",
-        "SLC-033/SLC-036 Local Data Resilience Persona And Proof-Gate Continuation",
-        "SLC-017/SLC-018 provider-boundary interaction continuation",
-        "local capability-readiness continuation",
-        "local data/resilience/persona/proof-gate continuation",
-        "visible consent-boundary copy",
-        "provider-visible-data detail",
-        "disabled provider setup next action",
-        "Completion Status: `Green`",
-        "Continue Decision: `Stop`",
-        "Continuation Execution Latch:",
-        "Historical merge proof: `PR #152 merged feature/fam-007-local-ai-foundation-runtime-continuation into main",
-        "Branch Authority State: `Historical merged branch - not active, not selected-next, and not a live PR carrier`",
-        "Completed Hardening: `H1 proof review was green with no runtime defect repair required`",
-        "Proof Review Status: `Green - Hardening H1 proof review completed for all admitted same-branch FAM-007 local-only scaffolds.`",
-        "Completed Live Validation: `LV1 classified the disabled/status-only scaffold as static/source-truth/compile validated with User Test Summary, user-facing shortcut validation, and Codex live-client self-QA waived`",
-        "User Test Summary Results: `WAIVED`",
-        "User-Facing Shortcut Validation: `WAIVED`",
-        "Codex Live Client Self-QA: `WAIVED`",
-        "Active seam: `None - historical after PR #152 merge`",
-        "Future FAM-007 work must enter Branch Readiness on a valid carrier after current `origin/main` is reconciled",
-        "Bounded means one active seam at a time, not one-seam Workstream authority",
-    ):
-        _require(
-            needle in continuation_branch_record,
-            f"continuation branch record is missing {needle!r}",
-            failures,
-        )
 
     return failures
 

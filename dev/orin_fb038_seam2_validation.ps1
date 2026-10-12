@@ -68,7 +68,6 @@ try {
     Invoke-ValidationStep -Label "desktop_entrypoint" -FilePath $python -Arguments @("dev\orin_desktop_entrypoint_validation.py")
     Invoke-ValidationStep -Label "interaction_baseline" -FilePath $python -Arguments @("dev\orin_interaction_baseline_validation.py")
     Invoke-ValidationStep -Label "saved_action_authoring_ui" -FilePath $python -Arguments @("dev\orin_saved_action_authoring_ui_validation.py")
-    Invoke-ValidationStep -Label "branch_governance" -FilePath $python -Arguments @("dev\orin_branch_governance_validation.py")
     Invoke-ValidationStep -Label "diff_check" -FilePath "git" -Arguments @("diff", "--check")
 
     Write-Output "FB038_SEAM2_VALIDATION|PASS|all"

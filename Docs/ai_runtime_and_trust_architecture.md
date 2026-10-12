@@ -13,7 +13,7 @@ Use this document for:
 - deterministic routing and reliability tiers
 - provider orchestration boundaries
 - capability registry and capability-pack architecture
-- AI Operational Cache Governance
+- AI Operational Cache Controls
 - Trust Journal / AI Activity Journal direction
 - routine, continuity, Windows Health, and competitive-integrity architecture boundaries
 
@@ -28,31 +28,6 @@ It does not own:
 - release execution
 - live operational state
 
-## Source-Truth Position
-
-Repo source truth owns durable governance and product/architecture direction.
-
-Git, GitHub, and approved helpers own derived live facts such as branch state, PR state, tags, releases, and dirty state.
-
-External operational state, after USER-approved initialization, owns live Codex/worktree/branch/release-window coordination.
-
-This file is durable repo source truth. It is not operational state and must not be used as a live branch tracker.
-
-## Binding And Directional Language
-
-Binding in this file:
-
-- source-truth ownership boundaries
-- taxonomy placement requirements
-- explicit non-goals
-- Branch Readiness citation requirements
-- implementation-approval blockers and routing rules
-
-Directional product language in this file records durable USER-reviewed architecture intent. Words such as `should` describe the target product shape, not current runtime behavior and not implementation approval.
-
-Future branches that implement any AI-native concept from this file must convert the relevant direction into an accepted branch vision, USER Branch Plan Review packet, Element-to-Phase Proof Matrix, implementation proof, Hardening proof, Live Validation / UTS plan, and validator/helper evidence where applicable.
-
-If a future branch cannot tell whether a concept is binding law, product direction, implementation scope, or external operational state, the branch must stop on `Backlog Taxonomy Gate Missing`, `Source-Truth Placement Preflight Missing`, `USER Branch Plan Review Missing`, or the closest repo-supported blocker instead of implementing by inference.
 
 ## Relationship To Existing Owners
 
@@ -64,7 +39,6 @@ If a future branch cannot tell whether a concept is binding law, product directi
 - `Docs/family_visions/FAM-008_packaging_and_install_experience.md` owns setup, install, cache-root UX, capability-pack installation, and user education direction.
 - Existing FAM visions own family-local workspace/data and safety/privacy implications when their implementation touches those surfaces.
 - Former workspace/data and safety/privacy backlog labels are not active backlog families. Their reusable AI-specific constraints are folded into this file and the relevant existing FAM visions.
-- Active external branch plans under `C:\Nexus Governance State\branches\<branch_slug>\branch_plan.md` own implementation-specific Branch Vision Contract Snapshots and proof plans.
 
 ## Taxonomy Placement
 
@@ -78,16 +52,16 @@ AI-native planning uses this classification by default:
 | Deterministic Routing Layer | Architecture layer | This file; implementation through admitted FAM-007 slices |
 | Provider Orchestration Layer | Runtime subsystem plus FAM-007 architecture | FAM-007, constrained by this file and relevant safety/privacy family-vision text |
 | Trust Journal / AI Activity Journal | Cross-family trust architecture plus policy-facing experience layer | This file and relevant implementing FAM vision |
-| AI Operational Cache Governance | Architecture, policy, and runtime concern | This file, with family-specific ownership below |
+| AI Operational Cache Controls | Architecture, policy, and runtime concern | This file, with family-specific ownership below |
 | Capability-Pack System | Capability-pack domain plus FAM-007 runtime architecture | This file, FAM-007, and FAM-008; other FAMs consume constraints only when implementing their own surfaces |
 | Routine Engine | Runtime subsystem or future package/slice candidate | This file and FAM-003 until USER admits a concrete package |
-| Daily Continuity / Ambient Assistance | Experience layer | `Docs/nexus_vision.md`, this file, and future Branch Readiness |
+| Daily Continuity / Ambient Assistance | Experience layer | `Docs/nexus_vision.md` and this file |
 | Competitive Integrity Layer | Cross-family policy plus lower-level runtime enforcement | This file and relevant implementing FAM vision |
-| Windows Health Recommendation Pipeline | Architecture/package candidate | This file and future Branch Readiness in the owning FAM |
+| Windows Health Recommendation Pipeline | Architecture/package candidate | This file and the owning feature |
 
 None of these classifications create a new FAM by themselves.
 
-`Backlog Taxonomy And Source-Truth Placement Gate` remains required before any future branch promotes one of these concepts into a backlog family, new source-truth owner, package, slice, seam, runtime subsystem, or capability-pack domain.
+A future concept needs a defined user-facing behavior, owning feature, privacy boundary, and technical dependencies before implementation.
 
 ## AI-Native Operating Principles
 
@@ -193,10 +167,10 @@ Owner AI Operational Foundation Gates are public-safe control-plane scaffolds fo
 
 The gate contract must preserve:
 
-- protected artifact exclusion from public repo files, USER review packets, timestamped USER ZIPs, public review bundles, and public release artifacts
+- protected artifact exclusion from public source, shipped packages, support exports, and released artifacts
 - provider-visible data of `none`, prompt/provider/model execution disabled, network/download/external calls blocked, and no hidden provider residue
 - cache consent and memory consent as separate states; cache remains operational state and does not become durable user memory
-- runtime cache behavior, memory writes, indexing, retrieval, learning, personalization, real Owner memory, and real Owner agents blocked until later explicit USER approval
+- runtime cache behavior, memory writes, indexing, retrieval, learning, personalization, real Owner memory, and real Owner agents disabled until the user explicitly enables the specific behavior with its privacy safeguards
 - capability-pack install intent as an explicit blocked or future-gated state before any download, install, update, uninstall, or execution path
 - Developer lane and Owner lane readiness as future-gated identity/readiness states, not private repo/root/remote creation
 
@@ -204,19 +178,18 @@ The gate contract must preserve:
 
 ## OpenAI Docs / Developer Tool Boundary
 
-Official OpenAI Docs lookups, Codex connector output, and AI-development plugin evidence may support source-truth review, architecture review, and provider-boundary planning. They are evidence until Codex digests them into the owning repo source-truth file through a USER-approved update.
 
-OpenAI Developers tooling, API-key creation, provider setup, model/runtime setup, billing/quota state, account connection state, and provider-visible data routing are sensitive setup or implementation concerns. They must not be recorded in repo docs as current state, must not expose plaintext secrets, and must not imply provider/model execution approval.
+OpenAI Developers tooling, API-key creation, provider setup, model/runtime setup, billing/quota state, account connection state, and provider-visible data routing are sensitive setup or implementation concerns. They must not be recorded in repo docs as current state, must not expose plaintext secrets, and must not imply provider/model execution is enabled.
 
 When a future branch uses OpenAI or other provider tooling, it must separate:
 
 - official documentation evidence from durable rule changes
-- API key or credential setup from repo source truth
-- provider-visible data proof from implementation approval
+- API key or credential setup from public documentation alone
+- provider-visible data disclosure from a generic feature toggle
 - provider/model execution from architecture planning
 - private Dev/Owner setup from public repo evidence
 
-`Sensitive Connector Setup In Repo`, `Plugin Evidence Treated As Source Truth`, `Provider Execution Approval Missing`, and `Private Reference Leak` block when this boundary is unclear.
+When this boundary is unclear, keep provider actions unavailable and do not expose private references or credentials.
 
 ## Capability Registry And Capability-Pack System
 
@@ -247,7 +220,7 @@ Capability records should declare:
 - what provider or local-runtime state it requires
 - what privacy/safety constraints apply
 
-## AI Operational Cache Governance
+## AI Operational Cache Controls
 
 Cache is not memory.
 
@@ -255,7 +228,7 @@ Cache is operational, purpose-bound, explainable, clearable, policy-governed sta
 
 Memory is durable user-personal knowledge and requires separate explicit consent.
 
-AI Operational Cache Governance is an architecture, policy, and runtime concern. It is not a new backlog family.
+AI operational cache controls cover provenance, validity, replay, and privacy. They are distinct from personal memory.
 
 ### Cache Ownership Split
 
@@ -264,7 +237,7 @@ AI Operational Cache Governance is an architecture, policy, and runtime concern.
 - FAM-008 owns setup/install UX for cache roots, clear-cache flow, and user education.
 - FAM-008 owns cache-root setup UX, storage-root selection, clear-cache education, and backup/export root guidance when packaging/setup work touches cache.
 - Relevant implementing FAM visions own family-local data-root, evidence-path, privacy, Local-Only, Privacy Lockdown, and Trust Journal implications when their own work touches those surfaces.
-- Active external branch plans under `C:\Nexus Governance State\branches\<branch_slug>\branch_plan.md` own implementation-specific cache behavior, proof, and rollback when cache work is admitted.
+- The owning AI feature must define cache invalidation, provenance, expiration, fallback, privacy, and rollback when cache behavior is implemented.
 
 ### Cache Scope Classes
 
@@ -355,7 +328,6 @@ Routine states should include:
 
 ORIN may recognize context and ask whether to begin a routine. It must not silently start sensitive or action-oriented routines without approval.
 
-Routine classes such as Morning Routine, School Routine, Financial/Bill Routine, Gaming Routine, Focus Routine, Streaming Routine, Shutdown Routine, and Windows Health Routine require future Branch Readiness classification before implementation.
 
 ## Windows Health Recommendation Pipeline
 
@@ -414,7 +386,7 @@ Reliability classes:
 | `High Confidence` | Evidence-backed conclusion where deterministic proof may not cover every edge | cite evidence, confidence basis, and known uncertainty |
 | `Advisory` | Recommendation, planning guidance, or tradeoff analysis | explain basis, alternatives, risks, and safe default |
 | `Exploratory / Hypothesis` | Possible explanation, diagnostic reasoning, missing-context discovery, or evidence-gathering plan | label hypotheses, separate observations from inference, ask or propose next evidence |
-| `Creative` | Open-ended generation such as naming, copy, layout, or brainstorming | stay inside safety/source-truth boundaries and require USER acceptance before implementation |
+| `Creative` | Open-ended generation such as naming, copy, layout, or brainstorming | stay inside safety/source-truth boundaries and require user-facing review before release |
 
 Observation / Hypothesis / Validation Loop:
 
@@ -444,18 +416,6 @@ Confidence labels should include:
 
 This distinction should inform user-facing explanations, Windows Health recommendations, deterministic routing, provider/tool routing, cache replay, and refusal behavior.
 
-## Branch Readiness Requirements
-
-Branches that propose AI-native architecture, provider/model behavior, cache, permission state, routines, daily continuity, Windows Health assistance, identity recognition, Trust Journal, capability packs, or competitive-integrity behavior must:
-
-- run the `Backlog Taxonomy And Source-Truth Placement Gate`
-- cite this file when the branch consumes cross-family AI runtime/trust architecture
-- cite the relevant family vision owner
-- ask USER-facing design questions before Workstream implementation when product behavior is ambiguous
-- map planned elements through the Element-to-Phase Proof Matrix
-- preserve the USER Branch Plan Review Gate before implementation
-- record whether memory, provider execution, external API use, camera/microphone/desktop vision, installer behavior, backup behavior, or private edition work is included or explicitly excluded
-
 ## Explicit Non-Goals
 
 This document does not approve:
@@ -474,4 +434,3 @@ This document does not approve:
 - gaming/process-sensitive runtime behavior
 - release execution
 
-Any such work requires later Branch Readiness, accepted branch vision, USER approval, implementation proof, and validation.
