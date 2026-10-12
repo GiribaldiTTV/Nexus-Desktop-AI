@@ -938,6 +938,8 @@ Each overlapping file uses a repeatable block:
 
 `Resolution Owner:` values are `Current Branch`, `Incoming/Folded Owner`, `Originating Lane`, `Approved Source Owner/Carrier`, `USER Decision`, or `Future Branch`.
 
+`Approved Source Owner/Carrier` means the named owner and carrier selected by current USER approval and its current assignment. This value does not authorize a standing lane, create an assignment or expand the approved write scope.
+
 When overlap evidence is missing, weak, stale, or conflicting, Codex must run `Rebaseline Overlap Failure Procedure` and return a packet with `Overall Overlap Gate Result:`, per-file `Per-File Result: PASS / WARN / BLOCKED`, `Recommended Resolution:`, `Validation Required:`, `USER Decision Needed:`, and `Rebaseline Mutation Status:`. Fallback evidence supports classification and USER decision-making only; after the effective point it cannot produce `PASS` without branch-owned change-intent evidence.
 
 A new branch or material vision/plan/scope decision receives its applicable USER review. Existing accepted planning and actual implementation approval carry into their in-scope corrections. Workstream records the implemented delta and affected proof; no repeated BP1/BP2/BP3 packet, element ledger or single-slice waiver is required solely for that continuation. Preserve real runtime, phase and human-result prerequisites.

@@ -1,5 +1,7 @@
 # Branch Authority Record: feature/release-readiness-source-truth-intake
 
+This record preserves the retired standing-intake lane's historical snapshot. All purpose, phase, assignment, authority and execution statements below describe that prior lane; they grant no current assignment or execution authority. Current routing follows `Docs/Main.md` and the approved external operational owner.
+
 ## Branch Identity
 
 - Branch: `feature/release-readiness-source-truth-intake`

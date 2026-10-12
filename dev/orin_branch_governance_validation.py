@@ -22646,9 +22646,18 @@ def _current_infrastructure_pr_proof(facts, assignment, qualification, source_sh
     need(pr.get('reviewDecision')!='CHANGES_REQUESTED','requested changes remain')
     if errors:return {'result':'BLOCK','failures':errors}
     checks=pr.get('statusCheckRollup')
-    if type(checks)is not list or not checks:return {'result':'PENDING','failures':[],'pending':'ACTUAL_CURRENT_HEAD_CHECKS_REQUIRED'}
+    policy=pr.get('capturedReviewPolicy')
+    if not(type(policy)is dict and policy.get('capture')=='DIRECT_GITHUB_API'and type(policy.get('requiredChecks'))is list and type(policy.get('requiredReviews'))is int and policy['requiredReviews']>=0 and type(policy.get('requiresAdditionalReview'))is bool and type(policy.get('requiresResolvedConversations'))is bool):
+        return {'result':'PENDING','failures':[],'pending':'ACTUAL_GITHUB_REQUIREMENTS_CAPTURE_REQUIRED'}
+    required=policy['requiredChecks']
+    if any(type(row)is not dict or set(row)!={'context','appId'}or type(row['context'])is not str or not row['context']or(row['appId']is not None and(type(row['appId'])is not int or row['appId']<=0))for row in required):
+        return {'result':'BLOCK','failures':['invalid captured required-check identity']}
+    if type(checks)is not list:return {'result':'PENDING','failures':[],'pending':'ACTUAL_CURRENT_HEAD_CHECK_FACTS_REQUIRED'}
     meaningful=False;pending=False
     for check in checks:
+        if type(check)is not dict:need(False,'invalid check evidence');continue
+        name=check.get('name')if check.get('__typename')=='CheckRun'else check.get('context')
+        if type(name)is not str or not name:need(False,'invalid check name/context');continue
         if check.get('__typename')=='CheckRun':
             if check.get('status')!='COMPLETED':pending=True;continue
             need(check.get('conclusion')in('SUCCESS','NEUTRAL','SKIPPED'),'current-head check failed')
@@ -22659,16 +22668,26 @@ def _current_infrastructure_pr_proof(facts, assignment, qualification, source_sh
         else:need(False,'unknown check evidence type')
     if errors:return {'result':'BLOCK','failures':errors}
     if pending:return {'result':'PENDING','failures':[],'pending':'CURRENT_HEAD_CHECKS_RUNNING'}
+    names={check.get('name')if check.get('__typename')=='CheckRun'else check.get('context')for check in checks}
+    if any(row['context']not in names for row in required):return {'result':'PENDING','failures':[],'pending':'ACTUAL_REQUIRED_CHECKS_MISSING'}
+    providers=pr.get('capturedProviderRuns',[])
+    if type(providers)is not list or any(type(run)is not dict or type(run.get('name'))is not str or type(run.get('appId'))is not int or type(run.get('id'))is not int for run in providers):return {'result':'BLOCK','failures':['invalid captured provider-run identity']}
+    for row in required:
+        if row['appId']is None:continue
+        selected=[run for run in providers if run['name']==row['context']and run['appId']==row['appId']and run.get('head')==facts['head']]
+        if not selected:return {'result':'PENDING','failures':[],'pending':'ACTUAL_REQUIRED_CHECK_PROVIDER_IDENTITY_MISSING'}
+        # The same physical provider/current-head run must supply the verdict.
+        latest=max(selected,key=lambda run:run['id'])
+        if latest.get('status')!='completed':return {'result':'PENDING','failures':[],'pending':'REQUIRED_PROVIDER_CHECK_RUNNING'}
+        if latest.get('conclusion')not in('success','neutral','skipped'):return {'result':'BLOCK','failures':['required current-head provider check failed']}
     decision=pr.get('reviewDecision')
-    if decision!='APPROVED':
-        policy=pr.get('capturedReviewPolicy')
-        if not(decision is None and type(policy)is dict and policy.get('capture')=='DIRECT_GITHUB_API'and type(policy.get('legacyRequiredReviews'))is int and policy['legacyRequiredReviews']==0 and type(policy.get('rulesRequiredReviews'))is int and policy['rulesRequiredReviews']==0):
-            return {'result':'PENDING','failures':[],'pending':'ACTUAL_REQUIRED_GITHUB_REVIEW_COMPLETION'}
-    if not meaningful:return {'result':'PENDING','failures':[],'pending':'NO_EXECUTED_SUCCESSFUL_CURRENT_HEAD_CHECK'}
+    if decision!='APPROVED'and not(decision in(None,'')and policy['requiredReviews']==0 and not policy['requiresAdditionalReview']):
+        return {'result':'PENDING','failures':[],'pending':'ACTUAL_REQUIRED_GITHUB_REVIEW_COMPLETION'}
     if not(type(review)is dict and review.get('result')=='PASS'and review.get('head')==facts['head']and type(review.get('reviewer'))is str and review['reviewer'].startswith('/root/')and review['reviewer']!='/root'):
         return {'result':'PENDING','failures':[],'pending':'ACTUAL_CURRENT_HEAD_SCOPED_INDEPENDENT_REVIEW_REQUIRED'}
     if pr.get('mergeable')!='MERGEABLE':return {'result':'PENDING','failures':[],'pending':'ACTUAL_MERGEABILITY_REQUIRED'}
-    return {'result':'PASS','failures':[],'executionAuthorized':False,'releaseDisposition':'NOT_APPLICABLE_INFRASTRUCTURE_ADOPTION'}
+    if policy['requiresResolvedConversations']and not(pr.get('conversationCaptureComplete')is True and type(pr.get('unresolvedReviewThreads'))is int and pr['unresolvedReviewThreads']==0):return {'result':'PENDING','failures':[],'pending':'REQUIRED_CONVERSATIONS_UNRESOLVED_OR_UNOBSERVED'}
+    return {'result':'PASS','failures':[],'executionAuthorized':False,'releaseDisposition':'NOT_APPLICABLE_INFRASTRUCTURE_ADOPTION','githubChecksDisposition':'REQUIRED_CHECKS_ACCEPTED_BY_GITHUB_POLICY'if required else'NOT_REQUIRED','observedCheckConclusions':[check.get('conclusion',check.get('state'))for check in checks],'githubReviewsDisposition':'REQUIRED_REVIEWS_SATISFIED'if policy['requiredReviews']or policy['requiresAdditionalReview']else'NOT_REQUIRED'}
 
 def main() -> int:
     import argparse, hashlib
@@ -22776,10 +22795,28 @@ def main() -> int:
                     if args.current_pr_number:
                         captured=subprocess.check_output(['gh','pr','view',str(args.current_pr_number),'--repo','GiribaldiTTV/Nexus-Desktop-AI','--json','state,headRefName,headRefOid,baseRefName,isDraft,mergeable,reviewDecision,statusCheckRollup'],text=True,timeout=30)
                         pr=json.loads(captured,object_pairs_hook=unique_current)
-                        if pr.get('reviewDecision')is None:
-                            protection=json.loads(subprocess.check_output(['gh','api','repos/GiribaldiTTV/Nexus-Desktop-AI/branches/main/protection'],text=True,timeout=30),object_pairs_hook=unique_current)
-                            rules=json.loads(subprocess.check_output(['gh','api','repos/GiribaldiTTV/Nexus-Desktop-AI/rules/branches/main'],text=True,timeout=30),object_pairs_hook=unique_current)
-                            pr['capturedReviewPolicy']={'capture':'DIRECT_GITHUB_API','legacyRequiredReviews':protection.get('required_pull_request_reviews',{}).get('required_approving_review_count'),'rulesRequiredReviews':max([rule['parameters']['required_approving_review_count']for rule in rules if rule.get('type')=='pull_request']or[0])}
+                        protection=json.loads(subprocess.check_output(['gh','api','repos/GiribaldiTTV/Nexus-Desktop-AI/branches/main/protection'],text=True,timeout=30),object_pairs_hook=unique_current)
+                        rules=json.loads(subprocess.check_output(['gh','api','repos/GiribaldiTTV/Nexus-Desktop-AI/rules/branches/main'],text=True,timeout=30),object_pairs_hook=unique_current)
+                        if type(protection)is not dict or type(rules)is not list:raise ValueError('invalid direct GitHub requirements capture')
+                        reviews=protection.get('required_pull_request_reviews')or{};legacy_checks=protection.get('required_status_checks')or{}
+                        pull_rules=[rule['parameters']for rule in rules if rule.get('type')=='pull_request']
+                        boolean_values=[reviews.get('require_code_owner_reviews',False),reviews.get('require_last_push_approval',False),(protection.get('required_conversation_resolution')or{}).get('enabled',False)]
+                        boolean_values.extend(row.get(key,False)for row in pull_rules for key in('require_code_owner_review','require_last_push_approval','required_review_thread_resolution'))
+                        if any(type(value)is not bool for value in boolean_values):raise ValueError('malformed direct GitHub policy boolean')
+                        required=[{'context':context,'appId':None}for context in legacy_checks.get('contexts',[])]
+                        required.extend({'context':check['context'],'appId':check.get('app_id')}for check in legacy_checks.get('checks',[]))
+                        for rule in rules:
+                            if rule.get('type')=='required_status_checks':required.extend({'context':check['context'],'appId':check.get('integration_id')}for check in rule['parameters']['required_status_checks'])
+                        pr['capturedReviewPolicy']={'capture':'DIRECT_GITHUB_API','requiredChecks':required,'requiredReviews':max([reviews.get('required_approving_review_count',0)]+[row.get('required_approving_review_count',0)for row in pull_rules]),'requiresAdditionalReview':bool(reviews.get('require_code_owner_reviews',False)or reviews.get('require_last_push_approval',False)or any(row.get('require_code_owner_review',False)or row.get('require_last_push_approval',False)for row in pull_rules)),'requiresResolvedConversations':bool((protection.get('required_conversation_resolution')or{}).get('enabled',False)or any(row.get('required_review_thread_resolution',False)for row in pull_rules))}
+                        if any(row['appId']is not None for row in required):
+                            runs=json.loads(subprocess.check_output(['gh','api','repos/GiribaldiTTV/Nexus-Desktop-AI/commits/'+pr['headRefOid']+'/check-runs?per_page=100'],text=True,timeout=30),object_pairs_hook=unique_current)
+                            if runs['total_count']!=len(runs['check_runs']):raise ValueError('truncated check-provider capture')
+                            pr['capturedProviderRuns']=[{'id':run['id'],'name':run['name'],'head':run['head_sha'],'appId':run['app']['id'],'status':run['status'],'conclusion':run['conclusion']}for run in runs['check_runs']]
+                        if pr['capturedReviewPolicy']['requiresResolvedConversations']:
+                            query='query($number:Int!){repository(owner:"GiribaldiTTV",name:"Nexus-Desktop-AI"){pullRequest(number:$number){reviewThreads(first:100){pageInfo{hasNextPage}nodes{isResolved}}}}}'
+                            threads=json.loads(subprocess.check_output(['gh','api','graphql','-f','query='+query,'-F','number='+str(args.current_pr_number)],text=True,timeout=30),object_pairs_hook=unique_current)['data']['repository']['pullRequest']['reviewThreads']
+                            pr['conversationCaptureComplete']=threads['pageInfo']['hasNextPage']is False
+                            pr['unresolvedReviewThreads']=sum(node['isResolved']is not True for node in threads['nodes'])
                     current=_current_infrastructure_pr_proof(proof['facts'],row,qualification,hashlib.sha256(Path(__file__).read_bytes()).hexdigest().upper(),pr,review)
                     proof.update(current,requestedGate=gate,operationalReadiness=current['result'],currentPR=pr)
                     print(json.dumps(proof,indent=2));return 0 if current['result']=='PASS'else 1
