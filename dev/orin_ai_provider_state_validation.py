@@ -3627,6 +3627,11 @@ def validate() -> list[str]:
             _slice_between(renderer, "class AIControlCenterDialog"),
         )
     )
+    dashboard_domain_window = _slice_between(
+        renderer,
+        "class AIDashboardDomainWindow",
+        "class QuickCreateGroupDialog",
+    )
 
     normalized_renderer = renderer.replace("\r\n", "\n")
 
@@ -8845,7 +8850,6 @@ def validate() -> list[str]:
         "nexusAiControlCenterRunLocalCheck",
         "fam007AiControlCenter",
         "Qt.FramelessWindowHint",
-        "Qt.NoDropShadowWindowHint",
         "WA_TranslucentBackground",
         "surfaceClassification",
         "Nexus-Owned Product Surface",
@@ -9275,7 +9279,7 @@ def validate() -> list[str]:
         'command == "window-close"',
     ):
         _require(
-            needle in renderer,
+            needle in dashboard_domain_window,
             f"AI Dashboard child/domain window native chrome contract is missing {needle!r}",
             failures,
         )

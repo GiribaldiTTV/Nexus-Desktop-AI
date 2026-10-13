@@ -14,6 +14,33 @@
     "degraded-no-provider",
   ];
   let providerState = {};
+  const failClosedBoundaryDefaults = Object.freeze({
+    providerExecutionGateState: "provider-execution-disabled",
+    modelExecutionGateState: "model-execution-disabled",
+    providerVisibleData: "none",
+    sentToProvider: false,
+    canAcceptPrompts: false,
+    networkEgressState: "network-egress-blocked",
+    promptSendPosture: "prompt-send-disabled",
+    promptAcceptance: "disabled",
+    memoryIndexingState: "memory-indexing-disabled",
+    installIntentState: "install-intent-blocked",
+    capabilityPackLifecycleState: "capability-pack-lifecycle-planned",
+    capabilityPackDownloadState: "capability-pack-downloads-blocked",
+    capabilityPackInstallState: "install-blocked",
+    capabilityPackUpdateState: "update-blocked",
+    capabilityPackUninstallState: "uninstall-blocked",
+    developerLaneBoundaryState: "developer-lane-private-setup-blocked",
+    ownerLaneBoundaryState: "owner-lane-private-setup-blocked",
+    privateSetupBoundaryState: "private-setup-blocked",
+    privateSetupAuthorized: false,
+    privateMaterialVisible: false,
+    ownerMemoryEnabled: false,
+    ownerAgentsEnabled: false,
+  });
+  const boundaryValue = (field) => (
+    providerState[field] === undefined ? failClosedBoundaryDefaults[field] : providerState[field]
+  );
   let scrollbarDrag = null;
   let currentReadinessReportText = "";
   const windowControlStates = {
@@ -189,6 +216,9 @@
     }
     let lastActivationAt = 0;
     const activate = (event) => {
+      if (event.type === "pointerup" && event.button !== 0) {
+        return;
+      }
       const now = Date.now();
       if (now - lastActivationAt < 90) {
         return;
@@ -217,9 +247,7 @@
       button.dataset.actionState = "ready";
       button.dataset.launchTarget = doorway;
       button.dataset.launchCommand = command;
-      if (!button.dataset.launchWindowKind || button.dataset.launchWindowKind === "deferred-detached-child") {
-        button.dataset.launchWindowKind = doorway === "readiness-diagnostics" ? "external-unique" : "exclusive-child";
-      }
+      button.dataset.launchWindowKind = doorway === "readiness-diagnostics" ? "external-unique" : "exclusive-child";
     });
   };
   const stripNativeTooltips = () => {
@@ -390,31 +418,29 @@
 
   const buildDashboardViewModel = () => {
     const providerRuntimeBlocked = (
-      providerState.providerExecutionGateState === "provider-execution-disabled"
-      && providerState.modelExecutionGateState === "model-execution-disabled"
+      boundaryValue("providerExecutionGateState") === "provider-execution-disabled"
+      && boundaryValue("modelExecutionGateState") === "model-execution-disabled"
     );
     const promptDisabled = (
-      providerState.promptSendPosture === "prompt-send-disabled"
-      && providerState.promptAcceptance === "disabled"
-      && providerState.memoryIndexingState === "memory-indexing-disabled"
+      boundaryValue("promptSendPosture") === "prompt-send-disabled"
+      && boundaryValue("promptAcceptance") === "disabled"
+      && boundaryValue("memoryIndexingState") === "memory-indexing-disabled"
     );
     const privacyProtected = (
-      providerState.providerVisibleData === "none"
-      && providerState.sentToProvider === false
-      && providerState.networkEgressState === "network-egress-blocked"
+      boundaryValue("providerVisibleData") === "none"
+      && boundaryValue("sentToProvider") === false
+      && boundaryValue("networkEgressState") === "network-egress-blocked"
     );
-  const installBlocked = (
-      String(providerState.installIntentState || "").includes("blocked")
-      || String(providerState.capabilityPackInstallState || "").includes("blocked")
+    const privacyBoundaryProven = ["providerVisibleData", "sentToProvider", "networkEgressState"]
+      .every((field) => providerState[field] === failClosedBoundaryDefaults[field]);
+    const installBlocked = (
+      String(boundaryValue("installIntentState")).includes("blocked")
+      || String(boundaryValue("capabilityPackInstallState")).includes("blocked")
     );
-    const updatesBlocked = String(providerState.capabilityPackUpdateState || "").includes("blocked");
+    const updatesBlocked = String(boundaryValue("capabilityPackUpdateState")).includes("blocked");
     const privateSetupBlocked = (
-      providerState.privateSetupAuthorized === false
-      && providerState.privateMaterialVisible === false
-    );
-    const ownerRuntimeBlocked = (
-      providerState.ownerMemoryEnabled === false
-      && providerState.ownerAgentsEnabled === false
+      boundaryValue("privateSetupAuthorized") === false
+      && boundaryValue("privateMaterialVisible") === false
     );
     const rows = {
       controlCenter: {
@@ -422,9 +448,11 @@
         providerRuntime: providerRuntimeBlocked
           ? "Blocked; no model path active"
           : "Blocked; provider state requires review",
-        privacy: privacyProtected
-          ? "Protected; no provider or third-party tracking"
-          : "Protected; fail-closed boundary mismatch",
+        privacy: !privacyProtected
+          ? "Fail-closed; provider boundary mismatch"
+          : (privacyBoundaryProven
+            ? "Protected; no provider or third-party tracking"
+            : "Fail-closed; provider boundary proof pending"),
       },
       readinessDiagnostics: {
         readinessCheck: "Waiting for USER action",
@@ -451,39 +479,40 @@
       contract: dashboardViewModelContract,
       source: "AIProviderStateSnapshot.as_renderer_payload",
       sourceFields: {
-        providerExecutionGateState: providerState.providerExecutionGateState || "",
-        modelExecutionGateState: providerState.modelExecutionGateState || "",
-        providerVisibleData: providerState.providerVisibleData || "",
-        sentToProvider: providerState.sentToProvider === false ? "false" : String(providerState.sentToProvider || ""),
-        networkEgressState: providerState.networkEgressState || "",
-        promptSendPosture: providerState.promptSendPosture || "",
-        promptAcceptance: providerState.promptAcceptance || "",
-        memoryIndexingState: providerState.memoryIndexingState || "",
-        installIntentState: providerState.installIntentState || "",
-        capabilityPackLifecycleState: providerState.capabilityPackLifecycleState || "",
-        capabilityPackDownloadState: providerState.capabilityPackDownloadState || "",
-        capabilityPackInstallState: providerState.capabilityPackInstallState || "",
-        capabilityPackUpdateState: providerState.capabilityPackUpdateState || "",
-        capabilityPackUninstallState: providerState.capabilityPackUninstallState || "",
-        developerLaneBoundaryState: providerState.developerLaneBoundaryState || "",
+        providerExecutionGateState: String(boundaryValue("providerExecutionGateState")),
+        modelExecutionGateState: String(boundaryValue("modelExecutionGateState")),
+        providerVisibleData: String(boundaryValue("providerVisibleData")),
+        sentToProvider: String(boundaryValue("sentToProvider")),
+        networkEgressState: String(boundaryValue("networkEgressState")),
+        promptSendPosture: String(boundaryValue("promptSendPosture")),
+        promptAcceptance: String(boundaryValue("promptAcceptance")),
+        memoryIndexingState: String(boundaryValue("memoryIndexingState")),
+        installIntentState: String(boundaryValue("installIntentState")),
+        capabilityPackLifecycleState: String(boundaryValue("capabilityPackLifecycleState")),
+        capabilityPackDownloadState: String(boundaryValue("capabilityPackDownloadState")),
+        capabilityPackInstallState: String(boundaryValue("capabilityPackInstallState")),
+        capabilityPackUpdateState: String(boundaryValue("capabilityPackUpdateState")),
+        capabilityPackUninstallState: String(boundaryValue("capabilityPackUninstallState")),
+        developerLaneBoundaryState: String(boundaryValue("developerLaneBoundaryState")),
         developerLaneBoundaryLabel: providerState.developerLaneBoundaryLabel || "",
-        ownerLaneBoundaryState: providerState.ownerLaneBoundaryState || "",
+        ownerLaneBoundaryState: String(boundaryValue("ownerLaneBoundaryState")),
         ownerLaneBoundaryLabel: providerState.ownerLaneBoundaryLabel || "",
-        privateSetupBoundaryState: providerState.privateSetupBoundaryState || "",
-        privateSetupAuthorized: providerState.privateSetupAuthorized === false ? "false" : String(providerState.privateSetupAuthorized || ""),
-        privateMaterialVisible: providerState.privateMaterialVisible === false ? "false" : String(providerState.privateMaterialVisible || ""),
-        ownerMemoryEnabled: providerState.ownerMemoryEnabled === false ? "false" : String(providerState.ownerMemoryEnabled || ""),
-        ownerAgentsEnabled: providerState.ownerAgentsEnabled === false ? "false" : String(providerState.ownerAgentsEnabled || ""),
+        privateSetupBoundaryState: String(boundaryValue("privateSetupBoundaryState")),
+        privateSetupAuthorized: String(boundaryValue("privateSetupAuthorized")),
+        privateMaterialVisible: String(boundaryValue("privateMaterialVisible")),
+        ownerMemoryEnabled: String(boundaryValue("ownerMemoryEnabled")),
+        ownerAgentsEnabled: String(boundaryValue("ownerAgentsEnabled")),
         recoveryLabel: providerState.aiControlCenterRecoveryLabel || "Retry local check only",
       },
+      // A contradictory snapshot cannot enable an unimplemented provider or private action.
       disabledActions: {
-        providerModelExecution: providerRuntimeBlocked,
-        promptSend: promptDisabled,
-        providerVisibleDataEgress: privacyProtected,
-        capabilityInstallDownload: installBlocked,
-        maintenanceUpdateExecution: updatesBlocked,
-        privateSetup: privateSetupBlocked,
-        ownerMemoryAgents: ownerRuntimeBlocked,
+        providerModelExecution: true,
+        promptSend: true,
+        providerVisibleDataEgress: true,
+        capabilityInstallDownload: true,
+        maintenanceUpdateExecution: true,
+        privateSetup: true,
+        ownerMemoryAgents: true,
       },
       recoveryGuidance: {
         label: providerState.aiControlCenterRecoveryLabel || "Retry local check only",
@@ -571,13 +600,23 @@
       .map((item) => (item && typeof item === "object" ? String(item.state || "").trim() : ""))
       .filter(Boolean);
     const complete = requiredStateTaxonomyStates.every((state) => renderedStates.includes(state));
-    const providerVisibleData = String(providerState.providerVisibleData || "none");
-    const promptSendPosture = String(providerState.promptSendPosture || "prompt-send-disabled");
+    const providerVisibleData = String(boundaryValue("providerVisibleData"));
+    const promptSendPosture = String(boundaryValue("promptSendPosture"));
     const diagnosticState = String(providerState.aiControlCenterDiagnosticState || "no-provider-fail-closed");
     const providerExecution = (
-      providerState.providerExecutionGateState === "provider-execution-disabled"
-      && providerState.modelExecutionGateState === "model-execution-disabled"
+      boundaryValue("providerExecutionGateState") === "provider-execution-disabled"
+      && boundaryValue("modelExecutionGateState") === "model-execution-disabled"
     ) ? "blocked-no-model-path" : "blocked-fail-closed";
+    const trustBoundaryFields = [
+      "providerVisibleData", "sentToProvider", "canAcceptPrompts", "promptSendPosture",
+      "promptAcceptance", "networkEgressState", "memoryIndexingState",
+    ];
+    const trustBoundaryMismatch = trustBoundaryFields.some((field) => (
+      providerState[field] !== undefined && providerState[field] !== failClosedBoundaryDefaults[field]
+    ));
+    const trustBoundaryProven = trustBoundaryFields.every((field) => (
+      providerState[field] === failClosedBoundaryDefaults[field]
+    ));
     Object.assign(surface.dataset, {
       stateTaxonomyContract,
       stateTaxonomySource: "AIProviderStateSnapshot.aiControlCenterStateTaxonomy",
@@ -587,12 +626,11 @@
       noProviderState: diagnosticState,
       promptExecutionState: promptSendPosture,
       providerModelRuntimeState: providerExecution,
-      trustBoundaryState: (
-        providerVisibleData === "none"
-        && promptSendPosture === "prompt-send-disabled"
-        && providerState.networkEgressState === "network-egress-blocked"
-        && providerState.memoryIndexingState === "memory-indexing-disabled"
-      ) ? "local-only-no-egress-no-memory-no-cache" : "fail-closed-boundary-mismatch",
+      trustBoundaryState: trustBoundaryMismatch
+        ? "fail-closed-boundary-mismatch"
+        : (trustBoundaryProven
+          ? "local-only-no-egress-no-memory-no-cache"
+          : "fail-closed-no-provider-unverified"),
     });
     document.querySelectorAll("[data-state-taxonomy-contract]").forEach((node) => {
       node.dataset.stateTaxonomyContract = stateTaxonomyContract;
