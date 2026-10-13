@@ -1134,6 +1134,12 @@ class NexusCategoryIcon(QWidget):
             painter.setBrush(Qt.NoBrush)
             painter.drawLine(QPointF(6.0, 8.0), QPointF(6.0, 10.0))
             painter.drawLine(QPointF(3.8, 10.0), QPointF(8.2, 10.0))
+        elif self.icon_kind == "hud":
+            painter.drawRoundedRect(QRectF(1.5, 2.0, 9.0, 7.0), 1.3, 1.3)
+            painter.drawLine(QPointF(3.2, 6.0), QPointF(4.8, 6.0))
+            painter.drawLine(QPointF(4.8, 6.0), QPointF(5.7, 4.0))
+            painter.drawLine(QPointF(5.7, 4.0), QPointF(6.6, 7.0))
+            painter.drawLine(QPointF(6.6, 7.0), QPointF(8.6, 7.0))
         else:
             path = QPainterPath()
             path.moveTo(6.8, 1.5)
@@ -1398,6 +1404,7 @@ class ResidentAccessSettingsDialog(QDialog):
     SETTINGS_FOCUS_ALIASES = {
         "tray": "tray",
         "quick_access": "quick_access",
+        "monitoring_hud": "monitoring_hud",
         "ai_status": "tray",
         "privacy": "tray",
         "owner_routes": "tray",
@@ -1416,6 +1423,7 @@ class ResidentAccessSettingsDialog(QDialog):
         self._settings = load_resident_access_settings()
         self._saved_settings = self._settings
         self._notice_text = ""
+        self._hud_save_failed = False
         self._close_guard_active = False
         self._close_guard_pending_result = None
         self._close_guard_pending_callback = None
@@ -1632,6 +1640,33 @@ class ResidentAccessSettingsDialog(QDialog):
         subpage_layout.addWidget(self.quick_access_nav_item)
         subpage_layout.addStretch(1)
         nav_layout.addWidget(self.subpage_nav_rail)
+
+        self.hud_nav_item = QFrame(self.nav_shell)
+        self.hud_nav_item.setObjectName("residentAccessSettingsCategoryItem")
+        self.hud_nav_item.setProperty("settingsCategoryRole", "selectable-hud-page")
+        self.hud_nav_item.setAttribute(Qt.WA_StyledBackground, True)
+        self.hud_nav_item.setFixedSize(self._settings_nav_pill_width("HUD", "parent"), 28)
+        hud_nav_layout = QHBoxLayout(self.hud_nav_item)
+        hud_nav_layout.setContentsMargins(5, 2, 4, 2)
+        hud_nav_layout.setSpacing(5)
+        self.hud_nav_indicator = QLabel("", self.hud_nav_item)
+        self.hud_nav_indicator.setObjectName("residentAccessSettingsNavIndicator")
+        self.hud_nav_indicator.setFixedSize(2, 18)
+        hud_nav_layout.addWidget(self.hud_nav_indicator)
+        self.hud_nav_icon = NexusCategoryIcon("hud", self.hud_nav_item)
+        self.hud_nav_icon.setObjectName("residentAccessSettingsNavPrimaryIcon")
+        self.hud_nav_icon.setAccessibleName("Monitoring HUD category icon")
+        self.hud_nav_icon.setFixedSize(12, 12)
+        hud_nav_layout.addWidget(self.hud_nav_icon)
+        self.hud_nav_button = QPushButton("HUD", self.hud_nav_item)
+        self.hud_nav_button.setObjectName("residentAccessSettingsCategoryButton")
+        self.hud_nav_button.setCheckable(True)
+        self.hud_nav_button.setMaximumWidth(self._settings_nav_label_width("HUD", "parent"))
+        self.hud_nav_button.setAccessibleName("Open Monitoring HUD Settings")
+        self.hud_nav_button.clicked.connect(lambda: self.set_focus("monitoring_hud"))
+        hud_nav_layout.addWidget(self.hud_nav_button, 1)
+        nav_layout.addWidget(self.hud_nav_item)
+        self._nav_buttons["monitoring_hud"] = self.hud_nav_button
         nav_layout.addStretch(1)
 
         self.nav_boundary = QLabel("", self.nav_shell)
@@ -1733,6 +1768,29 @@ class ResidentAccessSettingsDialog(QDialog):
         tray_overview_layout.addWidget(self.tray_deferred_notice)
         tray_overview_layout.addStretch(1)
         page_layout.addWidget(self.tray_overview_container)
+
+        self.hud_settings_container = QFrame(self.settings_page_frame)
+        self.hud_settings_container.setObjectName("residentAccessHudSettingsContainer")
+        self.hud_settings_container.setAttribute(Qt.WA_StyledBackground, True)
+        hud_settings_layout = QVBoxLayout(self.hud_settings_container)
+        hud_settings_layout.setContentsMargins(12, 10, 12, 12)
+        hud_settings_layout.setSpacing(8)
+        self.hud_status = QLabel("", self.hud_settings_container)
+        self.hud_status.setObjectName("residentAccessHudStatus")
+        hud_settings_layout.addWidget(self.hud_status)
+        self.hud_action = QPushButton("Enable HUD Dashboard", self.hud_settings_container)
+        self.hud_action.setObjectName("residentAccessHudAction")
+        self.hud_action.setAccessibleName("Enable HUD Dashboard")
+        self.hud_action.clicked.connect(self._toggle_monitoring_hud_from_settings)
+        hud_settings_layout.addWidget(self.hud_action, 0, Qt.AlignLeft)
+        self.hud_hint = QLabel(
+            "Your choice is saved on this computer. When enabled, the tray can open or close the HUD Dashboard.",
+            self.hud_settings_container,
+        )
+        self.hud_hint.setObjectName("residentAccessHudHint")
+        self.hud_hint.setWordWrap(True)
+        hud_settings_layout.addWidget(self.hud_hint)
+        page_layout.addWidget(self.hud_settings_container)
 
         self.quick_slot_container = QFrame(self.settings_page_frame)
         self.quick_slot_container.setObjectName("residentAccessQuickSlotContainer")
@@ -2278,11 +2336,13 @@ class ResidentAccessSettingsDialog(QDialog):
             " border-radius: 0;"
             " padding: 2px 0;"
             "}"
-            "#residentAccessTrayOverviewContainer {"
+            "#residentAccessTrayOverviewContainer, #residentAccessHudSettingsContainer {"
             " background: rgba(2, 12, 24, 0.36);"
             " border: 1px solid rgba(118, 226, 255, 0.12);"
             " border-radius: 9px;"
             "}"
+            "#residentAccessHudStatus { color: rgba(244, 250, 255, 0.96); font-size: 13px; font-weight: 850; }"
+            "#residentAccessHudHint { color: rgba(148, 184, 199, 0.90); font-size: 11px; font-weight: 700; }"
             "#residentAccessTrayDeferredNotice {"
             " background: rgba(5, 18, 32, 0.50);"
             " border: 1px solid rgba(117, 228, 255, 0.12);"
@@ -3084,6 +3144,16 @@ class ResidentAccessSettingsDialog(QDialog):
         self._rebuild_quick_slot_rows()
         self._refresh_text()
 
+    def _toggle_monitoring_hud_from_settings(self):
+        state_provider = getattr(self.runtime, "monitoring_hud_feature_state", None)
+        settings_writer = getattr(self.runtime, "_set_monitoring_hud_feature_enabled", None)
+        if not callable(state_provider) or not callable(settings_writer):
+            self._refresh_text()
+            return
+        enabled = bool(state_provider().get("feature_enabled"))
+        self._hud_save_failed = settings_writer(not enabled, source="global_settings") is False
+        self._refresh_text()
+
     def _save_settings(self):
         should_close = self._close_guard_active
         pending_callback = self._close_guard_pending_callback
@@ -3119,7 +3189,9 @@ class ResidentAccessSettingsDialog(QDialog):
         available_slot_limit = self._available_quick_slot_limit()
         self.status_summary.clear()
         self.status_summary.setVisible(False)
-        self.section_heading.setText("Tray" if self._focus == "tray" else "Quick Access")
+        self.section_heading.setText(
+            {"tray": "Tray", "quick_access": "Quick Access", "monitoring_hud": "Monitoring HUD"}[self._focus]
+        )
         self.section_badge.setVisible(False)
         self.slot_count_badge.setText(f"{route_count} of {available_slot_limit}")
         self.slot_count_badge.setVisible(self._focus == "quick_access")
@@ -3131,6 +3203,9 @@ class ResidentAccessSettingsDialog(QDialog):
                     "Tray visibility help and future click behavior settings.",
                 )
             )
+        elif self._focus == "monitoring_hud":
+            self.section_scope.setText("MONITORING / HUD")
+            self.section_detail.setText("Choose whether the optional HUD Dashboard is available.")
         else:
             self.section_scope.setText("NEXUS TRAY / QUICK ACCESS")
             self.section_detail.setText("Choose the shortcuts shown in the tray menu.")
@@ -3163,6 +3238,23 @@ class ResidentAccessSettingsDialog(QDialog):
         self.route_summary.setVisible(False)
         self.tray_overview_container.setVisible(self._focus == "tray")
         self.quick_slot_container.setVisible(self._focus == "quick_access")
+        self.hud_settings_container.setVisible(self._focus == "monitoring_hud")
+        state_provider = getattr(self.runtime, "monitoring_hud_feature_state", None)
+        settings_writer = getattr(self.runtime, "_set_monitoring_hud_feature_enabled", None)
+        hud_available = callable(state_provider) and callable(settings_writer)
+        hud_enabled = bool(state_provider().get("feature_enabled")) if hud_available else False
+        self.hud_status.setText(
+            "HUD Dashboard unavailable in this runtime" if not hud_available
+            else "HUD Dashboard enabled" if hud_enabled else "HUD Dashboard disabled"
+        )
+        self.hud_action.setText("Disable HUD Dashboard" if hud_enabled else "Enable HUD Dashboard")
+        self.hud_action.setAccessibleName(self.hud_action.text())
+        self.hud_action.setEnabled(hud_available)
+        self.hud_hint.setText(
+            "The choice changed for this session, but could not be saved. Try again after checking local storage."
+            if self._hud_save_failed else
+            "Your choice is saved on this computer. When enabled, the tray can open or close the HUD Dashboard."
+        )
         self.subpage_nav_rail.setVisible(self._tray_children_expanded)
         self.tray_expand_button.setChecked(self._tray_children_expanded)
         if hasattr(self.tray_expand_button, "set_glyph"):
@@ -3191,10 +3283,17 @@ class ResidentAccessSettingsDialog(QDialog):
             button.setProperty("navState", "selected" if is_selected else "available")
             button.style().unpolish(button)
             button.style().polish(button)
-        tray_state = "selected" if self._focus == "tray" else "contains-selected"
+        tray_state = (
+            "selected" if self._focus == "tray"
+            else "contains-selected" if self._focus == "quick_access"
+            else "available"
+        )
         self.tray_nav_item.setProperty("navState", tray_state)
+        self.hud_nav_item.setProperty(
+            "navState", "selected" if self._focus == "monitoring_hud" else "available"
+        )
         self.quick_access_nav_item.setProperty("navState", "selected" if self._focus == "quick_access" else "available")
-        for nav_item in (self.tray_nav_item, self.quick_access_nav_item, self.subpage_nav_rail):
+        for nav_item in (self.tray_nav_item, self.quick_access_nav_item, self.subpage_nav_rail, self.hud_nav_item):
             nav_item.style().unpolish(nav_item)
             nav_item.style().polish(nav_item)
         self._refresh_text()
@@ -16154,8 +16253,8 @@ class DesktopRuntimeWindow(QWidget):
 
     def _persist_monitoring_hud_feature_state(self, source: str = "runtime"):
         if self.surface_role != "hud":
-            return
-        save_monitoring_hud_state(
+            return False
+        return save_monitoring_hud_state(
             feature_enabled=bool(self._monitoring_hud_feature_enabled),
             dashboard_visible=bool(self._monitoring_hud_visible and self.isVisible()),
             event_logger=self._log_event,
@@ -16222,7 +16321,7 @@ class DesktopRuntimeWindow(QWidget):
                     cards={},
                 )
         self._set_monitoring_hud_control_state(source=source)
-        self._persist_monitoring_hud_feature_state(source=source)
+        persisted = self._persist_monitoring_hud_feature_state(source=source)
         self._emit_runtime_signal(
             "MONITORING_HUD_FEATURE_STATE_READY",
             package="PKG-006",
@@ -16233,6 +16332,7 @@ class DesktopRuntimeWindow(QWidget):
             dashboard_visible=bool(self.isVisible() and self._monitoring_hud_visible),
             overlay_deferred=True,
         )
+        return persisted
 
     def request_monitoring_hud_unanchor_from_tray(self, source: str = "tray"):
         self._emit_runtime_signal(
