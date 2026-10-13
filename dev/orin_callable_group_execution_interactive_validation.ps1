@@ -527,7 +527,7 @@ function Seed-Fb041Source {
                 id              = "workspace_docs_folder"
                 title           = "Open Workspace Docs"
                 target_kind     = "folder"
-                target          = "C:\Nexus Desktop AI\Docs"
+                target          = (Join-Path $RootDir 'Docs')
                 aliases         = @("workspace docs")
                 invocation_mode = "aliases_only"
                 trigger_mode    = "open"

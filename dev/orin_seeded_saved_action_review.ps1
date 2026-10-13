@@ -66,7 +66,7 @@ function Write-SeededSource {
                 id              = "workspace_docs_folder"
                 title           = "Open Workspace Docs"
                 target_kind     = "folder"
-                target          = "C:\Nexus Desktop AI\Docs"
+                target          = (Join-Path $RootDir 'Docs')
                 aliases         = @("workspace docs")
                 invocation_mode = "aliases_only"
                 trigger_mode    = "open"
@@ -75,7 +75,7 @@ function Write-SeededSource {
                 id              = "open_readme_task"
                 title           = "Open Root README"
                 target_kind     = "file"
-                target          = "C:\Nexus Desktop AI\README.md"
+                target          = (Join-Path $RootDir 'README.md')
                 aliases         = @("root readme")
                 invocation_mode = "aliases_only"
                 trigger_mode    = "open"
@@ -84,7 +84,7 @@ function Write-SeededSource {
                 id              = "open_launcher_source"
                 title           = "Open Desktop Launcher"
                 target_kind     = "file"
-                target          = "C:\Nexus Desktop AI\desktop\orin_desktop_launcher.pyw"
+                target          = (Join-Path $RootDir 'desktop\orin_desktop_launcher.pyw')
                 aliases         = @("desktop launcher")
                 invocation_mode = "aliases_only"
                 trigger_mode    = "open"
@@ -102,7 +102,7 @@ function Write-SeededSource {
                 id              = "open_saved_source"
                 title           = "Open Saved Action Source Module"
                 target_kind     = "file"
-                target          = "C:\Nexus Desktop AI\desktop\saved_action_source.py"
+                target          = (Join-Path $RootDir 'desktop\saved_action_source.py')
                 aliases         = @("saved action source")
                 invocation_mode = "aliases_only"
                 trigger_mode    = "open"
