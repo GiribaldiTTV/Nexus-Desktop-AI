@@ -34,7 +34,6 @@ It does not own:
 - `Docs/nexus_vision.md` owns project-wide AI-native product direction and ORIN experience intent.
 - `Docs/architecture.md` owns current desktop/runtime stack boundaries.
 - `Docs/orin_interaction_architecture.md` owns interaction-system architecture and the shared action model.
-- `Docs/feature_backlog.md` owns family identity and taxonomy placement gates.
 - `Docs/family_visions/FAM-007_local_ai_and_capability_packs.md` owns local AI, provider, capability-pack, and AI runtime family direction.
 - `Docs/family_visions/FAM-008_packaging_and_install_experience.md` owns setup, install, cache-root UX, capability-pack installation, and user education direction.
 - Existing FAM visions own family-local workspace/data and safety/privacy implications when their implementation touches those surfaces.

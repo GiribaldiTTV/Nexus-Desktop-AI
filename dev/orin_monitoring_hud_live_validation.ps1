@@ -1020,8 +1020,8 @@ function Save-Manifest([object]$Paths, [string]$PythonExe) {
         evidenceScope = "Monitoring HUD technical desktop observation; visual quality requires direct inspection"
         visualEvidenceLimit = "Markers, logs, and helper status are diagnostics; they do not establish user-facing visual acceptance"
         exactUserDesktopShortcutLaunchProof = $script:LaunchProof
-        screenshotAndShortVideoObserved = [bool]($script:ScreenshotPath -and $script:ShortVideoProof)
-        userFacingDesktopLauncherObserved = [bool]$script:LaunchProof
+        screenshotAndShortVideoObserved = [bool]($script:ScreenshotPath -and (Test-Path -LiteralPath $script:ScreenshotPath) -and ($script:ShortVideoProof.status -eq "PASS"))
+        userFacingDesktopLauncherObserved = [bool]($script:LaunchProof.status -eq "PASS")
         overlayDisplayAcceptance = "deferred-non-gating"
         coreRepairClassification = "dependency-repair-only"
         dashboardSpecificProof = [pscustomobject]@{
@@ -1044,7 +1044,6 @@ function Save-Manifest([object]$Paths, [string]$PythonExe) {
             dashboardStateModelReady = [bool]$dashboardStateModelReady
             dashboardWarningControlsReady = [bool]$dashboardWarningControlsReady
             noFakeTelemetryPosture = $observedMarkers -contains "MONITORING_HUD_STATUS_BEHAVIOR_READY"
-            userTestSummaryExportRefreshed = $userTestSummaryExportRefreshed
         }
         python = $PythonExe
         runtimeLog = $Paths.RuntimeLog

@@ -7,6 +7,7 @@ This repository is the engineering workspace for `Nexus Desktop AI`.
 `ARIA` remains a future optional persona rather than a currently shipped surface.
 
 This README is a repository orientation document.
+For the repository source-of-truth router, start with [Docs/Main.md](Docs/Main.md).
 
 ## Current Product And Runtime Truth
 

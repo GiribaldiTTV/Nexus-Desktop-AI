@@ -24,7 +24,7 @@ Public, Dev, and Owner editions should feel like one coherent Nexus Desktop AI p
 All editions should preserve the shared core experience:
 
 - same Project Vision and NDAI Product Experience Contract for deterministic, intuitive, immersive, predictable, reliable, and consistent behavior
-- same FAM-002 presentation grammar for Nexus-owned windows, controls, cards, status rows, dropdowns, filters, menus, dialogs, tray-opened surfaces, and window-control clusters unless a deliberate product exception is justified and verified
+- same FAM-002 presentation grammar for Nexus-owned windows, controls, cards, status rows, dropdowns, filters, menus, dialogs, tray-opened surfaces, and window-control clusters unless a deliberate product exception is USER-approved, recorded, justified, and verified
 - same normal workflows for opening Nexus surfaces, using resident actions, managing standard Windows workloads, reviewing settings, seeing blocked/deferred/unavailable states, and recovering from failures when those capabilities are available
 - same privacy and trust posture for local-only, no-provider, provider-assisted, disabled, blocked, degraded, consent-required, troubleshooting, and private-boundary states
 - same backend-to-visual truth rule: UI labels, assistant responses, status rows, and proof claims must reflect the actual runtime/provider/memory/cache/private capability state

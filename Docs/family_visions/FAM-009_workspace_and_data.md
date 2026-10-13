@@ -21,7 +21,7 @@ Workspace and Data should keep Nexus understandable on disk. Evidence, logs, sup
 - AI-related roots should distinguish operational cache, Trust Journal entries, support logs, backups, capability-pack indexes, model/capability-pack assets, and user data instead of collapsing them into one hidden data bucket.
 - Cache corruption recovery should quarantine or rebuild damaged cache with reviewable evidence rather than silently reusing damaged state.
 - Backup/export root guidance must not imply memory, cache, provider data, private Owner material, or capability-pack migration without a later USER-approved package and privacy/safety proof.
-- Explain user-data cleanup and retention before deleting product files; preserve recovery where data loss is possible.
+- Explain cleanup and retention before deleting user data; preserve recovery where data loss is possible.
 
 ## Implementation Boundaries
 
