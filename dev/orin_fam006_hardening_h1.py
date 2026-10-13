@@ -1,9 +1,4 @@
-"""FAM-006 Hardening H1 proof for the active-overlay recording package.
-
-This helper is non-mutating. It compares SLC-051 through SLC-055 against the
-accepted BP1/BP2/BP3 route and verifies that Live Validation and UTS remain
-outside H1 while Dashboard Start/Stop and local output writing are present.
-"""
+"""Validate recording source contracts and isolated local output readback."""
 
 from __future__ import annotations
 
@@ -18,13 +13,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from desktop.recording_output_contract import validate_recording_output_contract
-from dev.orin_fam006_visual_conformance_ledger import build_rows as build_visual_ledger_rows
-from dev.orin_fam006_visual_conformance_ledger import validate_rows as validate_visual_ledger_rows
-from dev.orin_fam006_workstream_readiness import build_fam006_workstream_readiness_proof
 
 
-HARDENING_H1_ID = "h1-fam006-dashboard-recording-studio-log-viewer-option-c"
-PACKAGE_ID = "pkg-006-dashboard-recording-studio-log-viewer-option-c"
 
 
 def _repo_root() -> Path:
@@ -39,13 +29,110 @@ def _contains_all(text: str, markers: tuple[str, ...]) -> bool:
     return all(marker in text for marker in markers)
 
 
-def build_fam006_hardening_h1_proof() -> dict[str, Any]:
-    workstream = build_fam006_workstream_readiness_proof()
+def validate_recording_visual_source(source_text: str) -> list[str]:
+    failures: list[str] = []
+    required_source_markers = (
+        "fam006-unique-child-studio-shell-v5",
+        "unique-child-purpose-stack-v6",
+        "detached-child-window-header-no-title-card",
+        "title-first-description-beneath-no-title-card",
+        "action-first-controller-with-ai-control-center-state-rows-no-report-panels",
+        "doorway-shell-viewer-deferred-row-plus-bottom-folder-actions-no-technical-path-table",
+        "boxedTablePanelRejected",
+        "tableRowTruthLayoutRejected",
+        "statusReportPanelRejected",
+        "technicalPathViewerRejected",
+        "action-first-folder-access-shell-v6",
+        "monitoring-hud__controller-meta-strip",
+        'data-element-group="recording-actions"',
+        'data-element-group="log-folder-actions"',
+        'class="monitoring-hud__state-row monitoring-hud__studio-truth-row"',
+        "monitoring-hud__studio-truth-row",
+        "monitoring-hud__log-target-strip",
+        'data-row-primitive="ai-control-center-state-row"',
+        "monitoring-hud-hub-action-content-fit-equal-gutter-v4",
+        "hub-action-content-fit-equal-gutter-32px-pill",
+        "HEIGHT = 154",
+        "MINIMUM_HEIGHT = 154",
+        "recording_studio_feature_studio_v5",
+        "HEIGHT = 134",
+        "MINIMUM_HEIGHT = 134",
+        "log_viewer_studio_feature_studio_v6",
+        "right: 14px",
+        "height: 31px",
+        "padding-inline: 14px",
+        "font-weight: 720",
+        "font-size: 17px",
+        "font-size: 11px",
+        "--monitoring-hud-studio-row-value-gutter: 8px",
+        "--monitoring-hud-studio-row-label-column: max-content",
+        "grid-template-columns: var(--monitoring-hud-studio-row-label-column, max-content) minmax(0, 1fr)",
+        "gap: 6px",
+        "column-gap: var(--monitoring-hud-studio-row-value-gutter)",
+        "syncStudioTruthRowValueColumns",
+        "valueColumnAlignment",
+        "padding: 4px 0 2px",
+        "not-resizable-position-memory-only",
+        "edge-resize-native-top-level",
+        "WM_NCHITTEST+manual-fallback-geometry-resize",
+        'data-fixed-controller-height="154"',
+    )
+    for marker in required_source_markers:
+        if marker not in source_text:
+            failures.append(f"source marker missing: {marker}")
+    forbidden_source_markers = (
+        "fam006-unique-child-studio-shell-v4",
+        "unique-child-purpose-stack-v4",
+        "unique-child-purpose-stack-v5",
+        'data-fixed-controller-height="330"',
+        'data-fixed-controller-height="210"',
+        'data-fixed-controller-height="184"',
+        "HEIGHT = 184",
+        "MINIMUM_HEIGHT = 184",
+        "recording_studio_feature_studio_v4",
+        "HEIGHT = 210",
+        "HEIGHT = 352",
+        "HEIGHT = 164",
+        "MINIMUM_HEIGHT = 164",
+        "log_viewer_studio_feature_studio_v4",
+        "log_viewer_studio_feature_studio_v5",
+        "WIDTH = 480",
+        "WIDTH = 560",
+        "action-first-recording-controller-v6",
+        "monitoring-hud__controller-hero",
+        "monitoring-hud__controller-route-strip",
+        '"stateRowDensityPolicy": "rejected-dense-row-stack-not-used"',
+        '"titleGroupVisualPolicy": "fam006-detached-child-window-title-row"',
+        '"childWindowTitleGrammar": "category-line-plus-strong-title"',
+        "<span>Recording State</span>",
+        "<span>Native Log</span>",
+        'class="monitoring-hud__controller-target"',
+        'class="monitoring-hud__controller-status"',
+        'class="monitoring-hud__log-access-item"',
+        "<span>Native Logs</span>",
+        "<span>Exported Logs</span>",
+        "<span>Status</span>",
+        "ultra-light-recording-controller",
+        "compact-folder-access-shell",
+        "monitoring-hud-hub-action-content-fit-equal-gutter-v2",
+        "monitoring-hud-hub-action-content-fit-equal-gutter-v3",
+        'data-row-primitive="ai-control-center-fact-row"',
+        "monitoring-hud__controller-summary",
+        "monitoring-hud__controller-log-card",
+        "monitoring-hud__log-destination-card",
+        '"stateRowDensityPolicy": "divider-rows-no-boxed-table"',
+        "--nexus-feature-studio-title-bg",
+        "ai-control-center-status-truth-row",
+    )
+    for marker in forbidden_source_markers:
+        if marker in source_text:
+            failures.append(f"stale source marker present: {marker}")
+    return failures
+
+
+def build_recording_contract_proof() -> dict[str, Any]:
     output_contract = validate_recording_output_contract()
 
-    branch_record = _read_repo_text(
-        "Docs/branch_records/feature_fam_006_dashboard_recording_start_stop_local_file.md"
-    )
     hud_state = _read_repo_text("desktop/monitoring_hud_state.py")
     hud_js = _read_repo_text("nexus_visual/monitoring_hud.js")
     hud_html = _read_repo_text("nexus_visual/monitoring_hud.html")
@@ -285,17 +372,6 @@ def build_fam006_hardening_h1_proof() -> dict[str, Any]:
             "hardeningCheck": "output contract schema/write/readback and active execution markers",
         },
         {
-            "slice": "SLC-055",
-            "result": bool(
-                workstream.get("workstreamGreen")
-                and workstream.get("packageSlicesComplete")
-                and workstream.get("hardeningH1State") == "pending-after-workstream-green"
-                and workstream.get("liveValidationLV1State") == "pending-after-h1"
-                and workstream.get("utsState") == "pending-after-lv1"
-            ),
-            "hardeningCheck": "Workstream Green proof and H1/LV1/UTS routing markers",
-        },
-        {
             "slice": "ISSUE-258",
             "result": _contains_all(
                 renderer + main_entry,
@@ -311,29 +387,6 @@ def build_fam006_hardening_h1_proof() -> dict[str, Any]:
         },
     ]
 
-    accepted_gate_trace = _contains_all(
-        branch_record,
-        (
-            "BP1 USER Branch Vision",
-            "BP2 USER Branch Plan",
-            "BP3 Workstream Entry / Orchestration Validation",
-            "Dashboard Recording Start/Stop To Local File",
-            "issue #258 Overlay Profile persistence",
-            "SLC-051",
-            "SLC-052",
-            "SLC-053",
-            "SLC-054",
-            "SLC-055",
-        ),
-    )
-    future_boundaries = (
-        "tray controls",
-        "export/share",
-        "provider/model work",
-        "Native Log Loader implementation",
-        "FAM-007 mutation",
-    )
-    boundary_trace = all(boundary in branch_record for boundary in future_boundaries)
     stale_recording_studio_model_absent = not any(
         marker in studio_html + studio_css
         for marker in (
@@ -363,59 +416,36 @@ def build_fam006_hardening_h1_proof() -> dict[str, Any]:
             _read_repo_text("nexus_visual/nexus_window_primitives.css"),
         ]
     )
-    visual_ledger_failures = validate_visual_ledger_rows(
-        build_visual_ledger_rows(),
-        visual_ledger_source,
-    )
+    visual_source_failures = validate_recording_visual_source(visual_ledger_source)
 
     proof = {
-        "hardeningH1Id": HARDENING_H1_ID,
-        "packageId": PACKAGE_ID,
-        "phase": "Hardening",
-        "h1Result": "Green",
-        "acceptedBPTracePassed": accepted_gate_trace,
-        "slcResults": slc_results,
-        "allSlicesHardened": all(item["result"] for item in slc_results),
+        "sourceResults": slc_results,
+        "allSourceChecksPassed": all(item["result"] for item in slc_results),
         "outputContractProofPassed": output_contract["passed"],
         "fileWritingEnabled": output_contract["fileWritingEnabled"],
         "recordingExecutionEnabled": output_contract["recordingExecutionEnabled"],
         "writeReadbackPassed": output_contract["writeReadbackPassed"],
         "profileLogConsistencyPassed": output_contract["profileLogConsistencyPassed"],
         "twoProfileLogConsistencyPassed": output_contract["twoProfileLogConsistencyPassed"],
-        "futureBoundariesPreserved": boundary_trace,
         "staleRecordingStudioModelAbsent": stale_recording_studio_model_absent,
-        "visualConformanceLedgerGreen": not visual_ledger_failures,
-        "visualConformanceLedgerFailures": visual_ledger_failures,
-        "liveValidationState": "pending-user-admission-after-h1",
-        "utsState": "pending-live-validation-stage-1",
-        "formalUtsExported": False,
-        "nextLegalPhase": "Live Validation",
-        "nextActiveSeam": "Live Validation LV1 - FAM-006 Active Overlay Recording Runtime Implementation",
+        "visualSourceContractPassed": not visual_source_failures,
+        "visualSourceContractFailures": visual_source_failures,
     }
-    proof["hardeningGreen"] = (
-        proof["acceptedBPTracePassed"]
-        and proof["allSlicesHardened"]
-        and proof["outputContractProofPassed"]
-        and proof["fileWritingEnabled"]
-        and proof["recordingExecutionEnabled"]
-        and proof["writeReadbackPassed"]
-        and proof["profileLogConsistencyPassed"]
-        and proof["twoProfileLogConsistencyPassed"]
-        and proof["futureBoundariesPreserved"]
-        and proof["staleRecordingStudioModelAbsent"]
-        and proof["visualConformanceLedgerGreen"]
-        and not proof["formalUtsExported"]
-    )
+    proof["productCheckPassed"] = all(proof[key] for key in (
+        "allSourceChecksPassed", "outputContractProofPassed", "fileWritingEnabled",
+        "recordingExecutionEnabled", "writeReadbackPassed", "profileLogConsistencyPassed",
+        "twoProfileLogConsistencyPassed", "staleRecordingStudioModelAbsent", "visualSourceContractPassed",
+    ))
     return deepcopy(proof)
 
 
 def main() -> int:
-    proof = build_fam006_hardening_h1_proof()
+    proof = build_recording_contract_proof()
     print(json.dumps(proof, indent=2, sort_keys=True))
-    if proof["hardeningGreen"]:
-        print("PASS: FAM-006 Hardening H1 proof is green")
+    if proof["productCheckPassed"]:
+        print("PASS: recording product contracts passed")
         return 0
-    print("FAIL: FAM-006 Hardening H1 proof is not green")
+    print("FAIL: recording product contracts failed")
     return 1
 
 

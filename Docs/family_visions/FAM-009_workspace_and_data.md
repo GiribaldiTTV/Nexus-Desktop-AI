@@ -4,7 +4,7 @@
 
 This file is retained only as no-loss source material while workspace/data direction is folded into existing backlog-family visions and architecture owners.
 
-It is not an active backlog family, not a worktree lane, not a package owner, and not a FAM number reservation. The next USER-approved backlog family may reuse the next available FAM number after `FAM-008`.
+This is retained product-design source, not a standalone active feature family. Workspace and data requirements apply within the product features that own the affected files or user flows.
 
 Workspace layout, data roots, logs/evidence organization, support bundles, dev-toolkit data intake, and local file hygiene now fold into the implementing family vision and `Docs/ai_runtime_and_trust_architecture.md` where relevant.
 
@@ -21,18 +21,15 @@ Workspace and Data should keep Nexus understandable on disk. Evidence, logs, sup
 - AI-related roots should distinguish operational cache, Trust Journal entries, support logs, backups, capability-pack indexes, model/capability-pack assets, and user data instead of collapsing them into one hidden data bucket.
 - Cache corruption recovery should quarantine or rebuild damaged cache with reviewable evidence rather than silently reusing damaged state.
 - Backup/export root guidance must not imply memory, cache, provider data, private Owner material, or capability-pack migration without a later USER-approved package and privacy/safety proof.
-- Treat workspace cleanup and branch/worktree deletion as USER-gated operations with no unique commit loss proof.
+- Explain cleanup and retention before deleting user data; preserve recovery where data loss is possible.
 
 ## Implementation Boundaries
 
 - This vision does not admit cleanup, deletion, data migration, support-bundle behavior changes, or GitHub Desktop rebinding by itself.
-- Future workspace/data implementation must be owned by the backlog family whose surface is changing, with Branch Readiness approval and explicit cleanup/recovery proof.
+- Workspace/data behavior belongs to the feature that creates, reads, exports, or deletes that data and must include safe cleanup and recovery.
 
-## Fold Targets
+## Related Product Design
 
-- Project vision: `Docs/nexus_vision.md`
-- AI runtime and trust architecture: `Docs/ai_runtime_and_trust_architecture.md`
-- Backlog registry: `Docs/feature_backlog.md`
-- Existing FAM vision records when their implementation touches workspace/data roots, evidence, cache storage, support bundles, or cleanup
-- Historical workspace/data trace: `Docs/workstreams/FB-005_workspace_and_folder_organization.md`
-- Worktree slot registry: `Docs/worktree_slots.md`
+- `Docs/nexus_vision.md` for the overall experience.
+- `Docs/ai_runtime_and_trust_architecture.md` for AI data, cache, and privacy boundaries.
+- The affected feature document for any actual workspace, data-root, support-export, or cleanup behavior.

@@ -5,9 +5,8 @@ Reference Name: `Nexus Compact Window Control Cluster`
 Reference Class: `Window Control Cluster`
 Owning Vision Layer: `Project UI Vision -> FAM-002 Desktop Interface -> F2-FF01 Nexus UI Reference System`
 
-Source Evidence: Consolidated Package A-E proof-collection and runtime-proof receipts in `Docs/branch_records/feature_release_readiness_source_truth_intake.md`, PR #269 AI Control Center control-cluster evidence, FAM-002 Top-Level Window Control Grammar, and the Package A-E USER review packets recorded in this branch's source-truth receipts.
+Related Product References: `Docs/nexus_vision.md`, `Docs/family_visions/FAM-002_desktop_interface.md`, and `Docs/family_feature_visions/F2-FF01.md`.
 
-USER Acceptance Receipt: `2026-06-17 USER approved bounded completion until all Package A-E lanes are green, with the FAM-007 AI Control Center compact control pill accepted as the strongest available standard seed while preserving known proof limitations.`
 
 Applicable Surface Classes: `Nexus-owned top-level, standalone, restorable, independently opened, movable, resizable, or geometry-persisted product windows where close, minimize, maximize, restore, drag, or resize controls are meaningful.`
 
@@ -21,12 +20,7 @@ Geometry / Resize / Accessibility Expectations: `Controls must remain compact, c
 
 Proof Artifacts: `FAM-007 close-hover and default control screenshots provide accepted proof seed. The recorded duplicate minimize-hover screenshot remains a known limitation rather than independent minimize-hover proof.`
 
-Known Limitations: `Independent minimize-hover, maximize/restore, disabled, focus, pressed, and hitbox proof is incomplete in current evidence. This limitation is accepted for reference promotion with the rule that consuming branches must prove any state they claim or request USER waiver.`
+Known Limitations: `Independent visual evidence for minimize-hover, maximize/restore, disabled, focus, pressed, and hitbox states is incomplete. Consuming features must substantiate only the states they actually verify and identify unproven states as incomplete.`
 
-Adoption Rule: `Top-level Nexus product windows should use UIREF-002 for window-level controls or record why a large labeled CLOSE/back/cancel action is a modal, child, footer, content, proof/dev, platform-native, or USER-approved exception.`
 
 Validator / Helper Guidance: `Future helpers should flag default OS chrome, large header CLOSE on a top-level window without exception, missing minimize/maximize applicability, missing accessibility label proof, and screenshots that claim hover state while hashing identically to default state.`
-
-Promotion Result: `PROMOTED_WITH_KNOWN_LIMITATIONS`
-
-Final Disposition: `Package A window-control cluster reference green for Governance source-truth promotion. Consuming branches still own feature-specific implementation and state proof.`

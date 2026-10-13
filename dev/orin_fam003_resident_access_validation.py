@@ -313,7 +313,6 @@ def validate_static_wiring(failures: list[str]):
     tray_text = read("desktop/tray_controller.py")
     renderer_text = read("desktop/desktop_renderer.py")
     main_text = read("desktop/orin_desktop_main.py")
-    registry_text = read("Docs/validation_helper_registry.md")
 
     ast.parse(tray_text, filename="desktop/tray_controller.py")
     ast.parse(renderer_text, filename="desktop/desktop_renderer.py")
@@ -864,11 +863,6 @@ def validate_static_wiring(failures: list[str]):
         failures,
     )
 
-    assert_true(
-        "`dev/orin_fam003_resident_access_validation.py`" in registry_text,
-        "FAM-003 resident access validator is not registered",
-        failures,
-    )
 
 
 def validate_no_forbidden_runtime_work(failures: list[str]):

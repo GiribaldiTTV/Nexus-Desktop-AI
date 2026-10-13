@@ -21,11 +21,10 @@ External integrations should make Nexus more useful without turning outside trig
 
 - This vision does not admit a plugin runtime, external API execution, or third-party monitoring.
 - This vision does not admit provider/model execution, external AI calls, private connector setup, or AI Product Contract import by itself.
-- Active integration work needs Branch Readiness approval for security, privacy, validation, and user-facing proof.
+- External triggers require authenticated origin, bounded authority, privacy protection, failure handling, and a truthful user-facing result.
 
 ## Canonical Pointers
 
 - Project vision: `Docs/nexus_vision.md`
 - AI runtime and trust architecture: `Docs/ai_runtime_and_trust_architecture.md`
 - Backlog registry: `Docs/feature_backlog.md`
-- Durable workstream owner: `Docs/workstreams/FB-039_external_trigger_plugin_integration_architecture.md`

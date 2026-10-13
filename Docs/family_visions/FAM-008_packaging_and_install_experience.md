@@ -31,8 +31,8 @@ Packaging and install work should make Nexus easier to install, launch, update, 
 - This vision does not admit installer creation, shortcut mutation, model/capability-pack downloads, update execution, or release artifact work.
 - This vision does not admit patcher creation, auto-update execution, restart automation, rollback execution, or always-on Owner AI continuity behavior.
 - This vision does not admit tray pinning, resident icon startup registration, or Windows notification-area settings mutation by itself.
-- Active packaging work requires Branch Readiness approval and packaging/install-specific validation proof.
-- Cross-FAM install/update/patch impacts are durable dependency candidates or platform-contract context unless Branch Readiness admits dependency-bounded work, a coordinated cross-FAM patch, or a repo-wide migration / halt through `Docs/phase_governance.md`.
+- Verify installer, shortcut, update, repair, restart continuity, and recovery behavior on the supported target systems.
+- Installation and update changes must preserve compatible product data and the affected feature contracts across families.
 
 ## Canonical Pointers
 

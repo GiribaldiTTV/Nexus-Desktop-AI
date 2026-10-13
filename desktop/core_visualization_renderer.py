@@ -1,4 +1,3 @@
-# NEXUS-SOURCE-OWNER: schema=source-owner-v1; owner=SHARED-DESKTOP-CORE; ledger=SRCOWN-FIRSTPASS-SHARED-DESKTOP-009; surface=core-visualization-provider-state-publisher; status=shared
 import json
 import os
 

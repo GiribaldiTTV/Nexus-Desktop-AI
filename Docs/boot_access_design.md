@@ -9,7 +9,6 @@ It also does not own:
 
 - backlog identity
 - roadmap sequencing
-- workstream execution history
 
 Use it for future boot-access planning boundaries only.
 

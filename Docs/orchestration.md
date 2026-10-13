@@ -8,7 +8,6 @@ It does not own:
 
 - backlog identity
 - roadmap sequencing
-- workstream execution history
 
 Use it for orchestration behavior and boundary truth.
 
@@ -117,10 +116,3 @@ Future orchestration work may later expand upward into:
 But current merged orchestration truth remains the desktop launcher stack.
 
 Any future higher layer must consume launcher truth downstream rather than rewriting launcher-owned outcomes.
-
-## Relationship To Other Canon Layers
-
-- use `Docs/architecture.md` for system-level boundaries
-- use `Docs/nexus_vision.md` for product intent
-- use `Docs/boot_access_design.md` for future boot and access planning
-- use `Docs/workstreams/...` for promoted-lane execution and closure records

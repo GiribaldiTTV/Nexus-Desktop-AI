@@ -11,16 +11,14 @@ Use it to decide when display surfaces should use:
 - `Operational Response and Intelligence Nexus`
 
 It is a presentation and wording guide only.
-It does not own rollout sequencing, workstream status, repo-wide identifier changes, or broad source rewrites by itself.
+It describes visible product naming; implementation details live with the affected feature.
 
 ## Relationship To The Source-Of-Truth Stack
 
 This document is a reference layer under:
 
-- `Docs/Main.md` for routing
 - `Docs/nexus_vision.md` for product and persona identity
 - `Docs/architecture.md` and `Docs/orchestration.md` for boundary truth
-- backlog, roadmap, and workstream docs for tracked work and sequencing
 
 It should be used to support wording decisions, not to replace those layers.
 
@@ -118,7 +116,5 @@ Do not assume the exact ARIA presentation rules are finalized yet.
 
 This document should not be used to:
 
-- decide whether a workstream is active or closed
 - decide when a naming change ships
-- restate backlog, roadmap, or workstream execution detail
 - rewrite preserved historical records that intentionally keep older naming

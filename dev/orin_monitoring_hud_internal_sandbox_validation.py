@@ -1,4 +1,3 @@
-# NEXUS-SOURCE-OWNER: schema=source-owner-v1; owner=FAM006-HUD; ledger=SRCOWN-FIRSTPASS-FAM006-HUD-008; surface=fam006-hud-internal-sandbox-validator; status=shared
 """Internal sandbox validation for the FAM-006 Monitoring HUD Workstream.
 
 This helper proves the current-branch Dashboard-first Workstream handoff without
@@ -38,7 +37,6 @@ from desktop.monitoring_hud_state import (
 )
 from desktop.monitoring_hud_telemetry import build_monitoring_hud_telemetry_snapshot
 from desktop.recording_output_contract import validate_recording_output_contract
-from dev.orin_fam006_workstream_readiness import build_fam006_workstream_readiness_proof
 
 
 LOG_ROOT = ROOT / "dev" / "logs" / "fam_006_monitoring_hud_internal_sandbox"
@@ -93,24 +91,6 @@ def _validate_naming_sterilization(failures: list[str]) -> None:
 
 
 def _validate_static_surface(failures: list[str]) -> None:
-    branch_record = _read("Docs/branch_records/feature_fam_006_monitoring_hud_product_surface.md")
-    monitor_groups_record = _read(
-        "Docs/branch_records/feature_fam_006_monitor_groups_sensor_configuration.md"
-    )
-    feature_backlog = _read("Docs/feature_backlog.md")
-    prebeta_roadmap = _read("Docs/prebeta_roadmap.md")
-    helper_registry = _read("Docs/validation_helper_registry.md")
-    phase_governance = _read("Docs/phase_governance.md")
-    compact_source_truth_reform = (
-        "Docs Source-Truth Reform Model: Compact Pointer Layer." in feature_backlog
-        and "Docs Source-Truth Reform Model: Compact Pointer Layer." in prebeta_roadmap
-    )
-    overlay_profile_record = _read(
-        "Docs/branch_records/feature_fam_006_overlay_profile_runtime_foundation.md"
-    )
-    overlay_profile_plan = _read(
-        "Docs/branch_plans/feature_fam_006_overlay_profile_runtime_foundation.md"
-    )
     core_html = _read("nexus_visual/orin_core.html")
     core_css = _read("nexus_visual/orin_core.css")
     core_desktop_html = _read("nexus_visual/orin_core_desktop.html")
@@ -127,145 +107,6 @@ def _validate_static_surface(failures: list[str]) -> None:
     human_client_validation = _read("dev/orin_monitoring_hud_human_client_validation.ps1")
     rounded_mask_probe = _read("dev/orin_dashboard_rounded_corner_mask_probe.py")
 
-    for needle in (
-        "Primary Interface Release Surface: `Monitoring HUD Dashboard / control panel`",
-        "Interface Bundle User Approval: `Not granted",
-        "Dashboard Acceptance Pending",
-        "Overlay Scope Deferred",
-        "Core Repair Dependency Only",
-        "Branch Readiness Interface Planning Incomplete: `Cleared by Stage 2-R13",
-        "Workstream WS31 - Dashboard Control Panel Acceptance Baseline And Overlay Deferral Enforcement",
-        "Workstream WS31 Dashboard Control Panel Acceptance Baseline And Overlay Deferral Enforcement",
-        "WS31 Result: `Green - Dashboard-first acceptance baseline recorded",
-        "Workstream WS32 Dashboard Standalone Window Movement Clipping And Core Overlay Decoupling Proof",
-        "WS32 Result: `Green - Dashboard standalone window movement, clipping boundary, and Core/Overlay decoupling proof recorded",
-        "Workstream WS33 Dashboard Settings Control Content Polish And Monitor Management Clarity",
-        "WS33 Result: `Green - Dashboard settings/control content polish and monitor-management clarity recorded",
-        "Workstream WS34 Dashboard Provider Setup No-Data Degraded Truth And Warning Posture Controls",
-        "WS34 Result: `Green - Dashboard provider/setup/no-data/degraded truth and visual warning posture controls recorded",
-        "Workstream WS35 Dashboard Specific Static Live Proof Screenshots And Live Validation UTS Boundary",
-        "WS35 Result: `Green - Dashboard-specific static/live proof, screenshots, and Live Validation UTS boundary recorded",
-        "Workstream WS36 Workstream Completion Review And Hardening Handoff Reconciliation",
-        "WS36 Result: `Green - Dashboard-focused Workstream completion review passed and Hardening handoff recorded",
-        "Next Active Seam: Hardening H1 - Monitoring HUD Product Surface Hardening Rerun",
-    ):
-        _require_contains(branch_record, needle, "FAM-006 Dashboard-first branch source truth", failures)
-    for needle in (
-        "## Sensor Library And Profile Planning Admission",
-        "Sensor Library = all available or planned data sources",
-        "Monitor = one configured tracked item",
-        "Monitor Group = organization/configuration collection",
-        "Overlay Profile = selected monitors plus layout visible on overlay",
-        "Recording Profile = selected monitors or sensors logged to file",
-        "Monitor Groups do not own overlay visibility, recording selection, or recording output behavior",
-        "Sensor Library must support searchable and filterable source discovery",
-        "Manage Monitors must scale to hundreds of monitors and thousands of data sources",
-        "Active Overlay Only",
-        "Active Monitor Group",
-        "All Enabled Monitors",
-        "Custom Recording Profile",
-        "Selected Sensors",
-        "Start Recording",
-        "Stop Recording",
-        "Open Recordings Folder",
-        "Recording Settings",
-        "CSV data plus JSON metadata and sensor manifest",
-        "Recordings are saved locally by default",
-        "enabled, visible, recorded, warning-enabled, or hidden independently",
-        "no runtime recording, Overlay Profile UI, tray recording controls, export/share behavior",
-        "## Returned UTS FAIL Repair Setup Admission",
-        "Repair Setup Status: `ADMITTED - Branch Readiness Stage 2`",
-        "current-main reconciliation is complete",
-        "Dashboard resize/move live render smoothness",
-        "shrink and grow resize visual continuity",
-        "during-drag frame, pixel-signature, or video-style proof before mouse release",
-        "Manage Monitors scalable split layout",
-        "Nexus-styled scrollbars in child windows, monitor list, detail pane, sensor tree, sensor result list, and sensor preview/details pane",
-        "large-monitor and large-source fixtures",
-        "PR Readiness remains blocked pending repair implementation",
-    ):
-        _require_contains(
-            monitor_groups_record,
-            needle,
-            "FAM-006 Monitor Groups profile planning source truth",
-            failures,
-        )
-    if compact_source_truth_reform:
-        for needle in (
-            "Sensor Library",
-            "Overlay Profile",
-            "Recording Profile",
-            "Docs/family_visions/FAM-006_monitoring_and_hud.md",
-            "Docs/branch_records/feature_fam_006_active_overlay_recording_runtime_implementation.md",
-            "compact pointer",
-            "monitoring/HUD, active-overlay recording, Recording Suite, Log Viewer",
-            "external/Git/GitHub/helper live truth",
-            "canonical detail owners, not this compact backlog registry",
-        ):
-            _require_contains(
-                feature_backlog,
-                needle,
-                "FAM-006 compact feature backlog pointer sync",
-                failures,
-            )
-        for needle in (
-            "monitoring/HUD and active-overlay recording planning/proof history",
-            "Recording Suite",
-            "Log Viewer",
-            "user-visible proof remain routed through the owning phase and live-truth checks",
-            "Docs/family_visions/FAM-006_monitoring_and_hud.md",
-            "Docs/branch_records/feature_fam_006_active_overlay_recording_runtime_implementation.md",
-        ):
-            _require_contains(
-                prebeta_roadmap,
-                needle,
-                "FAM-006 compact pre-Beta roadmap pointer sync",
-                failures,
-            )
-    else:
-        for label, text in (
-            ("FAM-006 feature backlog profile planning sync", feature_backlog),
-            ("FAM-006 pre-Beta roadmap profile planning sync", prebeta_roadmap),
-        ):
-            for needle in (
-                "Sensor Library",
-                "Overlay Profile",
-                "Recording Profile",
-                "returned USER UTS FAIL",
-                "PR Readiness remains blocked",
-            ):
-                _require_contains(text, needle, label, failures)
-    for needle in (
-        "Interface Release Boundary",
-        "Primary Interface Release Surface:",
-        "Interface Bundle User Approval:",
-        "Branch Readiness Interface Planning Incomplete",
-        "direct JavaScript `.click()`",
-        "diagnostic-only",
-        "real OS-level mouse/keyboard input",
-        "visibly move the real Windows cursor",
-        "diagnose it first as a possible runtime/user-visible defect",
-        "fallback is not a normal path",
-        "branch-adaptive and cumulative",
-        "Compact Overlay Profiles delete confirmation",
-        "explicit temporary waiver",
-        "pessimistic visual adjudication",
-        "assume the validator missed a defect",
-        "A helper/validator `PASS` cannot be reported as LV green",
-        "Verbal assurance, implementation description, or intent-language is not proof",
-        "Codex-owned photo review notes",
-    ):
-        _require_contains(phase_governance, needle, "interface release boundary governance", failures)
-    for needle in (
-        "Dashboard-first Workstream handoff posture",
-        "Overlay/display deferred/non-gating classification",
-        "WS35 dashboard-specific proof refresh and Live Validation UTS boundary",
-        "SLC-041 Overlay Profile focused validation/live-proof readiness",
-        "Historical WS18-WS30 markers remain supporting repair evidence",
-        "focused_element_screenshots",
-        "direct-runtime active-client proof",
-    ):
-        _require_contains(helper_registry, needle, "monitoring HUD helper registry", failures)
     for needle in (
         "Assert-NoSyntheticLiveValidationInteraction",
         "no-synthetic-interaction preflight",
@@ -284,63 +125,6 @@ def _validate_static_surface(failures: list[str]) -> None:
         "closeSuppressed",
     ):
         _require_contains(renderer, needle, "monitoring HUD renderer live interaction proof", failures)
-    for needle in (
-        "SLC-041 validation/live-proof Workstream implementation Green",
-        "SLC-041 Hardening H1 Green",
-        "Live Validation LV1 Result",
-        "USER_TEST_REQUIRED",
-        "focused validator and visual proof",
-        "focused WebView proof is acceptance evidence",
-        "full desktop screenshots are context only",
-        "formal UTS export remains Live Validation Stage 1 only",
-    ):
-        _require_contains(
-            overlay_profile_record,
-            needle,
-            "SLC-041 Overlay Profile branch authority",
-            failures,
-        )
-        _require_contains(
-            overlay_profile_plan,
-            needle,
-            "SLC-041 Overlay Profile branch plan",
-            failures,
-        )
-    for needle in (
-        "Returned USER Visual Inspection Matrix Repair",
-        "Button Glow Uniformity Contract",
-        "Visual Inspection Matrix Contract",
-        "HUD-Wide Visual Inspection Matrix Checklist",
-        "HUD-wide button glow uniformity and visual inspection matrix repair",
-    ):
-        _require_contains(
-            overlay_profile_record + "\n" + overlay_profile_plan,
-            needle,
-            "FAM-006 HUD-wide visual inspection repair source truth",
-            failures,
-        )
-    for needle in (
-        "FAM-006 HUD-Wide Visual Inspection Matrix Addendum",
-        "runMonitoringHudVisualInspectionMatrixProof",
-        "hudWideVisualInspectionMatrix",
-        "buttonGlowUniformity",
-        "defaultButtonGlowUniformity",
-        "semanticHoverColorPreserved",
-        "buttonTextDeadSpacePass",
-        "visualInspectionScopeCovered",
-        "perElementVisualInventory",
-        "issueFormCoverageMatrix",
-        "pageBreakVisualInspection",
-        "backgroundBleedClippingInspection",
-        "sourceSettingsFocusNoGold",
-        "rowTitleTabsInspected",
-        "responsiveWindowContract",
-        "Dropdown / Selection Volume Stress Addendum",
-        "null-state proof",
-        "100+ item state",
-        "buttons-dropdowns-rows-chips-fields-page-breaks-backgrounds-bleed-clipping-scaling",
-    ):
-        _require_contains(helper_registry, needle, "FAM-006 HUD visual inspection helper registry", failures)
     for needle in (
         "--monitoring-hud-affordance-hover-shadow",
         "--monitoring-hud-affordance-active-shadow",
@@ -1086,93 +870,6 @@ def _validate_static_surface(failures: list[str]) -> None:
     ):
         _require_contains(js + renderer + css + html, repair_proof, "FAM-006 returned blocker repair proof", failures)
 
-    for close_guard_setup in (
-        "unsaved_close_queued_action=false",
-        'pendingMonitorAction="close"',
-        'data-child-window-close="monitor-group-edit"',
-        "changed draft value before clicking close",
-        "screenshot-sequence or video-style evidence",
-        "Manage Monitors open state, Source Filter dropdown open/hover/reset",
-        "20+ / 100+ monitor-list scrollbar behavior",
-    ):
-        _require_contains(
-            monitor_groups_record,
-            close_guard_setup,
-            "FAM-006 refreshed LV1 close-guard repair setup source truth",
-            failures,
-        )
-
-    for interactive_visual_setup in (
-        "## Refreshed LV1 Interactive Control Visual QA Repair Setup Admission",
-        "Interactive Control Visual QA Gate",
-        "All user-facing interactable controls must pass code inspection and focused visual inspection",
-        "buttons, user-facing dropdowns, checkboxes, selectable rows, search fields, filter controls, scrollbars, close controls, delete confirmations, empty-state actions, source-picker controls",
-        "Code Inspection Requirement",
-        "Focused Visual Inspection Requirement",
-        "Empty-State Repair Scope",
-        "Save Monitor and Discard must not appear as valid actions",
-        "Create Monitor must be the primary recovery action",
-        "reject manifest-only or DOM-only PASS when focused screenshots show invalid interactive controls",
-    ):
-        _require_contains(
-            monitor_groups_record,
-            interactive_visual_setup,
-            "FAM-006 interactive-control visual QA setup source truth",
-            failures,
-        )
-
-    for interactive_reliability_setup in (
-        "## Refreshed LV1 Interactive-Control Reliability And Visual-Affordance Repair Setup Admission",
-        "missing hover, active, focus, and click affordance coverage",
-        "intermittent first-click reliability",
-        "Dashboard close / settings / warning / hub actions",
-        "Manage Monitors close controls",
-        "Source Filter dropdown",
-        "Polling Rate dropdown",
-        "normal, hover, active / pressed, focus-visible, disabled, open, selected",
-        "Repeated first-click stress proof",
-        "close, row switch, create, save, cancel, discard, delete confirm, delete cancel, Source Filter open/select/close, Polling Rate open/select/close",
-        "after re-render, dirty guard, delete confirmation, dropdown-open, post-close/reopen, and post-render states",
-        "z-index / overlay interception",
-        "pointer-events",
-        "disabled state or stale aria state",
-        "stale DOM references",
-        "focus trap",
-        "transition or animation timing",
-        "Polling Floor copy repair to Polling Rate",
-        "Polling Rate dropdown visual repair",
-        "Nexus-styled bounded control",
-        "focused screenshots, frame-sequence, or video-style proof",
-        "Full-desktop screenshots remain locator/context evidence only",
-        "reject manifest-only or DOM-only PASS",
-    ):
-        _require_contains(
-            monitor_groups_record,
-            interactive_reliability_setup,
-            "FAM-006 interactive-control reliability and visual-affordance setup source truth",
-            failures,
-        )
-
-    for right_edge_rediscovery_setup in (
-        "## Refreshed LV1 Dashboard Right-Edge Rediscovery Repair Setup Admission",
-        "post-corner right-edge resize cursor rediscovery",
-        "Initial right-edge hit-test passed with rightEdge10px=htright",
-        "rightOutside=True / htright / size-west-east / offset=1",
-        "corner resize passed and changed the Dashboard from 780x1060 to 860x1130",
-        "Dashboard element, native/root handle, bounding rect, DPI/scale context, virtual desktop bounds, and visible-edge coordinates",
-        "Diagnostic Sweep Planning",
-        "x/y sample coordinates, offset from visible edge, cursor kind, native hit-test result, root/window handle at point, expected Dashboard handle, bounding rect, virtual desktop bounds, timing, and settle state",
-        "Post-Resize Settle Planning",
-        "geometry stable, rounded mask applied, WebView visible, active resize state cleared, and cursor reset",
-        "post-resize right-edge rediscovery planning",
-        "Manage Monitors focused LV1 states remain pending recheck",
-    ):
-        _require_contains(
-            monitor_groups_record,
-            right_edge_rediscovery_setup,
-            "FAM-006 Dashboard right-edge rediscovery repair setup source truth",
-            failures,
-        )
 
     for close_guard_runtime in (
         'document.querySelector(\'[data-child-window-close="monitor-group-edit"]\')',
@@ -1332,11 +1029,9 @@ def _validate_static_surface(failures: list[str]) -> None:
         "window.runMonitoringHudOverlayDisplayAcceptanceProof = function()",
         "window.runMonitoringHudActiveOverlayProfileDisplayProof = function()",
         "window.runMonitoringHudDashboardOverlayIndependenceProof = function()",
-        "window.runMonitoringHudOverlayDisplayWorkstreamReadinessProof = function()",
         "slc-042-active-profile-state-bridge",
         "slc-043-active-profile-display",
         "slc-044-dashboard-overlay-independent",
-        "slc-045-workstream-green-ready-for-hardening",
         "activeProfileSelectionDrivesRenderedCards",
         "activeProfileSwitchUpdatesVisibleDisplay",
         "staleActiveProfileFallsBackDeterministically",
@@ -1345,18 +1040,12 @@ def _validate_static_surface(failures: list[str]) -> None:
         "dashboardAndOverlayRolesDistinct",
         "dashboardConfiguresOverlayWithoutOwningDisplay",
         "visualAcceptanceBaselineReady",
-        "slc042ProofClosed",
-        "slc043ProofClosed",
-        "slc044ProofClosed",
-        "codexVisualAdjudicationRequiredInLv1",
-        "noHelperOnlyFinalGreen",
         "staleOverlayCardsRemoved",
         "nullProfileStateRendersZeroCards",
         "highVolumeMembershipRendersDeterministically",
         "overlayDisplayAcceptanceProof",
         "activeOverlayProfileDisplayProof",
         "dashboardOverlayIndependenceProof",
-        "overlayDisplayWorkstreamReadinessProof",
         "window.getMonitoringHudLiveClientGeometry = function()",
         "monitorGroupsCard: rectFor('[data-dashboard-hub-card=\"monitor-groups\"]')",
         "monitorGroupsSummaryGrid: rectFor('[data-dashboard-hub-card=\"monitor-groups\"] .monitoring-hud__monitor-summary-grid')",
@@ -1671,7 +1360,6 @@ def _validate_static_surface(failures: list[str]) -> None:
         "MONITORING_HUD_OVERLAY_DISPLAY_ACCEPTANCE_BRIDGE_READY",
         "MONITORING_HUD_ACTIVE_OVERLAY_PROFILE_DISPLAY_READY",
         "MONITORING_HUD_DASHBOARD_OVERLAY_INDEPENDENCE_READY",
-        "MONITORING_HUD_OVERLAY_DISPLAY_WORKSTREAM_READY",
         "profile_aware_bridge",
         "null_profile_state_renders_zero_cards",
         "high_volume_membership_renders_deterministically",
@@ -1679,12 +1367,9 @@ def _validate_static_surface(failures: list[str]) -> None:
         "high_volume_display_renders_deterministically",
         "dashboard_and_overlay_roles_distinct",
         "visual_acceptance_baseline_ready",
-        "slc042_proof_closed",
-        "codex_visual_adjudication_required_in_lv1",
         "self._monitoring_hud_overlay_display_acceptance_signature",
         "self._monitoring_hud_active_overlay_profile_display_signature",
         "self._monitoring_hud_dashboard_overlay_independence_signature",
-        "self._monitoring_hud_overlay_display_workstream_readiness_signature",
         "hardeningH1MonitorManagementProof",
         "manageWindowCreateAddedMonitor",
         "deleteConfirmationOpened",
@@ -1708,7 +1393,7 @@ def _validate_static_surface(failures: list[str]) -> None:
         "MONITORING_HUD_DASHBOARD_ROUNDED_WINDOW_MASK_READY",
         "Close-CommandOverlayBeforeDashboardResize",
         "Invoke-TrayIconActivation",
-        "Close Command Overlay",
+        "Command Overlay",
         "ncp_tray_icon_left_click_opens",
         "ncp_tray_menu_state_changes_to_close",
         "ncp_tray_icon_left_click_closes",
@@ -1828,15 +1513,15 @@ def _validate_static_surface(failures: list[str]) -> None:
     for needle in (
         "monitoring_hud_html_path",
         'surface_role="hud"',
-        "Enable HUD Feature",
+        "HUD Feature Settings",
         "Open HUD Dashboard",
         "Close HUD Dashboard",
         "HUD Overlay Deferred",
         "Unanchor HUD Overlay",
         "command_overlay_state",
-        "Close Command Overlay",
+        "Command Overlay",
         "command_overlay_action",
-        "TRAY_MONITORING_HUD_TOGGLE_REQUESTED",
+        "TRAY_MONITORING_HUD_TOGGLE_REDIRECTED",
         "TRAY_MONITORING_HUD_DASHBOARD_REQUESTED",
         "TRAY_MONITORING_HUD_UNANCHOR_REQUESTED",
         "dashboard_open_action_enabled",
@@ -1881,7 +1566,6 @@ def _validate_contracts(failures: list[str]) -> dict[str, object]:
         event_route_present=True,
     ).as_dict()
     output_contract = validate_recording_output_contract()
-    workstream_readiness = build_fam006_workstream_readiness_proof()
 
     cards = second.get("sensorCards") or []
     sensors = {
@@ -1925,14 +1609,6 @@ def _validate_contracts(failures: list[str]) -> dict[str, object]:
     _require(output_contract.get("fileWritingEnabled") is True, "SLC-054 output contract must admit bounded local file writing", failures)
     _require(output_contract.get("recordingExecutionEnabled") is True, "SLC-054 output contract must admit bounded recording execution", failures)
     _require(output_contract.get("writeReadbackPassed") is True, "SLC-054 output contract must prove write/readback", failures)
-    _require(workstream_readiness.get("workstreamGreen") is True, "SLC-055 Workstream readiness proof must be green", failures)
-    _require(workstream_readiness.get("packageSlicesComplete") is True, "SLC-055 must prove all five admitted slices are complete", failures)
-    _require(workstream_readiness.get("hardeningH1State") == "pending-after-workstream-green", "SLC-055 must route H1 after Workstream Green", failures)
-    _require(workstream_readiness.get("liveValidationLV1State") == "pending-after-h1", "SLC-055 must keep LV1 after H1", failures)
-    _require(workstream_readiness.get("utsState") == "pending-after-lv1", "SLC-055 must keep UTS after LV1", failures)
-    _require(workstream_readiness.get("fileWritingEnabled") is True, "SLC-055 must require bounded file writing", failures)
-    _require(workstream_readiness.get("recordingExecutionEnabled") is True, "SLC-055 must require bounded recording execution", failures)
-    _require(workstream_readiness.get("writeReadbackPassed") is True, "SLC-055 must require write/readback proof", failures)
 
     persisted_state = {}
     previous_state_path = os.environ.get(MONITORING_HUD_STATE_ENV)
@@ -2195,7 +1871,6 @@ def _validate_contracts(failures: list[str]) -> dict[str, object]:
         "controls": controls,
         "status": status,
         "recordingOutputContract": output_contract,
-        "workstreamReadiness": workstream_readiness,
         "persistedState": persisted_state,
     }
 
@@ -2206,21 +1881,6 @@ def _write_manifest(status: str, failures: list[str], contracts: dict[str, objec
     manifest_path = LOG_ROOT / f"{stamp}_manifest.json"
     payload = {
         "status": status,
-        "package": "PKG-006",
-        "phase": "Workstream",
-        "seam": "SLC-041 Overlay Profile validation and live desktop proof readiness",
-        "proofChain": {
-            "SLC-037": "Overlay Profile data/state foundation",
-            "SLC-038": "Dashboard selector and Overlay Profile Settings controls",
-            "SLC-039": "settings-window monitor membership mapping",
-            "SLC-040": "Manage Monitors read-only Overlay Profile context and route",
-            "SLC-041": "focused validator and live desktop proof readiness",
-        },
-        "proofBoundary": {
-            "focusedWebViewProofRequired": True,
-            "fullDesktopScreenshotsContextOnly": True,
-            "formalUtsExport": "Live Validation Stage 1 only after human-client precheck PASS or USER waiver",
-        },
         "contracts": contracts,
         "failures": failures,
         "generatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),

@@ -16,20 +16,14 @@ Boot Interface work should make Nexus feel reliable at startup without pretendin
 - Make handoff, relaunch, and single-instance behavior explicit and testable.
 - Own fatal launcher/runtime diagnostics and recovery surface direction when Nexus reaches startup abort, recovery exhaustion, crash/failure finalization, support-bundle preparation, manual issue reporting, retry/close/repair choices, or user-facing recovery explanation.
 - Treat FB-034 recoverable `launch_failed` as released historical evidence for one bounded non-crashing incident class, not as active authority for broad diagnostics/recovery product scope.
-- Future diagnostics/recovery surface planning should route through a USER-approved FAM-001 Family Feature Vision such as `F1-FF01 Runtime Diagnostics And Recovery Surface` or `F1-FF01 Failure Recovery And Support Reporting` before implementation.
+- Future diagnostics and recovery UI should have clear behavior, visual consistency, privacy-safe evidence, and tested failure paths before release.
 
 ## Implementation Boundaries
 
-- This vision does not admit bootloader, sign-in, installer, or Windows startup mutation.
-- This vision does not create a FAM-001 diagnostics/recovery FFV content file, diagnostics/recovery implementation branch, support-bundle behavior change, fatal launcher/runtime rewrite, or broad recoverable diagnostics expansion by itself.
-- Branch Runtime Engineering Plans own any active implementation checklist.
-- Durable proof belongs in `Docs/workstreams/FB-042_desktop_startup_runtime_family_dossier.md` and related structured branch receipts.
-- Visible diagnostics or recovery panels consume FAM-002 presentation standards, while each consuming FAM owns the failure/degraded/blocked/unavailable behavior for its own feature surface.
+This vision does not itself implement bootloader, sign-in, installer, Windows startup mutation, or a broad fatal/recoverable diagnostics redesign. Visible recovery panels use the shared Nexus presentation grammar while each feature owns its own failure, degraded, blocked, and unavailable states.
 
 ## Canonical Pointers
 
 - Project vision: `Docs/nexus_vision.md`
 - Backlog registry: `Docs/feature_backlog.md`
 - Roadmap posture: `Docs/prebeta_roadmap.md`
-- Durable family dossier: `Docs/workstreams/FB-042_desktop_startup_runtime_family_dossier.md`
-- Recoverable diagnostics historical evidence: `Docs/workstreams/FB-034_recoverable_diagnostics.md`

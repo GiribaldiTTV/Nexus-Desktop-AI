@@ -8,7 +8,6 @@ It does not own:
 
 - backlog identity
 - roadmap sequencing
-- workstream execution history
 
 Use this doc for boundary truth and system design.
 
@@ -153,12 +152,3 @@ And it should continue to preserve this boundary rule:
 
 - launcher is the desktop-phase control authority
 - renderer is the desktop-phase presentation authority
-
-## Relationship To Other Canon Layers
-
-- use `Docs/nexus_vision.md` for product intent and release-stage meaning
-- use `Docs/orchestration.md` for orchestration-specific philosophy and current behavior boundaries
-- use `Docs/boot_access_design.md` for future boot and access planning
-- use `Docs/workstreams/...` for workstream execution and closure history
-- use `Docs/prebeta_roadmap.md` for sequencing
-- use `Docs/feature_backlog.md` for registry identity

@@ -9,7 +9,6 @@ It does not own:
 
 - backlog identity
 - roadmap sequencing
-- workstream execution history
 
 ## Current Workspace Reality
 

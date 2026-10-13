@@ -18,10 +18,9 @@ Voice and audio should reinforce ORIN as an assistant presence without making th
 ## Implementation Boundaries
 
 - This vision does not admit microphone capture, always-listening behavior, voice/Core runtime sync, or private assistant tooling.
-- Active voice/audio work requires Branch Readiness planning and validation proof for privacy, reliability, and user-facing behavior.
+- Verify voice/audio privacy, reliability, disabled/degraded states, and the visible behavior a user can actually exercise.
 
 ## Canonical Pointers
 
 - Project vision: `Docs/nexus_vision.md`
 - Display naming guidance: `Docs/orin_display_naming_guidance.md`
-- Durable workstream record: `Docs/workstreams/FB-030_orin_voice_audio_direction_refinement.md`
