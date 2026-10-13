@@ -1,6 +1,5 @@
 import atexit
 import ctypes
-import os
 import time
 from ctypes import wintypes
 from typing import Callable
@@ -56,36 +55,6 @@ WAIT_TIMEOUT = 258
 
 FOREGROUND_DIALOG_FLAGS = MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_TOPMOST
 _qt_dialog_app = None
-
-
-def harness_auto_accept_relaunch():
-    value = (os.environ.get("NEXUS_HARNESS_AUTO_ACCEPT_RELAUNCH") or "").strip().casefold()
-    return value in {"1", "true", "yes", "on"}
-
-
-def harness_auto_decline_relaunch():
-    value = (os.environ.get("NEXUS_HARNESS_AUTO_DECLINE_RELAUNCH") or "").strip().casefold()
-    return value in {"1", "true", "yes", "on"}
-
-
-def harness_force_relaunch_signal_failure():
-    value = (os.environ.get("NEXUS_HARNESS_FORCE_RELAUNCH_SIGNAL_FAILURE") or "").strip().casefold()
-    return value in {"1", "true", "yes", "on"}
-
-
-def harness_suppress_already_running_dialogs():
-    value = (os.environ.get("NEXUS_HARNESS_SUPPRESS_ALREADY_RUNNING_DIALOGS") or "").strip().casefold()
-    return value in {"1", "true", "yes", "on"}
-
-
-def harness_relaunch_wait_seconds(default_wait_seconds: float) -> float:
-    value = (os.environ.get("NEXUS_HARNESS_RELAUNCH_WAIT_SECONDS") or "").strip()
-    if not value:
-        return default_wait_seconds
-    try:
-        return max(0.05, float(value))
-    except ValueError:
-        return default_wait_seconds
 
 
 class SingleInstanceGuard:
@@ -433,50 +402,40 @@ def acquire_or_prompt_replace(
         and not active_session_settled
     ):
         log_event("PRE_SETTLED_CONFLICT_DETECTED")
-        if not harness_suppress_already_running_dialogs():
-            show_already_running_dialog(
-                title,
-                pre_settled_conflict_message
-                or "Nexus Desktop AI is still starting. Please wait for the current startup to finish and try again.",
-                eyebrow_text=eyebrow_text,
-                primary_button_text="Close",
-            )
+        show_already_running_dialog(
+            title,
+            pre_settled_conflict_message
+            or "Nexus Desktop AI is still starting. Please wait for the current startup to finish and try again.",
+            eyebrow_text=eyebrow_text,
+            primary_button_text="Close",
+        )
         log_event("PRE_SETTLED_CONFLICT_SESSION_PRESERVED")
         return False
 
-    if harness_auto_accept_relaunch():
-        log_event("REPLACE_PROMPT_AUTO_ACCEPTED")
-    elif harness_auto_decline_relaunch():
-        log_event("REPLACE_PROMPT_AUTO_DECLINED")
+    if not show_replace_running_dialog(
+        title,
+        message,
+        eyebrow_text=eyebrow_text,
+        primary_button_text=primary_button_text,
+        secondary_button_text=secondary_button_text,
+    ):
+        log_event("REPLACE_PROMPT_DECLINED")
         return False
-    else:
-        if not show_replace_running_dialog(
-            title,
-            message,
-            eyebrow_text=eyebrow_text,
-            primary_button_text=primary_button_text,
-            secondary_button_text=secondary_button_text,
-        ):
-            log_event("REPLACE_PROMPT_DECLINED")
-            return False
+    log_event("REPLACE_PROMPT_ACCEPTED")
 
-        log_event("REPLACE_PROMPT_ACCEPTED")
-
-    if harness_force_relaunch_signal_failure() or not relaunch_signal.signal():
+    if not relaunch_signal.signal():
         log_event("RELAUNCH_SIGNAL_FAILED")
-        if not harness_suppress_already_running_dialogs():
-            show_already_running_dialog(
-                title,
-                "Nexus could not signal the current instance to close. Please close it manually and try again.",
-                eyebrow_text=eyebrow_text,
-                primary_button_text="Close",
-            )
+        show_already_running_dialog(
+            title,
+            "Nexus could not signal the current instance to close. Please close it manually and try again.",
+            eyebrow_text=eyebrow_text,
+            primary_button_text="Close",
+        )
         return False
 
     log_event("RELAUNCH_SIGNAL_SENT")
 
-    effective_wait_seconds = harness_relaunch_wait_seconds(wait_seconds)
-    deadline = time.time() + max(0.5, effective_wait_seconds)
+    deadline = time.time() + max(0.5, wait_seconds)
     sleep_seconds = max(0.05, poll_interval_seconds)
     while True:
         if guard.acquire():
@@ -498,11 +457,10 @@ def acquire_or_prompt_replace(
         return True
 
     log_event("RELAUNCH_WAIT_TIMEOUT")
-    if not harness_suppress_already_running_dialogs():
-        show_already_running_dialog(
-            title,
-            "Nexus is still closing. Please wait a moment and try again.",
-            eyebrow_text=eyebrow_text,
-            primary_button_text="Close",
-        )
+    show_already_running_dialog(
+        title,
+        "Nexus is still closing. Please wait a moment and try again.",
+        eyebrow_text=eyebrow_text,
+        primary_button_text="Close",
+    )
     return False
