@@ -21,21 +21,11 @@ from single_instance import (
 )
 
 
-def env_flag(name):
-    value = (os.environ.get(name) or "").strip().casefold()
-    return value in {"1", "true", "yes", "on"}
-
-
-def env_path_override(name, default_path):
-    value = (os.environ.get(name) or "").strip()
-    return os.path.abspath(value) if value else default_path
-
-
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_main.py")
 DEFAULT_LOG_DIR = os.path.join(ROOT_DIR, "logs")
-TARGET_SCRIPT = env_path_override("NEXUS_HARNESS_TARGET_SCRIPT", DEFAULT_TARGET_SCRIPT)
-LOG_DIR = env_path_override("NEXUS_HARNESS_LOG_ROOT", DEFAULT_LOG_DIR)
+TARGET_SCRIPT = DEFAULT_TARGET_SCRIPT
+LOG_DIR = DEFAULT_LOG_DIR
 CRASH_DIR = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
 STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
@@ -44,8 +34,6 @@ DESKTOP_SETTLED_SIGNAL_FILE = os.path.join(LOG_DIR, "desktop_settled.signal")
 ACTIVE_RUNTIME_OWNER_FILE = os.path.join(LOG_DIR, "active_runtime_owner.json")
 DIAGNOSTICS_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "orin_diagnostics.pyw")
 VOICE_SCRIPT = os.path.join(ROOT_DIR, "Audio", "orin_error_voice.py")
-HARNESS_DISABLE_DIAGNOSTICS = env_flag("NEXUS_HARNESS_DISABLE_DIAGNOSTICS")
-HARNESS_DISABLE_VOICE = env_flag("NEXUS_HARNESS_DISABLE_VOICE")
 RUNTIME_INSTANCE_MUTEX = r"Local\NexusRuntimeSingletonV1"
 RUNTIME_RELAUNCH_EVENT = r"Local\NexusRuntimeRelaunchRequestV1"
 RUNTIME_DESKTOP_SETTLED_EVENT = r"Local\NexusRuntimeDesktopSettledV1"
@@ -312,11 +300,7 @@ def legacy_history_file_path(log_dir=DEFAULT_LOG_DIR):
     return os.path.join(os.path.abspath(log_dir), HISTORY_FILENAME)
 
 
-def history_state_root(log_dir=LOG_DIR, harness_log_root=None, local_app_data=None, home_dir=None):
-    resolved_harness_log_root = (harness_log_root or "").strip()
-    if resolved_harness_log_root:
-        return os.path.abspath(log_dir)
-
+def history_state_root(local_app_data=None, home_dir=None):
     resolved_local_app_data = local_app_data
     if resolved_local_app_data is None:
         resolved_local_app_data = os.environ.get("LOCALAPPDATA", "")
@@ -344,10 +328,8 @@ def history_state_root(log_dir=LOG_DIR, harness_log_root=None, local_app_data=No
     raise ValueError("No launcher-owned state root is available for historical memory storage.")
 
 
-def history_file(log_dir=LOG_DIR, harness_log_root=None, local_app_data=None, home_dir=None):
+def history_file(local_app_data=None, home_dir=None):
     state_root = history_state_root(
-        log_dir=log_dir,
-        harness_log_root=harness_log_root,
         local_app_data=local_app_data,
         home_dir=home_dir,
     )
@@ -406,15 +388,14 @@ def normalize_history_run_id(run_id):
 
 
 def prepare_history_storage_path(path=None, legacy_path=None):
-    harness_log_root = os.environ.get("NEXUS_HARNESS_LOG_ROOT", "")
-    path = os.path.abspath(path or history_file(harness_log_root=harness_log_root))
+    path = os.path.abspath(path or history_file())
     parent_dir = os.path.dirname(path)
     if not parent_dir:
         raise ValueError("History storage path has no parent directory.")
 
     resolved_legacy_path = legacy_path
     if resolved_legacy_path is None:
-        resolved_legacy_path = legacy_history_file_path(log_dir=harness_log_root or DEFAULT_LOG_DIR)
+        resolved_legacy_path = legacy_history_file_path()
 
     migrate_history_file_if_needed(path, resolved_legacy_path)
     os.makedirs(parent_dir, exist_ok=True)
@@ -1444,11 +1425,6 @@ def crash_log(
 
 
 def launch_diag():
-    if HARNESS_DISABLE_DIAGNOSTICS:
-        runtime("Diagnostics UI launch skipped by harness seam")
-        runtime_event("STATUS", "SKIP", "DIAGNOSTICS_UI", "HARNESS_DISABLED")
-        return None
-
     runtime("Launching diagnostics UI")
     runtime_event("STATUS", "START", "DIAGNOSTICS_UI")
     write_status("TRACE", "Launching diagnostics UI")
@@ -1462,14 +1438,6 @@ def launch_diag():
 
 
 def speak(spoken_text, display_text=None):
-    if HARNESS_DISABLE_VOICE:
-        runtime(f"VOICE skipped by harness seam: {spoken_text}")
-        runtime_event("VOICE", "SKIP", spoken_text, "HARNESS_DISABLED")
-        diagnostic = "state=bypassed|available=false|degraded=false|reason=harness_disabled|mode=launcher"
-        write_status("VOICE_DIAGNOSTIC", diagnostic)
-        runtime_event("VOICE", "DIAGNOSTIC", spoken_text, diagnostic)
-        return 0
-
     if not os.path.exists(VOICE_SCRIPT):
         runtime(f"Voice script missing: {VOICE_SCRIPT}")
         runtime_event("STATUS", "FAIL", "VOICE_SCRIPT", "MISSING")
@@ -1743,13 +1711,12 @@ def main():
             "LAUNCHER_RUNTIME",
             "ACTIVE_RUNTIME_OWNER_CONFLICT_SESSION_PRESERVED",
         )
-        if not env_flag("NEXUS_HARNESS_SUPPRESS_ALREADY_RUNNING_DIALOGS"):
-            show_already_running_dialog(
-                "Nexus Desktop AI Session Active",
-                "Nexus Desktop AI is still starting or recovering. Please wait for the current session to finish.",
-                eyebrow_text="NEXUS DESKTOP AI",
-                primary_button_text="Close",
-            )
+        show_already_running_dialog(
+            "Nexus Desktop AI Session Active",
+            "Nexus Desktop AI is still starting or recovering. Please wait for the current session to finish.",
+            eyebrow_text="NEXUS DESKTOP AI",
+            primary_button_text="Close",
+        )
         release_single_instance_resources()
         return 0
 
