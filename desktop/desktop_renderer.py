@@ -9,6 +9,7 @@ import datetime
 import time
 import urllib.parse
 import webbrowser
+import weakref
 from html import escape
 from pathlib import Path
 from typing import Iterable, Optional
@@ -91,6 +92,7 @@ from .shared_action_model import (
 )
 from .orin_support_reporting import SupportBundleError, prepare_manual_issue_report
 from .workerw_utils import (
+    WNDENUMPROC,
     attach_window_to_desktop,
     get_last_workerw_probe_events,
     make_window_noninteractive,
@@ -132,7 +134,6 @@ IDC_SIZENS = 32645
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 gdi32 = ctypes.windll.gdi32
-WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
 LoadCursorW = user32.LoadCursorW
 LoadCursorW.restype = ctypes.wintypes.HCURSOR
 SetCursor = user32.SetCursor
@@ -195,6 +196,9 @@ WindowFromPoint.restype = ctypes.wintypes.HWND
 EnumChildWindows = user32.EnumChildWindows
 EnumChildWindows.argtypes = [ctypes.wintypes.HWND, WNDENUMPROC, ctypes.wintypes.LPARAM]
 EnumChildWindows.restype = ctypes.wintypes.BOOL
+EnumWindows = user32.EnumWindows
+EnumWindows.argtypes = [WNDENUMPROC, ctypes.wintypes.LPARAM]
+EnumWindows.restype = ctypes.wintypes.BOOL
 mouse_event = user32.mouse_event
 mouse_event.argtypes = [
     ctypes.wintypes.DWORD,
@@ -250,6 +254,37 @@ IsWindowVisible.restype = ctypes.c_bool
 GetParentW = user32.GetParent
 GetParentW.argtypes = [ctypes.wintypes.HWND]
 GetParentW.restype = ctypes.wintypes.HWND
+GetWindowW = user32.GetWindow
+GetWindowW.argtypes = [ctypes.wintypes.HWND, ctypes.c_uint]
+GetWindowW.restype = ctypes.wintypes.HWND
+IsWindow = user32.IsWindow
+IsWindow.argtypes = [ctypes.wintypes.HWND]
+IsWindow.restype = ctypes.c_bool
+IsIconic = user32.IsIconic
+IsIconic.argtypes = [ctypes.wintypes.HWND]
+IsIconic.restype = ctypes.c_bool
+GetWindowLongPtrW = getattr(user32, "GetWindowLongPtrW", user32.GetWindowLongW)
+GetWindowLongPtrW.argtypes = [ctypes.wintypes.HWND, ctypes.c_int]
+GetWindowLongPtrW.restype = ctypes.c_ssize_t
+SetWindowLongPtrW = getattr(user32, "SetWindowLongPtrW", user32.SetWindowLongW)
+SetWindowLongPtrW.argtypes = [ctypes.wintypes.HWND, ctypes.c_int, ctypes.c_ssize_t]
+SetWindowLongPtrW.restype = ctypes.c_ssize_t
+
+
+class WINDOWPLACEMENT(ctypes.Structure):
+    _fields_ = [
+        ("length", ctypes.wintypes.UINT),
+        ("flags", ctypes.wintypes.UINT),
+        ("showCmd", ctypes.wintypes.UINT),
+        ("ptMinPosition", ctypes.wintypes.POINT),
+        ("ptMaxPosition", ctypes.wintypes.POINT),
+        ("rcNormalPosition", ctypes.wintypes.RECT),
+    ]
+
+
+GetWindowPlacement = user32.GetWindowPlacement
+GetWindowPlacement.argtypes = [ctypes.wintypes.HWND, ctypes.POINTER(WINDOWPLACEMENT)]
+GetWindowPlacement.restype = ctypes.c_bool
 HRGN = getattr(ctypes.wintypes, "HRGN", ctypes.wintypes.HANDLE)
 HGDIOBJ = getattr(ctypes.wintypes, "HGDIOBJ", ctypes.wintypes.HANDLE)
 CreateRoundRectRgn = gdi32.CreateRoundRectRgn
@@ -274,9 +309,16 @@ SW_SHOW = 5
 SW_RESTORE = 9
 HWND_TOP = ctypes.wintypes.HWND(0)
 SWP_NOZORDER = 0x0004
+SWP_NOMOVE = 0x0002
+SWP_NOSIZE = 0x0001
+SWP_NOACTIVATE = 0x0010
+SWP_FRAMECHANGED = 0x0020
 SWP_SHOWWINDOW = 0x0040
 SWP_NOOWNERZORDER = 0x0200
+GW_OWNER = 4
+GWL_STYLE = -16
 GWL_EXSTYLE = -20
+GWLP_HWNDPARENT = -8
 WS_EX_TRANSPARENT = 0x00000020
 WS_EX_TOOLWINDOW = 0x00000080
 WS_EX_APPWINDOW = 0x00040000
@@ -303,6 +345,22 @@ VK_MENU = 0x12
 VK_A = 0x41
 WHEEL_DELTA = 120
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def classify_ai_dashboard_iconic_artifact(
+    native_facts: dict[str, object],
+    *,
+    visible_proof: str | None = None,
+) -> str:
+    """Keep native window facts separate from visual artifact adjudication."""
+    proof = str(visible_proof or "").strip().upper()
+    if proof == "DETECTED":
+        return "DETECTED"
+    if proof == "NOT_DETECTED":
+        return "NOT_DETECTED_WITH_VISIBLE_PROOF"
+    if proof == "NOT_APPLICABLE":
+        return "N/A"
+    return "VISUAL_ADJUDICATION_REQUIRED"
 
 
 class MOUSEINPUT(ctypes.Structure):
@@ -1133,6 +1191,12 @@ class NexusCategoryIcon(QWidget):
             painter.setBrush(Qt.NoBrush)
             painter.drawLine(QPointF(6.0, 8.0), QPointF(6.0, 10.0))
             painter.drawLine(QPointF(3.8, 10.0), QPointF(8.2, 10.0))
+        elif self.icon_kind == "hud":
+            painter.drawRoundedRect(QRectF(1.5, 2.0, 9.0, 7.0), 1.3, 1.3)
+            painter.drawLine(QPointF(3.2, 6.0), QPointF(4.8, 6.0))
+            painter.drawLine(QPointF(4.8, 6.0), QPointF(5.7, 4.0))
+            painter.drawLine(QPointF(5.7, 4.0), QPointF(6.6, 7.0))
+            painter.drawLine(QPointF(6.6, 7.0), QPointF(8.6, 7.0))
         else:
             path = QPainterPath()
             path.moveTo(6.8, 1.5)
@@ -1397,6 +1461,7 @@ class ResidentAccessSettingsDialog(QDialog):
     SETTINGS_FOCUS_ALIASES = {
         "tray": "tray",
         "quick_access": "quick_access",
+        "monitoring_hud": "monitoring_hud",
         "ai_status": "tray",
         "privacy": "tray",
         "owner_routes": "tray",
@@ -1415,6 +1480,7 @@ class ResidentAccessSettingsDialog(QDialog):
         self._settings = load_resident_access_settings()
         self._saved_settings = self._settings
         self._notice_text = ""
+        self._hud_save_failed = False
         self._close_guard_active = False
         self._close_guard_pending_result = None
         self._close_guard_pending_callback = None
@@ -1631,6 +1697,33 @@ class ResidentAccessSettingsDialog(QDialog):
         subpage_layout.addWidget(self.quick_access_nav_item)
         subpage_layout.addStretch(1)
         nav_layout.addWidget(self.subpage_nav_rail)
+
+        self.hud_nav_item = QFrame(self.nav_shell)
+        self.hud_nav_item.setObjectName("residentAccessSettingsCategoryItem")
+        self.hud_nav_item.setProperty("settingsCategoryRole", "selectable-hud-page")
+        self.hud_nav_item.setAttribute(Qt.WA_StyledBackground, True)
+        self.hud_nav_item.setFixedSize(self._settings_nav_pill_width("HUD", "parent"), 28)
+        hud_nav_layout = QHBoxLayout(self.hud_nav_item)
+        hud_nav_layout.setContentsMargins(5, 2, 4, 2)
+        hud_nav_layout.setSpacing(5)
+        self.hud_nav_indicator = QLabel("", self.hud_nav_item)
+        self.hud_nav_indicator.setObjectName("residentAccessSettingsNavIndicator")
+        self.hud_nav_indicator.setFixedSize(2, 18)
+        hud_nav_layout.addWidget(self.hud_nav_indicator)
+        self.hud_nav_icon = NexusCategoryIcon("hud", self.hud_nav_item)
+        self.hud_nav_icon.setObjectName("residentAccessSettingsNavPrimaryIcon")
+        self.hud_nav_icon.setAccessibleName("Monitoring HUD category icon")
+        self.hud_nav_icon.setFixedSize(12, 12)
+        hud_nav_layout.addWidget(self.hud_nav_icon)
+        self.hud_nav_button = QPushButton("HUD", self.hud_nav_item)
+        self.hud_nav_button.setObjectName("residentAccessSettingsCategoryButton")
+        self.hud_nav_button.setCheckable(True)
+        self.hud_nav_button.setMaximumWidth(self._settings_nav_label_width("HUD", "parent"))
+        self.hud_nav_button.setAccessibleName("Open Monitoring HUD Settings")
+        self.hud_nav_button.clicked.connect(lambda: self.set_focus("monitoring_hud"))
+        hud_nav_layout.addWidget(self.hud_nav_button, 1)
+        nav_layout.addWidget(self.hud_nav_item)
+        self._nav_buttons["monitoring_hud"] = self.hud_nav_button
         nav_layout.addStretch(1)
 
         self.nav_boundary = QLabel("", self.nav_shell)
@@ -1732,6 +1825,29 @@ class ResidentAccessSettingsDialog(QDialog):
         tray_overview_layout.addWidget(self.tray_deferred_notice)
         tray_overview_layout.addStretch(1)
         page_layout.addWidget(self.tray_overview_container)
+
+        self.hud_settings_container = QFrame(self.settings_page_frame)
+        self.hud_settings_container.setObjectName("residentAccessHudSettingsContainer")
+        self.hud_settings_container.setAttribute(Qt.WA_StyledBackground, True)
+        hud_settings_layout = QVBoxLayout(self.hud_settings_container)
+        hud_settings_layout.setContentsMargins(12, 10, 12, 12)
+        hud_settings_layout.setSpacing(8)
+        self.hud_status = QLabel("", self.hud_settings_container)
+        self.hud_status.setObjectName("residentAccessHudStatus")
+        hud_settings_layout.addWidget(self.hud_status)
+        self.hud_action = QPushButton("Enable HUD Dashboard", self.hud_settings_container)
+        self.hud_action.setObjectName("residentAccessHudAction")
+        self.hud_action.setAccessibleName("Enable HUD Dashboard")
+        self.hud_action.clicked.connect(self._toggle_monitoring_hud_from_settings)
+        hud_settings_layout.addWidget(self.hud_action, 0, Qt.AlignLeft)
+        self.hud_hint = QLabel(
+            "Your choice is saved on this computer. When enabled, the tray can open or close the HUD Dashboard.",
+            self.hud_settings_container,
+        )
+        self.hud_hint.setObjectName("residentAccessHudHint")
+        self.hud_hint.setWordWrap(True)
+        hud_settings_layout.addWidget(self.hud_hint)
+        page_layout.addWidget(self.hud_settings_container)
 
         self.quick_slot_container = QFrame(self.settings_page_frame)
         self.quick_slot_container.setObjectName("residentAccessQuickSlotContainer")
@@ -2277,11 +2393,13 @@ class ResidentAccessSettingsDialog(QDialog):
             " border-radius: 0;"
             " padding: 2px 0;"
             "}"
-            "#residentAccessTrayOverviewContainer {"
+            "#residentAccessTrayOverviewContainer, #residentAccessHudSettingsContainer {"
             " background: rgba(2, 12, 24, 0.36);"
             " border: 1px solid rgba(118, 226, 255, 0.12);"
             " border-radius: 9px;"
             "}"
+            "#residentAccessHudStatus { color: rgba(244, 250, 255, 0.96); font-size: 13px; font-weight: 850; }"
+            "#residentAccessHudHint { color: rgba(148, 184, 199, 0.90); font-size: 11px; font-weight: 700; }"
             "#residentAccessTrayDeferredNotice {"
             " background: rgba(5, 18, 32, 0.50);"
             " border: 1px solid rgba(117, 228, 255, 0.12);"
@@ -3083,6 +3201,16 @@ class ResidentAccessSettingsDialog(QDialog):
         self._rebuild_quick_slot_rows()
         self._refresh_text()
 
+    def _toggle_monitoring_hud_from_settings(self):
+        state_provider = getattr(self.runtime, "monitoring_hud_feature_state", None)
+        settings_writer = getattr(self.runtime, "_set_monitoring_hud_feature_enabled", None)
+        if not callable(state_provider) or not callable(settings_writer):
+            self._refresh_text()
+            return
+        enabled = bool(state_provider().get("feature_enabled"))
+        self._hud_save_failed = settings_writer(not enabled, source="global_settings") is False
+        self._refresh_text()
+
     def _save_settings(self):
         should_close = self._close_guard_active
         pending_callback = self._close_guard_pending_callback
@@ -3118,7 +3246,9 @@ class ResidentAccessSettingsDialog(QDialog):
         available_slot_limit = self._available_quick_slot_limit()
         self.status_summary.clear()
         self.status_summary.setVisible(False)
-        self.section_heading.setText("Tray" if self._focus == "tray" else "Quick Access")
+        self.section_heading.setText(
+            {"tray": "Tray", "quick_access": "Quick Access", "monitoring_hud": "Monitoring HUD"}[self._focus]
+        )
         self.section_badge.setVisible(False)
         self.slot_count_badge.setText(f"{route_count} of {available_slot_limit}")
         self.slot_count_badge.setVisible(self._focus == "quick_access")
@@ -3130,6 +3260,9 @@ class ResidentAccessSettingsDialog(QDialog):
                     "Tray visibility help and future click behavior settings.",
                 )
             )
+        elif self._focus == "monitoring_hud":
+            self.section_scope.setText("MONITORING / HUD")
+            self.section_detail.setText("Choose whether the optional HUD Dashboard is available.")
         else:
             self.section_scope.setText("NEXUS TRAY / QUICK ACCESS")
             self.section_detail.setText("Choose the shortcuts shown in the tray menu.")
@@ -3162,6 +3295,23 @@ class ResidentAccessSettingsDialog(QDialog):
         self.route_summary.setVisible(False)
         self.tray_overview_container.setVisible(self._focus == "tray")
         self.quick_slot_container.setVisible(self._focus == "quick_access")
+        self.hud_settings_container.setVisible(self._focus == "monitoring_hud")
+        state_provider = getattr(self.runtime, "monitoring_hud_feature_state", None)
+        settings_writer = getattr(self.runtime, "_set_monitoring_hud_feature_enabled", None)
+        hud_available = callable(state_provider) and callable(settings_writer)
+        hud_enabled = bool(state_provider().get("feature_enabled")) if hud_available else False
+        self.hud_status.setText(
+            "HUD Dashboard unavailable in this runtime" if not hud_available
+            else "HUD Dashboard enabled" if hud_enabled else "HUD Dashboard disabled"
+        )
+        self.hud_action.setText("Disable HUD Dashboard" if hud_enabled else "Enable HUD Dashboard")
+        self.hud_action.setAccessibleName(self.hud_action.text())
+        self.hud_action.setEnabled(hud_available)
+        self.hud_hint.setText(
+            "The choice changed for this session, but could not be saved. Try again after checking local storage."
+            if self._hud_save_failed else
+            "Your choice is saved on this computer. When enabled, the tray can open or close the HUD Dashboard."
+        )
         self.subpage_nav_rail.setVisible(self._tray_children_expanded)
         self.tray_expand_button.setChecked(self._tray_children_expanded)
         if hasattr(self.tray_expand_button, "set_glyph"):
@@ -3190,10 +3340,17 @@ class ResidentAccessSettingsDialog(QDialog):
             button.setProperty("navState", "selected" if is_selected else "available")
             button.style().unpolish(button)
             button.style().polish(button)
-        tray_state = "selected" if self._focus == "tray" else "contains-selected"
+        tray_state = (
+            "selected" if self._focus == "tray"
+            else "contains-selected" if self._focus == "quick_access"
+            else "available"
+        )
         self.tray_nav_item.setProperty("navState", tray_state)
+        self.hud_nav_item.setProperty(
+            "navState", "selected" if self._focus == "monitoring_hud" else "available"
+        )
         self.quick_access_nav_item.setProperty("navState", "selected" if self._focus == "quick_access" else "available")
-        for nav_item in (self.tray_nav_item, self.quick_access_nav_item, self.subpage_nav_rail):
+        for nav_item in (self.tray_nav_item, self.quick_access_nav_item, self.subpage_nav_rail, self.hud_nav_item):
             nav_item.style().unpolish(nav_item)
             nav_item.style().polish(nav_item)
         self._refresh_text()
@@ -3828,12 +3985,35 @@ class AIDashboardDomainCommandPage(QWebEnginePage):
 
 
 class AIDashboardDomainWindow(QDialog):
-    RESIZE_MARGIN = 12
+    RESIZE_EDGE_MARGIN = 8
+    RESIZE_CORNER_MARGIN = 12
     SHELL_RADIUS = 24
+    DRAG_REGION_FALLBACK_BOTTOM = 74
+    CONTROL_ZONE_WIDTH = 96
+    CONTROL_ZONE_HEIGHT = 68
+    AVAILABLE_DESKTOP_GUTTER = 18
+    MAXIMUM_USEFUL_WIDTH = 920
+    MAXIMUM_USEFUL_HEIGHT = 840
+    CONTENT_FIT_SETTLE_MS = 140
+    CONTENT_FIT_SAFETY_PX = 2
+    STATE_TAXONOMY_CONTRACT = "ai-dashboard-ai-control-center-state-taxonomy-v1"
+    VIEW_MODEL_CONTRACT = "ai-dashboard-provider-state-view-model-v1"
+    REQUIRED_STATE_TAXONOMY_STATES = (
+        "no-provider-fail-closed",
+        "provider-unavailable",
+        "stale-state-fail-closed",
+        "failed-check-fail-closed",
+        "retry-local-check-only",
+        "recovery-local-only",
+        "blocked-action",
+        "unavailable-capability",
+        "degraded-no-provider",
+    )
+    _instance_refs_by_domain: dict[str, dict[int, weakref.ReferenceType]] = {}
 
     DOMAIN_DEFINITIONS = {
         "readiness-diagnostics": {
-            "title": "Diagnostics",
+            "title": "AI Readiness & Diagnostics",
             "kicker": "Nexus Desktop AI",
             "description": "Local checks, readiness reports, copy, diagnostic detail, and results live here, outside the AI Dashboard hub.",
             "classification": "external-unique",
@@ -3841,40 +4021,62 @@ class AIDashboardDomainWindow(QDialog):
             "actions": ("run-local-check", "generate-readiness-report", "copy-readiness-report"),
         },
         "control-center": {
-            "title": "Control Center",
+            "title": "AI Control Center",
             "kicker": "Nexus Desktop AI",
             "description": "Persona, capabilities, provider/model readiness, Developer and Owner gates, and control-plane details live here.",
             "classification": "exclusive-child",
             "lifecycle": "closes-with-dashboard",
-            "actions": (),
+            "actions": ("show-control-boundary", "show-control-recovery", "show-control-taxonomy"),
         },
         "capabilities-maintenance": {
-            "title": "Capabilities",
+            "title": "Capabilities & Maintenance",
             "kicker": "Nexus Desktop AI",
             "description": "Capability-pack, maintenance placement, and edition gates live here. Update, download, install, fetch, and capability execution are blocked.",
             "classification": "exclusive-child",
             "lifecycle": "closes-with-dashboard",
-            "actions": (),
+            "actions": ("show-capability-lifecycle", "show-capability-lanes", "show-capability-maintenance"),
         },
     }
 
     def __init__(self, domain_id: str, screen, *, parent=None, event_logger=None):
-        super().__init__(parent)
+        # Logical Dashboard ownership is deliberately separate from native HWND ownership.
+        super().__init__(None)
         self.domain_id = str(domain_id or "")
         self.screen_ref = screen
         self.event_logger = event_logger
+        self._dashboard_ref = weakref.ref(parent) if parent is not None else None
         self._provider_payload: dict[str, object] = {}
         self._page_ready = False
         self._current_report_text = ""
+        self._lifecycle_sequence = 0
+        self._lifecycle_records: list[dict[str, object]] = []
+        self._pending_lifecycle_transition: dict[str, object] | None = None
+        self._last_valid_normal_geometry = QRect()
+        self._last_minimized_hwnd = 0
+        self._last_minimized_normal_geometry = QRect()
+        self._lifecycle_generation = 1
+        self._ever_shown = False
+        self._close_state = "open"
+        self._last_known_native_hwnd = 0
         definition = self.DOMAIN_DEFINITIONS.get(self.domain_id, self.DOMAIN_DEFINITIONS["control-center"])
         self.definition = definition
         self.setObjectName(f"fam007AiDashboardDomainWindow_{self.domain_id.replace('-', '_')}")
         self.setWindowTitle(definition["title"])
-        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WA_DeleteOnClose, True)
         self.setWindowModality(Qt.NonModal)
-        self.setMinimumSize(460, 420)
-        self.resize(620, 560 if self.domain_id == "readiness-diagnostics" else 460)
+        self.setMinimumSize(460, 360)
+        available = screen.availableGeometry() if screen is not None else QRect()
+        if available.isValid():
+            self.setMaximumSize(
+                max(self.minimumWidth(), min(self.MAXIMUM_USEFUL_WIDTH, available.width() - (self.AVAILABLE_DESKTOP_GUTTER * 2))),
+                max(self.minimumHeight(), min(self.MAXIMUM_USEFUL_HEIGHT, available.height() - (self.AVAILABLE_DESKTOP_GUTTER * 2))),
+            )
+        else:
+            self.setMaximumSize(self.MAXIMUM_USEFUL_WIDTH, self.MAXIMUM_USEFUL_HEIGHT)
+        self.resize(620, 420)
+        self._last_valid_normal_geometry = QRect(self.geometry())
         self.setProperty("aiDashboardDomainWindow", self.domain_id)
         self.setProperty("aiDashboardDomainClassification", definition["classification"])
         self.setProperty("aiDashboardDomainLifecycle", definition["lifecycle"])
@@ -3886,9 +4088,32 @@ class AIDashboardDomainWindow(QDialog):
         self.setProperty("promptSend", "prompt-send-disabled")
         self.setProperty("networkEgress", "network-egress-blocked")
         self.setProperty("memoryIndexing", "memory-indexing-disabled")
+        self.setProperty("aiControlCenterStateTaxonomyContract", self.STATE_TAXONOMY_CONTRACT)
+        self.setProperty("aiControlCenterStateTaxonomyComplete", "false")
+        self.setProperty("aiControlCenterDiagnosticState", "no-provider-fail-closed")
+        self.setProperty("aiControlCenterStateTaxonomyRenderedStates", "")
+        self.setProperty("aiDashboardProviderStateViewModelContract", self.VIEW_MODEL_CONTRACT)
+        self.setProperty("aiDashboardProviderStateViewModelApplied", "false")
         self.setProperty("ndaiShellConformance", "ndai-webview-rounded-window-shell")
-        self.setProperty("windowMoveBehavior", "header-drag")
-        self.setProperty("windowResizeBehavior", "edge-corner-resize")
+        self.setProperty("windowBoundaryContract", "single-rounded-shell-mask-hit-rails-coincident-v2")
+        self.setProperty("windowBoundaryInset", "0")
+        self.setProperty("windowResizeRailLocation", "inside-visible-rounded-shell")
+        self.setProperty("windowOutsideHitBehavior", "noninteractive")
+        self.setProperty("windowMoveBehavior", "measured-visible-title-strip-native-and-fallback-v2")
+        self.setProperty("windowResizeBehavior", "windows-native-edge-corner-hit-test-with-webview-fallback")
+        self.setProperty("windowDefaultGeometryContract", "settled-dom-content-measured-screen-bounded-v2")
+        self.setProperty("windowSupportedGeometryContract", "minimum-default-intermediate-useful-large-screen-bounded")
+        self.setProperty("windowMaximumUsefulSize", f"{self.maximumWidth()}x{self.maximumHeight()}")
+        self.setProperty("windowMaximizeFullscreenPolicy", "not-offered-compact-detached-window")
+        self.setProperty("windowReopenGeometryContract", "preserve-last-user-geometry-until-destroyed")
+        self.setProperty("windowNativeOwnerContract", "native-parentless-logical-dashboard-lifecycle")
+        self.setProperty("windowTaskbarContract", "individual-title-thumbnail-grouping-allowed-no-appusermodelid")
+        self.setProperty("windowMinimizeContract", "standard-windows-taskbar-managed-same-hwnd")
+        self.setProperty("windowRestoreContract", "taskbar-or-dashboard-doorway-same-hwnd-prior-normal-geometry")
+        self.setProperty("windowAppUserModelIdCustomization", "not-used")
+        self.setProperty("windowShellVisualContract", "single-border-no-outer-halo")
+        self.setProperty("windowDescriptionDragBehavior", "client-content-never-caption")
+        self.setProperty("windowInitialContentFitApplied", "false")
         self._drag_start_global = QPoint()
         self._drag_window_origin = QPoint()
         self._dragging_header = False
@@ -3896,6 +4121,15 @@ class AIDashboardDomainWindow(QDialog):
         self._resize_start_geometry = QRect()
         self._resize_edges = Qt.Edges()
         self._resizing_window = False
+        self._initial_content_fit_pending = True
+        self._pending_content_metrics: dict[str, object] = {}
+        self._drag_region_bottom = self.DRAG_REGION_FALLBACK_BOTTOM
+        self._description_region_top = self.DRAG_REGION_FALLBACK_BOTTOM
+        self._visible_shell_region_cache = QRegion()
+        self._visible_shell_region_size = (-1, -1)
+        self._content_fit_timer = QTimer(self)
+        self._content_fit_timer.setSingleShot(True)
+        self._content_fit_timer.timeout.connect(self._apply_pending_initial_content_fit)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -3915,6 +4149,187 @@ class AIDashboardDomainWindow(QDialog):
         self.webview.setHtml(self._domain_html(), QUrl.fromLocalFile(str(self._asset_base_dir()) + os.sep))
         _apply_windows_dark_title_bar(self)
         self._apply_shell_mask()
+        self._register_runtime_instance()
+
+    def _register_runtime_instance(self) -> None:
+        domain_refs = self._instance_refs_by_domain.setdefault(self.domain_id, {})
+        identity = id(self)
+
+        def forget(_ref, *, domain=self.domain_id, object_identity=identity) -> None:
+            refs = self._instance_refs_by_domain.get(domain)
+            if refs is None:
+                return
+            refs.pop(object_identity, None)
+            if not refs:
+                self._instance_refs_by_domain.pop(domain, None)
+
+        domain_refs[identity] = weakref.ref(self, forget)
+
+    @staticmethod
+    def _qt_object_is_live(window) -> bool:
+        try:
+            window.objectName()
+            return True
+        except RuntimeError:
+            return False
+
+    @classmethod
+    def _live_domain_objects(cls, domain_id: str) -> list["AIDashboardDomainWindow"]:
+        objects: dict[int, AIDashboardDomainWindow] = {}
+        for reference in cls._instance_refs_by_domain.get(domain_id, {}).values():
+            window = reference()
+            if window is not None and cls._qt_object_is_live(window):
+                objects[id(window)] = window
+        app = QApplication.instance()
+        if app is not None:
+            for window in QApplication.topLevelWidgets():
+                if (
+                    isinstance(window, cls)
+                    and getattr(window, "domain_id", None) == domain_id
+                    and cls._qt_object_is_live(window)
+                ):
+                    objects[id(window)] = window
+        return list(objects.values())
+
+    @classmethod
+    def _process_domain_hwnds(cls, domain_id: str) -> list[int]:
+        definition = cls.DOMAIN_DEFINITIONS.get(domain_id, {})
+        expected_title = str(definition.get("title") or "")
+        if not expected_title:
+            return []
+        current_pid = os.getpid()
+        matches: list[int] = []
+
+        @WNDENUMPROC
+        def collect(hwnd, _lparam):
+            pid = ctypes.wintypes.DWORD()
+            GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+            if int(pid.value) != current_pid:
+                return True
+            length = int(GetWindowTextLengthW(hwnd) or 0)
+            if length <= 0:
+                return True
+            buffer = ctypes.create_unicode_buffer(length + 1)
+            GetWindowTextW(hwnd, buffer, length + 1)
+            if buffer.value == expected_title and IsWindow(hwnd):
+                matches.append(int(hwnd))
+            return True
+
+        EnumWindows(collect, 0)
+        return sorted(set(matches))
+
+    @classmethod
+    def runtime_lifecycle_inventory(cls, domain_id: str, dashboard=None) -> dict[str, object]:
+        registry = getattr(dashboard, "_domain_windows", {}) if dashboard is not None else {}
+        registered_objects: list[object] = []
+        if isinstance(registry, dict):
+            for key, window in registry.items():
+                if key == domain_id or getattr(window, "domain_id", None) == domain_id:
+                    registered_objects.append(window)
+
+        live_by_identity: dict[int, AIDashboardDomainWindow] = {}
+        object_sources: dict[int, set[str]] = {}
+        for reference in cls._instance_refs_by_domain.get(domain_id, {}).values():
+            window = reference()
+            if window is not None and cls._qt_object_is_live(window):
+                identity = id(window)
+                live_by_identity[identity] = window
+                object_sources.setdefault(identity, set()).add("class-weak-instance-registry")
+        app = QApplication.instance()
+        if app is not None:
+            for window in QApplication.topLevelWidgets():
+                if (
+                    isinstance(window, cls)
+                    and getattr(window, "domain_id", None) == domain_id
+                    and cls._qt_object_is_live(window)
+                ):
+                    identity = id(window)
+                    live_by_identity[identity] = window
+                    object_sources.setdefault(identity, set()).add("qt-top-level-widget-enumeration")
+        for window in registered_objects:
+            if window is not None and cls._qt_object_is_live(window):
+                identity = id(window)
+                live_by_identity[identity] = window
+                object_sources.setdefault(identity, set()).add("dashboard-domain-registry")
+        identities: list[dict[str, object]] = []
+        object_hwnds: set[int] = set()
+        pending_object_ids: set[int] = set()
+        for identity, window in sorted(live_by_identity.items()):
+            hwnd = 0
+            try:
+                hwnd = int(window._native_domain_hwnd())
+            except RuntimeError:
+                hwnd = 0
+            if hwnd and IsWindow(ctypes.wintypes.HWND(hwnd)):
+                object_hwnds.add(hwnd)
+            close_state = str(getattr(window, "_close_state", "unknown"))
+            if close_state == "close-requested":
+                pending_object_ids.add(identity)
+            sources = sorted(object_sources.get(identity, set()))
+            identities.append(
+                {
+                    "objectIdentity": identity,
+                    "hwnd": hwnd,
+                    "qtObjectAlive": True,
+                    "nativeHwndAlive": bool(hwnd and IsWindow(ctypes.wintypes.HWND(hwnd))),
+                    "registered": "dashboard-domain-registry" in sources,
+                    "closeState": close_state,
+                    "sources": sources,
+                }
+            )
+
+        process_hwnds = set(cls._process_domain_hwnds(domain_id))
+        live_hwnds = sorted(process_hwnds | object_hwnds)
+        closing_hwnds = getattr(dashboard, "_domain_closing_hwnds", {}) if dashboard is not None else {}
+        closing_identities = getattr(dashboard, "_domain_closing_identities", {}) if dashboard is not None else {}
+        pending_hwnd = int(closing_hwnds.get(domain_id, 0) or 0) if isinstance(closing_hwnds, dict) else 0
+        pending_identity = int(closing_identities.get(domain_id, 0) or 0) if isinstance(closing_identities, dict) else 0
+        if pending_identity:
+            pending_object_ids.add(pending_identity)
+
+        stale_registry_identities: list[int] = []
+        for window in registered_objects:
+            if window is None or not cls._qt_object_is_live(window):
+                stale_registry_identities.append(id(window))
+                continue
+            known_hwnd = int(getattr(window, "_last_known_native_hwnd", 0) or 0)
+            if known_hwnd and known_hwnd not in process_hwnds and getattr(window, "_close_state", "") != "open":
+                stale_registry_identities.append(id(window))
+
+        registered_count = len(registered_objects)
+        live_object_count = len(live_by_identity)
+        live_hwnd_count = len(live_hwnds)
+        duplicate_object_count = max(0, live_object_count - 1)
+        duplicate_hwnd_count = max(0, live_hwnd_count - 1)
+        return {
+            "inventoryContract": "fam007-production-live-object-hwnd-inventory-v2",
+            "inventorySource": "production-live-runtime-inventory",
+            "inventorySources": [
+                "dashboard-domain-registry",
+                "class-weak-instance-registry",
+                "qt-top-level-widget-enumeration",
+                "win32-current-process-top-level-hwnd-enumeration-by-domain-title",
+            ],
+            "inventoryCompleteness": {
+                "registeredObjects": "complete-for-dashboard-domain-registry",
+                "liveQtObjects": "complete-for-current-process-qt-top-level-widgets-plus-class-weak-registry",
+                "liveNativeHwnds": "complete-for-current-process-top-level-windows-with-exact-domain-title",
+            },
+            "inventoryInjectedFieldsUsed": False,
+            "registeredObjectCount": registered_count,
+            "liveObjectCount": live_object_count,
+            "liveSameDomainHwndCount": live_hwnd_count,
+            "pendingClosingCount": len(pending_object_ids) if pending_object_ids else int(bool(pending_hwnd)),
+            "staleRegistryCount": len(set(stale_registry_identities)),
+            "duplicateObjectCount": duplicate_object_count,
+            "duplicateHwndCount": duplicate_hwnd_count,
+            "duplicateCount": max(duplicate_object_count, duplicate_hwnd_count),
+            "objectIdentities": identities,
+            "hwndIdentities": live_hwnds,
+            "pendingClosingObjectIdentities": sorted(pending_object_ids),
+            "pendingClosingHwnd": pending_hwnd,
+            "staleRegistryObjectIdentities": sorted(set(stale_registry_identities)),
+        }
 
     def eventFilter(self, obj, event):
         if obj is self.webview:
@@ -3929,7 +4344,7 @@ class AIDashboardDomainWindow(QDialog):
                     self._resize_start_geometry = QRect(self.geometry())
                     event.accept()
                     return True
-                if 14 <= local.y() <= 92 and local.x() < max(0, self.webview.width() - 118):
+                if self._is_drag_point(local):
                     self._dragging_header = True
                     self._drag_start_global = event.globalPosition().toPoint()
                     self._drag_window_origin = self.frameGeometry().topLeft()
@@ -3958,6 +4373,471 @@ class AIDashboardDomainWindow(QDialog):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._apply_shell_mask()
+        self._remember_normal_geometry()
+
+    def moveEvent(self, event):
+        super().moveEvent(event)
+        self._remember_normal_geometry()
+
+    def changeEvent(self, event):
+        old_state = event.oldState() if event.type() == QEvent.WindowStateChange else Qt.WindowNoState
+        super().changeEvent(event)
+        if (
+            event.type() == QEvent.WindowStateChange
+            and bool(old_state & Qt.WindowMinimized)
+            and not self.isMinimized()
+            and self._pending_lifecycle_transition is None
+        ):
+            QTimer.singleShot(0, self._complete_taskbar_restore_transition)
+
+    def closeEvent(self, event):
+        context = self._pending_lifecycle_transition
+        if not isinstance(context, dict) or context.get("requestedAction") not in {"close", "parent-close"}:
+            context = self._begin_lifecycle_action(
+                requested_route="windows-close-or-system-menu",
+                requested_action="close",
+                qt_method="closeEvent",
+            )
+        dashboard = self._dashboard()
+        if dashboard is not None:
+            mark_closing = getattr(dashboard, "_mark_ai_dashboard_domain_window_closing", None)
+            if callable(mark_closing):
+                mark_closing(self, context)
+        self._close_state = "close-requested"
+        super().closeEvent(event)
+        accepted = bool(event.isAccepted())
+        if not accepted:
+            self._close_state = "open"
+            if dashboard is not None:
+                cancel_closing = getattr(dashboard, "_cancel_ai_dashboard_domain_window_closing", None)
+                if callable(cancel_closing):
+                    cancel_closing(self.domain_id, id(self))
+        self._record_lifecycle_transition(
+            context,
+            method_result=accepted,
+            close_result="accepted-destroy-pending" if accepted else "rejected",
+            restore_route="not-applicable",
+        )
+        self._pending_lifecycle_transition = None
+
+    @staticmethod
+    def _qrect_lifecycle_snapshot(rect: QRect) -> dict[str, int] | None:
+        if not isinstance(rect, QRect) or not rect.isValid():
+            return None
+        return {
+            "x": int(rect.x()),
+            "y": int(rect.y()),
+            "width": int(rect.width()),
+            "height": int(rect.height()),
+        }
+
+    @staticmethod
+    def _qt_enum_value(value) -> int:
+        return int(getattr(value, "value", value))
+
+    def _dashboard(self):
+        return self._dashboard_ref() if self._dashboard_ref is not None else None
+
+    def _remember_normal_geometry(self) -> None:
+        pending_action = (
+            self._pending_lifecycle_transition.get("requestedAction")
+            if isinstance(self._pending_lifecycle_transition, dict)
+            else ""
+        )
+        if pending_action == "minimize" or self.isMinimized() or self.isMaximized() or self.isFullScreen():
+            return
+        geometry = self.geometry()
+        if geometry.isValid() and geometry.width() >= self.minimumWidth() and geometry.height() >= self.minimumHeight():
+            self._last_valid_normal_geometry = QRect(geometry)
+
+    def _bounded_domain_geometry(self, candidate: QRect) -> QRect:
+        rect = QRect(candidate) if isinstance(candidate, QRect) and candidate.isValid() else QRect(self.geometry())
+        screen = QApplication.screenAt(rect.center()) if rect.isValid() else None
+        if screen is None:
+            screen = self.screen_ref or QApplication.primaryScreen()
+        if screen is None:
+            return rect
+        available = screen.availableGeometry()
+        gutter = self.AVAILABLE_DESKTOP_GUTTER
+        max_width = max(self.minimumWidth(), min(self.maximumWidth(), available.width() - (gutter * 2)))
+        max_height = max(self.minimumHeight(), min(self.maximumHeight(), available.height() - (gutter * 2)))
+        width = max(self.minimumWidth(), min(rect.width(), max_width))
+        height = max(self.minimumHeight(), min(rect.height(), max_height))
+        min_x = available.x() + gutter
+        min_y = available.y() + gutter
+        max_x = max(min_x, available.x() + available.width() - width - gutter)
+        max_y = max(min_y, available.y() + available.height() - height - gutter)
+        return QRect(
+            max(min_x, min(rect.x(), max_x)),
+            max(min_y, min(rect.y(), max_y)),
+            width,
+            height,
+        )
+
+    def _native_domain_hwnd(self) -> int:
+        try:
+            hwnd = int(self.winId())
+            if hwnd:
+                self._last_known_native_hwnd = hwnd
+            return hwnd
+        except (RuntimeError, TypeError, ValueError):
+            return int(getattr(self, "_last_known_native_hwnd", 0) or 0)
+
+    def _registry_lifecycle_snapshot(self) -> dict[str, object]:
+        dashboard = self._dashboard()
+        inventory = self.runtime_lifecycle_inventory(self.domain_id, dashboard)
+        registered = any(
+            item.get("objectIdentity") == id(self) and item.get("registered") is True
+            for item in inventory["objectIdentities"]
+        )
+        return {
+            "identity": id(self),
+            "registered": registered,
+            "registryCount": inventory["registeredObjectCount"],
+            "domainEntryCount": inventory["registeredObjectCount"],
+            "duplicateCount": inventory["duplicateCount"],
+            "staleEntryDetected": bool(inventory["staleRegistryCount"]),
+            **inventory,
+        }
+
+    def _parent_lifecycle_snapshot(self) -> dict[str, object]:
+        dashboard = self._dashboard()
+        if dashboard is None:
+            return {
+                "present": False,
+                "visible": False,
+                "minimized": False,
+                "closingExclusiveChildren": False,
+            }
+        return {
+            "present": True,
+            "visible": bool(dashboard.isVisible()),
+            "minimized": bool(dashboard.isMinimized()),
+            "closingExclusiveChildren": bool(getattr(dashboard, "_closing_domain_children", False)),
+        }
+
+    def _native_lifecycle_snapshot(self) -> dict[str, object]:
+        hwnd = self._native_domain_hwnd()
+        native_hwnd = ctypes.wintypes.HWND(hwnd) if hwnd else ctypes.wintypes.HWND()
+        current_rect = ctypes.wintypes.RECT()
+        current_rect_ok = bool(hwnd and GetWindowRect(native_hwnd, ctypes.byref(current_rect)))
+        placement = WINDOWPLACEMENT()
+        placement.length = ctypes.sizeof(WINDOWPLACEMENT)
+        placement_ok = bool(hwnd and GetWindowPlacement(native_hwnd, ctypes.byref(placement)))
+        owner_hwnd = int(GetWindowW(native_hwnd, GW_OWNER) or 0) if hwnd else 0
+        style = (int(GetWindowLongPtrW(native_hwnd, GWL_STYLE)) & 0xFFFFFFFF) if hwnd else 0
+        extended_style = (int(GetWindowLongPtrW(native_hwnd, GWL_EXSTYLE)) & 0xFFFFFFFF) if hwnd else 0
+        pid = ctypes.wintypes.DWORD()
+        if hwnd:
+            GetWindowThreadProcessId(native_hwnd, ctypes.byref(pid))
+        taskbar_eligible = bool(
+            hwnd
+            and owner_hwnd == 0
+            and extended_style & WS_EX_APPWINDOW
+            and not extended_style & WS_EX_TOOLWINDOW
+            and not extended_style & WS_EX_NOACTIVATE
+        )
+        if current_rect_ok:
+            current = QRect(
+                current_rect.left,
+                current_rect.top,
+                max(0, current_rect.right - current_rect.left),
+                max(0, current_rect.bottom - current_rect.top),
+            )
+        else:
+            current = QRect(self.geometry())
+        if placement_ok:
+            native_normal = QRect(
+                placement.rcNormalPosition.left,
+                placement.rcNormalPosition.top,
+                max(0, placement.rcNormalPosition.right - placement.rcNormalPosition.left),
+                max(0, placement.rcNormalPosition.bottom - placement.rcNormalPosition.top),
+            )
+            show_cmd = int(placement.showCmd)
+        else:
+            native_normal = QRect(self._last_valid_normal_geometry)
+            show_cmd = 0
+        minimized = bool(hwnd and IsIconic(native_hwnd)) or bool(self.isMinimized())
+        icon_sized_rect = bool(current.isValid() and current.width() <= 200 and current.height() <= 60)
+        foreground_hwnd = int(GetForegroundWindow() or 0)
+        iconic_artifact_native_facts = {
+            "nativeMinimized": minimized,
+            "iconSizedRectangle": icon_sized_rect,
+            "showCmd": show_cmd,
+            "currentRectangle": self._qrect_lifecycle_snapshot(current),
+            "taskbarEligible": taskbar_eligible,
+        }
+        iconic_artifact_status = classify_ai_dashboard_iconic_artifact(
+            iconic_artifact_native_facts,
+            visible_proof=None,
+        )
+        return {
+            "hwnd": hwnd,
+            "pid": int(pid.value) if hwnd else os.getpid(),
+            "title": self.windowTitle(),
+            "nativeOwnerHwnd": owner_hwnd,
+            "logicalDashboardOwner": self.definition["classification"] == "exclusive-child",
+            "qtFlags": self._qt_enum_value(self.windowFlags()),
+            "style": style,
+            "extendedStyle": extended_style,
+            "taskbarEligible": taskbar_eligible,
+            "taskbarRepresentationState": (
+                "individual-title-thumbnail-grouping-allowed"
+                if taskbar_eligible
+                else "ineligible-stop"
+            ),
+            "taskbarGroupingAllowed": True,
+            "ungroupedTaskbarIconRequired": False,
+            "appUserModelIdCustomization": False,
+            "showCmd": show_cmd,
+            "qtVisible": bool(self.isVisible()),
+            "nativeVisible": bool(hwnd and IsWindowVisible(native_hwnd)),
+            "qtMinimized": bool(self.isMinimized()),
+            "nativeMinimized": minimized,
+            "normalRectangle": self._qrect_lifecycle_snapshot(native_normal),
+            "rememberedNormalRectangle": self._qrect_lifecycle_snapshot(self._last_valid_normal_geometry),
+            "currentRectangle": self._qrect_lifecycle_snapshot(current),
+            "foregroundHwnd": foreground_hwnd,
+            "foregroundResult": bool(hwnd and foreground_hwnd == hwnd),
+            "focusResult": bool(self.isActiveWindow() or (hwnd and foreground_hwnd == hwnd)),
+            "iconicArtifactNativeFacts": iconic_artifact_native_facts,
+            "iconicArtifactStatus": iconic_artifact_status,
+            "iconicArtifactVisualEvidenceScope": "none-component-or-runtime-state-only",
+            "unexpectedIconicArtifactDetected": None,
+            "unexpectedIconicArtifactObservationComplete": False,
+            "unexpectedIconicArtifactVisualProofRequired": True,
+        }
+
+    def _normalize_native_taskbar_contract(self) -> dict[str, object]:
+        hwnd = self._native_domain_hwnd()
+        if not hwnd:
+            return self._native_lifecycle_snapshot()
+        native_hwnd = ctypes.wintypes.HWND(hwnd)
+        SetWindowLongPtrW(native_hwnd, GWLP_HWNDPARENT, 0)
+        extended_style = int(GetWindowLongPtrW(native_hwnd, GWL_EXSTYLE))
+        extended_style = (
+            extended_style
+            & ~WS_EX_TOOLWINDOW
+            & ~WS_EX_NOACTIVATE
+        ) | WS_EX_APPWINDOW
+        SetWindowLongPtrW(native_hwnd, GWL_EXSTYLE, extended_style)
+        SetWindowPos(
+            native_hwnd,
+            HWND_TOP,
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED,
+        )
+        return self._native_lifecycle_snapshot()
+
+    def _activate_domain_window(self) -> dict[str, object]:
+        self.raise_()
+        self.activateWindow()
+        handle = self.windowHandle() if hasattr(self, "windowHandle") else None
+        if handle is not None:
+            handle.requestActivate()
+        hwnd = self._native_domain_hwnd()
+        if hwnd:
+            native_hwnd = ctypes.wintypes.HWND(hwnd)
+            BringWindowToTop(native_hwnd)
+            SetActiveWindow(native_hwnd)
+            SetForegroundWindow(native_hwnd)
+        QApplication.processEvents()
+        return self._native_lifecycle_snapshot()
+
+    def _begin_lifecycle_action(
+        self,
+        *,
+        requested_route: str,
+        requested_action: str,
+        qt_method: str,
+    ) -> dict[str, object]:
+        self._lifecycle_sequence += 1
+        requested_native = self._native_lifecycle_snapshot()
+        requested_registry = self._registry_lifecycle_snapshot()
+        context = {
+            "sequenceId": (
+                f"{self.domain_id}:g{self._lifecycle_generation}:{self._lifecycle_sequence:04d}"
+            ),
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "lifecycleClass": self.definition["classification"],
+            "lifecyclePolicy": self.definition["lifecycle"],
+            "childSurface": self.definition["title"],
+            "domain": self.domain_id,
+            "lifecycleGeneration": self._lifecycle_generation,
+            "requestedRoute": requested_route,
+            "requestedAction": requested_action,
+            "qtMethodInvoked": qt_method,
+            "requestedHwnd": requested_native["hwnd"],
+            "requestedShowCmd": requested_native["showCmd"],
+            "priorNormalRectangle": requested_native["rememberedNormalRectangle"],
+            "requestedRegistryIdentity": requested_registry["identity"],
+            "requestedRegistryCount": requested_registry["registryCount"],
+            "requestedDuplicateCount": requested_registry["duplicateCount"],
+        }
+        if callable(self.event_logger):
+            self.event_logger(
+                "RENDERER_MAIN|AI_DASHBOARD_DOMAIN_LIFECYCLE_ACTION_REQUESTED"
+                f"|sequence_id={context['sequenceId']}|domain={self.domain_id}"
+                f"|route={requested_route}|action={requested_action}|qt_method={qt_method}"
+            )
+        return context
+
+    def _record_lifecycle_transition(
+        self,
+        context: dict[str, object],
+        *,
+        method_result,
+        close_result: str = "not-applicable",
+        restore_route: str = "not-applicable",
+        restored_rectangle: QRect | None = None,
+    ) -> dict[str, object]:
+        native = self._native_lifecycle_snapshot()
+        registry = self._registry_lifecycle_snapshot()
+        record = {
+            **context,
+            "resultTimestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "methodResult": method_result,
+            **native,
+            "restoredRectangle": self._qrect_lifecycle_snapshot(restored_rectangle) if restored_rectangle else None,
+            "restoreRoute": restore_route,
+            "registryIdentity": registry["identity"],
+            "registryRegistered": registry["registered"],
+            "registryCount": registry["registryCount"],
+            "registryDomainEntryCount": registry["domainEntryCount"],
+            "duplicateCount": registry["duplicateCount"],
+            "staleRegistryEntryDetected": registry["staleEntryDetected"],
+            "lifecycleInventory": {
+                key: value
+                for key, value in registry.items()
+                if key not in {"identity", "registered", "registryCount", "domainEntryCount", "staleEntryDetected"}
+            },
+            "parentState": self._parent_lifecycle_snapshot(),
+            "childState": (
+                "minimized"
+                if native["nativeMinimized"]
+                else "visible-normal"
+                if native["nativeVisible"]
+                else "closing-or-hidden"
+            ),
+            "childDestroyed": close_result == "destroyed",
+            "closeResult": close_result,
+            "orphanTaskbarVisibleHwndDetected": False,
+            "supportingDiagnosticOnly": True,
+            "gatingDecision": "UNEVALUATED_REQUIRES_SEPARATE_FOCUSED_CLOSURE",
+        }
+        self._lifecycle_records.append(record)
+        self._lifecycle_records = self._lifecycle_records[-128:]
+        self.setProperty("aiDashboardDomainLifecycleLastSequence", context["sequenceId"])
+        self.setProperty("aiDashboardDomainLifecycleLastAction", context["requestedAction"])
+        if callable(self.event_logger):
+            encoded = urllib.parse.quote(json.dumps(record, sort_keys=True, separators=(",", ":")))
+            self.event_logger(
+                "RENDERER_MAIN|AI_DASHBOARD_DOMAIN_LIFECYCLE_TRANSITION"
+                f"|sequence_id={context['sequenceId']}|domain={self.domain_id}|record={encoded}"
+            )
+        return record
+
+    def lifecycle_debug_state(self) -> dict[str, object]:
+        return {
+            "contract": "fam007-option-a-taskbar-managed-child-lifecycle-v1",
+            "domain": self.domain_id,
+            "classification": self.definition["classification"],
+            "lifecycle": self.definition["lifecycle"],
+            "native": self._native_lifecycle_snapshot(),
+            "registry": self._registry_lifecycle_snapshot(),
+            "parent": self._parent_lifecycle_snapshot(),
+            "records": list(self._lifecycle_records),
+        }
+
+    def _restore_remembered_normal_geometry(self) -> QRect:
+        candidate = self._last_valid_normal_geometry
+        if not isinstance(candidate, QRect) or not candidate.isValid():
+            candidate = self.normalGeometry()
+        bounded = self._bounded_domain_geometry(candidate)
+        if bounded.isValid():
+            self.setGeometry(bounded)
+            self._last_valid_normal_geometry = QRect(bounded)
+        return bounded
+
+    def _complete_taskbar_restore_transition(self) -> None:
+        context = self._begin_lifecycle_action(
+            requested_route="windows-taskbar-or-thumbnail",
+            requested_action="restore",
+            qt_method="windows-shell-restore",
+        )
+        context["requestedHwnd"] = self._last_minimized_hwnd
+        context["requestedShowCmd"] = 2
+        context["priorNormalRectangle"] = self._qrect_lifecycle_snapshot(
+            self._last_minimized_normal_geometry
+        )
+        restored = self._restore_remembered_normal_geometry()
+        self._normalize_native_taskbar_contract()
+        state = self._activate_domain_window()
+        self._record_lifecycle_transition(
+            context,
+            method_result=bool(state["nativeVisible"] and not state["nativeMinimized"]),
+            restore_route="windows-taskbar-or-thumbnail",
+            restored_rectangle=restored,
+        )
+
+    def _finalize_minimize_transition(self, sequence_id: str) -> None:
+        context = self._pending_lifecycle_transition
+        if not isinstance(context, dict) or context.get("sequenceId") != sequence_id:
+            return
+        state = self._native_lifecycle_snapshot()
+        self._record_lifecycle_transition(
+            context,
+            method_result=bool(state["nativeMinimized"] and state["taskbarEligible"]),
+        )
+        self._pending_lifecycle_transition = None
+
+    def minimize_domain_window(self, requested_route: str = "visible-minimize-control") -> dict[str, object]:
+        self._remember_normal_geometry()
+        context = self._begin_lifecycle_action(
+            requested_route=requested_route,
+            requested_action="minimize",
+            qt_method="showMinimized",
+        )
+        self._last_minimized_hwnd = int(context["requestedHwnd"] or 0)
+        self._last_minimized_normal_geometry = QRect(self._last_valid_normal_geometry)
+        self._pending_lifecycle_transition = context
+        self._normalize_native_taskbar_contract()
+        self.showMinimized()
+        QTimer.singleShot(0, lambda sequence=context["sequenceId"]: self._finalize_minimize_transition(sequence))
+        return {"sequenceId": context["sequenceId"], "hwnd": self._native_domain_hwnd()}
+
+    def close_domain_window(self, requested_route: str) -> bool:
+        if self._close_state == "close-requested":
+            return False
+        requested_action = "parent-close" if requested_route == "dashboard-parent-close" else "close"
+        context = self._begin_lifecycle_action(
+            requested_route=requested_route,
+            requested_action=requested_action,
+            qt_method="close",
+        )
+        self._pending_lifecycle_transition = context
+        return bool(self.close())
+
+    def record_dashboard_parent_close_survival(self) -> dict[str, object]:
+        context = self._begin_lifecycle_action(
+            requested_route="dashboard-parent-close",
+            requested_action="parent-close",
+            qt_method="no-close-stays-open",
+        )
+        state = self._native_lifecycle_snapshot()
+        return self._record_lifecycle_transition(
+            context,
+            method_result=bool(
+                self.definition["classification"] == "external-unique"
+                and state["taskbarEligible"]
+                and state["hwnd"]
+                and IsWindow(ctypes.wintypes.HWND(int(state["hwnd"])))
+            ),
+            close_result="not-closed-by-external-unique-lifecycle",
+        )
 
     def leaveEvent(self, event):
         if not self._resizing_window:
@@ -3967,22 +4847,187 @@ class AIDashboardDomainWindow(QDialog):
     def _apply_shell_mask(self) -> None:
         if self.width() <= 0 or self.height() <= 0:
             return
+        self.setMask(self._visible_shell_region())
+
+    def _window_bounds_rect(self) -> QRect:
+        return QRect(0, 0, max(0, self.width()), max(0, self.height()))
+
+    def _visible_shell_region(self) -> QRegion:
+        if self.width() <= 0 or self.height() <= 0:
+            return QRegion()
+        current_size = (self.width(), self.height())
+        if getattr(self, "_visible_shell_region_size", None) == current_size:
+            return self._visible_shell_region_cache
         path = QPainterPath()
-        path.addRoundedRect(QRectF(self.rect()), self.SHELL_RADIUS, self.SHELL_RADIUS)
-        self.setMask(QRegion(path.toFillPolygon().toPolygon()))
+        path.addRoundedRect(
+            QRectF(0.0, 0.0, float(self.width()), float(self.height())),
+            self.SHELL_RADIUS,
+            self.SHELL_RADIUS,
+        )
+        self._visible_shell_region_cache = QRegion(path.toFillPolygon().toPolygon())
+        self._visible_shell_region_size = current_size
+        return self._visible_shell_region_cache
+
+    def _point_in_visible_shell(self, point: QPoint) -> bool:
+        return self._window_bounds_rect().contains(point) and self._visible_shell_region().contains(point)
+
+    def _drag_region(self) -> QRect:
+        bottom = min(max(0, int(self._drag_region_bottom)), self.height())
+        return QRect(0, 0, max(0, self.width()), bottom)
+
+    def _is_drag_point(self, point: QPoint) -> bool:
+        return (
+            self._point_in_visible_shell(point)
+            and self._drag_region().contains(point)
+            and not self._control_cluster_zone().contains(point)
+        )
+
+    @staticmethod
+    def _rect_snapshot(rect: QRect) -> dict[str, int]:
+        return {
+            "left": rect.left(),
+            "top": rect.top(),
+            "width": rect.width(),
+            "height": rect.height(),
+        }
+
+    def _boundary_contract_snapshot(self) -> dict[str, object]:
+        bounds = self._window_bounds_rect()
+        sample_y = max(0, self.height() // 2)
+        samples = {
+            "outsideLeft": QPoint(-1, sample_y),
+            "outsideRight": QPoint(self.width(), sample_y),
+            "outsideTop": QPoint(max(0, self.width() // 2), -1),
+            "outsideBottom": QPoint(max(0, self.width() // 2), self.height()),
+            "transparentTopLeft": QPoint(0, 0),
+            "visibleTopLeftRail": QPoint(
+                self.RESIZE_CORNER_MARGIN - 4,
+                self.RESIZE_CORNER_MARGIN - 4,
+            ),
+        }
+        return {
+            "contract": str(self.property("windowBoundaryContract") or ""),
+            "windowBounds": self._rect_snapshot(bounds),
+            "visibleShellBounds": self._rect_snapshot(self._visible_shell_region().boundingRect()),
+            "maskBounds": self._rect_snapshot(self.mask().boundingRect()),
+            "boundaryInset": 0,
+            "resizeRailsInsideVisibleShell": True,
+            "outsideHitBehavior": "noninteractive",
+            "samples": {
+                name: {
+                    "point": {"x": point.x(), "y": point.y()},
+                    "visibleShell": self._point_in_visible_shell(point),
+                    "resizeEdges": int(getattr(self._resize_edges_for_point(point), "value", 0)),
+                }
+                for name, point in samples.items()
+            },
+        }
 
     def _resize_edges_for_point(self, point: QPoint):
+        width = self.width()
+        height = self.height()
+        if width <= 0 or height <= 0 or not self._point_in_visible_shell(point):
+            return Qt.Edges()
+        edge_margin = self.RESIZE_EDGE_MARGIN
+        corner_margin = self.RESIZE_CORNER_MARGIN
+        near_top_corner = point.y() <= corner_margin
+        near_bottom_corner = point.y() >= height - corner_margin
         edges = Qt.Edges()
-        margin = self.RESIZE_MARGIN
-        if point.x() <= margin:
+        if point.x() <= (corner_margin if near_top_corner or near_bottom_corner else edge_margin):
             edges |= Qt.LeftEdge
-        elif point.x() >= self.webview.width() - margin:
+        elif point.x() >= width - (corner_margin if near_top_corner or near_bottom_corner else edge_margin):
             edges |= Qt.RightEdge
-        if point.y() <= margin:
+        near_left_corner = point.x() <= corner_margin
+        near_right_corner = point.x() >= width - corner_margin
+        if point.y() <= (corner_margin if near_left_corner or near_right_corner else edge_margin):
             edges |= Qt.TopEdge
-        elif point.y() >= self.webview.height() - margin:
+        elif point.y() >= height - (corner_margin if near_left_corner or near_right_corner else edge_margin):
             edges |= Qt.BottomEdge
         return edges
+
+    @staticmethod
+    def _hit_test_for_resize_edges(edges) -> int:
+        if edges == (Qt.LeftEdge | Qt.TopEdge):
+            return HTTOPLEFT
+        if edges == (Qt.RightEdge | Qt.TopEdge):
+            return HTTOPRIGHT
+        if edges == (Qt.LeftEdge | Qt.BottomEdge):
+            return HTBOTTOMLEFT
+        if edges == (Qt.RightEdge | Qt.BottomEdge):
+            return HTBOTTOMRIGHT
+        if edges & Qt.LeftEdge:
+            return HTLEFT
+        if edges & Qt.RightEdge:
+            return HTRIGHT
+        if edges & Qt.TopEdge:
+            return HTTOP
+        if edges & Qt.BottomEdge:
+            return HTBOTTOM
+        return HTCLIENT
+
+    @staticmethod
+    def _resize_edges_for_hit_test(hit_test: int):
+        return {
+            HTLEFT: Qt.LeftEdge,
+            HTRIGHT: Qt.RightEdge,
+            HTTOP: Qt.TopEdge,
+            HTBOTTOM: Qt.BottomEdge,
+            HTTOPLEFT: Qt.TopEdge | Qt.LeftEdge,
+            HTTOPRIGHT: Qt.TopEdge | Qt.RightEdge,
+            HTBOTTOMLEFT: Qt.BottomEdge | Qt.LeftEdge,
+            HTBOTTOMRIGHT: Qt.BottomEdge | Qt.RightEdge,
+        }.get(int(hit_test), Qt.Edges())
+
+    def _control_cluster_zone(self) -> QRect:
+        return QRect(
+            max(0, self.width() - self.CONTROL_ZONE_WIDTH),
+            0,
+            self.CONTROL_ZONE_WIDTH,
+            self.CONTROL_ZONE_HEIGHT,
+        )
+
+    def _native_hit_test(self, screen_point: QPoint) -> int:
+        local = self.mapFromGlobal(screen_point)
+        if not self._point_in_visible_shell(local):
+            return 0
+        edges = self._resize_edges_for_point(local)
+        if edges:
+            return self._hit_test_for_resize_edges(edges)
+        if self._is_drag_point(local):
+            return HTCAPTION
+        return HTCLIENT
+
+    def nativeEvent(self, eventType, message):
+        if eventType in ("windows_generic_MSG", "windows_dispatcher_MSG"):
+            try:
+                msg = ctypes.wintypes.MSG.from_address(int(message))
+            except Exception:
+                msg = None
+            if msg is not None:
+                message_id = int(msg.message)
+                if message_id == WM_NCHITTEST:
+                    x = ctypes.c_short(int(msg.lParam) & 0xFFFF).value
+                    y = ctypes.c_short((int(msg.lParam) >> 16) & 0xFFFF).value
+                    return True, self._native_hit_test(QPoint(x, y))
+                if message_id == WM_NCLBUTTONDBLCLK:
+                    if self._native_hit_test(QCursor.pos()) == HTCAPTION:
+                        return True, 0
+                if message_id == WM_NCLBUTTONDOWN:
+                    hit_test = int(msg.wParam)
+                    handle = self.windowHandle()
+                    if handle is not None and hit_test == HTCAPTION and handle.startSystemMove():
+                        return True, 0
+                    resize_edges = self._resize_edges_for_hit_test(hit_test)
+                    if handle is not None and resize_edges and handle.startSystemResize(resize_edges):
+                        return True, 0
+                if message_id == WM_SETCURSOR and not self._resizing_window:
+                    hit_test = ctypes.c_short(int(msg.lParam) & 0xFFFF).value
+                    cursor_edges = self._resize_edges_for_hit_test(hit_test)
+                    if cursor_edges:
+                        self._set_resize_cursor(cursor_edges)
+                        return True, 1
+                    self.unsetCursor()
+        return super().nativeEvent(eventType, message)
 
     def _set_resize_cursor(self, edges) -> None:
         if edges in (Qt.LeftEdge | Qt.TopEdge, Qt.RightEdge | Qt.BottomEdge):
@@ -4012,6 +5057,79 @@ class AIDashboardDomainWindow(QDialog):
         self.setGeometry(rect)
         self._apply_shell_mask()
 
+    def _update_interaction_metrics(self, metrics: dict[str, object]) -> None:
+        try:
+            drag_bottom = int(math.ceil(float(metrics.get("dragRegionBottom") or 0)))
+            description_top = int(math.floor(float(metrics.get("descriptionTop") or drag_bottom)))
+        except (TypeError, ValueError):
+            return
+        if drag_bottom <= 0:
+            return
+        drag_bottom = min(max(self.RESIZE_EDGE_MARGIN + 1, drag_bottom), max(1, self.height()))
+        description_top = min(max(drag_bottom, description_top), max(drag_bottom, self.height()))
+        self._drag_region_bottom = drag_bottom
+        self._description_region_top = description_top
+        self.setProperty("windowMeasuredDragRegionBottom", str(drag_bottom))
+        self.setProperty("windowMeasuredDescriptionTop", str(description_top))
+
+    def _queue_initial_content_fit(self, metrics: dict[str, object]) -> None:
+        self._update_interaction_metrics(metrics)
+        if not self._initial_content_fit_pending:
+            return
+        self._pending_content_metrics = dict(metrics)
+        self._content_fit_timer.start(self.CONTENT_FIT_SETTLE_MS)
+
+    def _apply_pending_initial_content_fit(self) -> None:
+        if self._pending_content_metrics:
+            self._apply_initial_content_fit(self._pending_content_metrics)
+
+    def _apply_initial_content_fit(self, metrics: dict[str, object]) -> None:
+        if not self._initial_content_fit_pending:
+            return
+        try:
+            measured_content_height = int(math.ceil(float(metrics.get("contentHeight") or 0)))
+        except (TypeError, ValueError):
+            return
+        if measured_content_height <= 0:
+            return
+        content_height = measured_content_height + self.CONTENT_FIT_SAFETY_PX
+        screen = self.screen_ref or QApplication.primaryScreen()
+        available = screen.availableGeometry() if screen is not None else QRect()
+        max_height = max(
+            self.minimumHeight(),
+            min(self.maximumHeight(), available.height() - (self.AVAILABLE_DESKTOP_GUTTER * 2)),
+        ) if available.isValid() else min(self.maximumHeight(), max(self.minimumHeight(), content_height))
+        target_height = min(max(self.minimumHeight(), content_height), max_height)
+        self._initial_content_fit_pending = False
+        self._pending_content_metrics = {}
+        if self.height() != target_height:
+            self.resize(self.width(), target_height)
+        self.setProperty("windowInitialContentFitApplied", "true")
+        self.setProperty("windowMeasuredContentHeight", str(measured_content_height))
+        self.setProperty("windowDefaultContentFitHeight", str(target_height))
+        self.setProperty(
+            "windowDefaultOverflowContract",
+            "content-fit" if target_height >= content_height else "screen-bounded-scroll",
+        )
+        self.webview.page().runJavaScript(
+            "(() => {"
+            "const surface = document.querySelector('[data-ai-dashboard-child-window]');"
+            "if (!surface) return;"
+            "surface.dataset.initialContentFitApplied = 'true';"
+            f"surface.dataset.measuredContentHeight = {json.dumps(str(measured_content_height))};"
+            f"surface.dataset.defaultContentFitHeight = {json.dumps(str(target_height))};"
+            f"surface.dataset.defaultOverflowContract = {json.dumps(str(self.property('windowDefaultOverflowContract') or ''))};"
+            "})();"
+        )
+        if self.isVisible():
+            _schedule_window_clamp(self, padding=self.AVAILABLE_DESKTOP_GUTTER)
+        if callable(self.event_logger):
+            self.event_logger(
+                "RENDERER_MAIN|AI_DASHBOARD_DOMAIN_WINDOW_CONTENT_FIT_READY"
+                f"|domain={self.domain_id}|content_h={measured_content_height}|window_h={target_height}"
+                f"|overflow={self.property('windowDefaultOverflowContract')}"
+            )
+
     def _asset_base_dir(self) -> Path:
         return Path(__file__).resolve().parents[1] / "nexus_visual"
 
@@ -4026,11 +5144,15 @@ class AIDashboardDomainWindow(QDialog):
   <title>{escape(definition["title"])}</title>
   <link rel="stylesheet" href="monitoring_hud.css" />
   <style>
-    html, body {{ margin: 0; min-height: 100%; background: transparent; }}
+    html, body {{ margin: 0; width: 100%; height: 100%; background: transparent; }}
     body.desktop-mode {{ overflow: hidden; }}
     .ai-domain-window {{
-      min-height: 100vh;
-      padding: 12px;
+      width: 100%;
+      height: 100vh;
+      padding: 0;
+      --ai-domain-row-gutter: 8px;
+      --ai-domain-row-vertical-gutter: 6px;
+      --ai-domain-row-label-width: 0px;
       box-sizing: border-box;
       color: rgba(235, 252, 255, 0.96);
       background: transparent;
@@ -4038,7 +5160,8 @@ class AIDashboardDomainWindow(QDialog):
     }}
     .ai-domain-window__chrome {{
       position: relative;
-      height: calc(100vh - 24px);
+      width: 100%;
+      height: 100vh;
       overflow: auto;
       scrollbar-width: thin;
       scrollbar-color: rgba(108, 232, 255, 0.58) transparent;
@@ -4046,13 +5169,11 @@ class AIDashboardDomainWindow(QDialog):
       border-radius: 24px;
       padding: 14px;
       box-sizing: border-box;
-      background:
-        radial-gradient(circle at 20% 4%, rgba(94, 212, 235, 0.11), transparent 34%),
-        linear-gradient(180deg, rgba(4, 16, 28, 0.985), rgba(2, 8, 16, 0.985));
-      box-shadow:
-        0 18px 46px rgba(0, 0, 0, 0.46),
-        0 0 24px rgba(86, 236, 255, 0.08),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+      background: linear-gradient(180deg, rgba(4, 16, 28, 0.985), rgba(2, 8, 16, 0.985));
+      box-shadow: none;
+    }}
+    .ai-domain-window__content {{
+      min-width: 0;
     }}
     .ai-domain-window__chrome::-webkit-scrollbar {{
       width: 8px;
@@ -4084,11 +5205,16 @@ class AIDashboardDomainWindow(QDialog):
       background: transparent;
     }}
     .ai-domain-window__header {{
-      display: grid;
-      gap: 6px;
-      padding: 10px 118px 14px 10px;
+      box-sizing: border-box;
       border-bottom: 1px solid rgba(94, 207, 229, 0.24);
       margin-bottom: 12px;
+      cursor: default;
+    }}
+    .ai-domain-window__drag-region {{
+      display: grid;
+      gap: 6px;
+      padding: 10px 118px 6px 10px;
+      box-sizing: border-box;
       cursor: move;
       user-select: none;
     }}
@@ -4177,10 +5303,12 @@ class AIDashboardDomainWindow(QDialog):
     }}
     .ai-domain-window__description {{
       margin: 0;
+      padding: 0 118px 14px 10px;
       color: rgba(181, 218, 229, 0.88);
       font-size: 12px;
-      font-weight: 660;
+      font-weight: 720;
       line-height: 1.35;
+      cursor: default;
     }}
     .ai-domain-window__card {{
       display: grid;
@@ -4227,28 +5355,31 @@ class AIDashboardDomainWindow(QDialog):
     }}
     .ai-domain-window__rows {{
       display: grid;
-      gap: 0;
+      gap: var(--ai-domain-row-vertical-gutter, 6px);
       min-width: 0;
     }}
     .ai-domain-window__row {{
       display: grid;
-      grid-template-columns: minmax(132px, 0.36fr) minmax(0, 1fr);
-      gap: 8px;
-      min-height: 25px;
+      grid-template-columns: var(--ai-domain-row-label-width, 0px) minmax(0, 1fr);
+      column-gap: var(--ai-domain-row-gutter, 8px);
+      min-height: 0;
       padding: 4px 0 2px;
       border-top: 1px solid rgba(94, 207, 229, 0.18);
     }}
     .ai-domain-window__row span {{
       color: rgba(103, 224, 255, 0.95);
-      font-size: 10px;
-      font-weight: 820;
+      width: max-content;
+      max-width: none;
+      white-space: nowrap;
+      font-size: 11px;
+      font-weight: 720;
       letter-spacing: 0.07em;
       text-transform: uppercase;
     }}
     .ai-domain-window__row strong {{
       color: rgba(235, 252, 255, 0.96);
       font-size: 11px;
-      font-weight: 760;
+      font-weight: 720;
       line-height: 1.35;
     }}
     .ai-domain-window__actions {{
@@ -4270,7 +5401,7 @@ class AIDashboardDomainWindow(QDialog):
       background: linear-gradient(145deg, rgba(7, 42, 62, 0.72), rgba(3, 18, 32, 0.78));
       color: rgba(235, 252, 255, 0.96);
       font-size: 11px;
-      font-weight: 820;
+      font-weight: 720;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       cursor: pointer;
@@ -4287,30 +5418,91 @@ class AIDashboardDomainWindow(QDialog):
       cursor: default;
       box-shadow: none;
     }}
+    .ai-domain-window__button[aria-pressed="true"] {{
+      border-color: rgba(126, 248, 218, 0.68);
+      background: rgba(10, 58, 72, 0.82);
+      box-shadow: 0 0 0 1px rgba(230, 251, 255, 0.08) inset, 0 0 14px rgba(86, 236, 255, 0.22);
+    }}
   </style>
 </head>
 <body class="desktop-mode">
-  <main class="ai-domain-window" data-ai-dashboard-child-window="{escape(self.domain_id)}" data-window-classification="{escape(definition["classification"])}" data-window-lifecycle="{escape(definition["lifecycle"])}" data-ndai-native-chrome="true" data-generic-os-chrome="rejected" data-shell-conformance="ndai-webview-rounded-window-shell" data-window-move="header-drag" data-window-resize="edge-corner-resize" data-window-control-cluster="compact-minimize-close" data-scrollbar-style="ndai-rounded-domain-scrollbar">
+  <main class="ai-domain-window" data-ai-dashboard-child-window="{escape(self.domain_id)}" data-window-classification="{escape(definition["classification"])}" data-window-lifecycle="{escape(definition["lifecycle"])}" data-ndai-native-chrome="true" data-generic-os-chrome="rejected" data-shell-conformance="ndai-webview-rounded-window-shell" data-window-boundary-contract="single-rounded-shell-mask-hit-rails-coincident-v2" data-window-boundary-inset="0" data-window-resize-rail-location="inside-visible-rounded-shell" data-window-outside-hit-behavior="noninteractive" data-window-move="measured-visible-title-strip-native-and-fallback-v2" data-window-description-drag="client-content-never-caption" data-window-resize="windows-native-edge-corner-hit-test-with-webview-fallback" data-window-default-geometry-contract="settled-dom-content-measured-screen-bounded-v2" data-window-supported-geometry-contract="minimum-default-intermediate-useful-large-screen-bounded" data-window-maximum-useful-size="{self.maximumWidth()}x{self.maximumHeight()}" data-window-maximize-fullscreen-policy="not-offered-compact-detached-window" data-window-reopen-geometry-contract="preserve-last-user-geometry-until-destroyed" data-window-shell-visual-contract="single-border-no-outer-halo" data-window-control-cluster="compact-minimize-close" data-scrollbar-style="ndai-rounded-domain-scrollbar" data-state-taxonomy-contract="{escape(self.STATE_TAXONOMY_CONTRACT)}" data-state-taxonomy-source="AIProviderStateSnapshot.aiControlCenterStateTaxonomy" data-state-taxonomy-scope="{escape(self.domain_id)}" data-state-taxonomy-required-states="{escape(" ".join(self.REQUIRED_STATE_TAXONOMY_STATES))}" data-view-model-contract="{escape(self.VIEW_MODEL_CONTRACT)}" data-view-model-source="AIProviderStateSnapshot.as_renderer_payload" data-view-model-state="pending-provider-payload" data-provider-visible-data-state="none" data-no-provider-state="no-provider-fail-closed" data-prompt-execution-state="prompt-send-disabled" data-provider-model-runtime-state="blocked-no-model-path" data-trust-boundary-state="local-only-no-egress-no-memory-no-cache">
     <section class="ai-domain-window__chrome">
       <div class="ai-domain-window__controls" role="group" aria-label="{escape(definition["title"])} window controls">
-        <button class="ai-domain-window__control ai-domain-window__control--minimize" type="button" data-domain-command="window-minimize" aria-label="Minimize {escape(definition["title"])}"></button>
-        <button class="ai-domain-window__control ai-domain-window__control--close" type="button" data-domain-command="window-close" aria-label="Close {escape(definition["title"])}"></button>
+        <button class="ai-domain-window__control ai-domain-window__control--minimize" type="button" data-domain-command="window-minimize" aria-label="Minimize {escape(definition["title"])}" title="Minimize"></button>
+        <button class="ai-domain-window__control ai-domain-window__control--close" type="button" data-domain-command="window-close" aria-label="Close {escape(definition["title"])}" title="Close"></button>
       </div>
-      <header class="ai-domain-window__header">
-        <div class="ai-domain-window__kicker">{escape(definition["kicker"])}</div>
-        <div class="ai-domain-window__title">{escape(definition["title"])}</div>
-        <p class="ai-domain-window__description">{escape(definition["description"])}</p>
-      </header>
-      {body}
+      <div class="ai-domain-window__content">
+        <header class="ai-domain-window__header">
+          <div class="ai-domain-window__drag-region" data-window-drag-region="visible-title-strip">
+            <div class="ai-domain-window__kicker">{escape(definition["kicker"])}</div>
+            <div class="ai-domain-window__title">{escape(definition["title"])}</div>
+          </div>
+          <p class="ai-domain-window__description">{escape(definition["description"])}</p>
+        </header>
+        {body}
+      </div>
     </section>
   </main>
   <script>
     const prefix = "NEXUS_AI_DOMAIN_WINDOW_COMMAND:";
+    const stateTaxonomyContract = "{escape(self.STATE_TAXONOMY_CONTRACT)}";
+    const viewModelContract = "{escape(self.VIEW_MODEL_CONTRACT)}";
+    const requiredStateTaxonomyStates = {json.dumps(list(self.REQUIRED_STATE_TAXONOMY_STATES))};
     let providerState = {{}};
     let reportText = "";
     const byId = (id) => document.getElementById(id);
     const setText = (id, value) => {{ const target = byId(id); if (target) target.textContent = String(value || ""); }};
     const emit = (command) => console.info(prefix + command);
+    const reportWindowContentMetrics = () => {{
+      const surface = document.querySelector("[data-ai-dashboard-child-window]");
+      const chrome = document.querySelector(".ai-domain-window__chrome");
+      const content = document.querySelector(".ai-domain-window__content");
+      const dragRegion = document.querySelector(".ai-domain-window__drag-region");
+      const description = document.querySelector(".ai-domain-window__description");
+      if (!surface || !chrome || !content || !dragRegion || !description) return;
+      const chromeStyle = getComputedStyle(chrome);
+      const contentHeight = Math.ceil(
+        Math.max(content.scrollHeight, content.getBoundingClientRect().height)
+        + parseFloat(chromeStyle.paddingTop || "0")
+        + parseFloat(chromeStyle.paddingBottom || "0")
+        + parseFloat(chromeStyle.borderTopWidth || "0")
+        + parseFloat(chromeStyle.borderBottomWidth || "0")
+      );
+      const dragRegionBottom = Math.ceil(dragRegion.getBoundingClientRect().bottom);
+      const descriptionTop = Math.ceil(description.getBoundingClientRect().top);
+      Object.assign(surface.dataset, {{
+        contentMeasuredHeight: String(contentHeight),
+        contentViewportHeight: String(Math.round(chrome.clientHeight || 0)),
+        contentScrollHeight: String(Math.round(chrome.scrollHeight || 0)),
+        windowDefaultGeometryContract: "settled-dom-content-measured-screen-bounded-v2",
+        measuredDragRegionBottom: String(dragRegionBottom),
+        measuredDescriptionTop: String(descriptionTop),
+      }});
+      emit("window-content-metrics:" + encodeURIComponent(JSON.stringify({{
+        contentHeight,
+        viewportHeight: Math.round(chrome.clientHeight || 0),
+        scrollHeight: Math.round(chrome.scrollHeight || 0),
+        dragRegionBottom,
+        descriptionTop,
+      }})));
+    }};
+    const syncDomainRowLayout = () => {{
+      const surface = document.querySelector("[data-ai-dashboard-child-window]");
+      const labels = [...document.querySelectorAll(".ai-domain-window__row > span")];
+      if (!surface || !labels.length) return;
+      const maxLabelWidth = Math.ceil(Math.max(...labels.map((label) => label.getBoundingClientRect().width || 0)));
+      surface.style.setProperty("--ai-domain-row-label-width", maxLabelWidth + "px");
+      Object.assign(surface.dataset, {{
+        rowLabelColumnSource: "measured-max-visible-label-content-px",
+        rowLabelColumnWidth: String(maxLabelWidth),
+        rowLabelColumnUnit: "px",
+        rowValueColumnContract: "shared-max-label-content-plus-fixed-gutter",
+        rowValueGutter: "8px",
+        rowVerticalGutter: "6px",
+      }});
+      requestAnimationFrame(reportWindowContentMetrics);
+    }};
     const formatItems = (items, keys = ["label"]) => {{
       const list = Array.isArray(items) ? items : [];
       if (!list.length) return "None";
@@ -4349,22 +5541,288 @@ class AIDashboardDomainWindow(QDialog):
       && providerState.promptSendPosture === "prompt-send-disabled"
       && providerState.networkEgressState === "network-egress-blocked"
       && providerState.memoryIndexingState === "memory-indexing-disabled";
+    const setNoProviderFlowState = (state, extra = {{}}) => {{
+      const surface = document.querySelector("[data-ai-dashboard-child-window]");
+      const workspace = document.querySelector("[data-domain-workspace='readiness-diagnostics']");
+      const target = workspace || surface;
+      if (!target) return;
+      Object.assign(target.dataset, {{
+        noProviderDiagnosticsFlow: "local-only-no-provider-readiness-v1",
+        noProviderFlowState: state,
+        noProviderFlowProviderVisibleData: String(providerState.providerVisibleData || "none"),
+        noProviderFlowSentToProvider: providerState.sentToProvider === false ? "false" : String(providerState.sentToProvider || ""),
+        noProviderFlowCanAcceptPrompts: providerState.canAcceptPrompts === false ? "false" : String(providerState.canAcceptPrompts || ""),
+        noProviderFlowPromptSend: String(providerState.promptSendPosture || "prompt-send-disabled"),
+        noProviderFlowNetworkEgress: String(providerState.networkEgressState || "network-egress-blocked"),
+        noProviderFlowMemoryIndexing: String(providerState.memoryIndexingState || "memory-indexing-disabled"),
+        ...extra,
+      }});
+    }};
+    const buildDomainViewModel = () => {{
+      const providerVisibleDataNone = providerState.providerVisibleData === "none";
+      const providerRuntimeBlocked = providerState.providerExecutionGateState === "provider-execution-disabled"
+        && providerState.modelExecutionGateState === "model-execution-disabled";
+      const promptDisabled = providerState.promptSendPosture === "prompt-send-disabled"
+        && providerState.memoryIndexingState === "memory-indexing-disabled";
+      const installBlocked = String(providerState.installIntentState || "").includes("blocked")
+        || String(providerState.capabilityPackInstallState || "").includes("blocked");
+      const updatesBlocked = String(providerState.capabilityPackUpdateState || "").includes("blocked");
+      const privateSetupBlocked = providerState.privateSetupAuthorized === false
+        && providerState.privateMaterialVisible === false;
+      const ownerRuntimeBlocked = providerState.ownerMemoryEnabled === false
+        && providerState.ownerAgentsEnabled === false;
+      return {{
+        contract: viewModelContract,
+        source: "AIProviderStateSnapshot.as_renderer_payload",
+        providerVisibleData: providerVisibleDataNone ? "None" : String(providerState.providerVisibleData || "None"),
+        providerModel: providerRuntimeBlocked ? "Disabled and blocked" : "Disabled; provider state requires review",
+        promptMemory: promptDisabled ? "Not accepted, sent, stored, or indexed" : "Not accepted; prompt boundary mismatch",
+        capabilityPacks: installBlocked ? "Install blocked; downloads disabled" : "Install unavailable; capability proof required",
+        maintenanceUpdates: updatesBlocked ? "Lifecycle placement only; update execution blocked" : "Lifecycle placement only; update state requires review",
+        developerLane: providerState.developerLaneBoundaryLabel || "Developer lane: gated; private setup not configured",
+        ownerLane: providerState.ownerLaneBoundaryLabel || "Owner lane: gated; private setup not configured",
+        privateSetup: privateSetupBlocked ? "Private setup blocked; no private material visible" : "Private setup boundary requires review",
+        executionBoundary: "No update, download, install, fetch, provider/model, private setup, packaging, or capability execution is approved.",
+        localResult: "Waiting for local action",
+        localDetail: providerState.providerVisibleDataDetail || "No prompt, file, memory, telemetry, or provider config is sent.",
+        disabledActions: {{
+          providerModelExecution: providerRuntimeBlocked,
+          promptSend: promptDisabled,
+          capabilityInstallDownload: installBlocked,
+          maintenanceUpdateExecution: updatesBlocked,
+          providerVisibleDataEgress: providerVisibleDataNone && providerState.sentToProvider === false,
+          privateSetup: privateSetupBlocked,
+          ownerMemoryAgents: ownerRuntimeBlocked,
+        }},
+      }};
+    }};
+    const syncCapabilityBoundaryContract = (viewModel) => {{
+      const workspace = document.querySelector("[data-domain-workspace='capabilities-maintenance']");
+      if (!workspace) return;
+      Object.assign(workspace.dataset, {{
+        capabilitiesBoundaryContract: "capabilities-maintenance-developer-owner-boundary-v1",
+        capabilityPackLifecycleState: String(providerState.capabilityPackLifecycleState || "capability-pack-lifecycle-planned"),
+        capabilityPackDownloadState: String(providerState.capabilityPackDownloadState || "capability-pack-downloads-blocked"),
+        installIntentState: String(providerState.installIntentState || "install-intent-blocked"),
+        capabilityPackInstallState: String(providerState.capabilityPackInstallState || "install-blocked"),
+        capabilityPackUpdateState: String(providerState.capabilityPackUpdateState || "update-blocked"),
+        capabilityPackUninstallState: String(providerState.capabilityPackUninstallState || "uninstall-blocked"),
+        developerLaneBoundaryState: String(providerState.developerLaneBoundaryState || "developer-lane-private-setup-blocked"),
+        ownerLaneBoundaryState: String(providerState.ownerLaneBoundaryState || "owner-lane-private-setup-blocked"),
+        privateSetupBoundaryState: String(providerState.privateSetupBoundaryState || "private-setup-blocked"),
+        privateSetupAuthorized: providerState.privateSetupAuthorized === false ? "false" : String(providerState.privateSetupAuthorized || ""),
+        privateMaterialVisible: providerState.privateMaterialVisible === false ? "false" : String(providerState.privateMaterialVisible || ""),
+        ownerMemoryEnabled: providerState.ownerMemoryEnabled === false ? "false" : String(providerState.ownerMemoryEnabled || ""),
+        ownerAgentsEnabled: providerState.ownerAgentsEnabled === false ? "false" : String(providerState.ownerAgentsEnabled || ""),
+        updateExecution: "blocked",
+        downloadExecution: "blocked",
+        installExecution: "blocked",
+        fetchExecution: "blocked",
+        capabilityExecution: "blocked",
+        packagingExecution: "blocked",
+        viewModelPrivateSetupBlocked: viewModel.disabledActions.privateSetup ? "true" : "false",
+        viewModelOwnerMemoryAgentsBlocked: viewModel.disabledActions.ownerMemoryAgents ? "true" : "false",
+      }});
+    }};
+    const setPressedState = (commands, activeCommand) => {{
+      commands.forEach((command) => {{
+        document.querySelectorAll(`[data-domain-command="${{command}}"]`).forEach((button) => {{
+          button.setAttribute("aria-pressed", command === activeCommand ? "true" : "false");
+        }});
+      }});
+    }};
+    const applyControlCenterMode = (mode) => {{
+      const workspace = document.querySelector("[data-domain-workspace='control-center']");
+      if (!workspace) return false;
+      const closed = guardClosed();
+      const renderedStates = Array.isArray(providerState.aiControlCenterStateTaxonomy)
+        ? providerState.aiControlCenterStateTaxonomy
+            .map((item) => item && typeof item === "object" ? String(item.state || "").trim() : "")
+            .filter(Boolean)
+        : [];
+      const modes = {{
+        boundary: {{
+          command: "show-control-boundary",
+          label: "Boundary review",
+          state: closed ? "Provider/model blocked; local boundary active" : "Boundary mismatch; fail-closed",
+          detail: closed
+            ? "No provider data, prompt, memory, cache, network egress, or model path is available."
+            : "Review halted because the trust boundary is inconsistent.",
+          recovery: "Retry local check only; setup stays future-gated.",
+          taxonomy: `${{renderedStates.length}} fail-closed states rendered`,
+        }},
+        recovery: {{
+          command: "show-control-recovery",
+          label: "Recovery route",
+          state: "Local recovery only; provider setup remains unavailable",
+          detail: providerState.aiControlCenterRecoveryDetail || "Recovery guidance stays inside this window and does not open provider setup.",
+          recovery: providerState.aiControlCenterRecoveryLabel || "Retry local check only",
+          taxonomy: "Recovery state mapped to local-only diagnostics",
+        }},
+        taxonomy: {{
+          command: "show-control-taxonomy",
+          label: "State taxonomy",
+          state: "State taxonomy mapped from provider payload",
+          detail: renderedStates.length ? renderedStates.join("; ") : "No provider state taxonomy was supplied.",
+          recovery: "Blocked, unavailable, degraded, retry, and recovery states remain visible.",
+          taxonomy: renderedStates.length ? "Complete taxonomy rendered" : "Taxonomy missing; fail-closed",
+        }},
+      }};
+      const next = modes[mode] || modes.boundary;
+      Object.assign(workspace.dataset, {{
+        controlCenterOperationalContract: "ai-control-center-local-boundary-control-v1",
+        controlCenterMode: mode in modes ? mode : "boundary",
+        controlCenterGuardClosed: closed ? "true" : "false",
+        controlCenterProviderActionExecuted: "false",
+        controlCenterProviderModelExecution: "blocked",
+        controlCenterPromptSendExecution: "blocked",
+        controlCenterNetworkEgress: String(providerState.networkEgressState || "network-egress-blocked"),
+        controlCenterMemoryIndexing: String(providerState.memoryIndexingState || "memory-indexing-disabled"),
+        controlCenterProviderVisibleData: String(providerState.providerVisibleData || "none"),
+      }});
+      setText("control-center-mode", next.label);
+      setText("control-center-review-state", next.state);
+      setText("control-center-review-detail", next.detail);
+      setText("control-center-recovery-route", next.recovery);
+      setText("control-center-taxonomy", next.taxonomy);
+      setPressedState(["show-control-boundary", "show-control-recovery", "show-control-taxonomy"], next.command);
+      requestAnimationFrame(syncDomainRowLayout);
+      return closed;
+    }};
+    const applyCapabilitiesMode = (mode) => {{
+      const workspace = document.querySelector("[data-domain-workspace='capabilities-maintenance']");
+      if (!workspace) return false;
+      const modes = {{
+        lifecycle: {{
+          command: "show-capability-lifecycle",
+          label: "Lifecycle review",
+          state: "Capability packs remain planned; downloads disabled",
+          detail: "Manifest, checksum, signature, compatibility, install, update, and uninstall stay blocked.",
+          next: "Future carrier must prove source trust before any package action.",
+        }},
+        lanes: {{
+          command: "show-capability-lanes",
+          label: "Edition gates",
+          state: "Public lane only; Developer and Owner lanes gated",
+          detail: "Private setup, private material, Owner memory, and Owner agents are not visible or enabled.",
+          next: "FAM/private setup remains future-gated and outside this runtime repair.",
+        }},
+        maintenance: {{
+          command: "show-capability-maintenance",
+          label: "Maintenance hold",
+          state: "Update, install, fetch, and packaging execution blocked",
+          detail: "This window can inspect the maintenance posture but cannot run downloads, updates, installs, fetches, or packaging.",
+          next: "Keep display-only posture until an approved maintenance carrier exists.",
+        }},
+      }};
+      const next = modes[mode] || modes.lifecycle;
+      Object.assign(workspace.dataset, {{
+        capabilitiesMaintenanceWorkflowContract: "capabilities-maintenance-display-workflow-v1",
+        capabilitiesMaintenanceMode: mode in modes ? mode : "lifecycle",
+        capabilitiesMaintenanceActionExecuted: "false",
+        capabilitiesMaintenanceDownloadExecution: "blocked",
+        capabilitiesMaintenanceInstallExecution: "blocked",
+        capabilitiesMaintenanceUpdateExecution: "blocked",
+        capabilitiesMaintenanceFetchExecution: "blocked",
+        capabilitiesMaintenancePackagingExecution: "blocked",
+        capabilitiesMaintenancePrivateSetup: providerState.privateSetupAuthorized === false ? "blocked" : "blocked-review-required",
+      }});
+      setText("capabilities-mode", next.label);
+      setText("capabilities-workflow-state", next.state);
+      setText("capabilities-workflow-detail", next.detail);
+      setText("capabilities-workflow-next", next.next);
+      setPressedState(["show-capability-lifecycle", "show-capability-lanes", "show-capability-maintenance"], next.command);
+      requestAnimationFrame(syncDomainRowLayout);
+      return true;
+    }};
+    const applyDomainViewModel = () => {{
+      const viewModel = buildDomainViewModel();
+      window.nexusAiDomainCurrentViewModel = viewModel;
+      const surface = document.querySelector("[data-ai-dashboard-child-window]");
+      if (surface) {{
+        Object.assign(surface.dataset, {{
+          viewModelContract: viewModel.contract,
+          viewModelSource: viewModel.source,
+          viewModelState: "provider-payload-applied",
+          viewModelProviderRuntimeBlocked: viewModel.disabledActions.providerModelExecution ? "true" : "false",
+          viewModelPromptSendDisabled: viewModel.disabledActions.promptSend ? "true" : "false",
+          viewModelProviderVisibleDataNone: viewModel.disabledActions.providerVisibleDataEgress ? "true" : "false",
+          viewModelPrivateSetupBlocked: viewModel.disabledActions.privateSetup ? "true" : "false",
+          viewModelOwnerMemoryAgentsBlocked: viewModel.disabledActions.ownerMemoryAgents ? "true" : "false",
+        }});
+      }}
+      setText("provider-visible-data", viewModel.providerVisibleData);
+      setText("provider-model", viewModel.providerModel);
+      setText("prompt-memory", viewModel.promptMemory);
+      setText("capability-packs", viewModel.capabilityPacks);
+      setText("maintenance-updates", viewModel.maintenanceUpdates);
+      setText("developer-lane-boundary", viewModel.developerLane);
+      setText("owner-lane-boundary", viewModel.ownerLane);
+      setText("private-setup-boundary", viewModel.privateSetup);
+      setText("execution-boundary", viewModel.executionBoundary);
+      setText("local-result", viewModel.localResult);
+      setText("local-detail", viewModel.localDetail);
+      syncCapabilityBoundaryContract(viewModel);
+      applyControlCenterMode("boundary");
+      applyCapabilitiesMode("lifecycle");
+      requestAnimationFrame(syncDomainRowLayout);
+      return viewModel;
+    }};
+    const syncStateTaxonomyContract = () => {{
+      const surface = document.querySelector("[data-ai-dashboard-child-window]");
+      if (!surface) return;
+      const taxonomy = Array.isArray(providerState.aiControlCenterStateTaxonomy)
+        ? providerState.aiControlCenterStateTaxonomy
+        : [];
+      const renderedStates = taxonomy
+        .map((item) => item && typeof item === "object" ? String(item.state || "").trim() : "")
+        .filter(Boolean);
+      const complete = requiredStateTaxonomyStates.every((state) => renderedStates.includes(state));
+      const providerVisibleData = String(providerState.providerVisibleData || "none");
+      const promptSendPosture = String(providerState.promptSendPosture || "prompt-send-disabled");
+      const diagnosticState = String(providerState.aiControlCenterDiagnosticState || "no-provider-fail-closed");
+      const providerExecution = (
+        providerState.providerExecutionGateState === "provider-execution-disabled"
+        && providerState.modelExecutionGateState === "model-execution-disabled"
+      ) ? "blocked-no-model-path" : "blocked-fail-closed";
+      Object.assign(surface.dataset, {{
+        stateTaxonomyContract,
+        stateTaxonomyRenderedStates: renderedStates.join(" "),
+        stateTaxonomyComplete: complete ? "true" : "false",
+        providerVisibleDataState: providerVisibleData,
+        noProviderState: diagnosticState,
+        promptExecutionState: promptSendPosture,
+        providerModelRuntimeState: providerExecution,
+        trustBoundaryState: guardClosed()
+          ? "local-only-no-egress-no-memory-no-cache"
+          : "fail-closed-boundary-mismatch",
+      }});
+    }};
     window.nexusAiDomainApplyProviderState = (payload) => {{
       providerState = payload && typeof payload === "object" ? payload : {{}};
-      setText("provider-visible-data", providerState.providerVisibleData === "none" ? "None" : providerState.providerVisibleData || "None");
-      setText("provider-model", "Disabled and blocked");
-      setText("prompt-memory", "Not accepted, sent, stored, or indexed");
-      setText("capability-packs", "Install blocked; downloads disabled");
-      setText("maintenance-updates", "Lifecycle placement only; update execution blocked");
+      const viewModel = applyDomainViewModel();
+      syncStateTaxonomyContract();
+      setText("provider-visible-data", viewModel.providerVisibleData);
+      setText("provider-model", viewModel.providerModel);
+      setText("prompt-memory", viewModel.promptMemory);
+      setText("capability-packs", viewModel.capabilityPacks);
+      setText("maintenance-updates", viewModel.maintenanceUpdates);
       setText("edition-lanes", "Public only; Developer and Owner gated");
-      setText("local-result", "Waiting for local action");
-      setText("local-detail", providerState.providerVisibleDataDetail || "No prompt, file, memory, telemetry, or provider config is sent.");
+      setText("local-result", viewModel.localResult);
+      setText("local-detail", viewModel.localDetail);
       setText("report-state", "Not generated");
       setText("report-summary", "Generate the report to inspect local readiness.");
+      setNoProviderFlowState("waiting-for-user-action", {{
+        noProviderFlowReportState: "not-generated",
+        noProviderFlowCopyState: "not-ready",
+      }});
+      applyControlCenterMode("boundary");
+      applyCapabilitiesMode("lifecycle");
       const body = byId("report-body");
       if (body) body.hidden = true;
       const copy = byId("copy-report");
       if (copy) {{ copy.disabled = true; copy.setAttribute("aria-disabled", "true"); }}
+      requestAnimationFrame(syncDomainRowLayout);
     }};
     window.nexusAiDomainRunLocalCheck = () => {{
       const ok = guardClosed();
@@ -4372,6 +5830,11 @@ class AIDashboardDomainWindow(QDialog):
       setText("local-detail", ok
         ? (providerState.localActionResultDetail || "No prompt was accepted or sent; provider-visible data remains none.")
         : "Provider boundary mismatch; no local result was produced.");
+      setNoProviderFlowState(ok ? "local-check-complete-no-provider" : "local-check-blocked-fail-closed", {{
+        noProviderFlowReportState: "not-generated",
+        noProviderFlowCopyState: "not-ready",
+      }});
+      requestAnimationFrame(syncDomainRowLayout);
       return ok;
     }};
     window.nexusAiDomainGenerateReport = () => {{
@@ -4380,6 +5843,10 @@ class AIDashboardDomainWindow(QDialog):
         reportText = "";
         setText("report-state", "Blocked by boundary mismatch");
         setText("report-summary", "Report blocked because local trust-boundary proof is inconsistent.");
+        setNoProviderFlowState("report-blocked-fail-closed", {{
+          noProviderFlowReportState: "blocked-boundary-mismatch",
+          noProviderFlowCopyState: "not-ready",
+        }});
         return false;
       }}
       reportText = buildReportText(report);
@@ -4395,11 +5862,19 @@ class AIDashboardDomainWindow(QDialog):
       if (body) body.hidden = false;
       const copy = byId("copy-report");
       if (copy) {{ copy.disabled = false; copy.setAttribute("aria-disabled", "false"); }}
+      setNoProviderFlowState("report-generated-local-only", {{
+        noProviderFlowReportState: "generated-locally",
+        noProviderFlowCopyState: "ready-user-initiated-only",
+      }});
+      requestAnimationFrame(syncDomainRowLayout);
       return true;
     }};
     window.nexusAiDomainCopyReport = () => {{
       if (!reportText) {{
         setText("report-state", "Generate report before copying");
+        setNoProviderFlowState("copy-blocked-report-not-generated", {{
+          noProviderFlowCopyState: "blocked-report-not-generated",
+        }});
         return false;
       }}
       const text = document.createElement("textarea");
@@ -4413,8 +5888,18 @@ class AIDashboardDomainWindow(QDialog):
       const copied = document.execCommand("copy");
       text.remove();
       setText("report-state", copied ? "Copied locally" : "Copy unavailable; report remains visible");
+      setNoProviderFlowState(copied ? "report-copied-locally" : "copy-unavailable-report-visible", {{
+        noProviderFlowReportState: "generated-locally",
+        noProviderFlowCopyState: copied ? "copied-locally" : "copy-unavailable-report-visible",
+      }});
       return copied;
     }};
+    window.nexusAiDomainShowControlBoundary = () => applyControlCenterMode("boundary");
+    window.nexusAiDomainShowControlRecovery = () => applyControlCenterMode("recovery");
+    window.nexusAiDomainShowControlTaxonomy = () => applyControlCenterMode("taxonomy");
+    window.nexusAiDomainShowCapabilitiesLifecycle = () => applyCapabilitiesMode("lifecycle");
+    window.nexusAiDomainShowCapabilitiesLanes = () => applyCapabilitiesMode("lanes");
+    window.nexusAiDomainShowCapabilitiesMaintenance = () => applyCapabilitiesMode("maintenance");
     document.addEventListener("click", (event) => {{
       const button = event.target.closest("[data-domain-command]");
       if (!button || button.disabled) return;
@@ -4435,8 +5920,33 @@ class AIDashboardDomainWindow(QDialog):
         }} else {{
           emit("copy-readiness-report-blocked");
         }}
+      }} else if (command === "show-control-boundary") {{
+        emit(window.nexusAiDomainShowControlBoundary() ? "show-control-boundary" : "show-control-boundary-blocked");
+      }} else if (command === "show-control-recovery") {{
+        emit(window.nexusAiDomainShowControlRecovery() ? "show-control-recovery" : "show-control-recovery-blocked");
+      }} else if (command === "show-control-taxonomy") {{
+        emit(window.nexusAiDomainShowControlTaxonomy() ? "show-control-taxonomy" : "show-control-taxonomy-blocked");
+      }} else if (command === "show-capability-lifecycle") {{
+        window.nexusAiDomainShowCapabilitiesLifecycle();
+        emit("show-capability-lifecycle");
+      }} else if (command === "show-capability-lanes") {{
+        window.nexusAiDomainShowCapabilitiesLanes();
+        emit("show-capability-lanes");
+      }} else if (command === "show-capability-maintenance") {{
+        window.nexusAiDomainShowCapabilitiesMaintenance();
+        emit("show-capability-maintenance");
       }}
     }});
+    if (window.ResizeObserver) {{
+      const rowObserver = new ResizeObserver(() => requestAnimationFrame(syncDomainRowLayout));
+      document.querySelectorAll(".ai-domain-window__row > span, .ai-domain-window__content").forEach((node) => rowObserver.observe(node));
+    }}
+    if (document.fonts && document.fonts.ready) {{
+      document.fonts.ready.then(() => requestAnimationFrame(syncDomainRowLayout)).catch(() => {{}});
+    }}
+    window.addEventListener("resize", syncDomainRowLayout);
+    syncDomainRowLayout();
+    requestAnimationFrame(() => {{ syncDomainRowLayout(); reportWindowContentMetrics(); }});
   </script>
 </body>
 </html>"""
@@ -4444,7 +5954,7 @@ class AIDashboardDomainWindow(QDialog):
     def _domain_body_html(self) -> str:
         if self.domain_id == "readiness-diagnostics":
             return """
-      <section class="ai-domain-window__card" data-domain-workspace="readiness-diagnostics" data-executes-inside-child-window="true">
+      <section class="ai-domain-window__card" data-domain-workspace="readiness-diagnostics" data-executes-inside-child-window="true" data-no-provider-diagnostics-flow="local-only-no-provider-readiness-v1" data-no-provider-flow-state="waiting-for-user-action" data-no-provider-flow-provider-visible-data="none" data-no-provider-flow-sent-to-provider="false" data-no-provider-flow-can-accept-prompts="false" data-no-provider-flow-prompt-send="prompt-send-disabled" data-no-provider-flow-network-egress="network-egress-blocked" data-no-provider-flow-memory-indexing="memory-indexing-disabled" data-no-provider-flow-report-state="not-generated" data-no-provider-flow-copy-state="not-ready">
         <div class="ai-domain-window__card-heading">
           <span class="ai-domain-window__card-number">01</span>
           <strong class="ai-domain-window__card-title">Local Readiness</strong>
@@ -4473,32 +5983,54 @@ class AIDashboardDomainWindow(QDialog):
       </section>"""
         if self.domain_id == "capabilities-maintenance":
             return """
-      <section class="ai-domain-window__card" data-domain-workspace="capabilities-maintenance" data-update-execution="blocked" data-download-execution="blocked" data-install-execution="blocked">
+      <section class="ai-domain-window__card" data-domain-workspace="capabilities-maintenance" data-capabilities-boundary-contract="capabilities-maintenance-developer-owner-boundary-v1" data-capabilities-maintenance-workflow-contract="capabilities-maintenance-display-workflow-v1" data-capabilities-maintenance-mode="lifecycle" data-capabilities-maintenance-action-executed="false" data-capabilities-maintenance-download-execution="blocked" data-capabilities-maintenance-install-execution="blocked" data-capabilities-maintenance-update-execution="blocked" data-capabilities-maintenance-fetch-execution="blocked" data-capabilities-maintenance-packaging-execution="blocked" data-capability-pack-lifecycle-state="capability-pack-lifecycle-planned" data-capability-pack-download-state="capability-pack-downloads-blocked" data-install-intent-state="install-intent-blocked" data-capability-pack-install-state="install-blocked" data-capability-pack-update-state="update-blocked" data-capability-pack-uninstall-state="uninstall-blocked" data-developer-lane-boundary-state="developer-lane-private-setup-blocked" data-owner-lane-boundary-state="owner-lane-private-setup-blocked" data-private-setup-boundary-state="private-setup-blocked" data-private-setup-authorized="false" data-private-material-visible="false" data-owner-memory-enabled="false" data-owner-agents-enabled="false" data-update-execution="blocked" data-download-execution="blocked" data-install-execution="blocked" data-fetch-execution="blocked" data-capability-execution="blocked" data-packaging-execution="blocked">
         <div class="ai-domain-window__card-heading">
           <span class="ai-domain-window__card-number">01</span>
           <strong class="ai-domain-window__card-title">Capability Boundary</strong>
-          <p class="ai-domain-window__card-description">Shows capability and maintenance posture without update, download, or install execution.</p>
+          <p class="ai-domain-window__card-description">Reviews capability lifecycle, edition gates, and maintenance hold without update, download, or install execution.</p>
         </div>
         <div class="ai-domain-window__rows" data-row-group="capabilities-maintenance">
+          <div class="ai-domain-window__row"><span>Mode</span><strong id="capabilities-mode">Lifecycle review</strong></div>
           <div class="ai-domain-window__row"><span>Capability packs</span><strong id="capability-packs">Install blocked; downloads disabled</strong></div>
           <div class="ai-domain-window__row"><span>Maintenance</span><strong id="maintenance-updates">Lifecycle placement only; update execution blocked</strong></div>
           <div class="ai-domain-window__row"><span>Provider / model</span><strong id="provider-model">Provider/model lifecycle remains unavailable</strong></div>
-          <div class="ai-domain-window__row"><span>Execution</span><strong>No update, download, install, fetch, provider/model, or capability execution is approved.</strong></div>
+          <div class="ai-domain-window__row"><span>Developer</span><strong id="developer-lane-boundary">Developer lane: gated; private setup not configured</strong></div>
+          <div class="ai-domain-window__row"><span>Owner</span><strong id="owner-lane-boundary">Owner lane: gated; private setup not configured</strong></div>
+          <div class="ai-domain-window__row"><span>Private setup</span><strong id="private-setup-boundary">Private setup blocked; no private material visible</strong></div>
+          <div class="ai-domain-window__row"><span>Execution</span><strong id="execution-boundary">No update, download, install, fetch, provider/model, private setup, packaging, or capability execution is approved.</strong></div>
+          <div class="ai-domain-window__row"><span>Review</span><strong id="capabilities-workflow-state">Capability packs remain planned; downloads disabled</strong></div>
+          <div class="ai-domain-window__row"><span>Detail</span><strong id="capabilities-workflow-detail">Manifest, checksum, signature, compatibility, install, update, and uninstall stay blocked.</strong></div>
+          <div class="ai-domain-window__row"><span>Next</span><strong id="capabilities-workflow-next">Future carrier must prove source trust before any package action.</strong></div>
+        </div>
+        <div class="ai-domain-window__actions" data-action-row-contract="separate-from-state-rows">
+          <button class="ai-domain-window__button" type="button" id="capabilities-review-lifecycle" data-domain-command="show-capability-lifecycle" aria-pressed="true">Lifecycle</button>
+          <button class="ai-domain-window__button" type="button" id="capabilities-review-lanes" data-domain-command="show-capability-lanes" aria-pressed="false">Edition Gates</button>
+          <button class="ai-domain-window__button" type="button" id="capabilities-review-maintenance" data-domain-command="show-capability-maintenance" aria-pressed="false">Maintenance Hold</button>
         </div>
       </section>"""
         return """
-      <section class="ai-domain-window__card" data-domain-workspace="control-center">
+      <section class="ai-domain-window__card" data-domain-workspace="control-center" data-control-center-operational-contract="ai-control-center-local-boundary-control-v1" data-control-center-mode="boundary" data-control-center-guard-closed="true" data-control-center-provider-action-executed="false" data-control-center-provider-model-execution="blocked" data-control-center-prompt-send-execution="blocked" data-control-center-network-egress="network-egress-blocked" data-control-center-memory-indexing="memory-indexing-disabled" data-control-center-provider-visible-data="none">
         <div class="ai-domain-window__card-heading">
           <span class="ai-domain-window__card-number">01</span>
-          <strong class="ai-domain-window__card-title">AI Control Boundary</strong>
-          <p class="ai-domain-window__card-description">Keeps provider, prompt, persona, and edition truth separate from future AI setup flows.</p>
+          <strong class="ai-domain-window__card-title">AI Control State</strong>
+          <p class="ai-domain-window__card-description">Reviews local AI boundary, recovery, and state taxonomy without provider/model execution.</p>
         </div>
         <div class="ai-domain-window__rows" data-row-group="control-center">
+          <div class="ai-domain-window__row"><span>Mode</span><strong id="control-center-mode">Boundary review</strong></div>
           <div class="ai-domain-window__row"><span>Provider data</span><strong id="provider-visible-data">None</strong></div>
           <div class="ai-domain-window__row"><span>Provider / model</span><strong id="provider-model">Disabled and blocked</strong></div>
           <div class="ai-domain-window__row"><span>Prompt / memory</span><strong id="prompt-memory">Not accepted, sent, stored, or indexed</strong></div>
           <div class="ai-domain-window__row"><span>Persona</span><strong>Future-gated; ORIN persona is not implemented</strong></div>
           <div class="ai-domain-window__row"><span>Developer / Owner</span><strong id="edition-lanes">Public only; Developer and Owner gated</strong></div>
+          <div class="ai-domain-window__row"><span>Review</span><strong id="control-center-review-state">Provider/model blocked; local boundary active</strong></div>
+          <div class="ai-domain-window__row"><span>Detail</span><strong id="control-center-review-detail">No provider data, prompt, memory, cache, network egress, or model path is available.</strong></div>
+          <div class="ai-domain-window__row"><span>Recovery</span><strong id="control-center-recovery-route">Retry local check only; setup stays future-gated.</strong></div>
+          <div class="ai-domain-window__row"><span>Taxonomy</span><strong id="control-center-taxonomy">Fail-closed states rendered from provider payload</strong></div>
+        </div>
+        <div class="ai-domain-window__actions" data-action-row-contract="separate-from-state-rows">
+          <button class="ai-domain-window__button" type="button" id="control-review-boundary" data-domain-command="show-control-boundary" aria-pressed="true">Boundary Review</button>
+          <button class="ai-domain-window__button" type="button" id="control-review-recovery" data-domain-command="show-control-recovery" aria-pressed="false">Recovery Route</button>
+          <button class="ai-domain-window__button" type="button" id="control-review-taxonomy" data-domain-command="show-control-taxonomy" aria-pressed="false">State Taxonomy</button>
         </div>
       </section>"""
 
@@ -4513,6 +6045,15 @@ class AIDashboardDomainWindow(QDialog):
             )
 
     def _handle_domain_command(self, domain_id: str, command: str) -> None:
+        if domain_id == self.domain_id and command.startswith("window-content-metrics:"):
+            encoded_metrics = command.split(":", 1)[1]
+            try:
+                metrics = json.loads(urllib.parse.unquote(encoded_metrics))
+            except (TypeError, ValueError, json.JSONDecodeError):
+                metrics = {}
+            if isinstance(metrics, dict):
+                self._queue_initial_content_fit(metrics)
+            return
         if (
             domain_id == "readiness-diagnostics"
             and command.startswith("copy-readiness-report-native:")
@@ -4540,12 +6081,30 @@ class AIDashboardDomainWindow(QDialog):
                 f"|domain={domain_id}|command={command}"
             )
         if command == "window-minimize":
-            self.showMinimized()
+            self.minimize_domain_window("visible-minimize-control")
         elif command == "window-close":
-            self.close()
+            self.close_domain_window("visible-close-control")
 
     def update_provider_state(self, payload: dict[str, object]) -> None:
         self._provider_payload = dict(payload or {})
+        taxonomy = self._provider_payload.get("aiControlCenterStateTaxonomy")
+        rendered_states = []
+        if isinstance(taxonomy, list):
+            for item in taxonomy:
+                if isinstance(item, dict):
+                    state = str(item.get("state") or "").strip()
+                    if state:
+                        rendered_states.append(state)
+        complete = set(self.REQUIRED_STATE_TAXONOMY_STATES).issubset(set(rendered_states))
+        self.setProperty("aiControlCenterStateTaxonomyContract", self.STATE_TAXONOMY_CONTRACT)
+        self.setProperty("aiControlCenterStateTaxonomyComplete", "true" if complete else "false")
+        self.setProperty("aiDashboardProviderStateViewModelContract", self.VIEW_MODEL_CONTRACT)
+        self.setProperty("aiDashboardProviderStateViewModelApplied", "true")
+        self.setProperty(
+            "aiControlCenterDiagnosticState",
+            str(self._provider_payload.get("aiControlCenterDiagnosticState") or "no-provider-fail-closed"),
+        )
+        self.setProperty("aiControlCenterStateTaxonomyRenderedStates", " ".join(rendered_states))
         if not self._page_ready:
             return
         self.webview.page().runJavaScript(
@@ -4553,48 +6112,94 @@ class AIDashboardDomainWindow(QDialog):
             f"window.nexusAiDomainApplyProviderState({json.dumps(self._provider_payload, sort_keys=True)});"
         )
 
-    def show_domain_window(self, origin: QRect | None = None) -> dict[str, object]:
-        if not self.isVisible():
-            if origin is not None and origin.isValid():
-                available = self.screen_ref.availableGeometry() if self.screen_ref is not None else QApplication.primaryScreen().availableGeometry()
-                target_x = origin.x() - self.width() - 24
-                if target_x < available.x() + 12:
-                    right_x = origin.x() + origin.width() + 24
-                    if right_x + self.width() <= available.right() - 12:
-                        target_x = right_x
-                    else:
-                        target_x = min(origin.x() + 44, available.right() - self.width() - 12)
-                domain_offset = {
-                    "control-center": 0,
-                    "readiness-diagnostics": 34,
-                    "capabilities-maintenance": 68,
-                }.get(self.domain_id, 0)
-                target_y = min(
-                    max(available.y() + 12, origin.y() + domain_offset),
-                    available.bottom() - self.height() - 12,
-                )
-                self.move(target_x, target_y)
-            _schedule_window_clamp(self, padding=18)
+    def show_domain_window(
+        self,
+        origin: QRect | None = None,
+        *,
+        requested_route: str = "ai-dashboard-doorway",
+    ) -> dict[str, object]:
+        hwnd_before = self._native_domain_hwnd()
+        minimized = bool(self.isMinimized() or (hwnd_before and IsIconic(ctypes.wintypes.HWND(hwnd_before))))
+        context = self._begin_lifecycle_action(
+            requested_route=requested_route,
+            requested_action=(
+                "restore"
+                if minimized
+                else "focus-existing"
+                if self._ever_shown
+                else "reopen"
+                if self._lifecycle_generation > 1
+                else "open"
+            ),
+            qt_method=(
+                "showNormal+show+raise+activateWindow+requestActivate"
+                if minimized
+                else "show+raise+activateWindow+requestActivate"
+            ),
+        )
+        restored = None
+        if minimized:
+            self._pending_lifecycle_transition = context
+            self.showNormal()
+            restored = self._restore_remembered_normal_geometry()
+        elif not self._ever_shown and origin is not None and origin.isValid():
+            available = self.screen_ref.availableGeometry() if self.screen_ref is not None else QApplication.primaryScreen().availableGeometry()
+            target_x = origin.x() - self.width() - 24
+            if target_x < available.x() + 12:
+                right_x = origin.x() + origin.width() + 24
+                if right_x + self.width() <= available.right() - 12:
+                    target_x = right_x
+                else:
+                    target_x = min(origin.x() + 44, available.right() - self.width() - 12)
+            domain_offset = {
+                "control-center": 0,
+                "readiness-diagnostics": 34,
+                "capabilities-maintenance": 68,
+            }.get(self.domain_id, 0)
+            target_y = min(
+                max(available.y() + 12, origin.y() + domain_offset),
+                available.bottom() - self.height() - 12,
+            )
+            self.setGeometry(self._bounded_domain_geometry(QRect(target_x, target_y, self.width(), self.height())))
+            self._remember_normal_geometry()
+        self._normalize_native_taskbar_contract()
         self.show()
-        self.raise_()
-        self.activateWindow()
-        if hasattr(self, "windowHandle"):
-            handle = self.windowHandle()
-            if handle is not None:
-                handle.requestActivate()
-        QApplication.processEvents()
+        self._normalize_native_taskbar_contract()
+        state = self._activate_domain_window()
+        hwnd_after = int(state["hwnd"] or 0)
+        self._ever_shown = True
+        self._pending_lifecycle_transition = None
+        lifecycle_record = self._record_lifecycle_transition(
+            context,
+            method_result=bool(
+                state["nativeVisible"]
+                and not state["nativeMinimized"]
+                and state["taskbarEligible"]
+                and state["focusResult"]
+                and (not hwnd_before or hwnd_before == hwnd_after)
+            ),
+            restore_route=requested_route if minimized else "not-applicable",
+            restored_rectangle=restored,
+        )
         if callable(self.event_logger):
             self.event_logger(
                 "RENDERER_MAIN|AI_DASHBOARD_DOMAIN_WINDOW_VISIBLE"
                 f"|domain={self.domain_id}|classification={self.definition['classification']}"
                 f"|lifecycle={self.definition['lifecycle']}|singleton=true"
+                f"|taskbar_eligible={str(state['taskbarEligible']).lower()}"
+                f"|native_owner_hwnd={state['nativeOwnerHwnd']}"
             )
         return {
             "domain": self.domain_id,
-            "visible": bool(self.isVisible()),
+            "visible": bool(state["nativeVisible"]),
             "classification": self.definition["classification"],
             "lifecycle": self.definition["lifecycle"],
-            "hwnd": int(self.winId()) if self.winId() else 0,
+            "hwnd": hwnd_after,
+            "sameHwnd": bool(not hwnd_before or hwnd_before == hwnd_after),
+            "taskbarEligible": bool(state["taskbarEligible"]),
+            "nativeOwnerHwnd": int(state["nativeOwnerHwnd"]),
+            "focusResult": bool(state["focusResult"]),
+            "lifecycleSequenceId": lifecycle_record["sequenceId"],
         }
 
 
@@ -11406,13 +13011,20 @@ class AIControlCenterDialog(QDialog):
         self.setProperty("aiControlCenterWindowControlCluster", "compact-minimize-maximize-close")
         self.setProperty("aiControlCenterActiveSpecimen", "webview-hud-specimen")
         self.setProperty("aiControlCenterNativeMirrorDisposition", "removed-webview-owned-specimen")
-        self.setProperty("aiDashboardChildWindowModel", "detached-child-windows-deferred-not-accepted-current-gate")
-        self.setProperty("aiDashboardReadinessWindowClassification", "deferred-detached-child")
-        self.setProperty("aiDashboardControlWindowClassification", "deferred-detached-child")
-        self.setProperty("aiDashboardMaintenanceWindowClassification", "deferred-detached-child")
+        self.setProperty("aiDashboardChildWindowModel", "detached-domain-window-route-lifecycle-active")
+        self.setProperty("aiDashboardReadinessWindowClassification", "external-unique")
+        self.setProperty("aiDashboardControlWindowClassification", "exclusive-child")
+        self.setProperty("aiDashboardMaintenanceWindowClassification", "exclusive-child")
         self._page_ready = False
         self._pending_provider_payload = {}
         self._domain_windows: dict[str, AIDashboardDomainWindow] = {}
+        self._domain_generation_counts: dict[str, int] = {}
+        self._domain_closing_hwnds: dict[str, int] = {}
+        self._domain_closing_identities: dict[str, int] = {}
+        self._domain_closing_contexts: dict[str, dict[str, object]] = {}
+        self._domain_pending_reopen: dict[str, bool] = {}
+        self._domain_close_completion_timers: dict[str, QTimer] = {}
+        self._closing_domain_children = False
         self._drag_offset = None
         self._resize_active = False
         self._resize_edges = Qt.Edges()
@@ -11510,16 +13122,13 @@ class AIControlCenterDialog(QDialog):
         if command == "close":
             self.close()
             return
-        if command in {
-            "open-readiness-diagnostics-child-window",
-            "open-control-center-child-window",
-            "open-maintenance-lifecycle-child-window",
-        }:
-            if callable(self.event_logger):
-                self.event_logger(
-                    "RENDERER_MAIN|AI_DASHBOARD_DETACHED_CHILD_WINDOW_DEFERRED"
-                    f"|command={command}|accepted_scope=false|window_opened=false"
-                )
+        domain_by_command = {
+            "open-readiness-diagnostics-child-window": "readiness-diagnostics",
+            "open-control-center-child-window": "control-center",
+            "open-maintenance-lifecycle-child-window": "capabilities-maintenance",
+        }
+        if command in domain_by_command:
+            self._show_ai_dashboard_domain_window(domain_by_command[command])
             return
         if command == "run-local-check":
             self.run_local_assist_check(sync_web=False)
@@ -11563,10 +13172,113 @@ class AIControlCenterDialog(QDialog):
             return
 
     def _ai_dashboard_domain_parent_for(self, domain_id: str):
-        definition = AIDashboardDomainWindow.DOMAIN_DEFINITIONS.get(domain_id, {})
-        return None if definition.get("classification") == "external-unique" else self
+        return self
 
-    def _show_ai_dashboard_domain_window(self, domain_id: str) -> dict[str, object]:
+    def _mark_ai_dashboard_domain_window_closing(
+        self,
+        window: AIDashboardDomainWindow,
+        context: dict[str, object],
+    ) -> None:
+        domain_id = window.domain_id
+        self._domain_closing_hwnds[domain_id] = window._native_domain_hwnd()
+        self._domain_closing_identities[domain_id] = id(window)
+        self._domain_closing_contexts[domain_id] = dict(context)
+
+    def _cancel_ai_dashboard_domain_window_closing(self, domain_id: str, object_identity: int) -> None:
+        if self._domain_closing_identities.get(domain_id) != object_identity:
+            return
+        self._domain_closing_hwnds.pop(domain_id, None)
+        self._domain_closing_identities.pop(domain_id, None)
+        self._domain_closing_contexts.pop(domain_id, None)
+        self._domain_pending_reopen.pop(domain_id, None)
+
+    def _schedule_ai_dashboard_domain_close_completion(
+        self,
+        domain_id: str,
+        object_identity: int,
+    ) -> None:
+        timer = self._domain_close_completion_timers.get(domain_id)
+        if timer is None:
+            timer = QTimer(self)
+            timer.setSingleShot(True)
+            timer.setInterval(12)
+            timer.timeout.connect(
+                lambda key=domain_id, identity=object_identity: (
+                    self._complete_ai_dashboard_domain_window_destruction(key, identity)
+                )
+            )
+            self._domain_close_completion_timers[domain_id] = timer
+        if not timer.isActive():
+            timer.start()
+
+    def _complete_ai_dashboard_domain_window_destruction(
+        self,
+        domain_id: str,
+        object_identity: int,
+    ) -> None:
+        if self._domain_closing_identities.get(domain_id) not in {None, object_identity}:
+            return
+        hwnd = int(self._domain_closing_hwnds.get(domain_id, 0) or 0)
+        if hwnd and hwnd in AIDashboardDomainWindow._process_domain_hwnds(domain_id):
+            self._schedule_ai_dashboard_domain_close_completion(domain_id, object_identity)
+            return
+
+        current = self._domain_windows.get(domain_id)
+        if current is None or id(current) == object_identity:
+            self._domain_windows.pop(domain_id, None)
+        context = self._domain_closing_contexts.pop(domain_id, {})
+        self._domain_closing_hwnds.pop(domain_id, None)
+        self._domain_closing_identities.pop(domain_id, None)
+        timer = self._domain_close_completion_timers.pop(domain_id, None)
+        if timer is not None:
+            timer.stop()
+            timer.deleteLater()
+
+        inventory = AIDashboardDomainWindow.runtime_lifecycle_inventory(domain_id, self)
+        parent_close = context.get("requestedAction") == "parent-close"
+        reopen_requested = bool(self._domain_pending_reopen.pop(domain_id, False))
+        record = {
+            **context,
+            "resultTimestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "hwnd": hwnd,
+            "registryIdentity": object_identity,
+            "registryCount": inventory["registeredObjectCount"],
+            "registryRegistered": bool(inventory["registeredObjectCount"]),
+            "childDestroyed": True,
+            "closeResult": "destroyed",
+            "orphanTaskbarVisibleHwndDetected": False,
+            "deferredReopenRequested": reopen_requested,
+            "deferredReopenSuppressedByParentClose": bool(parent_close and reopen_requested),
+            "lifecycleInventory": inventory,
+            "supportingDiagnosticOnly": True,
+            "gatingDecision": "UNEVALUATED_REQUIRES_SEPARATE_FOCUSED_CLOSURE",
+        }
+        if callable(self.event_logger):
+            encoded = urllib.parse.quote(json.dumps(record, sort_keys=True, separators=(",", ":")))
+            self.event_logger(
+                "RENDERER_MAIN|AI_DASHBOARD_DOMAIN_WINDOW_DESTROYED"
+                f"|domain={domain_id}|object_identity={object_identity}|hwnd={hwnd}"
+                "|hwnd_alive=false|orphan_taskbar_visible_hwnd=false"
+                f"|registry_count={inventory['registeredObjectCount']}|record={encoded}"
+            )
+        if reopen_requested and not parent_close and not self._closing_domain_children:
+            QTimer.singleShot(
+                0,
+                lambda key=domain_id: self._show_ai_dashboard_domain_window(
+                    key,
+                    requested_route="deferred-doorway-after-destruction",
+                ),
+            )
+
+    def _on_ai_dashboard_domain_window_destroyed(self, domain_id: str, object_identity: int) -> None:
+        self._schedule_ai_dashboard_domain_close_completion(domain_id, object_identity)
+
+    def _show_ai_dashboard_domain_window(
+        self,
+        domain_id: str,
+        *,
+        requested_route: str = "ai-dashboard-doorway",
+    ) -> dict[str, object]:
         if domain_id not in AIDashboardDomainWindow.DOMAIN_DEFINITIONS:
             if callable(self.event_logger):
                 self.event_logger(
@@ -11574,18 +13286,88 @@ class AIControlCenterDialog(QDialog):
                     f"|domain={domain_id}|reason=unknown_domain"
                 )
             return {"visible": False, "reason": "unknown_domain"}
+        closing_identity = int(self._domain_closing_identities.get(domain_id, 0) or 0)
+        if closing_identity:
+            context = self._domain_closing_contexts.get(domain_id, {})
+            parent_close = context.get("requestedAction") == "parent-close"
+            if not parent_close and not self._closing_domain_children:
+                self._domain_pending_reopen[domain_id] = True
+            return {
+                "visible": False,
+                "reason": "parent-close-in-progress" if parent_close else "close-in-progress-reopen-deferred",
+                "domain": domain_id,
+                "hwnd": int(self._domain_closing_hwnds.get(domain_id, 0) or 0),
+                "closingObjectIdentity": closing_identity,
+                "deferredReopenRequested": bool(self._domain_pending_reopen.get(domain_id, False)),
+            }
         window = self._domain_windows.get(domain_id)
+        if window is not None:
+            if getattr(window, "_close_state", "open") == "close-requested":
+                self._domain_pending_reopen[domain_id] = True
+                return {
+                    "visible": False,
+                    "reason": "close-in-progress-reopen-deferred",
+                    "domain": domain_id,
+                    "hwnd": int(getattr(window, "_last_known_native_hwnd", 0) or 0),
+                    "closingObjectIdentity": id(window),
+                    "deferredReopenRequested": True,
+                }
+            try:
+                window.lifecycle_debug_state()
+            except RuntimeError:
+                inventory = AIDashboardDomainWindow.runtime_lifecycle_inventory(domain_id, self)
+                if inventory["liveSameDomainHwndCount"]:
+                    return {
+                        "visible": False,
+                        "reason": "stale-registry-live-hwnd-stop",
+                        "domain": domain_id,
+                        "lifecycleInventory": inventory,
+                    }
+                if self._domain_windows.get(domain_id) is window:
+                    self._domain_windows.pop(domain_id, None)
+                window = None
         if window is None:
+            inventory = AIDashboardDomainWindow.runtime_lifecycle_inventory(domain_id, self)
+            live_objects = AIDashboardDomainWindow._live_domain_objects(domain_id)
+            owned_live_objects = [
+                candidate for candidate in live_objects if candidate._dashboard() is self
+            ]
+            if inventory["duplicateCount"]:
+                return {
+                    "visible": False,
+                    "reason": "duplicate-live-domain-window-stop",
+                    "domain": domain_id,
+                    "lifecycleInventory": inventory,
+                }
+            if len(owned_live_objects) == 1:
+                window = owned_live_objects[0]
+                self._domain_windows[domain_id] = window
+            elif inventory["liveSameDomainHwndCount"]:
+                return {
+                    "visible": False,
+                    "reason": "unowned-live-domain-hwnd-stop",
+                    "domain": domain_id,
+                    "lifecycleInventory": inventory,
+                }
+        if window is None:
+            generation = self._domain_generation_counts.get(domain_id, 0) + 1
+            self._domain_generation_counts[domain_id] = generation
             window = AIDashboardDomainWindow(
                 domain_id,
                 self.screen_ref,
                 parent=self._ai_dashboard_domain_parent_for(domain_id),
                 event_logger=self.event_logger,
             )
-            window.destroyed.connect(lambda _obj=None, key=domain_id: self._domain_windows.pop(key, None))
+            window._lifecycle_generation = generation
+            object_identity = id(window)
+            window.destroyed.connect(
+                lambda _obj=None, key=domain_id, identity=object_identity: (
+                    self._on_ai_dashboard_domain_window_destroyed(key, identity)
+                )
+            )
             self._domain_windows[domain_id] = window
         window.update_provider_state(self._provider_payload)
-        result = window.show_domain_window(self.geometry())
+        result = window.show_domain_window(self.geometry(), requested_route=requested_route)
         if callable(self.event_logger):
             self.event_logger(
                 "RENDERER_MAIN|AI_DASHBOARD_CATEGORY_LAUNCHER_OPENED_WINDOW"
@@ -12349,10 +14131,27 @@ class AIControlCenterDialog(QDialog):
             self._finish_ai_control_center_resize(self._ai_control_center_cursor_screen_point())
         else:
             self._reset_ai_control_center_resize_cursor()
-        for domain_id, window in list(self._domain_windows.items()):
-            definition = AIDashboardDomainWindow.DOMAIN_DEFINITIONS.get(domain_id, {})
-            if definition.get("classification") == "exclusive-child":
-                window.close()
+        self._closing_domain_children = True
+        try:
+            for domain_id, window in list(self._domain_windows.items()):
+                definition = AIDashboardDomainWindow.DOMAIN_DEFINITIONS.get(domain_id, {})
+                if definition.get("classification") == "exclusive-child":
+                    self._domain_pending_reopen.pop(domain_id, None)
+                    if self._domain_closing_identities.get(domain_id) == id(window):
+                        context = self._domain_closing_contexts.setdefault(domain_id, {})
+                        context.update(
+                            {
+                                "requestedRoute": "dashboard-parent-close",
+                                "requestedAction": "parent-close",
+                                "qtMethodInvoked": "close-already-pending-parent-suppressed",
+                            }
+                        )
+                    else:
+                        window.close_domain_window("dashboard-parent-close")
+                elif definition.get("classification") == "external-unique":
+                    window.record_dashboard_parent_close_survival()
+        finally:
+            self._closing_domain_children = False
         self._geometry_persist_timer.stop()
         self._persist_window_geometry()
         super().closeEvent(event)
@@ -16152,8 +17951,8 @@ class DesktopRuntimeWindow(QWidget):
 
     def _persist_monitoring_hud_feature_state(self, source: str = "runtime"):
         if self.surface_role != "hud":
-            return
-        save_monitoring_hud_state(
+            return False
+        return save_monitoring_hud_state(
             feature_enabled=bool(self._monitoring_hud_feature_enabled),
             dashboard_visible=bool(self._monitoring_hud_visible and self.isVisible()),
             event_logger=self._log_event,
@@ -16220,7 +18019,7 @@ class DesktopRuntimeWindow(QWidget):
                     cards={},
                 )
         self._set_monitoring_hud_control_state(source=source)
-        self._persist_monitoring_hud_feature_state(source=source)
+        persisted = self._persist_monitoring_hud_feature_state(source=source)
         self._emit_runtime_signal(
             "MONITORING_HUD_FEATURE_STATE_READY",
             package="PKG-006",
@@ -16231,6 +18030,7 @@ class DesktopRuntimeWindow(QWidget):
             dashboard_visible=bool(self.isVisible() and self._monitoring_hud_visible),
             overlay_deferred=True,
         )
+        return persisted
 
     def request_monitoring_hud_unanchor_from_tray(self, source: str = "tray"):
         self._emit_runtime_signal(
