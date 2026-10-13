@@ -1,6 +1,6 @@
 # Nexus Desktop AI source index
 
-Codex enters this repository through `Docs/Main.md`. Verify that the checkout belongs to `D:\Nexus Desktop AI\Product Repository` before relying on this router. A worktree copy describes that worktree; it does not override canonical main.
+Codex enters this repository through `Docs/Main.md`. Before relying on this router, verify that this checkout is the canonical Nexus product repository identified by the active host's project configuration. A linked worktree or retained predecessor does not override the canonical checkout.
 
 ## Product sources
 
@@ -15,6 +15,6 @@ Use the relevant implementation and `dev/` checks for the feature under work. Pr
 
 ## Operational owners
 
-For current Governance contracts and selected operational owners, use `D:\Nexus Desktop AI\Governance Control Plane\current\manifest.json` after verifying this repository identity. Follow only the material owners it selects. Current operational records live under `D:\Nexus Desktop AI\Governance State`; USER decisions and review packets live under `D:\Nexus Desktop AI\USER`.
+For current Governance contracts and selected operational owners, use `current/manifest.json` in the verified external Governance Control Plane installation for this host after verifying this repository identity. Follow only the material owners it selects. Use its corresponding external State and USER roots for operational records and review packets.
 
 This pointer is routing only. Read the applicable current approval and actual evidence before an effect; neither this index nor an old worktree copy supplies approval or a live status.
