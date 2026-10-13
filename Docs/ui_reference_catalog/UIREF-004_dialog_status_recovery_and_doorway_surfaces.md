@@ -24,5 +24,3 @@ Known Limitations: `FAM-003 visual tray/settings proof and full modal/status/rec
 
 
 Validator / Helper Guidance: `Future helpers should flag recovery UI with no real recovery route, backend logs used as USER visual proof, tray menus that become deep command walls, missing failure/degraded states, missing status-to-runtime mapping, and unclassified platform-native exception surfaces.`
-
-

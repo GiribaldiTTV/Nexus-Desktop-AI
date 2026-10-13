@@ -26,5 +26,3 @@ Known Limitations: `Accepted token values, shared CSS/component implementations,
 Shared Primitive Example: `nexus_visual/nexus_window_primitives.css` can supply common Recording Studio and Log Viewer chrome and controls. Each consuming window still needs rendered, interactive, and accessibility checks before reuse is claimed.
 
 Validator / Helper Guidance: `Future helpers should flag branches that claim design-token implementation without a code carrier, claim shared primitives exist by inference, or skip visual proof because a design-rule baseline exists.`
-
-

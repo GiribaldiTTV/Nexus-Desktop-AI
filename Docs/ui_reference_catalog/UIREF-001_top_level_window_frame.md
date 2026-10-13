@@ -1,7 +1,7 @@
 # UIREF-001 Nexus Top-Level Window Frame Reference
 
-Reference ID: `UIREF-001`  
-Reference Class: `Top-Level Window`  
+Reference ID: `UIREF-001`<br>
+Reference Class: `Top-Level Window`<br>
 Related product design: `Docs/nexus_vision.md`, `Docs/family_visions/FAM-002_desktop_interface.md`, and `Docs/family_feature_visions/F2-FF01.md`.
 
 Applies to Nexus-owned standalone, restorable, movable, resizable, or geometry-persisted product windows. OS security prompts, file pickers, provider-auth browser windows, and other platform-owned trust surfaces use their native controls.

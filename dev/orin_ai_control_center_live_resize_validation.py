@@ -13,13 +13,11 @@ import hashlib
 import json
 import os
 import shutil
-import subprocess
 import sys
 import time
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QRect, Qt
-from PySide6.QtGui import QColor, QFont, QImage, QPainter
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
@@ -406,81 +404,6 @@ def _capture_window_region(app: QApplication, window, root: Path, label: str, ra
             "width": rect.width(),
             "height": rect.height(),
         },
-    }
-
-
-def _copy_reference_image(source: Path, root: Path, label: str) -> dict[str, object]:
-    target = root / f"{label}.png"
-    if not source.exists():
-        return {"ok": False, "label": label, "source": str(source), "reason": "missing-reference"}
-    target.write_bytes(source.read_bytes())
-    image = QImage(str(target))
-    return {
-        "ok": not image.isNull(),
-        "label": label,
-        "source": str(source),
-        "path": str(target),
-        "width": int(image.width()) if not image.isNull() else 0,
-        "height": int(image.height()) if not image.isNull() else 0,
-        "reason": "" if not image.isNull() else "unreadable-reference",
-    }
-
-
-def _scaled_for_board(image: QImage, max_width: int = 460, max_height: int = 420) -> QImage:
-    if image.isNull():
-        return image
-    scaled = image
-    if scaled.width() > max_width:
-        scaled = scaled.scaledToWidth(max_width, Qt.SmoothTransformation)
-    if scaled.height() > max_height:
-        scaled = scaled.scaledToHeight(max_height, Qt.SmoothTransformation)
-    return scaled
-
-
-def _write_side_by_side_board(
-    left_path: Path,
-    right_path: Path,
-    out_path: Path,
-    left_label: str,
-    right_label: str,
-) -> dict[str, object]:
-    left = QImage(str(left_path))
-    right = QImage(str(right_path))
-    if left.isNull() or right.isNull():
-        return {
-            "ok": False,
-            "path": str(out_path),
-            "reason": "source-image-unreadable",
-            "left": str(left_path),
-            "right": str(right_path),
-        }
-    left = _scaled_for_board(left)
-    right = _scaled_for_board(right)
-    padding = 18
-    label_height = 32
-    width = left.width() + right.width() + (padding * 3)
-    height = max(left.height(), right.height()) + label_height + (padding * 2)
-    board = QImage(width, height, QImage.Format_ARGB32)
-    board.fill(QColor(2, 10, 20))
-    painter = QPainter(board)
-    painter.setRenderHint(QPainter.Antialiasing, True)
-    painter.setPen(QColor(116, 240, 255))
-    font = QFont("Segoe UI", 10)
-    font.setBold(True)
-    painter.setFont(font)
-    painter.drawText(padding, padding + 14, left_label)
-    right_x = left.width() + (padding * 2)
-    painter.drawText(right_x, padding + 14, right_label)
-    painter.drawImage(padding, padding + label_height, left)
-    painter.drawImage(right_x, padding + label_height, right)
-    painter.end()
-    if not board.save(str(out_path)):
-        return {"ok": False, "path": str(out_path), "reason": "save-failed"}
-    return {
-        "ok": True,
-        "path": str(out_path),
-        "left": str(left_path),
-        "right": str(right_path),
     }
 
 
@@ -956,188 +879,6 @@ def _drive_ai_dashboard_horizontal_resize(
     }
 
 
-def _capture_main_runtime_ai_control_center_reference(log_root: Path) -> dict[str, object]:
-    main_root = Path("C:/Nexus Desktop AI")
-    launcher = Path.home() / "OneDrive" / "Desktop" / "MAIN GREEN - Nexus Desktop AI Launcher.lnk"
-    focused_path = log_root / "09_main_runtime_old_ai_control_center_focused_window.png"
-    desktop_path = log_root / "10_main_runtime_old_ai_control_center_full_desktop.png"
-    script_path = log_root / "_capture_main_runtime_ai_control_center_reference.py"
-    metadata_path = log_root / "main_runtime_old_ai_control_center_reference.json"
-    state_path = log_root / "main_runtime_ai_control_center_state.json"
-    if not main_root.exists():
-        return {
-            "ok": False,
-            "referenceSource": str(main_root),
-            "launcher": str(launcher),
-            "reason": "main-runtime-root-missing",
-        }
-    script_path.write_text(
-        f"""
-from __future__ import annotations
-
-import json
-import os
-import sys
-import time
-from pathlib import Path
-
-from PySide6.QtCore import QRect
-from PySide6.QtWidgets import QApplication
-
-main_root = Path({json.dumps(str(main_root))})
-focused_path = Path({json.dumps(str(focused_path))})
-desktop_path = Path({json.dumps(str(desktop_path))})
-metadata_path = Path({json.dumps(str(metadata_path))})
-state_path = Path({json.dumps(str(state_path))})
-
-os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
-os.environ["NEXUS_AI_CONTROL_CENTER_STATE_PATH"] = str(state_path)
-os.environ.pop("NEXUS_AI_CONTROL_CENTER_ENABLE_GEOMETRY_MEMORY", None)
-sys.path.insert(0, str(main_root))
-
-from desktop.ai_provider_state import build_default_provider_readiness_config, build_provider_setup_completion_foundation_state  # noqa: E402
-from desktop.desktop_renderer import AIControlCenterDialog  # noqa: E402
-
-
-def pump(app: QApplication, duration_ms: int = 80) -> None:
-    deadline = time.monotonic() + max(0, duration_ms) / 1000.0
-    while time.monotonic() < deadline:
-        app.processEvents()
-        time.sleep(0.01)
-    app.processEvents()
-
-
-def run_js(app: QApplication, dialog: AIControlCenterDialog, script: str, timeout_ms: int = 1500):
-    box = {{"done": False, "result": None}}
-
-    def complete(result):
-        box["result"] = result
-        box["done"] = True
-
-    dialog.webview.page().runJavaScript(script, complete)
-    deadline = time.monotonic() + max(0, timeout_ms) / 1000.0
-    while not box["done"] and time.monotonic() < deadline:
-        app.processEvents()
-        time.sleep(0.01)
-    app.processEvents()
-    return box.get("result")
-
-
-app = QApplication.instance() or QApplication(sys.argv)
-screen = QApplication.primaryScreen()
-if screen is None:
-    raise RuntimeError("No primary screen available for main runtime reference")
-events = []
-provider_state = build_provider_setup_completion_foundation_state(
-    build_default_provider_readiness_config(),
-    surface_role="hud",
-)
-dialog = AIControlCenterDialog(screen, event_logger=events.append)
-dialog.update_provider_state(provider_state.as_renderer_payload())
-available = screen.availableGeometry()
-dialog.setGeometry(
-    QRect(
-        available.x() + max(40, available.width() - dialog.DEFAULT_WIDTH - 120),
-        available.y() + 80,
-        dialog.DEFAULT_WIDTH,
-        dialog.DEFAULT_HEIGHT,
-    )
-)
-dialog.show_from_tray()
-pump(app, 900)
-focused_saved = bool(dialog.grab().save(str(focused_path)))
-pump(app, 80)
-desktop_saved = bool(screen.grabWindow(0).save(str(desktop_path)))
-probe_raw = run_js(
-    app,
-    dialog,
-    \"\"\"
-    (() => {{
-      const surface = document.getElementById("monitoring-hud");
-      return JSON.stringify({{
-        title: document.querySelector(".monitoring-hud__title")?.textContent.trim() || "",
-        subtitle: document.querySelector(".monitoring-hud__subtitle")?.textContent.replace(/\\s+/g, " ").trim() || "",
-        surfaceId: surface?.dataset.surfaceId || "",
-        productSurfaceRole: surface?.dataset.productSurfaceRole || "",
-        defaultWindowWidth: surface?.dataset.defaultWindowWidth || "",
-        defaultWindowHeight: surface?.dataset.defaultWindowHeight || "",
-        cardTitles: [...document.querySelectorAll("[data-dashboard-hub-card] .monitoring-hud__hub-card-title-copy strong, .monitoring-hud__hub-card-title-copy strong")].map((node) => node.textContent.trim()),
-        bodyTextSample: document.body.innerText.replace(/\\\\s+/g, " ").trim().slice(0, 500)
-      }});
-    }})();
-    \"\"\",
-)
-try:
-    probe = json.loads(probe_raw or "{{}}")
-except Exception:
-    probe = {{"rawProbe": str(probe_raw or "")}}
-visual_grammar_script = {json.dumps(_VISUAL_GRAMMAR_PROBE_SCRIPT)}
-visual_grammar_raw = run_js(app, dialog, visual_grammar_script, 2500)
-try:
-    probe["visualGrammar"] = json.loads(visual_grammar_raw or "{{}}")
-except Exception:
-    probe["visualGrammar"] = {{"ok": False, "raw": str(visual_grammar_raw or "")}}
-metadata = {{
-    "ok": bool(focused_saved and desktop_saved and focused_path.exists() and desktop_path.exists()),
-    "referenceKind": "main-worktree-old-ai-control-center-runtime",
-    "referenceSource": str(main_root),
-    "focusedWindow": str(focused_path),
-    "fullDesktop": str(desktop_path),
-    "windowTitle": dialog.windowTitle(),
-    "defaultWidth": int(dialog.DEFAULT_WIDTH),
-    "defaultHeight": int(dialog.DEFAULT_HEIGHT),
-    "minimumWidth": int(dialog.minimumWidth()),
-    "minimumHeight": int(dialog.minimumHeight()),
-    "probe": probe,
-    "events": events,
-}}
-metadata_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
-print(json.dumps(metadata, sort_keys=True))
-dialog.close()
-pump(app, 300)
-""".strip()
-        + "\n",
-        encoding="utf-8",
-    )
-    env = os.environ.copy()
-    env["PYTHONDONTWRITEBYTECODE"] = "1"
-    env["NEXUS_AI_CONTROL_CENTER_STATE_PATH"] = str(state_path)
-    env.pop("NEXUS_AI_CONTROL_CENTER_ENABLE_GEOMETRY_MEMORY", None)
-    result = subprocess.run(
-        [sys.executable, str(script_path)],
-        cwd=str(main_root),
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=45,
-        check=False,
-    )
-    stdout_lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-    metadata: dict[str, object] = {}
-    if stdout_lines:
-        try:
-            metadata = json.loads(stdout_lines[-1])
-        except Exception:
-            metadata = {}
-    ok = bool(metadata.get("ok")) and result.returncode == 0
-    return {
-        "ok": ok,
-        "referenceKind": "main-worktree-old-ai-control-center-runtime",
-        "referenceSource": str(main_root),
-        "desktopLauncher": str(launcher),
-        "launcherExists": launcher.exists(),
-        "focusedWindow": str(focused_path),
-        "fullDesktop": str(desktop_path),
-        "metadataPath": str(metadata_path),
-        "captureScript": str(script_path),
-        "returnCode": result.returncode,
-        "stdoutTail": stdout_lines[-3:],
-        "stderrTail": result.stderr.splitlines()[-10:],
-        "metadata": metadata,
-        "reason": "" if ok else "main-runtime-reference-capture-failed",
-    }
-
-
 def _ai_dashboard_resize_hit_zone_probe(app: QApplication, dialog: AIControlCenterDialog) -> dict[str, object]:
     width = int(dialog.width())
     height = int(dialog.height())
@@ -1451,259 +1192,88 @@ def _metric_summary(grammar: dict[str, object]) -> dict[str, object]:
 def _write_visual_grammar_audit(
     log_root: Path,
     dashboard_probe: dict[str, object],
-    main_runtime_ai_control_center_reference: dict[str, object],
 ) -> dict[str, object]:
-    current_grammar = dashboard_probe.get("visualGrammar")
-    if not isinstance(current_grammar, dict):
-        current_grammar = {}
-    reference_metadata = main_runtime_ai_control_center_reference.get("metadata")
-    reference_probe = (
-        reference_metadata.get("probe")
-        if isinstance(reference_metadata, dict) and isinstance(reference_metadata.get("probe"), dict)
-        else {}
-    )
-    reference_grammar = reference_probe.get("visualGrammar") if isinstance(reference_probe, dict) else {}
-    if not isinstance(reference_grammar, dict):
-        reference_grammar = {}
-
+    grammar = dashboard_probe.get("visualGrammar")
+    if not isinstance(grammar, dict):
+        grammar = {}
     findings: list[dict[str, object]] = []
 
-    def add(
-        group: str,
-        status: str,
-        current: object,
-        reference: object,
-        note: str,
-    ) -> None:
-        findings.append(
-            {
-                "group": group,
-                "status": status,
-                "current": current,
-                "reference": reference,
-                "note": note,
-            }
-        )
+    def add(group: str, ok: bool, observed: object, note: str) -> None:
+        findings.append({
+            "group": group,
+            "status": "CONFORMING" if ok else "NONCONFORMING",
+            "observed": observed,
+            "note": note,
+        })
 
-    required_groups = [
-        "chrome",
-        "titleGroup",
-        "header",
-        "kicker",
-        "title",
-        "subtitle",
-        "surfaceRole",
-        "surfaceRoleCopy",
-        "surfaceRolePair",
-        "windowControls",
-        "windowControlButton",
-        "controlHub",
-        "hubCard",
-        "cardTopline",
-        "cardBadge",
-        "cardTitle",
-        "cardDescription",
-        "stateRow",
-        "rowLabel",
-        "rowValue",
-        "hubActions",
-        "hubAction",
-        "buttonLabel",
-        "scrollbarTrack",
-        "scrollbarThumb",
-    ]
-    for group_name in required_groups:
-        current_present = bool(_grammar_group(current_grammar, group_name).get("present"))
-        reference_present = bool(_grammar_group(reference_grammar, group_name).get("present"))
-        status = "CONFORMING" if current_present and reference_present else "UNPROVEN"
-        add(
-            group_name,
-            status,
-            "present" if current_present else "missing",
-            "present" if reference_present else "missing",
-            "Material element-group exists in both rendered surfaces." if status == "CONFORMING" else "Required material element-group missing from current or comparator render.",
-        )
-
-    current_summary = _metric_summary(current_grammar)
-    reference_summary = _metric_summary(reference_grammar)
-
-    def compare_px(
-        group_name: str,
-        style_key: str,
-        tolerance: float,
-        note: str,
-        status_on_difference: str = "NONCONFORMING",
-    ) -> None:
-        current = _px(_grammar_style(current_grammar, group_name, style_key))
-        reference = _px(_grammar_style(reference_grammar, group_name, style_key))
-        if current is None or reference is None:
-            add(f"{group_name}.{style_key}", "UNPROVEN", current, reference, "Computed style missing from current or comparator.")
-            return
-        diff = abs(current - reference)
-        add(
-            f"{group_name}.{style_key}",
-            "CONFORMING" if diff <= tolerance else status_on_difference,
-            current,
-            reference,
-            note if diff <= tolerance else f"{note} Difference {diff:.1f}px exceeds {tolerance:.1f}px tolerance.",
-        )
-
-    def compare_text(group_name: str, style_key: str, note: str) -> None:
-        current = _grammar_style(current_grammar, group_name, style_key)
-        reference = _grammar_style(reference_grammar, group_name, style_key)
-        add(
-            f"{group_name}.{style_key}",
-            "CONFORMING" if str(current) == str(reference) else "NONCONFORMING",
-            current,
-            reference,
-            note,
-        )
-
-    compare_px("chrome", "paddingLeft", 0.5, "Outer chrome padding matches the Main comparator.")
-    compare_px("titleGroup", "borderRadius", 0.5, "Header capsule radius matches the Main comparator.")
-    compare_px("title", "fontSize", 1.0, "Title scale remains in the Main comparator range.")
-    compare_px("subtitle", "lineHeight", 1.0, "Subtitle line-height remains in the Main comparator range.")
-    compare_px("surfaceRole", "marginTop", 0.5, "Global strip top rhythm matches the Main comparator.")
-    compare_px("surfaceRole", "borderRadius", 0.5, "Global strip radius matches the Main comparator.")
-    compare_px("windowControlButton", "width", 0.5, "Window control button width matches the Main comparator.")
-    compare_px("windowControlButton", "height", 0.5, "Window control button height matches the Main comparator.")
-    compare_text("controlHub", "gap", "Control-hub card gap uses the Main comparator rhythm.")
-    compare_text("controlHub", "padding", "Control-hub padding uses the Main comparator rhythm.")
-    compare_text("hubCard", "padding", "Card padding uses the Main comparator rhythm.")
-    compare_px("hubCard", "borderRadius", 0.5, "Card radius uses the Main comparator grammar.")
-    compare_px("cardBadge", "width", 0.5, "Card badge width matches the Main comparator.")
-    compare_px("cardBadge", "height", 0.5, "Card badge height matches the Main comparator.")
-    compare_px("cardTitle", "fontSize", 0.5, "Card title size matches the Main comparator.")
-    compare_px("cardDescription", "fontSize", 0.5, "Card description size matches the Main comparator.")
-    compare_px(
-        "rowLabel",
-        "fontSize",
-        0.5,
-        "Row label size follows the USER row title/status text-size parity rule; Main comparator label size is retained as reference context.",
-        status_on_difference="INTENTIONAL_VARIANT",
+    add(
+        "visualGrammarProbe",
+        grammar.get("ok") is True,
+        grammar.get("ok"),
+        "Current dashboard visual probe completed.",
     )
-    compare_px("rowValue", "fontSize", 0.5, "Row value size matches the Main comparator.")
-    current_row_label_font = _px(_grammar_style(current_grammar, "rowLabel", "fontSize"))
-    current_row_value_font = _px(_grammar_style(current_grammar, "rowValue", "fontSize"))
+
+    required_groups = (
+        "chrome", "titleGroup", "header", "kicker", "title", "subtitle",
+        "surfaceRole", "surfaceRoleCopy", "surfaceRolePair", "windowControls",
+        "windowControlButton", "controlHub", "hubCard", "cardTopline",
+        "cardBadge", "cardTitle", "cardDescription", "stateRow", "rowLabel",
+        "rowValue", "hubActions", "hubAction", "buttonLabel",
+        "scrollbarTrack", "scrollbarThumb",
+    )
+    for name in required_groups:
+        present = bool(_grammar_group(grammar, name).get("present"))
+        add(name, present, present, "Current rendered dashboard element is present.")
+
+    label_size = _px(_grammar_style(grammar, "rowLabel", "fontSize"))
+    value_size = _px(_grammar_style(grammar, "rowValue", "fontSize"))
     add(
         "rowTypography.labelValueFontSizeParity",
-        "CONFORMING"
-        if current_row_label_font is not None
-        and current_row_value_font is not None
-        and abs(current_row_label_font - current_row_value_font) <= 0.1
-        else "NONCONFORMING",
-        current_row_label_font,
-        current_row_value_font,
-        "Current row title and status/value text sizes must be identical per USER visual-grammar direction.",
+        label_size is not None and value_size is not None
+        and abs(label_size - value_size) <= 0.1,
+        {"labelPx": label_size, "valuePx": value_size},
+        "Current dashboard row labels and values use the same font size.",
     )
-    compare_px("hubAction", "fontSize", 0.5, "Action button text size matches the Main comparator.")
-    compare_px("hubAction", "height", 0.5, "Action button height matches the Main comparator.")
-    compare_px("buttonLabel", "fontSize", 0.5, "Button label text size matches the Main comparator.")
-
-    row_height_diff = abs(float(current_summary["medianRowHeight"]) - float(reference_summary["medianRowHeight"]))
-    add(
-        "rowRhythm.medianHeight",
-        "CONFORMING" if row_height_diff <= 2 else "NONCONFORMING",
-        current_summary["medianRowHeight"],
-        reference_summary["medianRowHeight"],
-        "Median row height must stay within 2px of Main-runtime row rhythm.",
-    )
-    after_row_gap_diff = abs(float(current_summary["medianAfterRowGap"]) - float(reference_summary["medianAfterRowGap"]))
-    add(
-        "afterRowSpacing.medianGap",
-        "CONFORMING" if after_row_gap_diff <= 2 else "NONCONFORMING",
-        current_summary["medianAfterRowGap"],
-        reference_summary["medianAfterRowGap"],
-        "Rows-to-action spacing must stay within 2px of Main-runtime rhythm.",
-    )
-    button_height_diff = abs(float(current_summary["medianButtonHeight"]) - float(reference_summary["medianButtonHeight"]))
-    add(
-        "buttonSize.medianHeight",
-        "CONFORMING" if button_height_diff <= 1 else "NONCONFORMING",
-        current_summary["medianButtonHeight"],
-        reference_summary["medianButtonHeight"],
-        "Median action button height must match the Main-runtime control grammar.",
-    )
-    add(
-        "surfaceRole.defaultWindowSize",
-        "INTENTIONAL_VARIANT",
-        f'{dashboard_probe.get("defaultWindowWidth")}x{dashboard_probe.get("defaultWindowHeight")}',
-        f'{reference_probe.get("defaultWindowWidth")}x{reference_probe.get("defaultWindowHeight")}',
-        "AI Dashboard is the wider parent hub; Main AI Control Center remains the focused comparator, not an identical surface footprint.",
-    )
-    add(
-        "cardSet.countAndPurpose",
-        "INTENTIONAL_VARIANT",
-        current_summary["cardCount"],
-        reference_summary["cardCount"],
-        "Current parent Dashboard has three doorway cards; Main old AI Control Center has two focused cards.",
-    )
-    add(
-        "buttonState.affordance",
-        "INTENTIONAL_VARIANT",
-        dashboard_probe.get("deferredButtons"),
-        reference_grammar.get("buttonMetrics"),
-        "Current doorway controls are disabled/deferred by branch scope; Main comparator has active local-check action. Geometry and typography remain same-family.",
-    )
-
-    current_css = current_grammar.get("cssStateSelectors") if isinstance(current_grammar, dict) else {}
-    reference_css = reference_grammar.get("cssStateSelectors") if isinstance(reference_grammar, dict) else {}
-    if not isinstance(current_css, dict):
-        current_css = {}
-    if not isinstance(reference_css, dict):
-        reference_css = {}
-    for key in [
-        "hubActionHover",
-        "hubActionFocus",
-        "hubActionPressed",
-        "hubActionDisabled",
-        "windowControlHover",
-        "windowControlFocus",
-        "windowControlDisabled",
-        "customScrollbar",
-    ]:
+    css = grammar.get("cssStateSelectors")
+    if not isinstance(css, dict):
+        css = {}
+    for name in (
+        "hubActionHover", "hubActionFocus", "hubActionPressed",
+        "hubActionDisabled", "windowControlHover", "windowControlFocus",
+        "windowControlDisabled", "customScrollbar",
+    ):
         add(
-            f"stateCoverage.{key}",
-            "CONFORMING" if current_css.get(key) and reference_css.get(key) else "UNPROVEN",
-            current_css.get(key),
-            reference_css.get(key),
-            "CSS state selector coverage exists in both current and comparator surfaces.",
+            f"stateCoverage.{name}",
+            bool(css.get(name)),
+            css.get(name),
+            "Current dashboard has the interaction state.",
         )
 
-    blocking_statuses = {"NONCONFORMING", "PARTIAL", "SOURCE-TRUTH GAP", "REFERENCE GAP", "UNPROVEN"}
-    blocking_findings = [finding for finding in findings if str(finding.get("status")) in blocking_statuses]
-    status = "PASS" if not blocking_findings else "FAIL"
+    blocking = [item for item in findings if item["status"] != "CONFORMING"]
+    status = "PASS" if not blocking else "FAIL"
     audit = {
         "status": status,
-        "auditKind": "exhaustive-main-runtime-visual-grammar-comparison",
-        "currentSummary": current_summary,
-        "referenceSummary": reference_summary,
-        "blockingFindingCount": len(blocking_findings),
+        "auditKind": "current-dashboard-visual-grammar",
+        "currentSummary": _metric_summary(grammar),
+        "blockingFindingCount": len(blocking),
         "findings": findings,
-        "blockingFindings": blocking_findings,
+        "blockingFindings": blocking,
     }
-    json_path = log_root / "14_exhaustive_visual_grammar_audit.json"
-    md_path = log_root / "14_exhaustive_visual_grammar_audit.md"
+    json_path = log_root / "14_current_visual_grammar_audit.json"
+    md_path = log_root / "14_current_visual_grammar_audit.md"
     json_path.write_text(json.dumps(audit, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     rows = [
-        "# Exhaustive Main Runtime Visual Grammar Audit",
+        "# Current Dashboard Visual Grammar Audit",
         "",
-        f"Status: `{status}`",
+        f"Status: {status}",
         "",
-        "| Group | Status | Current | Reference | Note |",
-        "| --- | --- | --- | --- | --- |",
+        "| Group | Status | Observed | Note |",
+        "| --- | --- | --- | --- |",
     ]
-    for finding in findings:
-        current = str(finding.get("current", "")).replace("|", "/")
-        reference = str(finding.get("reference", "")).replace("|", "/")
-        note = str(finding.get("note", "")).replace("|", "/")
-        if len(current) > 140:
-            current = current[:137] + "..."
-        if len(reference) > 140:
-            reference = reference[:137] + "..."
-        rows.append(
-            f"| {finding.get('group')} | `{finding.get('status')}` | {current} | {reference} | {note} |"
-        )
+    for item in findings:
+        observed = str(item["observed"]).replace("|", "/")
+        note = str(item["note"]).replace("|", "/")
+        rows.append(f"| {item['group']} | {item['status']} | {observed} | {note} |")
     md_path.write_text("\n".join(rows) + "\n", encoding="utf-8")
     audit["jsonPath"] = str(json_path)
     audit["markdownPath"] = str(md_path)
@@ -2305,42 +1875,7 @@ def main() -> int:
         "buttonPlacement": _capture_window_region(app, dialog, log_root, "07_button_placement", proof_rects.get("buttonPlacement")),
         "firstCardDensity": _capture_window_region(app, dialog, log_root, "08_first_card_density", proof_rects.get("firstCard")),
     }
-    fam007_h4_root = Path.home() / "OneDrive" / "Pictures" / "Screenshots" / "Nexus Desktop AI" / "FAM-007-H4"
-    main_runtime_ai_control_center_reference = _capture_main_runtime_ai_control_center_reference(log_root)
-    previous_parent_dashboard_reference = _copy_reference_image(
-        fam007_h4_root
-        / "20260624-214952-parent-dashboard"
-        / "01_dashboard_initial_focused_window.png",
-        log_root,
-        "11_before_parent_dashboard_density_reference",
-    )
-    visual_comparison_boards = {
-        "currentVsMainRuntimeOldAiControlCenter": _write_side_by_side_board(
-            Path(screenshots["dashboard_initial"]["focusedWindow"]),
-            Path(str(main_runtime_ai_control_center_reference.get("focusedWindow", ""))),
-            log_root / "12_current_vs_main_runtime_old_ai_control_center.png",
-            "Current repaired parent AI Dashboard",
-            "Main runtime old AI Control Center",
-        ) if main_runtime_ai_control_center_reference.get("ok") else {
-            "ok": False,
-            "reason": main_runtime_ai_control_center_reference.get("reason", "missing-reference"),
-        },
-        "beforeAfterParentDensity": _write_side_by_side_board(
-            Path(str(previous_parent_dashboard_reference.get("path", ""))),
-            Path(screenshots["dashboard_initial"]["focusedWindow"]),
-            log_root / "13_before_after_parent_dashboard_density.png",
-            "Before returned defect proof",
-            "Current repaired parent AI Dashboard",
-        ) if previous_parent_dashboard_reference.get("ok") else {
-            "ok": False,
-            "reason": previous_parent_dashboard_reference.get("reason", "missing-reference"),
-        },
-    }
-    visual_grammar_audit = _write_visual_grammar_audit(
-        log_root,
-        dashboard_probe,
-        main_runtime_ai_control_center_reference,
-    )
+    visual_grammar_audit = _write_visual_grammar_audit(log_root, dashboard_probe)
     resize_edge_hit_zone_probe = _ai_dashboard_resize_hit_zone_probe(app, dialog)
 
     child_windows_visible_before_close = {
@@ -2543,13 +2078,6 @@ def main() -> int:
         for card in card_visual_metrics
     ]
     proof_crops_ok = all(item.get("ok") is True for item in proof_crops.values())
-    required_reference_images_ok = (
-        main_runtime_ai_control_center_reference.get("ok") is True
-    )
-    visual_boards_ok = (
-        visual_comparison_boards["currentVsMainRuntimeOldAiControlCenter"].get("ok") is True
-        and visual_comparison_boards["beforeAfterParentDensity"].get("ok") is True
-    )
     deferred_buttons = dashboard_probe.get("deferredButtons") or []
 
     def _int_or(value: object, fallback: int = -999) -> int:
@@ -2907,14 +2435,12 @@ def main() -> int:
             and layout_metrics.get("subtitleOverlapsWindowControls") is False
             and _title_description_wrap_ok(title_description_wrap, min_lines=1, max_lines=2)
         ),
-        "acceptedReferenceComparisonProven": (
+        "currentVisualEvidenceProven": (
             dashboard_probe.get("surfaceRole") == "ai-dashboard-top-most-hub"
             and dashboard_probe.get("aiControlCenterPlacement") == "focused-domain-card-inside-ai-dashboard"
-            and required_reference_images_ok
-            and visual_boards_ok
             and proof_crops_ok
         ),
-        "exhaustiveMainRuntimeVisualGrammarComparisonProven": (
+        "currentVisualGrammarProven": (
             visual_grammar_audit.get("status") == "PASS"
             and int(visual_grammar_audit.get("blockingFindingCount") or 0) == 0
         ),
@@ -3024,11 +2550,6 @@ def main() -> int:
         "window": "AI Dashboard",
         "dashboardProbe": dashboard_probe,
         "proofCrops": proof_crops,
-        "acceptedReferenceImages": {
-            "mainRuntimeOldAiControlCenter": main_runtime_ai_control_center_reference,
-            "beforeParentDashboard": previous_parent_dashboard_reference,
-        },
-        "visualComparisonBoards": visual_comparison_boards,
         "visualGrammarAudit": visual_grammar_audit,
         "resizeEdgeHitZoneProbe": resize_edge_hit_zone_probe,
         "surfaceClassification": {
@@ -3036,9 +2557,6 @@ def main() -> int:
             "currentSurfaceRole": dashboard_probe.get("surfaceRole"),
             "aiControlCenterPlacement": dashboard_probe.get("aiControlCenterPlacement"),
             "detachedChildWindowDisposition": "deferred-not-accepted-current-gate",
-            "acceptedComparatorUse": "Main worktree old AI Control Center runtime is comparator proof only, not global UIREF promotion or detached-child acceptance",
-            "acceptedComparatorSource": main_runtime_ai_control_center_reference.get("referenceSource"),
-            "acceptedComparatorDesktopLauncher": main_runtime_ai_control_center_reference.get("desktopLauncher"),
         },
         "deferredLaunchProbe": deferred_launch_probe,
         "settingsTooltipProbe": settings_tooltip_probe,

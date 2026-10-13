@@ -1,7 +1,7 @@
 # UIREF-007 Window Geometry And Resize Contract
 
-Reference ID: `UIREF-007`  
-Reference Class: `Window Geometry / Resize`  
+Reference ID: `UIREF-007`<br>
+Reference Class: `Window Geometry / Resize`<br>
 Related product design: `Docs/nexus_vision.md`, `Docs/family_visions/FAM-002_desktop_interface.md`, and `Docs/family_feature_visions/F2-FF01.md`.
 
 This reference applies to Nexus-owned top-level windows, dashboards, detached or embedded child surfaces, settings/tools, studios, and dialogs that own geometry, resizing, scrolling, or responsive behavior. Platform-owned security prompts, OS pickers, provider-auth windows, and temporary diagnostic surfaces may use platform conventions.

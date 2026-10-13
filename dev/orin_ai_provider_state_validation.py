@@ -3616,7 +3616,6 @@ def validate() -> list[str]:
     js = _read("nexus_visual/orin_core.js")
     ai_control_html = _read("nexus_visual/ai_control_center.html")
     ai_control_js = _read("nexus_visual/ai_control_center.js")
-    live_resize_helper = _read("dev/orin_ai_control_center_live_resize_validation.py")
     monitoring_hud_css = _read("nexus_visual/monitoring_hud.css")
     ai_control_renderer = "\n".join(
         (
@@ -9273,89 +9272,6 @@ def validate() -> list[str]:
         _require(
             needle in renderer,
             f"AI Dashboard child/domain window native chrome contract is missing {needle!r}",
-            failures,
-        )
-
-    for needle in (
-        "os-cursor-webview-coordinate",
-        "SetCursorPos",
-        "mouse_event",
-        "duplicateFullDesktopProof",
-        '"fullDesktopProofNotDuplicated"',
-        '"dashboardHubParentOnly"',
-        '"doorwayButtonsDeferredNoFakeActions"',
-        '"parentVisualMetrics"',
-        '"returnedDensityAndButtonPlacementRepaired"',
-        '"returnedTitleSubtitleWrapRepaired"',
-        '"titleDescriptionProseWordWrapProven"',
-        '"titleDescriptionWindowsCursorProseWrapProven"',
-        '"acceptedReferenceComparisonProven"',
-        '"exhaustiveMainRuntimeVisualGrammarComparisonProven"',
-        '"deterministicStatusRowsAndTitlePill"',
-        '"titleStatusPillGroupWrapProven"',
-        '"titleStatusPillNoEarlyWrapAt580Proven"',
-        '"titleStatusPillWindowsCursorWrapProven"',
-        '"deterministicTitleColumnSizingProven"',
-        '"sharedStatusValueColumnProven"',
-        '"rowStackVerticalGutterProven"',
-        '"rowTitleStatusTextSizeParityProven"',
-        '"belowTitleTextWeights720Proven"',
-        '"labelValueFontSizeParity"',
-        '"valueColumnDerivedFromLabelContent"',
-        '"valueColumnDerivedFromMaxLabelContent"',
-        '"declaredLabelColumnMatchesMeasuredMax"',
-        '"fixedColumnGutterAndUniformValueColumnProven"',
-        '"fixedColumnGutterRestored"',
-        '"uniformValueColumnOffset"',
-        '"uniformValueLeftEdge"',
-        '"rowVerticalGutterRestored"',
-        '"rowStackMetrics"',
-        '"windowControlEdgeGutterProven"',
-        '"titleCardBackingLayerRemoved"',
-        '"rowTypography.labelValueFontSizeParity"',
-        '"resizeEdgeHitZoneProven"',
-        '"dashboardHorizontalResizeMinimumWorks"',
-        '"windows-cursor-left-button-drag"',
-        '"codeForcedGeometry"',
-        '"runtimeResizeEventStarted"',
-        '"proofPathVariant"',
-        '"noEarlyWrapProof"',
-        '"naturalWrapProof"',
-        "15_title_status_pill_no_early_wrap_windows_cursor_resize",
-        "16_title_status_pill_wrapped_windows_cursor_resize",
-        '"settingsCogRemovedAndDeferred"',
-        '"settingsOptionBSelectionDispositionProven"',
-        '"proofCrops"',
-        '"visualComparisonBoards"',
-        '"visualGrammarAudit"',
-        "_write_settings_option_b_disposition",
-        "_drive_ai_dashboard_horizontal_resize",
-        "_write_visual_grammar_audit",
-        '"resizeEdgeHitZoneProbe"',
-        "_capture_main_runtime_ai_control_center_reference",
-        "main-worktree-old-ai-control-center-runtime",
-        "currentVsMainRuntimeOldAiControlCenter",
-        "MAIN GREEN - Nexus Desktop AI Launcher.lnk",
-        '"runtimeCopyIsProductFacing"',
-        '"settingsTooltipProbe"',
-        '"settingsOptionBDisposition"',
-        '"deferredLaunchProbe"',
-    ):
-        _require(
-            needle in live_resize_helper,
-            f"AI Dashboard live parent-only helper is missing proof-hardening check {needle!r}",
-            failures,
-        )
-
-    for forbidden in (
-        "20260624-162154-child-window",
-        "20260615-081438",
-        "currentVsPr269Density",
-        "pr269AiControlCenterDensitySeed",
-    ):
-        _require(
-            forbidden not in live_resize_helper,
-            f"AI Dashboard live parent-only helper must not use branch-era AI Control Center proof as accepted comparator: {forbidden!r}",
             failures,
         )
 

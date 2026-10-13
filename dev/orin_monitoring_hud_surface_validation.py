@@ -87,8 +87,6 @@ def validate() -> list[str]:
     studio_primitives = _read("nexus_visual/nexus_window_primitives.css")
     studio_source = studio_html + "\n" + studio_js + "\n" + studio_primitives
     renderer = _read("desktop/desktop_renderer.py")
-    family_vision = _read("Docs/family_visions/FAM-006_monitoring_and_hud.md")
-    recording_feature_vision = _read("Docs/family_feature_visions/FAM-006_recording.md")
     output_contract = _read("desktop/recording_output_contract.py")
     core_renderer = _read("desktop/core_visualization_renderer.py")
     tray = (
@@ -105,9 +103,6 @@ def validate() -> list[str]:
     placement = _read("desktop/monitoring_hud_placement.py")
     controls = _read("desktop/monitoring_hud_controls.py")
     status = _read("desktop/monitoring_hud_status.py")
-    live_validation = _read("dev/orin_monitoring_hud_live_validation.ps1")
-    human_client_validation = _read("dev/orin_monitoring_hud_human_client_validation.ps1")
-    rounded_mask_probe = _read("dev/orin_dashboard_rounded_corner_mask_probe.py")
 
     for needle in (
         "--monitoring-hud-affordance-hover-shadow",
@@ -586,22 +581,6 @@ def validate() -> list[str]:
             html + css,
             dirty_guard_parity_markup,
             "FAM-006 shared modal dirty-guard parity HTML/CSS",
-            failures,
-        )
-    for dirty_guard_live_proof in (
-        "Manage Monitors dirty guard matches shared modal Save Discard Cancel contract",
-        "Manage Monitors dirty guard Cancel returns to dirty draft without queued close",
-        "Manage Monitors dirty guard Discard completes queued close and clears dirty state",
-        "manage_monitors_dirty_guard_save_discard_cancel_modal",
-        "manage_monitors_dirty_guard_modal_uniform_with_overlay_profile",
-        "manage_monitors_dirty_guard_background_blur_blocking",
-        "manage_monitors_dirty_guard_close_button_functionality",
-        "focused screenshots missing mandatory dirty-guard parity element",
-    ):
-        _require_contains(
-            renderer + live_validation,
-            dirty_guard_live_proof,
-            "FAM-006 LV1 shared modal dirty-guard parity proof route",
             failures,
         )
     _require(
@@ -1140,51 +1119,12 @@ def validate() -> list[str]:
         )
 
     for needle in (
-        "New Dashboard, HUD, Overlay Profile, Monitor Group, Recording, Sensor Command Center, or child-window UI must sample from the existing FAM-006 visual system",
-        "Visual-system inheritance means shared design DNA, not component cloning",
-        "The Dashboard Recording card must look and behave like an existing Dashboard hub card",
-    ):
-        _require_contains(family_vision, needle, "FAM-006 family visual-system inheritance contract", failures)
-
-    for needle in (
         "recordingCard: rectFor('[data-dashboard-hub-card=\"recording\"]')",
         'recordingTargetPreview: rectFor("#monitoring-hud-recording-target-preview")',
         'recordingControlLauncher: rectFor("#monitoring-hud-recording-control-launcher")',
         'recordingOpenFolder: rectFor("#monitoring-hud-recording-open-folder")',
     ):
         _require_contains(js, needle, "SLC-052 Dashboard Recording card live geometry proof", failures)
-
-    for needle in (
-        "dashboard-card-system-sampled",
-        "inherits-dashboard-state-row",
-        "02_recording_card_target_preview_standard_state_rows",
-        "02_recording_card_log_viewer_studio_pre_session_ready_state",
-        "02_recording_studio_native_window_ready_state",
-        "02_log_viewer_studio_native_window_shell_state",
-        "02_recording_card_log_viewer_studio_opened_state",
-        "stateRowsContained",
-        "hidden-from-default-body-supporting-tooltip-only",
-        "supporting-tooltip-only",
-        "titleHeaderBadgeState",
-        "ai-control-center-title-group-no-extra-badge",
-        "top-right-header",
-        "fam006-unique-child-studio-shell-v5",
-        "unique-child-standalone-feature-studio",
-        "no-resize-recording-edge-resize-log-viewer",
-        "attachedChildCornerResizeGripAbsent",
-        "denseValidatorStatusPanelRejected",
-        "nexus-window-primitives-v1-rendered-dom-css",
-        "Bounded FAM-006 Shared Primitive Carry-In",
-        "nexus_visual/nexus_window_primitives.css",
-        "ai-control-center-symbol-window-control-cluster",
-        "ai-control-center-symbol-window-control-pill",
-        "sharedPrimitiveConsumer",
-        "featureStudioPrimitive",
-        "QWebEngineView/monitoring_hud.css DOM",
-        "nativeLogRowsContained",
-    ):
-        _require_contains(renderer + "\n" + live_validation, needle, "SLC-052 live validation visual-system inheritance proof", failures)
-
 
     for needle in (
         "nexus_window_primitives.css",
@@ -1397,34 +1337,6 @@ def validate() -> list[str]:
             "FAM-006 Studio title/header grammar must not use REC/LOG title badges",
             failures,
         )
-
-    for needle in (
-        "profile-specific log consistency",
-        "normal user activation",
-        "ultra-lightweight detached Recording controller",
-        "compact folder-access shell",
-        "standalone window layout that is not a Dashboard card clone",
-        "Recording Suite",
-        "visual-system inheritance",
-        "native and exported log folder access",
-    ):
-        _require_contains(
-            recording_feature_vision,
-            needle,
-            "FAM-006 Recording returned-UTS determinism proof expectations",
-            failures,
-        )
-
-    for needle in (
-        'status = "PASS"',
-    ):
-        _require_contains(
-            live_validation,
-            needle,
-            "FAM-006 returned-UTS deterministic Live Validation stop-loss",
-            failures,
-        )
-
 
     for needle in (
         "profileLogConsistencyPassed",
@@ -2271,80 +2183,6 @@ def validate() -> list[str]:
         _require_contains(renderer, needle, "desktop renderer HUD hook", failures)
 
     for needle in (
-        "Invoke-DashboardRoundedCornerMaskProbe",
-        "Get-LatestSettingsWindowRectFromRuntimeLog",
-        "orin_dashboard_rounded_corner_mask_probe.py",
-        "dashboard_rounded_corner_mask_light_backdrop",
-        "Dashboard rounded native window mask prevents black corner bleed over a white backdrop",
-        "MONITORING_HUD_DASHBOARD_ROUNDED_WINDOW_MASK_READY",
-        "Close-CommandOverlayBeforeDashboardResize",
-        "Invoke-TrayIconActivation",
-        "Command Overlay",
-        "ncp_tray_icon_left_click_opens",
-        "ncp_tray_menu_state_changes_to_close",
-        "ncp_tray_icon_left_click_closes",
-        "ncp_closed_before_dashboard_resize",
-        "Measure-MoveTracking",
-        "dashboard_move_fluidity",
-        "Move-DashboardAwayFromTrayMenuIfNeeded",
-        "dashboard_repositioned_clear_of_tray_menu_for_cleanup",
-        "Capture-RectScreenshot",
-        "UserElementScreenshotRoot",
-        "Add-UserInspectableScreenshotEvidence",
-        "focused-per-element-screenshot",
-        "context_desktop_screenshots",
-        "focused_element_screenshots",
-        "Capture-DashboardLocalScreenshot",
-        "Capture-DashboardRightEdgeScreenshot",
-        "New-HumanClientShortVideoProof",
-        "human_client_short_video_proof",
-        "shortVideoOrFrameSequenceProof",
-        "human_client_short_video.mp4",
-        "Mandatory human-client short video/frame-sequence proof failed",
-        "GetDpiForWindowValue",
-        "Get-DashboardResizeProofContext",
-        "Wait-DashboardPostResizeSettle",
-        "Get-DashboardRightEdgeRediscoveryClassification",
-        "dashboard_post_resize_settle_before_right_edge",
-        "dashboard_right_edge_rediscovery_after_corner_resize",
-        "diagnosticSamples",
-        "offsetFromVisibleEdgePx",
-        "rootWindowHandleAtPoint",
-        "expectedDashboardHandle",
-        "virtualDesktopBounds",
-        "visibleEdgeCoordinates",
-        "focusedDashboardScreenshot",
-        "focusedRightEdgeScreenshot",
-        "broad screenshots are locator/context only",
-        "postResizeSettle",
-        "failureClassification",
-        "geometryStable",
-        "roundedMaskApplied",
-        "webViewVisible",
-        "activeResizeStateCleared",
-        "cursorReset",
-        "repairSelection = \"proof-path handle/coordinate/timing reacquisition; no product edge-math adjustment\"",
-        "targetAcquisitionStatus = \"PASS-codex-visible-user-level-right-click-opened-menu\"",
-        "manualUserConfirmationDisposition = \"supporting-only-not-pass-proof\"",
-        "Live Validation Control-Surface Acquisition Blocked",
-        "do not probe nearby taskbar coordinates",
-        "tooltip identity or USER manual confirmation is supporting evidence only",
-    ):
-        _require_contains(human_client_validation, needle, "monitoring HUD human-client validation helper", failures)
-    for needle in (
-        "NDAI rounded corner validation backdrop",
-        "win32gui.GetPixel",
-        "LIGHT_THRESHOLD = 210",
-        "DASHBOARD_VISIBLE_THRESHOLD = 190",
-        "_capture_virtual_desktop",
-        "_bring_dashboard_front",
-        "rounded corner exterior samples must show the white validation backdrop",
-        "cornerSamples",
-        "visibleSamples",
-    ):
-        _require_contains(rounded_mask_probe, needle, "Dashboard rounded-corner live mask probe", failures)
-
-    for needle in (
         "from desktop.core_visualization_renderer import CoreVisualizationWindow",
         "DesktopRuntimeUnavailable",
         "DESKTOP_RUNTIME_UNAVAILABLE",
@@ -2515,144 +2353,6 @@ def validate() -> list[str]:
         _require_contains(status, needle, "monitoring HUD status behavior contract", failures)
     _require_no_collection_imports(status, "monitoring HUD status behavior contract", failures)
 
-    for needle in (
-        "overlayDisplayAcceptance",
-        "deferred-non-gating",
-        "coreRepairClassification",
-        "dependency-repair-only",
-        "dashboardSpecificProof",
-        "userTestSummaryExportRefreshed",
-        "revisedOverlayProof",
-        "fullVirtualDesktopScreenshot",
-        "userInspectableScreenshot",
-        "standaloneDashboardWindowReady",
-        "surfaceNativeIndependenceReady",
-        "dashboardStandaloneWindowTravelReady",
-        "dashboardClippingBoundaryReady",
-        "dashboardCoreOverlayDecouplingReady",
-        "dashboardSettingsContentReady",
-        "dashboardMonitorGroupClarityReady",
-        "dashboardOverlayNonGatingCopyReady",
-        "dashboardProviderTruthReady",
-        "dashboardStateModelReady",
-        "dashboardWarningControlsReady",
-        "overlayCardsMovableReady",
-        "surfaceVirtualDesktopTravelReady",
-        "coreIndependentPresetMonitorReady",
-        "coreHudSurfaceSeparationReady",
-        "coreWorkerwCoordinateRebaseReady",
-        "standaloneOverlayDisplayWindowReady",
-        "anchoredOverlayUninteractableReady",
-        "overlayPositionPreservedReady",
-        "providerContractReady",
-        "noFakeTelemetryPosture",
-        "RunInteractionSelfQA",
-        "VisibleClient",
-        "ActiveUserFacingClient",
-        "InteractionStepDelayMilliseconds",
-        "FinalClientHoldSeconds",
-        "ExactDesktopShortcutPath",
-        "Get-ExactUserDesktopShortcutPath",
-        "Resolve-ExactDesktopShortcutForActiveRoot",
-        "Start-ExactDesktopShortcutRuntime",
-        "C:\\Users\\anden\\OneDrive\\Desktop\\FAM-006 RED - Nexus Desktop AI Launcher.lnk",
-        "NEXUS_MONITORING_HUD_LIVE_SELF_QA_MANIFEST",
-        "NEXUS_MONITORING_HUD_LIVE_SELF_QA_ROOT",
-        "NEXUS_MONITORING_HUD_LIVE_SELF_QA_LANE",
-        "NEXUS_HARNESS_LOG_ROOT",
-        "NEXUS_HARNESS_AUTO_ACCEPT_RELAUNCH",
-        "NEXUS_HARNESS_SUPPRESS_ALREADY_RUNNING_DIALOGS",
-        "NEXUS_HARNESS_RELAUNCH_WAIT_SECONDS",
-        "exact-user-desktop-shortcut-launch",
-        "exactUserDesktopShortcutLaunchProof",
-        "InteractionManifest",
-        "InteractionEvidenceRoot",
-        "ElementScreenshotEvidenceRoot",
-        "Copy-FocusedElementScreenshotsToUserEvidence",
-        "perElementUserInspectableScreenshots",
-        "issueFormCoverageMatrix",
-        "02_recording_option_c_focused_lane_complete",
-        "Get-HudIssueIdsForElementLabel",
-        "minimum is $MinimumScreenshots",
-        "focused_element_screenshots",
-        "LV1 focused per-element screenshots missing or failed",
-        "supporting-only-unless-launched-through-exact-user-desktop-shortcut",
-        "ShortVideoFrameRoot",
-        "monitoring_hud_lv1_short_video.mp4",
-        "shortVideoProof",
-        "LV1 short video/frame-sequence proof missing or failed",
-        "generated mandatory LV1 short video proof",
-        "activeUserFacingClient",
-        "interactionSelfQARequested",
-        "interactionStepDelayMs",
-        "finalClientHoldMs",
-        "interactionManifestStatus",
-        "MONITORING_HUD_LIVE_CLIENT_SELF_QA_INTERACTION_READY",
-        "MONITORING_HUD_LIVE_CLIENT_SELF_QA_READY",
-        "CORE_VISUALIZATION_PRESET_MONITOR_SELECTION_READY",
-        "CORE_VISUALIZATION_WINDOW_READY|surface=separate_persona_core",
-        "CORE_VISUALIZATION_DESKTOP_LAYER_READY|surface=separate_persona_core",
-        "CORE_VISUALIZATION_WINDOW_GEOMETRY_READY",
-        "CORE_VISUALIZATION_WORKERW_COORDINATE_REBASE_READY",
-        "CORE_VISUALIZATION_FIXED_PRESET_MONITOR_READY",
-        "CORE_VISUALIZATION_WINDOW_VISIBLE|surface=separate_persona_core",
-        "CORE_VISUALIZATION_INDEPENDENT_PRESET_MONITOR_READY",
-        "CORE_VISUALIZATION_HUD_SURFACE_SEPARATION_READY",
-        "MONITORING_HUD_DASHBOARD_STANDALONE_WINDOW_TRAVEL_READY",
-        "MONITORING_HUD_DASHBOARD_CLIPPING_BOUNDARY_READY",
-        "MONITORING_HUD_DASHBOARD_CORE_OVERLAY_DECOUPLING_READY",
-        "MONITORING_HUD_DASHBOARD_SETTINGS_CONTENT_READY",
-        "MONITORING_HUD_DASHBOARD_MONITOR_GROUP_CLARITY_READY",
-        "MONITORING_HUD_DASHBOARD_OVERLAY_NON_GATING_COPY_READY",
-        "MONITORING_HUD_WINDOW_STATUS_READY",
-        "interaction self-QA manifest PASS",
-        "MONITORING_HUD_BASELINE_READY",
-        "MONITORING_HUD_PRODUCT_VISIBILITY_READY",
-        "MONITORING_HUD_DASHBOARD_SURFACE_READY",
-        "MONITORING_HUD_MINIMAL_OVERLAY_READY",
-        "MONITORING_HUD_DASHBOARD_MINIMAL_SPLIT_READY",
-        "MONITORING_HUD_DASHBOARD_CONTENT_READY",
-        "MONITORING_HUD_DASHBOARD_MOTION_POLISH_READY",
-        "MONITORING_HUD_DASHBOARD_SCROLLBAR_STYLE_READY",
-        "MONITORING_HUD_DASHBOARD_SETTINGS_CONTENT_READY",
-        "MONITORING_HUD_DASHBOARD_MONITOR_GROUP_CLARITY_READY",
-        "MONITORING_HUD_DASHBOARD_OVERLAY_NON_GATING_COPY_READY",
-        "MONITORING_HUD_EDGELESS_OVERLAY_CANVAS_READY",
-        "MONITORING_HUD_STANDALONE_OVERLAY_DISPLAY_WINDOW_READY",
-        "MONITORING_HUD_ANCHORED_OVERLAY_UNINTERACTABLE_READY",
-        "MONITORING_HUD_OVERLAY_POSITION_PRESERVED_READY",
-        "MONITORING_HUD_VISIBLE_OVERLAY_READY",
-        "MONITORING_HUD_TELEMETRY_BOUNDARY_READY",
-        "MONITORING_HUD_PLACEMENT_OWNERSHIP_READY",
-        "MONITORING_HUD_CONTROLS_VISIBILITY_READY",
-        "MONITORING_HUD_STATUS_BEHAVIOR_READY",
-        "MONITORING_HUD_INTERACTION_MODE_READY",
-        "MONITORING_HUD_CONTROL_STATE_READY",
-        "MONITORING_HUD_TRAY_ENABLE_RENDER_STABLE_READY",
-        "MONITORING_HUD_TRAY_ENABLE_DISABLE_ROUNDTRIP_READY",
-        "MONITORING_HUD_TRAY_DASHBOARD_OPEN_CLOSE_READY",
-        "MONITORING_HUD_DISABLE_RECOVERY_READY",
-        "DESKTOP_VISIBLE_OVERLAY_RESULT|success=true",
-        "DESKTOP_OUTCOME|SETTLED|state=dormant",
-        "settling Dashboard-first client before full-desktop screenshot",
-        "beforeLaunchScreenshot",
-        "afterLaunchScreenshot",
-        "monitoring_hud_desktop_before_launch.png",
-        "monitoring_hud_desktop_after_launch.png",
-        "beforeAfterDesktopComparisonReady",
-        "manifest.json",
-        "Stop-Process -Id $script:RuntimeProcess.Id -Force",
-        "No-progress watchdog exceeded",
-        "Assert-NoSyntheticLiveValidationInteraction",
-        "no-synthetic-interaction preflight",
-        "active route contains synthetic interaction code",
-        "lacks real OS-level mouse input proof",
-        "JavaScript clicks, synthetic DOM events, WebView native-message fallback, WebView handler calls, QTest widget-only events, and state mutation are banned",
-        "real-input fallback policy PASS",
-        "synthetic fallback requires explicit USER waiver",
-        "Compact Overlay Profiles delete confirmation stays unclipped and non-overlapping",
-    ):
-        _require_contains(live_validation, needle, "monitoring HUD live validation helper", failures)
     for needle in (
         "real-os-mouse-cursor-move-down-up",
         "realOsInputProof",

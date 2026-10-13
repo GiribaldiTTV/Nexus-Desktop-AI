@@ -116,4 +116,3 @@ Future orchestration work may later expand upward into:
 But current merged orchestration truth remains the desktop launcher stack.
 
 Any future higher layer must consume launcher truth downstream rather than rewriting launcher-owned outcomes.
-

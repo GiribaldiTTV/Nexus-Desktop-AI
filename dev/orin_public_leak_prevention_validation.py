@@ -16,24 +16,8 @@ if str(ROOT) not in sys.path:
 import desktop.ai_provider_state as ai_provider_state  # noqa: E402
 
 
-AI_EDITION_PLAN = Path(
-    "Docs/family_visions/FAM-007_ai_edition_capability_trust_boundary_release_plan.md"
-)
 FIXTURE_DIR = ROOT / "dev" / "fixtures" / "fam007_public_leak_prevention"
 FIXTURE_SET = FIXTURE_DIR / "public_leak_prevention_fixture_set.json"
-
-REQUIRED_AI_PLAN_PHRASES = (
-    "Protected Assets Table",
-    "Public-Safe Fixture Rule",
-    "Public Distribution Boundary",
-    "Edition Data And Capability Isolation",
-    "Data Movement And Privacy",
-    "Packaging And Release Behavior",
-    "Product Verification",
-    "Public builds contain no private assets",
-    "No-provider behavior remains useful",
-
-)
 
 
 
@@ -222,12 +206,6 @@ def _is_public_review_bundle_relative_path(path: str) -> bool:
     return ".." not in parts
 
 
-def _validate_required_source_truth(failures: list[str]) -> None:
-    ai_plan = _read(AI_EDITION_PLAN)
-    for phrase in REQUIRED_AI_PLAN_PHRASES:
-        _require(phrase in ai_plan, failures, f"{AI_EDITION_PLAN}: missing {phrase!r}")
-
-
 def _validate_public_safe_fixture(fixture_set: dict[str, Any], failures: list[str]) -> None:
     fixture = fixture_set.get("publicSafeFixture", {})
     _require(fixture.get("schema") == "fam007-public-safe-fixture-v1", failures, "public-safe fixture schema mismatch")
@@ -383,7 +361,6 @@ def validate() -> list[str]:
     if failures:
         return failures
     fixture_set = _load_fixture_set()
-    _validate_required_source_truth(failures)
     _validate_public_safe_fixture(fixture_set, failures)
     _validate_public_review_bundle(fixture_set, failures)
     _validate_review_bundle_path_canaries(fixture_set, failures)

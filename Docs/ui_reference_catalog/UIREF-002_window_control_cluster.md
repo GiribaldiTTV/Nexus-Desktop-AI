@@ -24,5 +24,3 @@ Known Limitations: `Independent visual evidence for minimize-hover, maximize/res
 
 
 Validator / Helper Guidance: `Future helpers should flag default OS chrome, large header CLOSE on a top-level window without exception, missing minimize/maximize applicability, missing accessibility label proof, and screenshots that claim hover state while hashing identically to default state.`
-
-

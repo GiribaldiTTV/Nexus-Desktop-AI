@@ -24,5 +24,3 @@ Known Limitations: `Open dropdown/menu/list/filter state proof, keyboard/accessi
 
 
 Validator / Helper Guidance: `Future helpers should fail generic "button looks good" claims, copied-file-list-only proof, missing state matrix, missing disabled/blocked state, unclassified platform control usage, and USER-facing controls that diverge from UIREF-003 without accepted exception.`
-
-

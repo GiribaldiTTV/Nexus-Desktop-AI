@@ -310,7 +310,7 @@ FAM-007 should be staged so the base app remains useful without a local LLM and 
 - do not enable provider/model behavior without explicit user consent and technical safeguards
 - do not treat vision text as evidence that provider/model behavior already works
 - do not put private prompts, plans, or personal data in public product material
-- - 
+- -
 ### Public-Safe Planning Carry-Forward
 
 The first public-safe AI experience should establish truthful local behavior before provider or model execution.

@@ -152,4 +152,3 @@ And it should continue to preserve this boundary rule:
 
 - launcher is the desktop-phase control authority
 - renderer is the desktop-phase presentation authority
-
