@@ -3627,6 +3627,11 @@ def validate() -> list[str]:
             _slice_between(renderer, "class AIControlCenterDialog"),
         )
     )
+    dashboard_domain_window = _slice_between(
+        renderer,
+        "class AIDashboardDomainWindow",
+        "class QuickCreateGroupDialog",
+    )
 
     normalized_renderer = renderer.replace("\r\n", "\n")
 
@@ -8845,7 +8850,6 @@ def validate() -> list[str]:
         "nexusAiControlCenterRunLocalCheck",
         "fam007AiControlCenter",
         "Qt.FramelessWindowHint",
-        "Qt.NoDropShadowWindowHint",
         "WA_TranslucentBackground",
         "surfaceClassification",
         "Nexus-Owned Product Surface",
@@ -9047,7 +9051,7 @@ def validate() -> list[str]:
         'data-compact-layout-density="ai-control-center-compact-v1"',
         'data-card-interior-visual-contract="hud-dashboard-shared-card-text-and-button"',
         'data-card-heading-layout="top-aligned-number-title-description-wrap-under-number"',
-        'data-single-action-button-model="content-fit-fixed-height-ellipsis"',
+        'data-single-action-button-model="content-fit-fixed-height-no-ellipsis"',
         'data-default-window-width="471"',
         'data-default-window-height="598"',
         'data-default-window-max-height="680"',
@@ -9061,11 +9065,11 @@ def validate() -> list[str]:
         'data-scrollbar-style="nexus-rounded-custom-overlay"',
         'data-row-density="compact-asymmetric-separated"',
         'data-dashboard-card-order="status-trust-readiness-diagnostics-capabilities-maintenance"',
-        'data-dashboard-ia-model="ai-dashboard-parent-only-global-strip-category-cards-detached-child-windows-deferred"',
+        'data-dashboard-ia-model="ai-dashboard-parent-global-strip-category-cards-detached-domain-windows-active"',
         'data-dashboard-surface-model="hub-only-cards-are-doorways"',
         'data-dashboard-inline-work-policy="no-local-check-no-report-no-diagnostics-inline"',
-        'data-category-card-launcher-contract="cards-show-deferred-doorway-controls-no-detached-window-launch"',
-        'data-child-window-model="detached-child-windows-deferred-not-accepted-current-gate"',
+        'data-category-card-launcher-contract="cards-open-ndai-domain-windows-no-inline-workspace-actions"',
+        'data-child-window-model="detached-domain-window-route-lifecycle-active"',
         'data-same-window-focused-section-policy="blocked-as-dashboard-workspace-substitute"',
         'data-dashboard-visible-name="AI Dashboard"',
         'data-ai-control-center-placement="focused-domain-card-inside-ai-dashboard"',
@@ -9079,10 +9083,14 @@ def validate() -> list[str]:
         'data-category-doorway="control-center"',
         'data-category-doorway="readiness-diagnostics"',
         'data-category-doorway="capabilities-maintenance"',
-        'data-action-state="deferred"',
-        'data-launch-target="deferred"',
-        'data-launch-window-kind="deferred-detached-child"',
-        'data-target-window-classification="deferred-detached-child"',
+        'data-action-state="ready"',
+        'data-launch-target="control-center"',
+        'data-launch-target="readiness-diagnostics"',
+        'data-launch-target="capabilities-maintenance"',
+        'data-launch-window-kind="exclusive-child"',
+        'data-launch-window-kind="external-unique"',
+        'data-target-window-classification="exclusive-child"',
+        'data-target-window-classification="external-unique"',
         'data-card-does-not-contain="local-check-report-copy-results-diagnostics-body"',
         'data-card-does-not-contain="download-install-update-fetch-execution"',
         "ai-control-center-scrollbar",
@@ -9123,13 +9131,15 @@ def validate() -> list[str]:
         "background: rgba(108, 232, 255, 0.58)",
         "AI Dashboard",
         "AI Persona",
-        "AI Readiness",
-        "Capabilities",
-        "Not Available Yet",
+        "AI Readiness &amp; Diagnostics",
+        "Capabilities &amp; Maintenance",
+        "Open Control Center",
+        "Open Readiness &amp; Diagnostics",
+        "Open Capabilities &amp; Maintenance",
         "Global AI Strip",
         "None",
         "AI Persona",
-        "Persona state before any AI action.",
+        "Persona and provider boundary doorway.",
         "None; ORIN persona not implemented",
         "Blocked; no model path active",
         "Privacy",
@@ -9194,7 +9204,6 @@ def validate() -> list[str]:
         'data-launch-target="control-center-child-window"',
         'data-launch-target="readiness-diagnostics-child-window"',
         'data-launch-target="capabilities-maintenance-child-window"',
-        '<span class="monitoring-hud__button-label">Open Control Center</span>',
         '<span class="monitoring-hud__button-label">Open Diagnostics</span>',
         '<span class="monitoring-hud__button-label">Open Capabilities</span>',
         "Refined D/E target: compact AI truth, grouped doorways, and polished row grammar.",
@@ -9257,7 +9266,7 @@ def validate() -> list[str]:
         )
 
     for needle in (
-        "self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)",
+        "self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint)",
         "self.setAttribute(Qt.WA_TranslucentBackground, True)",
         'self.setProperty("ndaiNativeChrome", True)',
         'self.setProperty("genericOsChromeRejected", True)',
@@ -9270,7 +9279,7 @@ def validate() -> list[str]:
         'command == "window-close"',
     ):
         _require(
-            needle in renderer,
+            needle in dashboard_domain_window,
             f"AI Dashboard child/domain window native chrome contract is missing {needle!r}",
             failures,
         )

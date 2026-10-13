@@ -607,7 +607,14 @@
     }
 
     body.desktop-mode #monitoring-hud[data-product-surface="nexus-ai-control-center"] .monitoring-hud__hub-action--content-fit {
-      max-width: min(100%, 187px);
+      width: max-content;
+      max-width: 100%;
+    }
+
+    body.desktop-mode #monitoring-hud[data-product-surface="nexus-ai-control-center"] .monitoring-hud__hub-action--content-fit > .monitoring-hud__button-label {
+      max-width: none;
+      overflow: visible;
+      text-overflow: clip;
     }
 
     body.desktop-mode #monitoring-hud[data-product-surface="nexus-ai-control-center"] #ai-control-center-card-hub span,
@@ -671,7 +678,8 @@
     id="monitoring-hud"
     class="monitoring-hud"
     data-package="PKG-007"
-    data-slice="SLC-002"
+    data-slice="SLC-001"
+    data-workstream-slices="SLC-001 SLC-002"
     data-surface-id="fam007-ai-dashboard"
     data-product-surface-role="ai-dashboard-top-most-hub"
     data-dashboard-surface="fam007-ai-dashboard"
@@ -706,7 +714,7 @@
     data-compact-layout-density="ai-control-center-compact-v1"
     data-card-interior-visual-contract="hud-dashboard-shared-card-text-and-button"
     data-card-heading-layout="top-aligned-number-title-description-wrap-under-number"
-    data-single-action-button-model="content-fit-fixed-height-ellipsis"
+    data-single-action-button-model="content-fit-fixed-height-no-ellipsis"
     data-default-window-width="471"
     data-default-window-height="598"
     data-default-window-max-height="680"
@@ -726,11 +734,11 @@
     data-dashboard-global-feature-control="tray-owned"
     data-dashboard-deferred-action-policy="disabled-labeled-not-clickable"
     data-dashboard-card-order="status-trust-readiness-diagnostics-capabilities-maintenance"
-    data-dashboard-ia-model="ai-dashboard-parent-only-global-strip-category-cards-detached-child-windows-deferred"
+    data-dashboard-ia-model="ai-dashboard-parent-global-strip-category-cards-detached-domain-windows-active"
     data-dashboard-surface-model="hub-only-cards-are-doorways"
     data-dashboard-inline-work-policy="no-local-check-no-report-no-diagnostics-inline"
-    data-category-card-launcher-contract="cards-show-deferred-doorway-controls-no-detached-window-launch"
-    data-child-window-model="detached-child-windows-deferred-not-accepted-current-gate"
+    data-category-card-launcher-contract="cards-open-ndai-domain-windows-no-inline-workspace-actions"
+    data-child-window-model="detached-domain-window-route-lifecycle-active"
     data-same-window-focused-section-policy="blocked-as-dashboard-workspace-substitute"
     data-dashboard-visible-name="AI Dashboard"
     data-ai-control-center-placement="focused-domain-card-inside-ai-dashboard"
@@ -742,6 +750,20 @@
     data-maintenance-updates-placement="lifecycle-domain-doorway-no-download-install-update-execution"
     data-dashboard-provider-truth="provider-contract-first"
     data-dashboard-state-model="no-provider-no-prompt-no-memory"
+    data-state-taxonomy-contract="ai-dashboard-ai-control-center-state-taxonomy-v1"
+    data-state-taxonomy-source="AIProviderStateSnapshot.aiControlCenterStateTaxonomy"
+    data-state-taxonomy-rendering="backend-payload-to-dashboard-and-child-domain-metadata"
+    data-view-model-contract="ai-dashboard-provider-state-view-model-v1"
+    data-view-model-source="AIProviderStateSnapshot.as_renderer_payload"
+    data-view-model-state="pending-provider-payload"
+    data-state-taxonomy-required-states="no-provider-fail-closed provider-unavailable stale-state-fail-closed failed-check-fail-closed retry-local-check-only recovery-local-only blocked-action unavailable-capability degraded-no-provider"
+    data-ai-persona-state="none-orin-persona-not-implemented"
+    data-ai-status-state="not-implemented"
+    data-provider-model-runtime-state="blocked-no-model-path"
+    data-provider-visible-data-state="none"
+    data-no-provider-state="no-provider-fail-closed"
+    data-prompt-execution-state="prompt-send-disabled"
+    data-trust-boundary-state="local-only-no-egress-no-memory-no-cache"
     data-dashboard-warning-controls="visual-non-invasive-only"
     data-dashboard-fake-telemetry-policy="blocked"
     data-title-backing-layer="single-title-card-no-secondary-backing"
@@ -806,17 +828,17 @@
         </div>
         <div class="monitoring-hud__surface-role" data-dashboard-role="global-ai-strip" aria-label="Global AI Strip">
           <div class="monitoring-hud__surface-role-copy">
-            <span class="monitoring-hud__surface-role-pair" aria-label="AI Persona none">
+            <span class="monitoring-hud__surface-role-pair" data-state-taxonomy-key="ai-persona" data-state-taxonomy-value="none-orin-persona-not-implemented" aria-label="AI Persona none">
               <span class="monitoring-hud__surface-role-label">AI Persona</span>
               <span class="monitoring-hud__surface-role-separator" aria-hidden="true">-</span>
               <strong>None</strong>
             </span>
-            <span class="monitoring-hud__surface-role-pair" aria-label="Status not implemented">
+            <span class="monitoring-hud__surface-role-pair" data-state-taxonomy-key="ai-status" data-state-taxonomy-value="not-implemented" aria-label="Status not implemented">
               <span class="monitoring-hud__surface-role-label">Status</span>
               <span class="monitoring-hud__surface-role-separator" aria-hidden="true">-</span>
               <strong>Not implemented</strong>
             </span>
-            <span class="monitoring-hud__surface-role-pair" aria-label="Provider blocked">
+            <span class="monitoring-hud__surface-role-pair" data-state-taxonomy-key="provider-model-runtime" data-state-taxonomy-value="blocked-no-model-path" aria-label="Provider blocked">
               <span class="monitoring-hud__surface-role-label">Provider</span>
               <span class="monitoring-hud__surface-role-separator" aria-hidden="true">-</span>
               <strong>Blocked</strong>
@@ -831,7 +853,7 @@
         data-below-title-text-weight="720-standard"
         data-row-label-column-source="max-visible-label-content"
         data-row-value-gutter="8"
-        data-child-window-model="detached-child-windows-deferred-not-accepted-current-gate"
+        data-child-window-model="detached-domain-window-route-lifecycle-active"
         aria-label="AI Dashboard domain cards"
       >
         <div
@@ -843,49 +865,56 @@
             class="monitoring-hud__hub-card ai-control-center-category-card"
             data-dashboard-hub-card="control-center"
             data-category-card="control-center"
-            data-slice="SLC-R1"
-            data-category-doorway-state="detached-child-window-deferred"
-            data-target-window-classification="deferred-detached-child"
-            data-target-window="future-control-center"
+            data-slice="SLC-001"
+            data-category-doorway-state="active"
+            data-state-taxonomy-contract="ai-dashboard-ai-control-center-state-taxonomy-v1"
+            data-state-taxonomy-scope="ai-control-center-card-1"
+            data-ai-persona-state="none-orin-persona-not-implemented"
+            data-provider-model-runtime-state="blocked-no-model-path"
+            data-provider-visible-data-state="none"
+            data-no-provider-state="no-provider-fail-closed"
+            data-target-window-classification="exclusive-child"
+            data-target-window="control-center"
+            data-target-window-lifecycle="closes-with-dashboard"
             data-card-does-not-contain="persona-selectors-provider-internals-developer-owner-details"
           >
             <div class="monitoring-hud__hub-card-topline">
               <span>01</span>
               <div class="monitoring-hud__hub-card-title-copy">
-                <strong>AI Persona</strong>
+                <strong>AI Control Center</strong>
               </div>
-              <p class="monitoring-hud__hub-card-description">Persona state before any AI action.</p>
+              <p class="monitoring-hud__hub-card-description">Persona and provider boundary doorway.</p>
             </div>
             <div class="ai-control-center-card-rows" aria-label="AI persona status and trust rows">
-              <div class="monitoring-hud__state-row">
+              <div class="monitoring-hud__state-row" data-state-taxonomy-key="ai-persona" data-state-taxonomy-value="none-orin-persona-not-implemented" data-view-model-key="aiPersona">
                 <span>AI Persona</span>
-                <strong>None; ORIN persona not implemented</strong>
+                <strong id="ai-dashboard-ai-persona-value">None; ORIN persona not implemented</strong>
               </div>
-              <div class="monitoring-hud__state-row">
+              <div class="monitoring-hud__state-row" data-state-taxonomy-key="provider-model-runtime" data-state-taxonomy-value="blocked-no-model-path" data-view-model-key="providerRuntime">
                 <span>Provider</span>
-                <strong>Blocked; no model path active</strong>
+                <strong id="ai-dashboard-provider-runtime-value">Blocked; no model path active</strong>
               </div>
-              <div class="monitoring-hud__state-row">
+              <div class="monitoring-hud__state-row" data-state-taxonomy-key="provider-visible-data" data-state-taxonomy-value="none" data-view-model-key="privacy">
                 <span>Privacy</span>
-                <strong>Protected; no provider or third-party tracking</strong>
+                <strong id="ai-dashboard-privacy-value">Protected; no provider or third-party tracking</strong>
               </div>
             </div>
             <div class="monitoring-hud__hub-actions" data-action-row-contract="separate-from-state-rows">
               <button
                 type="button"
                 id="ai-control-center-open-control-surface-action"
-                class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__hub-action--content-fit monitoring-hud__hub-action--deferred"
-                data-control="control-center-child-window-deferred"
+                class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__hub-action--content-fit"
+                data-control="open-control-center-child-window"
                 data-category-doorway="control-center"
-                data-action-state="deferred"
-                data-launch-target="deferred"
-                data-launch-window-kind="deferred-detached-child"
+                data-action-state="ready"
+                data-launch-target="control-center"
+                data-launch-window-kind="exclusive-child"
+                data-window-lifecycle="closes-with-dashboard"
                 data-action-size="content-fit-fixed-height"
-                aria-label="Control Center surface not available yet"
-                aria-disabled="true"
-                disabled
+                aria-label="Open AI Control Center"
+                aria-disabled="false"
               >
-                <span class="monitoring-hud__button-label">Not Available Yet</span>
+                <span class="monitoring-hud__button-label">Open Control Center</span>
               </button>
             </div>
           </article>
@@ -894,49 +923,57 @@
             class="monitoring-hud__hub-card ai-control-center-category-card"
             data-dashboard-hub-card="readiness-diagnostics"
             data-category-card="readiness-diagnostics"
-            data-slice="SLC-R2"
-            data-category-doorway-state="detached-child-window-deferred"
-            data-target-window-classification="deferred-detached-child"
-            data-target-window="future-readiness-diagnostics"
+            data-slice="SLC-001"
+            data-category-doorway-state="active"
+            data-state-taxonomy-contract="ai-dashboard-ai-control-center-state-taxonomy-v1"
+            data-state-taxonomy-scope="readiness-diagnostics-card"
+            data-retry-state="retry-local-check-only"
+            data-recovery-state="recovery-local-only"
+            data-prompt-execution-state="prompt-send-disabled"
+            data-no-provider-diagnostics-flow="local-only-no-provider-readiness-v1"
+            data-no-provider-flow-state="waiting-for-user-action"
+            data-target-window-classification="external-unique"
+            data-target-window="readiness-diagnostics"
+            data-target-window-lifecycle="stays-open-if-dashboard-closes"
             data-card-does-not-contain="local-check-report-copy-results-diagnostics-body"
           >
               <div class="monitoring-hud__hub-card-topline">
                 <span>02</span>
                 <div class="monitoring-hud__hub-card-title-copy">
-                  <strong>AI Readiness</strong>
+                  <strong>AI Readiness &amp; Diagnostics</strong>
                 </div>
                 <p class="monitoring-hud__hub-card-description">Local checks and diagnostics doorway.</p>
               </div>
               <div class="ai-control-center-card-rows" aria-label="AI readiness and diagnostics rows">
-                <div class="monitoring-hud__state-row">
+                <div class="monitoring-hud__state-row" data-state-taxonomy-key="retry" data-state-taxonomy-value="retry-local-check-only" data-view-model-key="readinessCheck">
                   <span>Check</span>
-                  <strong>Waiting for USER action</strong>
+                  <strong id="ai-dashboard-readiness-check-value">Waiting for USER action</strong>
                 </div>
-                <div class="monitoring-hud__state-row">
+                <div class="monitoring-hud__state-row" data-state-taxonomy-key="recovery" data-state-taxonomy-value="recovery-local-only" data-view-model-key="readinessReport">
                   <span>Report</span>
-                  <strong>Local decision aid behind diagnostics</strong>
+                  <strong id="ai-dashboard-readiness-report-value">Local decision aid behind diagnostics</strong>
                 </div>
-                <div class="monitoring-hud__state-row">
+                <div class="monitoring-hud__state-row" data-state-taxonomy-key="prompt-execution" data-state-taxonomy-value="prompt-send-disabled" data-view-model-key="prompt">
                   <span>Prompt</span>
-                  <strong>Not accepted, sent, stored, or indexed</strong>
+                  <strong id="ai-dashboard-prompt-value">Not accepted, sent, stored, or indexed</strong>
                 </div>
               </div>
               <div class="monitoring-hud__hub-actions" data-action-row-contract="separate-from-state-rows">
                 <button
                   type="button"
                   id="ai-control-center-open-readiness-surface-action"
-                  class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__hub-action--content-fit monitoring-hud__hub-action--deferred"
-                  data-control="readiness-diagnostics-child-window-deferred"
+                  class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__hub-action--content-fit"
+                  data-control="open-readiness-diagnostics-child-window"
                   data-category-doorway="readiness-diagnostics"
-                  data-action-state="deferred"
-                  data-launch-target="deferred"
-                  data-launch-window-kind="deferred-detached-child"
+                  data-action-state="ready"
+                  data-launch-target="readiness-diagnostics"
+                  data-launch-window-kind="external-unique"
+                  data-window-lifecycle="stays-open-if-dashboard-closes"
                   data-action-size="content-fit-fixed-height"
-                  aria-label="Diagnostics surface not available yet"
-                  aria-disabled="true"
-                  disabled
+                  aria-label="Open AI Readiness and Diagnostics"
+                  aria-disabled="false"
                 >
-                  <span class="monitoring-hud__button-label">Not Available Yet</span>
+                  <span class="monitoring-hud__button-label">Open Readiness &amp; Diagnostics</span>
                 </button>
               </div>
             </article>
@@ -945,46 +982,71 @@
             class="monitoring-hud__hub-card ai-control-center-category-card"
             data-dashboard-hub-card="capabilities-maintenance"
             data-category-card="capabilities-maintenance"
-            data-slice="SLC-R4"
+            data-slice="SLC-001"
             data-maintenance-updates-state="placement-only"
-            data-category-doorway-state="detached-child-window-deferred"
-            data-target-window-classification="deferred-detached-child"
-            data-target-window="future-capabilities-maintenance"
+            data-capabilities-boundary-contract="capabilities-maintenance-developer-owner-boundary-v1"
+            data-capability-pack-lifecycle-state="capability-pack-lifecycle-planned"
+            data-capability-pack-download-state="capability-pack-downloads-blocked"
+            data-install-intent-state="install-intent-blocked"
+            data-capability-pack-install-state="install-blocked"
+            data-capability-pack-update-state="update-blocked"
+            data-capability-pack-uninstall-state="uninstall-blocked"
+            data-developer-lane-boundary-state="developer-lane-private-setup-blocked"
+            data-owner-lane-boundary-state="owner-lane-private-setup-blocked"
+            data-private-setup-boundary-state="private-setup-blocked"
+            data-private-setup-authorized="false"
+            data-private-material-visible="false"
+            data-owner-memory-enabled="false"
+            data-owner-agents-enabled="false"
+            data-download-execution="blocked"
+            data-install-execution="blocked"
+            data-update-execution="blocked"
+            data-fetch-execution="blocked"
+            data-capability-execution="blocked"
+            data-packaging-execution="blocked"
+            data-category-doorway-state="active"
+            data-state-taxonomy-contract="ai-dashboard-ai-control-center-state-taxonomy-v1"
+            data-state-taxonomy-scope="capabilities-maintenance-card"
+            data-unavailable-capability-state="unavailable-capability"
+            data-blocked-action-state="blocked-action"
+            data-target-window-classification="exclusive-child"
+            data-target-window="capabilities-maintenance"
+            data-target-window-lifecycle="closes-with-dashboard"
             data-card-does-not-contain="download-install-update-fetch-execution"
           >
             <div class="monitoring-hud__hub-card-topline">
               <span>03</span>
               <div class="monitoring-hud__hub-card-title-copy">
-                <strong>Capabilities</strong>
+                <strong>Capabilities &amp; Maintenance</strong>
               </div>
               <p class="monitoring-hud__hub-card-description">Packs and updates stay blocked.</p>
             </div>
             <div class="ai-control-center-card-rows" aria-label="Capabilities and maintenance rows">
-              <div class="monitoring-hud__state-row">
+              <div class="monitoring-hud__state-row" data-state-taxonomy-key="unavailable-capability" data-state-taxonomy-value="unavailable-capability" data-view-model-key="capabilityPacks">
                 <span>Packs</span>
-                <strong>Install blocked; downloads disabled</strong>
+                <strong id="ai-dashboard-capability-packs-value">Install blocked; downloads disabled</strong>
               </div>
-              <div class="monitoring-hud__state-row">
+              <div class="monitoring-hud__state-row" data-state-taxonomy-key="blocked-action" data-state-taxonomy-value="blocked-action" data-view-model-key="maintenanceUpdates">
                 <span>Updates</span>
-                <strong>Future-gated; no install execution</strong>
+                <strong id="ai-dashboard-maintenance-updates-value">Future-gated; no install execution</strong>
               </div>
             </div>
             <div class="monitoring-hud__hub-actions" data-action-row-contract="separate-from-state-rows">
               <button
                 type="button"
                 id="ai-control-center-open-maintenance-surface-action"
-                class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__hub-action--content-fit monitoring-hud__hub-action--deferred"
-                data-control="capabilities-maintenance-child-window-deferred"
+                class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__hub-action--content-fit"
+                data-control="open-maintenance-lifecycle-child-window"
                 data-category-doorway="capabilities-maintenance"
-                data-action-state="deferred"
-                data-launch-target="deferred"
-                data-launch-window-kind="deferred-detached-child"
+                data-action-state="ready"
+                data-launch-target="capabilities-maintenance"
+                data-launch-window-kind="exclusive-child"
+                data-window-lifecycle="closes-with-dashboard"
                 data-action-size="content-fit-fixed-height"
-                aria-label="Capabilities surface not available yet"
-                aria-disabled="true"
-                disabled
+                aria-label="Open Capabilities and Maintenance"
+                aria-disabled="false"
               >
-                <span class="monitoring-hud__button-label">Not Available Yet</span>
+                <span class="monitoring-hud__button-label">Open Capabilities &amp; Maintenance</span>
               </button>
             </div>
           </article>

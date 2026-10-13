@@ -1,6 +1,46 @@
 (() => {
   const commandPrefix = "NEXUS_AI_CONTROL_CENTER_COMMAND:";
+  const stateTaxonomyContract = "ai-dashboard-ai-control-center-state-taxonomy-v1";
+  const dashboardViewModelContract = "ai-dashboard-provider-state-view-model-v1";
+  const requiredStateTaxonomyStates = [
+    "no-provider-fail-closed",
+    "provider-unavailable",
+    "stale-state-fail-closed",
+    "failed-check-fail-closed",
+    "retry-local-check-only",
+    "recovery-local-only",
+    "blocked-action",
+    "unavailable-capability",
+    "degraded-no-provider",
+  ];
   let providerState = {};
+  const failClosedBoundaryDefaults = Object.freeze({
+    providerExecutionGateState: "provider-execution-disabled",
+    modelExecutionGateState: "model-execution-disabled",
+    providerVisibleData: "none",
+    sentToProvider: false,
+    canAcceptPrompts: false,
+    networkEgressState: "network-egress-blocked",
+    promptSendPosture: "prompt-send-disabled",
+    promptAcceptance: "disabled",
+    memoryIndexingState: "memory-indexing-disabled",
+    installIntentState: "install-intent-blocked",
+    capabilityPackLifecycleState: "capability-pack-lifecycle-planned",
+    capabilityPackDownloadState: "capability-pack-downloads-blocked",
+    capabilityPackInstallState: "install-blocked",
+    capabilityPackUpdateState: "update-blocked",
+    capabilityPackUninstallState: "uninstall-blocked",
+    developerLaneBoundaryState: "developer-lane-private-setup-blocked",
+    ownerLaneBoundaryState: "owner-lane-private-setup-blocked",
+    privateSetupBoundaryState: "private-setup-blocked",
+    privateSetupAuthorized: false,
+    privateMaterialVisible: false,
+    ownerMemoryEnabled: false,
+    ownerAgentsEnabled: false,
+  });
+  const boundaryValue = (field) => (
+    providerState[field] === undefined ? failClosedBoundaryDefaults[field] : providerState[field]
+  );
   let scrollbarDrag = null;
   let currentReadinessReportText = "";
   const windowControlStates = {
@@ -33,6 +73,11 @@
     },
   };
   const validWindowControlStates = new Set(["hidden", "blocked", "active"]);
+  const domainDoorwayCommands = {
+    "control-center": "open-control-center-child-window",
+    "readiness-diagnostics": "open-readiness-diagnostics-child-window",
+    "capabilities-maintenance": "open-maintenance-lifecycle-child-window",
+  };
 
   const byId = (id) => document.getElementById(id);
   const setText = (id, value) => {
@@ -171,6 +216,9 @@
     }
     let lastActivationAt = 0;
     const activate = (event) => {
+      if (event.type === "pointerup" && event.button !== 0) {
+        return;
+      }
       const now = Date.now();
       if (now - lastActivationAt < 90) {
         return;
@@ -181,13 +229,25 @@
     element.addEventListener("click", activate);
     element.addEventListener("pointerup", activate);
   };
-  const applyDeferredDoorwayState = () => {
-    document.querySelectorAll("[data-action-state='deferred']").forEach((button) => {
-      button.disabled = true;
-      button.setAttribute("aria-disabled", "true");
-      button.dataset.launchTarget = "deferred";
-      button.dataset.launchWindowKind = "deferred-detached-child";
+  const applyDomainDoorwayState = () => {
+    document.querySelectorAll("[data-category-doorway]").forEach((button) => {
+      const doorway = button.dataset.categoryDoorway || "";
+      const command = domainDoorwayCommands[doorway] || "";
       button.removeAttribute("title");
+      if (!command) {
+        button.disabled = true;
+        button.setAttribute("aria-disabled", "true");
+        button.dataset.actionState = "blocked";
+        button.dataset.launchTarget = "blocked";
+        button.dataset.launchWindowKind = "blocked";
+        return;
+      }
+      button.disabled = false;
+      button.setAttribute("aria-disabled", "false");
+      button.dataset.actionState = "ready";
+      button.dataset.launchTarget = doorway;
+      button.dataset.launchCommand = command;
+      button.dataset.launchWindowKind = doorway === "readiness-diagnostics" ? "external-unique" : "exclusive-child";
     });
   };
   const stripNativeTooltips = () => {
@@ -356,6 +416,239 @@
   };
   window.nexusAiControlCenterSyncDashboardLayout = syncDashboardLayout;
 
+  const buildDashboardViewModel = () => {
+    const providerRuntimeBlocked = (
+      boundaryValue("providerExecutionGateState") === "provider-execution-disabled"
+      && boundaryValue("modelExecutionGateState") === "model-execution-disabled"
+    );
+    const promptDisabled = (
+      boundaryValue("promptSendPosture") === "prompt-send-disabled"
+      && boundaryValue("promptAcceptance") === "disabled"
+      && boundaryValue("memoryIndexingState") === "memory-indexing-disabled"
+    );
+    const privacyProtected = (
+      boundaryValue("providerVisibleData") === "none"
+      && boundaryValue("sentToProvider") === false
+      && boundaryValue("networkEgressState") === "network-egress-blocked"
+    );
+    const privacyBoundaryProven = ["providerVisibleData", "sentToProvider", "networkEgressState"]
+      .every((field) => providerState[field] === failClosedBoundaryDefaults[field]);
+    const installBlocked = (
+      String(boundaryValue("installIntentState")).includes("blocked")
+      || String(boundaryValue("capabilityPackInstallState")).includes("blocked")
+    );
+    const updatesBlocked = String(boundaryValue("capabilityPackUpdateState")).includes("blocked");
+    const privateSetupBlocked = (
+      boundaryValue("privateSetupAuthorized") === false
+      && boundaryValue("privateMaterialVisible") === false
+    );
+    const rows = {
+      controlCenter: {
+        aiPersona: "None; ORIN persona not implemented",
+        providerRuntime: providerRuntimeBlocked
+          ? "Blocked; no model path active"
+          : "Blocked; provider state requires review",
+        privacy: !privacyProtected
+          ? "Fail-closed; provider boundary mismatch"
+          : (privacyBoundaryProven
+            ? "Protected; no provider or third-party tracking"
+            : "Fail-closed; provider boundary proof pending"),
+      },
+      readinessDiagnostics: {
+        readinessCheck: "Waiting for USER action",
+        readinessReport: "Local decision aid behind diagnostics",
+        prompt: promptDisabled
+          ? "Not accepted, sent, stored, or indexed"
+          : "Not accepted; prompt boundary mismatch",
+      },
+      capabilitiesMaintenance: {
+        capabilityPacks: installBlocked
+          ? "Install blocked; downloads disabled"
+          : "Install unavailable; capability proof required",
+        maintenanceUpdates: updatesBlocked
+          ? "Future-gated; no install execution"
+          : "Future-gated; update state requires review",
+        developerLane: providerState.developerLaneBoundaryLabel || "Developer lane: gated; private setup not configured",
+        ownerLane: providerState.ownerLaneBoundaryLabel || "Owner lane: gated; private setup not configured",
+        privateSetup: privateSetupBlocked
+          ? "Private setup blocked; no private material visible"
+          : "Private setup boundary requires review",
+      },
+    };
+    return {
+      contract: dashboardViewModelContract,
+      source: "AIProviderStateSnapshot.as_renderer_payload",
+      sourceFields: {
+        providerExecutionGateState: String(boundaryValue("providerExecutionGateState")),
+        modelExecutionGateState: String(boundaryValue("modelExecutionGateState")),
+        providerVisibleData: String(boundaryValue("providerVisibleData")),
+        sentToProvider: String(boundaryValue("sentToProvider")),
+        networkEgressState: String(boundaryValue("networkEgressState")),
+        promptSendPosture: String(boundaryValue("promptSendPosture")),
+        promptAcceptance: String(boundaryValue("promptAcceptance")),
+        memoryIndexingState: String(boundaryValue("memoryIndexingState")),
+        installIntentState: String(boundaryValue("installIntentState")),
+        capabilityPackLifecycleState: String(boundaryValue("capabilityPackLifecycleState")),
+        capabilityPackDownloadState: String(boundaryValue("capabilityPackDownloadState")),
+        capabilityPackInstallState: String(boundaryValue("capabilityPackInstallState")),
+        capabilityPackUpdateState: String(boundaryValue("capabilityPackUpdateState")),
+        capabilityPackUninstallState: String(boundaryValue("capabilityPackUninstallState")),
+        developerLaneBoundaryState: String(boundaryValue("developerLaneBoundaryState")),
+        developerLaneBoundaryLabel: providerState.developerLaneBoundaryLabel || "",
+        ownerLaneBoundaryState: String(boundaryValue("ownerLaneBoundaryState")),
+        ownerLaneBoundaryLabel: providerState.ownerLaneBoundaryLabel || "",
+        privateSetupBoundaryState: String(boundaryValue("privateSetupBoundaryState")),
+        privateSetupAuthorized: String(boundaryValue("privateSetupAuthorized")),
+        privateMaterialVisible: String(boundaryValue("privateMaterialVisible")),
+        ownerMemoryEnabled: String(boundaryValue("ownerMemoryEnabled")),
+        ownerAgentsEnabled: String(boundaryValue("ownerAgentsEnabled")),
+        recoveryLabel: providerState.aiControlCenterRecoveryLabel || "Retry local check only",
+      },
+      // A contradictory snapshot cannot enable an unimplemented provider or private action.
+      disabledActions: {
+        providerModelExecution: true,
+        promptSend: true,
+        providerVisibleDataEgress: true,
+        capabilityInstallDownload: true,
+        maintenanceUpdateExecution: true,
+        privateSetup: true,
+        ownerMemoryAgents: true,
+      },
+      recoveryGuidance: {
+        label: providerState.aiControlCenterRecoveryLabel || "Retry local check only",
+        detail: providerState.aiControlCenterRecoveryDetail || "Recovery remains local-only; provider setup and execution stay future-gated.",
+      },
+      rows,
+    };
+  };
+
+  const syncCapabilitiesBoundaryContract = (viewModel) => {
+    const card = document.querySelector('[data-dashboard-hub-card="capabilities-maintenance"]');
+    if (!card) {
+      return;
+    }
+    Object.assign(card.dataset, {
+      capabilitiesBoundaryContract: "capabilities-maintenance-developer-owner-boundary-v1",
+      capabilityPackLifecycleState: viewModel.sourceFields.capabilityPackLifecycleState || "capability-pack-lifecycle-planned",
+      capabilityPackDownloadState: viewModel.sourceFields.capabilityPackDownloadState || "capability-pack-downloads-blocked",
+      installIntentState: viewModel.sourceFields.installIntentState || "install-intent-blocked",
+      capabilityPackInstallState: viewModel.sourceFields.capabilityPackInstallState || "install-blocked",
+      capabilityPackUpdateState: viewModel.sourceFields.capabilityPackUpdateState || "update-blocked",
+      capabilityPackUninstallState: viewModel.sourceFields.capabilityPackUninstallState || "uninstall-blocked",
+      developerLaneBoundaryState: viewModel.sourceFields.developerLaneBoundaryState || "developer-lane-private-setup-blocked",
+      ownerLaneBoundaryState: viewModel.sourceFields.ownerLaneBoundaryState || "owner-lane-private-setup-blocked",
+      privateSetupBoundaryState: viewModel.sourceFields.privateSetupBoundaryState || "private-setup-blocked",
+      privateSetupAuthorized: viewModel.sourceFields.privateSetupAuthorized || "false",
+      privateMaterialVisible: viewModel.sourceFields.privateMaterialVisible || "false",
+      ownerMemoryEnabled: viewModel.sourceFields.ownerMemoryEnabled || "false",
+      ownerAgentsEnabled: viewModel.sourceFields.ownerAgentsEnabled || "false",
+      downloadExecution: "blocked",
+      installExecution: "blocked",
+      updateExecution: "blocked",
+      fetchExecution: "blocked",
+      capabilityExecution: "blocked",
+      packagingExecution: "blocked",
+      viewModelPrivateSetupBlocked: viewModel.disabledActions.privateSetup ? "true" : "false",
+      viewModelOwnerMemoryAgentsBlocked: viewModel.disabledActions.ownerMemoryAgents ? "true" : "false",
+    });
+  };
+
+  const applyDashboardViewModel = () => {
+    const viewModel = buildDashboardViewModel();
+    window.nexusAiControlCenterCurrentViewModel = viewModel;
+    setText("ai-dashboard-ai-persona-value", viewModel.rows.controlCenter.aiPersona);
+    setText("ai-dashboard-provider-runtime-value", viewModel.rows.controlCenter.providerRuntime);
+    setText("ai-dashboard-privacy-value", viewModel.rows.controlCenter.privacy);
+    setText("ai-dashboard-readiness-check-value", viewModel.rows.readinessDiagnostics.readinessCheck);
+    setText("ai-dashboard-readiness-report-value", viewModel.rows.readinessDiagnostics.readinessReport);
+    setText("ai-dashboard-prompt-value", viewModel.rows.readinessDiagnostics.prompt);
+    setText("ai-dashboard-capability-packs-value", viewModel.rows.capabilitiesMaintenance.capabilityPacks);
+    setText("ai-dashboard-maintenance-updates-value", viewModel.rows.capabilitiesMaintenance.maintenanceUpdates);
+    const surface = byId("monitoring-hud");
+    if (surface) {
+      Object.assign(surface.dataset, {
+        viewModelContract: viewModel.contract,
+        viewModelSource: viewModel.source,
+        viewModelState: "provider-payload-applied",
+        viewModelProviderRuntimeBlocked: viewModel.disabledActions.providerModelExecution ? "true" : "false",
+        viewModelPromptSendDisabled: viewModel.disabledActions.promptSend ? "true" : "false",
+        viewModelProviderVisibleDataNone: viewModel.sourceFields.providerVisibleData === "none" ? "true" : "false",
+        viewModelRecoveryGuidance: viewModel.recoveryGuidance.label,
+        viewModelPrivateSetupBlocked: viewModel.disabledActions.privateSetup ? "true" : "false",
+        viewModelOwnerMemoryAgentsBlocked: viewModel.disabledActions.ownerMemoryAgents ? "true" : "false",
+      });
+    }
+    syncCapabilitiesBoundaryContract(viewModel);
+    document.querySelectorAll("[data-view-model-key]").forEach((row) => {
+      row.dataset.viewModelContract = viewModel.contract;
+      row.dataset.viewModelBound = "provider-payload";
+    });
+    return viewModel;
+  };
+  window.nexusAiControlCenterBuildDashboardViewModel = buildDashboardViewModel;
+  window.nexusAiControlCenterApplyDashboardViewModel = applyDashboardViewModel;
+
+  const syncStateTaxonomyContract = () => {
+    const surface = byId("monitoring-hud");
+    if (!surface) {
+      return;
+    }
+    const taxonomy = Array.isArray(providerState.aiControlCenterStateTaxonomy)
+      ? providerState.aiControlCenterStateTaxonomy
+      : [];
+    const renderedStates = taxonomy
+      .map((item) => (item && typeof item === "object" ? String(item.state || "").trim() : ""))
+      .filter(Boolean);
+    const complete = requiredStateTaxonomyStates.every((state) => renderedStates.includes(state));
+    const providerVisibleData = String(boundaryValue("providerVisibleData"));
+    const promptSendPosture = String(boundaryValue("promptSendPosture"));
+    const diagnosticState = String(providerState.aiControlCenterDiagnosticState || "no-provider-fail-closed");
+    const providerExecution = (
+      boundaryValue("providerExecutionGateState") === "provider-execution-disabled"
+      && boundaryValue("modelExecutionGateState") === "model-execution-disabled"
+    ) ? "blocked-no-model-path" : "blocked-fail-closed";
+    const trustBoundaryFields = [
+      "providerVisibleData", "sentToProvider", "canAcceptPrompts", "promptSendPosture",
+      "promptAcceptance", "networkEgressState", "memoryIndexingState",
+    ];
+    const trustBoundaryMismatch = trustBoundaryFields.some((field) => (
+      providerState[field] !== undefined && providerState[field] !== failClosedBoundaryDefaults[field]
+    ));
+    const trustBoundaryProven = trustBoundaryFields.every((field) => (
+      providerState[field] === failClosedBoundaryDefaults[field]
+    ));
+    Object.assign(surface.dataset, {
+      stateTaxonomyContract,
+      stateTaxonomySource: "AIProviderStateSnapshot.aiControlCenterStateTaxonomy",
+      stateTaxonomyRenderedStates: renderedStates.join(" "),
+      stateTaxonomyComplete: complete ? "true" : "false",
+      providerVisibleDataState: providerVisibleData,
+      noProviderState: diagnosticState,
+      promptExecutionState: promptSendPosture,
+      providerModelRuntimeState: providerExecution,
+      trustBoundaryState: trustBoundaryMismatch
+        ? "fail-closed-boundary-mismatch"
+        : (trustBoundaryProven
+          ? "local-only-no-egress-no-memory-no-cache"
+          : "fail-closed-no-provider-unverified"),
+    });
+    document.querySelectorAll("[data-state-taxonomy-contract]").forEach((node) => {
+      node.dataset.stateTaxonomyContract = stateTaxonomyContract;
+      node.dataset.stateTaxonomyRenderedStates = renderedStates.join(" ");
+      node.dataset.stateTaxonomyComplete = complete ? "true" : "false";
+    });
+    const card = document.querySelector('[data-dashboard-hub-card="control-center"]');
+    if (card) {
+      Object.assign(card.dataset, {
+        aiPersonaState: "none-orin-persona-not-implemented",
+        providerModelRuntimeState: providerExecution,
+        providerVisibleDataState: providerVisibleData,
+        noProviderState: diagnosticState,
+      });
+    }
+  };
+  window.nexusAiControlCenterSyncStateTaxonomyContract = syncStateTaxonomyContract;
+
   const syncCustomScrollbar = () => {
     const surface = byId("monitoring-hud");
     const chrome = surface?.querySelector(".monitoring-hud__chrome");
@@ -410,6 +703,8 @@
 
   window.nexusAiControlCenterApplyProviderState = (payload) => {
     providerState = payload && typeof payload === "object" ? payload : {};
+    const dashboardViewModel = applyDashboardViewModel();
+    syncStateTaxonomyContract();
     const firstText = (...values) => {
       for (const value of values) {
         const text = String(value || "").trim();
@@ -461,6 +756,7 @@
       "Capability packs unavailable",
     );
     const recoveryLabel = firstText(
+      dashboardViewModel.recoveryGuidance.label,
       providerState.aiControlCenterRecoveryLabel,
       "Retry local check only",
     );
@@ -582,13 +878,29 @@
       });
     });
   };
+  const attachDomainDoorwayHandlers = () => {
+    document.querySelectorAll("[data-category-doorway]").forEach((button) => {
+      attachActivationHandler(button, (event) => {
+        if (button.disabled || button.getAttribute("aria-disabled") === "true") {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        const command = button.dataset.launchCommand || domainDoorwayCommands[button.dataset.categoryDoorway || ""];
+        if (command) {
+          emitCommand(command);
+        }
+      });
+    });
+  };
 
   hydrateWindowControlStatesFromMarkup();
-  applyDeferredDoorwayState();
+  applyDomainDoorwayState();
   stripNativeTooltips();
   observeNativeTooltipDrift();
   observeDashboardLayoutDrift();
   attachWindowControlHandlers();
+  attachDomainDoorwayHandlers();
   attachActivationHandler(byId("ai-control-center-local-check-action"), () => {
     window.nexusAiControlCenterRunLocalCheck();
     emitCommand("run-local-check");
@@ -633,7 +945,7 @@
   });
   window.addEventListener("resize", syncDashboardLayout);
   window.addEventListener("load", () => {
-    applyDeferredDoorwayState();
+    applyDomainDoorwayState();
     requestAnimationFrame(syncDashboardLayout);
   });
   syncWindowControlState("normal");
