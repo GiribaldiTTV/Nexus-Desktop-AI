@@ -1,17 +1,11 @@
 import ctypes
 import ctypes.wintypes
 
-from PySide6.QtGui import QAction, QColor, QCursor, QFont, QIcon, QPainter, QPen, QPixmap
+from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPen, QPixmap
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
-    QFrame,
-    QLabel,
     QMenu,
-    QPushButton,
     QSystemTrayIcon,
-    QVBoxLayout,
-    QWidget,
-    QWidgetAction,
 )
 
 from .resident_access import (
@@ -65,134 +59,6 @@ def build_resident_tray_icon() -> QIcon:
     return icon
 
 
-class TrayCommandPopup(QWidget):
-    """Small user-facing tray menu surface with real button hit targets."""
-
-    def __init__(self, owner):
-        super().__init__(None, Qt.Popup | Qt.FramelessWindowHint)
-        self.owner = owner
-        self.setWindowTitle("Nexus Desktop AI Tray")
-        self.setObjectName("nexusDesktopTrayPopup")
-        self.setMinimumWidth(320)
-        self._command_buttons = []
-        self.setStyleSheet(
-            "#nexusDesktopTrayPopup {"
-            " background: #07111f;"
-            " border: 1px solid #25636c;"
-            " border-radius: 6px;"
-            "}"
-            "#nexusDesktopTrayIdentity {"
-            " color: #f8fafc;"
-            " font-size: 12px;"
-            " min-height: 18px;"
-            " padding: 7px 10px 2px 10px;"
-            "}"
-            "#nexusDesktopTrayStatus {"
-            " background: #082f49;"
-            " border: 1px solid #38bdf8;"
-            " border-radius: 5px;"
-            " color: #e0f2fe;"
-            " font-size: 12px;"
-            " margin: 2px 8px 7px 8px;"
-            " min-height: 34px;"
-            " padding: 6px 8px;"
-            "}"
-            "QPushButton {"
-            " background: #0f172a;"
-            " border: 1px solid transparent;"
-            " border-radius: 5px;"
-            " color: #f8fafc;"
-            " min-height: 26px;"
-            " padding: 5px 12px;"
-            " text-align: left;"
-            "}"
-            "QPushButton:hover {"
-            " background: #173b52;"
-            " border-color: #38bdf8;"
-            "}"
-            "QPushButton:focus {"
-            " border-color: #7dd3fc;"
-            "}"
-            "QPushButton:pressed {"
-            " background: #0f766e;"
-            "}"
-            "QPushButton:disabled {"
-            " background: #101827;"
-            " border-color: #1f2937;"
-            " color: #64748b;"
-            "}"
-            "QFrame {"
-            " background: #244454;"
-            " max-height: 1px;"
-            " min-height: 1px;"
-            "}"
-        )
-        self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(4, 4, 4, 4)
-        self.layout.setSpacing(1)
-        identity = QLabel(f"{TRAY_IDENTITY_LABEL} / {TRAY_ORIN_MARK_LABEL}", self)
-        identity.setObjectName("nexusDesktopTrayIdentity")
-        identity.setAccessibleName(TRAY_IDENTITY_LABEL)
-        identity_font = QFont("Segoe UI")
-        identity_font.setWeight(QFont.DemiBold)
-        identity.setFont(identity_font)
-        self.layout.addWidget(identity)
-        self.resident_status_label = QLabel("", self)
-        self.resident_status_label.setObjectName("nexusDesktopTrayStatus")
-        self.resident_status_label.setAccessibleName("Resident access status")
-        self.resident_status_label.setWordWrap(True)
-        self.layout.addWidget(self.resident_status_label)
-        self.add_separator()
-
-    def add_separator(self):
-        line = QFrame(self)
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Plain)
-        self.layout.addWidget(line)
-        return line
-
-    def add_button(self, text, handler):
-        button = QPushButton(text, self)
-        button.setAccessibleName(text)
-        button.setMinimumWidth(240)
-        button.clicked.connect(lambda _checked=False: self.owner._invoke_button_action(handler))
-        self._command_buttons.append((button, handler))
-        self.layout.addWidget(button)
-        return button
-
-    def popup_at_cursor(self):
-        self.adjustSize()
-        pos = QCursor.pos()
-        size = self.sizeHint()
-        self.move(pos.x() - size.width(), pos.y() - size.height())
-        self.show()
-        self.raise_()
-        self.activateWindow()
-
-    def hideEvent(self, event):
-        try:
-            self.owner._handle_popup_hidden()
-        finally:
-            super().hideEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            for button, handler in list(self._command_buttons):
-                if (
-                    button is not None
-                    and button.isVisible()
-                    and button.isEnabled()
-                    and button.geometry().contains(event.pos())
-                ):
-                    self.owner._emit(
-                        f"RENDERER_MAIN|TRAY_POPUP_BUTTON_RELEASE_ROUTED|action={button.text()}"
-                    )
-                    self.owner._invoke_button_action(handler)
-                    event.accept()
-                    return
-        super().mouseReleaseEvent(event)
-
-
 class DesktopTrayEntry:
     """Owns the Windows tray icon, menu state, and tray-to-runtime routing."""
 
@@ -216,6 +82,8 @@ class DesktopTrayEntry:
         self.quick_access_menu_action = None
         self.ai_menu = None
         self.ai_menu_action = None
+        self.hud_menu = None
+        self.hud_menu_action = None
         self.privacy_lockdown_action = None
         self.quick_slot_actions = []
         self.quick_slot_buttons = []
@@ -258,6 +126,7 @@ class DesktopTrayEntry:
 
             self.tray_menu = QMenu(TRAY_IDENTITY_LABEL)
             self.tray_menu.setTitle(TRAY_IDENTITY_LABEL)
+            self._apply_compact_menu_style(self.tray_menu)
             self.tray_menu.aboutToShow.connect(self._handle_menu_about_to_show)
             self.tray_menu.aboutToHide.connect(self._handle_menu_about_to_hide)
             self.identity_action = QAction(TRAY_IDENTITY_LABEL, self.tray_menu)
@@ -272,6 +141,7 @@ class DesktopTrayEntry:
             self.tray_menu.addSeparator()
 
             self.quick_access_menu = self.tray_menu.addMenu("Quick Access")
+            self._apply_compact_menu_style(self.quick_access_menu, submenu=True)
             self.quick_access_menu_action = self.quick_access_menu.menuAction()
             for index in range(5):
                 action = self._add_button_action(
@@ -283,25 +153,20 @@ class DesktopTrayEntry:
             self.tray_menu.addSeparator()
 
             self.ai_menu = self.tray_menu.addMenu("AI")
+            self._apply_compact_menu_style(self.ai_menu, submenu=True)
             self.ai_menu_action = self.ai_menu.menuAction()
             self.ai_status_action = self._add_button_action(
                 "AI Status / Command Center",
                 self.request_ai_status_from_tray,
                 parent_menu=self.ai_menu,
             )
-            self.tray_menu.addSeparator()
-
-            self.monitoring_hud_primary_action = self._add_button_action(
-                "HUD Feature Settings",
-                self.request_global_settings_from_tray,
-            )
+            self.hud_menu = self.tray_menu.addMenu("HUD")
+            self._apply_compact_menu_style(self.hud_menu, submenu=True)
+            self.hud_menu_action = self.hud_menu.menuAction()
             self.monitoring_hud_dashboard_action = self._add_button_action(
                 "Open HUD Dashboard",
                 self.request_monitoring_hud_dashboard_from_tray,
-            )
-            self.monitoring_hud_unanchor_action = self._add_button_action(
-                "HUD Overlay Deferred",
-                self.request_monitoring_hud_unanchor_from_tray,
+                parent_menu=self.hud_menu,
             )
             self.tray_menu.addSeparator()
 
@@ -309,7 +174,16 @@ class DesktopTrayEntry:
                 "Exit Nexus Desktop AI",
                 self.request_shutdown_from_tray,
             )
-            self._initialize_popup()
+            self.tray_popup = self.tray_menu
+            access_provider = getattr(self.window, "monitoring_hud_access", None)
+            if callable(access_provider):
+                try:
+                    access = access_provider()
+                    bind_refresh = getattr(access, "bind_tray_refresh", None)
+                    if callable(bind_refresh):
+                        bind_refresh(self._refresh_monitoring_hud_from_adapter)
+                except Exception:
+                    pass
             self.refresh_resident_access_actions("initialize")
             self.refresh_monitoring_hud_actions("initialize")
 
@@ -331,64 +205,52 @@ class DesktopTrayEntry:
             )
             return False
 
-    def _initialize_popup(self):
-        self.tray_popup = TrayCommandPopup(self)
-        self.resident_status_label = self.tray_popup.resident_status_label
-        self.global_settings_button = self.tray_popup.add_button(
-            "Global Settings",
-            self.request_global_settings_from_tray,
-        )
-        self.tray_popup.add_separator()
-        for index in range(5):
-            button = self.tray_popup.add_button(
-                f"Quick Access {index + 1}",
-                lambda source, slot_index=index: self.request_quick_slot_from_tray(slot_index, source),
-            )
-            self.quick_slot_buttons.append(button)
-        self.tray_popup.add_separator()
-        self.ai_status_button = self.tray_popup.add_button(
-            "AI Status / Command Center",
-            self.request_ai_status_from_tray,
-        )
-        self.tray_popup.add_separator()
-        self.monitoring_hud_status_label = QLabel("HUD Dashboard Closed", self.tray_popup)
-        self.monitoring_hud_status_label.setAccessibleName("HUD Dashboard status")
-        self.tray_popup.layout.addWidget(self.monitoring_hud_status_label)
-        self.monitoring_hud_primary_button = self.tray_popup.add_button(
-            "HUD Feature Settings",
-            self.request_global_settings_from_tray,
-        )
-        self.monitoring_hud_dashboard_button = self.tray_popup.add_button(
-            "Open HUD Dashboard",
-            self.request_monitoring_hud_dashboard_from_tray,
-        )
-        self.monitoring_hud_unanchor_button = self.tray_popup.add_button(
-            "HUD Overlay Deferred",
-            self.request_monitoring_hud_unanchor_from_tray,
-        )
-        self.tray_popup.add_separator()
-        self.exit_button = self.tray_popup.add_button(
-            "Exit Nexus Desktop AI",
-            self.request_shutdown_from_tray,
-        )
-
     def _add_button_action(self, text, handler, parent_menu=None):
         target_menu = parent_menu or self.tray_menu
-        action = QWidgetAction(target_menu)
-        action.setText(text)
-        button = QPushButton(text, target_menu)
-        button.setFlat(True)
-        button.setMinimumHeight(24)
-        button.setMinimumWidth(240)
-        button.setAccessibleName(text)
-        button.setStyleSheet(
-            "QPushButton { text-align: left; padding: 4px 12px; border: none; }"
-            "QPushButton:disabled { opacity: 0.55; }"
-        )
-        button.clicked.connect(lambda _checked=False: self._invoke_button_action(handler))
-        action.setDefaultWidget(button)
+        action = QAction(text, target_menu)
+        action.setObjectName("nexusTrayMenuAction")
+        action.setToolTip(text)
+        action.triggered.connect(lambda _checked=False: self._invoke_button_action(handler))
         target_menu.addAction(action)
         return action
+
+    def _apply_compact_menu_style(self, menu, *, submenu=False):
+        menu.setObjectName("nexusDesktopTrayMenu")
+        menu.setMinimumWidth(198 if submenu else 188)
+        menu.setStyleSheet(
+            "QMenu#nexusDesktopTrayMenu {"
+            " background: #04101b;"
+            " border: 1px solid rgba(105, 224, 244, 0.58);"
+            " border-radius: 6px;"
+            " color: rgba(239, 253, 255, 0.96);"
+            " font-family: 'Segoe UI';"
+            " font-size: 12px;"
+            " padding: 4px 0;"
+            "}"
+            "QMenu#nexusDesktopTrayMenu::item {"
+            " background: transparent;"
+            " border: 0;"
+            " border-radius: 3px;"
+            " margin: 0 4px;"
+            " min-height: 20px;"
+            " padding: 4px 26px 4px 10px;"
+            "}"
+            "QMenu#nexusDesktopTrayMenu::item:selected {"
+            " background: rgba(10, 78, 95, 0.96);"
+            " color: #ffffff;"
+            "}"
+            "QMenu#nexusDesktopTrayMenu::item:disabled {"
+            " color: rgba(133, 154, 170, 0.78);"
+            "}"
+            "QMenu#nexusDesktopTrayMenu::separator {"
+            " background: rgba(105, 224, 244, 0.24);"
+            " height: 1px;"
+            " margin: 3px 8px;"
+            "}"
+            "QMenu#nexusDesktopTrayMenu::right-arrow {"
+            " right: 8px;"
+            "}"
+        )
 
     def _set_action_text(self, action, text):
         action.setText(text)
@@ -452,17 +314,14 @@ class DesktopTrayEntry:
         self._emit(f"RENDERER_MAIN|TRAY_ACTIVATION_IGNORED|reason={reason_name}")
 
     def _show_tray_popup(self):
-        if self.tray_popup is None:
+        if self.tray_menu is None:
             return
         self._release_mouse_capture_for_tray_popup()
         self.refresh_resident_access_actions("tray_popup_about_to_show")
         self.refresh_monitoring_hud_actions("tray_popup_about_to_show")
-        if self._show_native_tray_menu():
-            self.refresh_resident_access_actions("tray_native_menu_closed")
-            self.refresh_monitoring_hud_actions("tray_native_menu_closed")
-            return
+        self._emit("RENDERER_MAIN|TRAY_STYLED_POPUP_REQUESTED|source=tray_icon|native_menu_primary=false")
         self._popup_guard_active = True
-        self.tray_popup.popup_at_cursor()
+        self.tray_menu.popup(QCursor.pos())
 
     def _show_native_tray_menu(self):
         if not hasattr(ctypes, "windll"):
@@ -813,15 +672,20 @@ class DesktopTrayEntry:
         return build_monitoring_hud_route_model(state if isinstance(state, dict) else self._monitoring_hud_state())
 
     def _monitoring_hud_dashboard_menu_text(self, state, route_model, *, compact=False):
-        dashboard_visible = bool(state.get("dashboard_visible")) and bool(route_model.get("enabledInActiveMenu"))
-        if dashboard_visible:
-            return "Close HUD Dashboard"
         if bool(route_model.get("disabledWithReason")):
             if compact:
                 return "HUD Dashboard unavailable"
             reason = str(route_model.get("ownerBoundedReason") or "HUD is not ready yet").strip()
             return f"Open HUD Dashboard - {reason}"
         return "Open HUD Dashboard"
+
+    def _refresh_monitoring_hud_from_adapter(self, source="adapter"):
+        try:
+            self.refresh_resident_access_actions(source)
+            self.refresh_monitoring_hud_actions(source)
+            return True
+        except Exception:
+            return False
 
     def _monitoring_hud_status_text(self, state, route_model):
         if not bool(route_model.get("visibleInActiveMenu")):
@@ -943,11 +807,7 @@ class DesktopTrayEntry:
         )
 
     def refresh_monitoring_hud_actions(self, source="runtime"):
-        if (
-            self.monitoring_hud_primary_action is None
-            or self.monitoring_hud_dashboard_action is None
-            or self.monitoring_hud_unanchor_action is None
-        ):
+        if self.monitoring_hud_dashboard_action is None or self.hud_menu_action is None:
             return
         state = self._monitoring_hud_state()
         hud_route = self._monitoring_hud_route_model(state)
@@ -956,50 +816,22 @@ class DesktopTrayEntry:
         hud_route_state = str(hud_route.get("routeState") or "unknown")
         feature_enabled = bool(state.get("feature_enabled"))
         dashboard_visible = bool(state.get("dashboard_visible")) and hud_route_enabled
-        overlay_deferred = state.get("overlay_deferred", True) is not False
-        overlay_anchor_enabled = bool(state.get("overlay_anchor_enabled")) and not overlay_deferred
-        open_enabled = hud_route_enabled and not dashboard_visible
-        close_enabled = hud_route_enabled and dashboard_visible
+        open_enabled = hud_route_enabled
+        close_enabled = False
         command_overlay_visible = self._command_overlay_visible()
         command_overlay_text = self._command_overlay_action_text()
 
-        self._set_action_text(self.monitoring_hud_primary_action, "HUD Feature Settings")
-        self._set_button_text(self.monitoring_hud_primary_button, "HUD Feature Settings")
-        self._set_action_visible(self.monitoring_hud_primary_action, False)
-        self._set_button_visible(self.monitoring_hud_primary_button, False)
-        self._set_action_enabled(self.monitoring_hud_primary_action, False)
-        self._set_button_enabled(self.monitoring_hud_primary_button, False)
-
-        dashboard_text = self._monitoring_hud_dashboard_menu_text(state, hud_route)
+        dashboard_text = self._monitoring_hud_dashboard_menu_text(state, hud_route, compact=True)
         self._set_action_text(self.monitoring_hud_dashboard_action, dashboard_text)
-        self._set_button_text(self.monitoring_hud_dashboard_button, dashboard_text)
         self._set_action_visible(self.monitoring_hud_dashboard_action, hud_route_visible)
         self._set_action_enabled(self.monitoring_hud_dashboard_action, hud_route_enabled)
-        self._set_button_visible(self.monitoring_hud_dashboard_button, hud_route_visible)
-        self._set_button_enabled(self.monitoring_hud_dashboard_button, hud_route_enabled)
-        self._set_label_text_visible(
-            self.monitoring_hud_status_label,
-            self._monitoring_hud_status_text(state, hud_route),
-            hud_route_visible,
+        self.monitoring_hud_dashboard_action.setToolTip(
+            "HUD Dashboard"
+            if hud_route_enabled
+            else str(hud_route.get("ownerBoundedReason") or "HUD is not ready yet")
         )
-        self._set_action_text(
-            self.monitoring_hud_unanchor_action,
-            "HUD Overlay Deferred" if overlay_deferred else "Unanchor HUD Overlay",
-        )
-        self._set_button_text(
-            self.monitoring_hud_unanchor_button,
-            "HUD Overlay Deferred" if overlay_deferred else "Unanchor HUD Overlay",
-        )
-        self._set_action_enabled(
-            self.monitoring_hud_unanchor_action,
-            hud_route_enabled and overlay_anchor_enabled,
-        )
-        self._set_button_enabled(
-            self.monitoring_hud_unanchor_button,
-            hud_route_enabled and overlay_anchor_enabled,
-        )
-        self._set_action_visible(self.monitoring_hud_unanchor_action, hud_route_enabled)
-        self._set_button_visible(self.monitoring_hud_unanchor_button, hud_route_enabled)
+        self._set_action_visible(self.hud_menu_action, hud_route_visible)
+        self._set_action_enabled(self.hud_menu_action, hud_route_visible)
         if self.open_overlay_action is not None:
             self._set_action_text(self.open_overlay_action, command_overlay_text)
         self._set_button_text(self.open_overlay_button, command_overlay_text)
@@ -1014,8 +846,6 @@ class DesktopTrayEntry:
             f"|dashboard_action_enabled={str((open_enabled or close_enabled)).lower()}"
             f"|dashboard_open_action_enabled={str(open_enabled).lower()}"
             f"|dashboard_close_action_enabled={str(close_enabled).lower()}"
-            f"|overlay_deferred={str(overlay_deferred).lower()}"
-            f"|overlay_anchor_enabled={str(overlay_anchor_enabled).lower()}"
             f"|command_overlay_visible={str(command_overlay_visible).lower()}"
             f"|command_overlay_action={'close' if command_overlay_visible else 'open'}"
         )
@@ -1037,7 +867,9 @@ class DesktopTrayEntry:
             "RENDERER_MAIN|TRAY_MONITORING_HUD_TOGGLE_REDIRECTED"
             f"|source={source}|reason=settings_owned_optional_feature_configuration"
         )
-        self.request_global_settings_from_tray(source)
+        handler = getattr(self.window, "open_resident_access_settings", None)
+        if callable(handler):
+            handler(source=source, focus="hud_dashboard")
         self.refresh_resident_access_actions(source)
         self.refresh_monitoring_hud_actions(source)
 
@@ -1045,10 +877,11 @@ class DesktopTrayEntry:
         state = self._monitoring_hud_state()
         hud_route = self._monitoring_hud_route_model(state)
         if not bool(hud_route.get("enabledInActiveMenu")):
-            self.request_global_settings_from_tray(source)
+            handler = getattr(self.window, "open_resident_access_settings", None)
+            if callable(handler):
+                handler(source=source, focus="hud_dashboard")
             return
-        dashboard_visible = bool(state.get("dashboard_visible"))
-        self.request_monitoring_hud_dashboard_from_tray(source, visible=not dashboard_visible)
+        self.request_monitoring_hud_dashboard_from_tray(source, visible=True)
 
     def request_monitoring_hud_dashboard_from_tray(self, source, visible=None):
         state = self._monitoring_hud_state()
@@ -1074,20 +907,50 @@ class DesktopTrayEntry:
             self.refresh_resident_access_actions(source)
             self.refresh_monitoring_hud_actions(source)
             return
-        next_visible = (not dashboard_visible) if visible is None else bool(visible)
+        next_visible = True
         self._emit(
             "RENDERER_MAIN|TRAY_MONITORING_HUD_DASHBOARD_REQUESTED"
             f"|source={source}|visible={str(next_visible).lower()}"
         )
-        handler = getattr(self.window, "request_monitoring_hud_dashboard_from_tray", None)
+        access_provider = getattr(self.window, "monitoring_hud_access", None)
+        access = None
+        if callable(access_provider):
+            try:
+                access = access_provider()
+            except Exception:
+                access = None
+        handler = getattr(access, "open_or_restore_dashboard", None)
         if not callable(handler):
             self._emit(
                 f"RENDERER_MAIN|TRAY_MONITORING_HUD_DASHBOARD_ABORTED|source={source}|reason=handler_unavailable"
             )
-            return
-        handler(source=source, visible=next_visible)
+            self.refresh_resident_access_actions(source)
+            self.refresh_monitoring_hud_actions(source)
+            return False
+        try:
+            result = handler(source)
+        except Exception as exc:
+            self._emit(
+                "RENDERER_MAIN|TRAY_MONITORING_HUD_DASHBOARD_ABORTED"
+                f"|source={source}|reason=target_request_failed|error={type(exc).__name__}"
+            )
+            self.refresh_resident_access_actions(source)
+            self.refresh_monitoring_hud_actions(source)
+            return False
         self.refresh_resident_access_actions(source)
         self.refresh_monitoring_hud_actions(source)
+        if not bool(getattr(result, "succeeded", False)):
+            self._emit(
+                "RENDERER_MAIN|TRAY_MONITORING_HUD_DASHBOARD_ABORTED"
+                f"|source={source}|reason=target_request_failed"
+                f"|result_status={getattr(result, 'status', 'failed')}"
+            )
+            return False
+        self._emit(
+            "RENDERER_MAIN|TRAY_MONITORING_HUD_DASHBOARD_ROUTED"
+            f"|source={source}|visible={str(next_visible).lower()}|owner=FAM-006"
+        )
+        return bool(getattr(result, "succeeded", False))
 
     def request_monitoring_hud_unanchor_from_tray(self, source):
         state = self._monitoring_hud_state()

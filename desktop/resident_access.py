@@ -37,13 +37,14 @@ MAX_QUICK_SLOT_COUNT = 5
 DEFAULT_QUICK_SLOT_COUNT = 3
 TRAY_MENU_STRUCTURE = {
     "nativeStatusRow": False,
-    "topLevel": ("Global Settings", "Quick Access", "AI", "Exit Nexus Desktop AI"),
+    "topLevel": ("Global Settings", "Quick Access", "AI", "HUD", "Exit Nexus Desktop AI"),
     "quickAccessMenu": (
         "Command Overlay",
         "Create Task",
         "Saved Actions",
     ),
     "aiMenu": ("AI Status / Command Center",),
+    "hudMenu": ("HUD Dashboard",),
     "deferredOwnerMenus": ("Developer", "Owner"),
 }
 IMMUTABLE_ROUTE_IDS = (
@@ -537,6 +538,7 @@ def build_resident_access_menu_plan(
             "topLevel": list(TRAY_MENU_STRUCTURE["topLevel"]),
             "quickAccessMenu": list(TRAY_MENU_STRUCTURE["quickAccessMenu"]),
             "aiMenu": list(TRAY_MENU_STRUCTURE["aiMenu"]),
+            "hudMenu": list(TRAY_MENU_STRUCTURE["hudMenu"]),
             "deferredOwnerMenus": list(TRAY_MENU_STRUCTURE["deferredOwnerMenus"]),
             "statusPlacement": "tray-icon-hover-tooltip-and-owner-status-surfaces",
             "developerOwnerDisposition": (

@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 
 from desktop.core_visualization_renderer import CoreVisualizationWindow
 from desktop.hotkeys import ShutdownBus, GlobalHotkeyManager
+from desktop.monitoring_hud_access import MonitoringHudAccessAdapter
 from desktop.monitoring_hud_state import load_monitoring_hud_state
 from desktop.resident_access import build_resident_access_menu_plan
 from desktop.single_instance import NamedSignal
@@ -57,6 +58,13 @@ class DesktopRuntimeUnavailable(QObject):
         super().__init__()
         self.event_logger = event_logger or (lambda _event: None)
         self.reason = str(reason or "desktop runtime unavailable")
+        self._monitoring_hud_access_adapter = MonitoringHudAccessAdapter(
+            query_state=self.monitoring_hud_feature_state,
+            persist_enabled=lambda _enabled, _source: False,
+            open_or_restore_dashboard=lambda _source: False,
+            close_dashboard=lambda _source: False,
+            event_logger=self._emit,
+        )
         self._emit("RENDERER_MAIN|DESKTOP_RUNTIME_UNAVAILABLE|reason=" + self.reason.replace("|", "/"))
 
     def _emit(self, event):
@@ -71,6 +79,8 @@ class DesktopRuntimeUnavailable(QObject):
 
     def request_shutdown(self):
         self._emit("RENDERER_MAIN|DESKTOP_RUNTIME_FALLBACK_SHUTDOWN")
+        QTimer.singleShot(0, self.deleteLater)
+        return True
 
     def set_visual_state(self, _state_name):
         return
@@ -125,9 +135,17 @@ class DesktopRuntimeUnavailable(QObject):
         return {
             "feature_enabled": False,
             "dashboard_visible": False,
+            "runtime_available": False,
+            "dashboard_available": False,
+            "resident_route_state": "not_installed",
+            "resident_route_reason": "HUD runtime is unavailable.",
             "overlay_deferred": True,
             "overlay_anchor_enabled": False,
+            "source": "desktop_runtime_unavailable",
         }
+
+    def monitoring_hud_access(self):
+        return self._monitoring_hud_access_adapter
 
     def request_monitoring_hud_toggle_from_tray(self, source="tray"):
         self._emit(f"RENDERER_MAIN|TRAY_MONITORING_HUD_TOGGLE_ABORTED|source={source}|reason=desktop_runtime_unavailable")
@@ -136,6 +154,11 @@ class DesktopRuntimeUnavailable(QObject):
         self._emit(
             "RENDERER_MAIN|TRAY_MONITORING_HUD_DASHBOARD_ABORTED"
             f"|source={source}|visible={str(bool(visible)).lower()}|reason=desktop_runtime_unavailable"
+        )
+        return (
+            self._monitoring_hud_access_adapter.open_or_restore_dashboard(source)
+            if visible
+            else self._monitoring_hud_access_adapter.close_dashboard(source)
         )
 
     def request_monitoring_hud_unanchor_from_tray(self, source="tray"):
@@ -493,11 +516,13 @@ def main():
     shutdown_started = False
     shutdown_confirmation_active = False
     shutdown_force_kill_timer = None
+    shutdown_cleanup_timeout_timer = None
+    shutdown_pending_components = set()
     if exit_if_startup_abort_requested():
         return 0
 
     def do_shutdown():
-        nonlocal shutdown_started, shutdown_force_kill_timer
+        nonlocal shutdown_started, shutdown_force_kill_timer, shutdown_cleanup_timeout_timer
         if shutdown_started:
             return
         settings_guard = getattr(window, "request_resident_access_settings_shutdown_guard", None)
@@ -520,9 +545,47 @@ def main():
         runtime_milestone("RENDERER_MAIN|SHUTDOWN_REQUESTED")
         tray_entry.close()
         hotkeys.stop()
+
+        def finish_shutdown_if_released():
+            if shutdown_pending_components:
+                return
+            if shutdown_cleanup_timeout_timer is not None:
+                shutdown_cleanup_timeout_timer.stop()
+            runtime_milestone(
+                "RENDERER_MAIN|NATIVE_SURFACES_RELEASED|components=core_visualization,desktop_runtime"
+            )
+            runtime_milestone("RENDERER_MAIN|QT_QUIT_REQUESTED|reason=native_surfaces_released")
+            QTimer.singleShot(0, app.quit)
+
+        def component_released(component):
+            shutdown_pending_components.discard(component)
+            runtime_milestone(
+                f"RENDERER_MAIN|SHUTDOWN_COMPONENT_RELEASED|component={component}"
+            )
+            finish_shutdown_if_released()
+
+        def register_shutdown_component(component, target):
+            shutdown_pending_components.add(component)
+            target.destroyed.connect(
+                lambda _object=None, name=component: component_released(name)
+            )
+
+        def cleanup_timeout():
+            pending = ",".join(sorted(shutdown_pending_components)) or "none"
+            runtime_milestone(
+                f"RENDERER_MAIN|SHUTDOWN_CLEANUP_TIMEOUT|pending={pending}"
+            )
+            app.exit(1)
+
+        register_shutdown_component("core_visualization", core_window)
+        register_shutdown_component("desktop_runtime", window)
         core_window.request_shutdown()
         window.request_shutdown()
-        shutdown_force_kill_timer = threading.Timer(1.2, hotkeys.force_kill)
+        shutdown_cleanup_timeout_timer = QTimer(app)
+        shutdown_cleanup_timeout_timer.setSingleShot(True)
+        shutdown_cleanup_timeout_timer.timeout.connect(cleanup_timeout)
+        shutdown_cleanup_timeout_timer.start(4000)
+        shutdown_force_kill_timer = threading.Timer(7.0, lambda: os._exit(1))
         shutdown_force_kill_timer.daemon = True
         shutdown_force_kill_timer.start()
 
@@ -678,12 +741,19 @@ def main():
     relaunch_timer.start(200)
 
     exit_code = app.exec()
+    if (
+        shutdown_force_kill_timer is not None
+        and exit_code == 0
+        and not shutdown_pending_components
+    ):
+        shutdown_force_kill_timer.cancel()
+    if shutdown_cleanup_timeout_timer is not None:
+        shutdown_cleanup_timeout_timer.stop()
     relaunch_timer.stop()
     relaunch_signal.close()
     desktop_settled_signal.close()
     tray_entry.close()
     hotkeys.stop()
-    core_window.request_shutdown()
     runtime_milestone(f"RENDERER_MAIN|EVENT_LOOP_EXIT|code={exit_code}")
     return exit_code
 
