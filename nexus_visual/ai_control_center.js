@@ -1,5 +1,6 @@
 (() => {
   const commandPrefix = "NEXUS_AI_CONTROL_CENTER_COMMAND:";
+  const doorwayInputPrefix = "NEXUS_AI_CONTROL_CENTER_DOORWAY_INPUT:";
   const stateTaxonomyContract = "ai-dashboard-ai-control-center-state-taxonomy-v1";
   const dashboardViewModelContract = "ai-dashboard-provider-state-view-model-v1";
   const requiredStateTaxonomyStates = [
@@ -216,6 +217,15 @@
     }
     let lastActivationAt = 0;
     const activate = (event) => {
+      try {
+        const doorway = element.dataset.categoryDoorway || "";
+        if (Object.prototype.hasOwnProperty.call(domainDoorwayCommands, doorway)
+            && (event.type === "pointerup" || event.type === "click")) {
+          console.info(`${doorwayInputPrefix}${doorway}|${event.type}`);
+        }
+      } catch (error) {
+        // Observation must not change the original activation behavior.
+      }
       if (event.type === "pointerup" && event.button !== 0) {
         return;
       }

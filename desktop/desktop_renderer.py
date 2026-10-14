@@ -3873,11 +3873,42 @@ class ResidentAccessSettingsDialog(QDialog):
 
 class AIControlCenterCommandPage(QWebEnginePage):
     ai_control_center_command = Signal(str)
+    DOORWAY_COMMANDS = {
+        "control-center": "open-control-center-child-window",
+        "readiness-diagnostics": "open-readiness-diagnostics-child-window",
+        "capabilities-maintenance": "open-maintenance-lifecycle-child-window",
+    }
+
+    def __init__(self, parent=None, *, event_logger=None):
+        super().__init__(parent)
+        self._event_logger = event_logger
+
+    def _log_doorway_event(self, event: str) -> None:
+        try:
+            if callable(self._event_logger):
+                self._event_logger(event)
+        except Exception:
+            pass
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
+        input_prefix = "NEXUS_AI_CONTROL_CENTER_DOORWAY_INPUT:"
+        if isinstance(message, str) and message.startswith(input_prefix):
+            fields = message[len(input_prefix):].split("|")
+            if len(fields) == 2 and fields[0] in self.DOORWAY_COMMANDS and fields[1] in {"pointerup", "click"}:
+                self._log_doorway_event(
+                    "RENDERER_MAIN|AI_DASHBOARD_DOORWAY_DOM_INPUT"
+                    f"|domain={fields[0]}|event={fields[1]}"
+                )
+                return
         prefix = "NEXUS_AI_CONTROL_CENTER_COMMAND:"
         if isinstance(message, str) and message.startswith(prefix):
-            self.ai_control_center_command.emit(message[len(prefix):])
+            command = message[len(prefix):]
+            if command in self.DOORWAY_COMMANDS.values():
+                self._log_doorway_event(
+                    "RENDERER_MAIN|AI_DASHBOARD_DOORWAY_BRIDGE_COMMAND"
+                    f"|command={command}"
+                )
+            self.ai_control_center_command.emit(command)
             return
         super().javaScriptConsoleMessage(level, message, line_number, source_id)
 
@@ -12975,7 +13006,7 @@ class AIControlCenterDialog(QDialog):
         self.webview.setContextMenuPolicy(Qt.NoContextMenu)
         self.webview.setMouseTracking(True)
         self.webview.installEventFilter(self)
-        self._web_page = AIControlCenterCommandPage(self.webview)
+        self._web_page = AIControlCenterCommandPage(self.webview, event_logger=self.event_logger)
         self._web_page.ai_control_center_command.connect(self._handle_ai_control_center_command)
         self.webview.setPage(self._web_page)
         self.webview.page().setBackgroundColor(QColor(0, 0, 0, 0))
@@ -13004,6 +13035,69 @@ class AIControlCenterDialog(QDialog):
 
     def _ai_control_center_window_command_is_active(self, command: str) -> bool:
         return self._ai_control_center_window_control_states().get(command) == "active"
+
+    def _log_ai_dashboard_doorway_result(self, stage, domain_id, *, result=None, error=None) -> None:
+        try:
+            if not callable(self.event_logger):
+                return
+            event = f"RENDERER_MAIN|AI_DASHBOARD_DOORWAY_RECEIVER|stage={stage}|domain={domain_id}"
+            if result is not None:
+                reasons = {
+                    "none", "unknown_domain", "parent-close-in-progress", "close-in-progress-reopen-deferred",
+                    "stale-registry-live-hwnd-stop", "duplicate-live-domain-window-stop", "unowned-live-domain-hwnd-stop",
+                }
+                reason = result.get("reason", "none") if isinstance(result, dict) else "unclassified"
+                if reason not in reasons:
+                    reason = "unclassified"
+                hwnd = result.get("hwnd", 0) if isinstance(result, dict) else 0
+                event += f"|reason={reason}|hwnd={hwnd if type(hwnd) is int else 0}"
+            if error is not None:
+                event += f"|exceptionType={type(error).__name__}"
+                known_domain_frames = {
+                    'AIControlCenterDialog._ai_dashboard_domain_parent_for',
+                    'AIControlCenterDialog._show_ai_dashboard_domain_window',
+                    'AIDashboardDomainWindow.__init__',
+                    'AIDashboardDomainWindow._activate_domain_window',
+                    'AIDashboardDomainWindow._apply_shell_mask',
+                    'AIDashboardDomainWindow._asset_base_dir',
+                    'AIDashboardDomainWindow._begin_lifecycle_action',
+                    'AIDashboardDomainWindow._bounded_domain_geometry',
+                    'AIDashboardDomainWindow._dashboard',
+                    'AIDashboardDomainWindow._domain_body_html',
+                    'AIDashboardDomainWindow._domain_html',
+                    'AIDashboardDomainWindow._live_domain_objects',
+                    'AIDashboardDomainWindow._native_domain_hwnd',
+                    'AIDashboardDomainWindow._native_lifecycle_snapshot',
+                    'AIDashboardDomainWindow._normalize_native_taskbar_contract',
+                    'AIDashboardDomainWindow._parent_lifecycle_snapshot',
+                    'AIDashboardDomainWindow._process_domain_hwnds',
+                    'AIDashboardDomainWindow._process_domain_hwnds.<locals>.collect',
+                    'AIDashboardDomainWindow._qrect_lifecycle_snapshot',
+                    'AIDashboardDomainWindow._qt_enum_value',
+                    'AIDashboardDomainWindow._qt_object_is_live',
+                    'AIDashboardDomainWindow._record_lifecycle_transition',
+                    'AIDashboardDomainWindow._register_runtime_instance',
+                    'AIDashboardDomainWindow._registry_lifecycle_snapshot',
+                    'AIDashboardDomainWindow._remember_normal_geometry',
+                    'AIDashboardDomainWindow._restore_remembered_normal_geometry',
+                    'AIDashboardDomainWindow._visible_shell_region',
+                    'AIDashboardDomainWindow.lifecycle_debug_state',
+                    'AIDashboardDomainWindow.runtime_lifecycle_inventory',
+                    'AIDashboardDomainWindow.show_domain_window',
+                    'AIDashboardDomainWindow.update_provider_state',
+                }
+                traceback = error.__traceback__
+                origin = None
+                while traceback is not None:
+                    code = traceback.tb_frame.f_code
+                    if code.co_filename == __file__ and code.co_qualname in known_domain_frames:
+                        origin = (code.co_qualname, traceback.tb_lineno)
+                    traceback = traceback.tb_next
+                function, line = origin if origin is not None else ("unresolved", 0)
+                event += f"|originFunction={function}|originLine={line}"
+            self.event_logger(event)
+        except Exception:
+            pass
 
     def _handle_ai_control_center_command(self, command: str) -> None:
         if command in self.WINDOW_CONTROL_WEB_KEYS and not self._ai_control_center_window_command_is_active(command):
@@ -13038,7 +13132,14 @@ class AIControlCenterDialog(QDialog):
             "open-maintenance-lifecycle-child-window": "capabilities-maintenance",
         }
         if command in domain_by_command:
-            self._show_ai_dashboard_domain_window(domain_by_command[command])
+            domain_id = domain_by_command[command]
+            self._log_ai_dashboard_doorway_result("entered", domain_id)
+            try:
+                result = self._show_ai_dashboard_domain_window(domain_id)
+            except Exception as error:
+                self._log_ai_dashboard_doorway_result("exception", domain_id, error=error)
+                raise
+            self._log_ai_dashboard_doorway_result("returned", domain_id, result=result)
             return
         if command == "run-local-check":
             self.run_local_assist_check(sync_web=False)
@@ -13264,7 +13365,7 @@ class AIControlCenterDialog(QDialog):
             self._domain_generation_counts[domain_id] = generation
             window = AIDashboardDomainWindow(
                 domain_id,
-                self.screen_ref,
+                self.screen(),
                 parent=self._ai_dashboard_domain_parent_for(domain_id),
                 event_logger=self.event_logger,
             )
