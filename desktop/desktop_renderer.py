@@ -47,6 +47,7 @@ from .ai_provider_state import (
     resolve_default_provider_durable_consent_store_dir,
 )
 from .monitoring_hud_controls import build_monitoring_hud_controls_visibility_contract
+from .monitoring_hud_access import MonitoringHudAccessAdapter
 from .monitoring_hud_placement import build_monitoring_hud_placement_contract
 from .monitoring_hud_status import build_monitoring_hud_status_snapshot
 from .monitoring_hud_state import save_monitoring_hud_state
@@ -133,11 +134,13 @@ IDC_SIZENS = 32645
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 gdi32 = ctypes.windll.gdi32
+WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
+HCURSOR = getattr(ctypes.wintypes, "HCURSOR", ctypes.wintypes.HANDLE)
 LoadCursorW = user32.LoadCursorW
-LoadCursorW.restype = ctypes.wintypes.HCURSOR
+LoadCursorW.restype = HCURSOR
 SetCursor = user32.SetCursor
-SetCursor.argtypes = [ctypes.wintypes.HCURSOR]
-SetCursor.restype = ctypes.wintypes.HCURSOR
+SetCursor.argtypes = [HCURSOR]
+SetCursor.restype = HCURSOR
 SetCapture = user32.SetCapture
 SetCapture.argtypes = [ctypes.wintypes.HWND]
 SetCapture.restype = ctypes.wintypes.HWND
@@ -504,7 +507,7 @@ def _build_saved_inventory_item_text(item: dict) -> str:
     if target_kind:
         metadata_bits.append(target_kind)
     if metadata_bits:
-        item_text += f"\n{' • '.join(metadata_bits)}"
+        item_text += f"\n{' - '.join(metadata_bits)}"
     if target_display:
         item_text += f"\n{target_display}"
     return item_text
@@ -1105,11 +1108,17 @@ class NexusCategoryIcon(QWidget):
             painter.drawLine(QPointF(6.0, 8.0), QPointF(6.0, 10.0))
             painter.drawLine(QPointF(3.8, 10.0), QPointF(8.2, 10.0))
         elif self.icon_kind == "hud":
-            painter.drawRoundedRect(QRectF(1.5, 2.0, 9.0, 7.0), 1.3, 1.3)
-            painter.drawLine(QPointF(3.2, 6.0), QPointF(4.8, 6.0))
-            painter.drawLine(QPointF(4.8, 6.0), QPointF(5.7, 4.0))
-            painter.drawLine(QPointF(5.7, 4.0), QPointF(6.6, 7.0))
-            painter.drawLine(QPointF(6.6, 7.0), QPointF(8.6, 7.0))
+            painter.setBrush(QColor(91, 224, 244, 28))
+            painter.drawRoundedRect(QRectF(1.8, 2.0, 8.4, 7.0), 1.4, 1.4)
+            painter.setBrush(Qt.NoBrush)
+            path = QPainterPath()
+            path.moveTo(2.8, 6.2)
+            path.lineTo(4.1, 6.2)
+            path.lineTo(5.0, 4.1)
+            path.lineTo(6.1, 7.2)
+            path.lineTo(7.0, 5.4)
+            path.lineTo(9.0, 5.4)
+            painter.drawPath(path)
         else:
             path = QPainterPath()
             path.moveTo(6.8, 1.5)
@@ -1268,6 +1277,47 @@ class NexusGlyphButton(QPushButton):
         painter.restore()
 
 
+class NexusToggle(QCheckBox):
+    def __init__(self, parent=None):
+        super().__init__("", parent)
+        self.setFixedSize(38, 22)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setProperty("togglePrimitive", "ndai-compact-track-thumb-v1")
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        enabled = self.isEnabled()
+        checked = self.isChecked()
+        interactive = self.underMouse() or self.hasFocus()
+        track = QRectF(1.0, 2.0, self.width() - 2.0, self.height() - 4.0)
+        if not enabled:
+            track_fill = QColor(35, 48, 64, 150)
+            track_border = QColor(100, 116, 139, 90)
+            thumb_fill = QColor(148, 163, 184, 130)
+        elif checked:
+            track_fill = QColor(13, 148, 136, 220 if interactive else 196)
+            track_border = QColor(153, 246, 228, 190 if interactive else 142)
+            thumb_fill = QColor(236, 253, 245, 248)
+        else:
+            track_fill = QColor(21, 35, 52, 235)
+            track_border = QColor(122, 232, 255, 130 if interactive else 88)
+            thumb_fill = QColor(183, 214, 224, 226)
+        painter.setPen(QPen(track_border, 1.0))
+        painter.setBrush(track_fill)
+        painter.drawRoundedRect(track, 9.0, 9.0)
+        thumb_size = 14.0
+        thumb_x = self.width() - thumb_size - 4.0 if checked else 4.0
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(thumb_fill)
+        painter.drawEllipse(QRectF(thumb_x, 4.0, thumb_size, thumb_size))
+        if self.hasFocus():
+            painter.setPen(QPen(QColor(153, 246, 228, 150), 1.0, Qt.DashLine))
+            painter.setBrush(Qt.NoBrush)
+            painter.drawRoundedRect(QRectF(0.5, 1.5, self.width() - 1.0, self.height() - 3.0), 9.5, 9.5)
+
+
 class QuickSlotReorderPill(QFrame):
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -1337,7 +1387,7 @@ class ResidentAccessSettingsDialog(QDialog):
     SETTINGS_NAV_PARENT_DEFAULT_WIDTH = 118
     SETTINGS_NAV_CHILD_DEFAULT_WIDTH = 112
     SETTINGS_NAV_PARENT_MAX_WIDTH = 129
-    SETTINGS_NAV_CHILD_MAX_WIDTH = 115
+    SETTINGS_NAV_CHILD_MAX_WIDTH = 136
     SETTINGS_NAV_PARENT_DEFAULT_LABEL_WIDTH = 58
     SETTINGS_NAV_CHILD_DEFAULT_LABEL_WIDTH = 88
 
@@ -1374,7 +1424,9 @@ class ResidentAccessSettingsDialog(QDialog):
     SETTINGS_FOCUS_ALIASES = {
         "tray": "tray",
         "quick_access": "quick_access",
-        "monitoring_hud": "monitoring_hud",
+        "hud": "hud",
+        "monitoring_hud": "hud",
+        "hud_dashboard": "hud_dashboard",
         "ai_status": "tray",
         "privacy": "tray",
         "owner_routes": "tray",
@@ -1393,7 +1445,6 @@ class ResidentAccessSettingsDialog(QDialog):
         self._settings = load_resident_access_settings()
         self._saved_settings = self._settings
         self._notice_text = ""
-        self._hud_save_failed = False
         self._close_guard_active = False
         self._close_guard_pending_result = None
         self._close_guard_pending_callback = None
@@ -1403,6 +1454,11 @@ class ResidentAccessSettingsDialog(QDialog):
         self._slot_combos: list[QComboBox] = []
         self._nav_buttons: dict[str, QPushButton] = {}
         self._tray_children_expanded = True
+        self._hud_children_expanded = True
+        self._hud_access_result = None
+        self._hud_operation_active = False
+        self._hud_progress_label = "Applying..."
+        self._hud_checkbox_sync = False
         self._settings_resize_active = False
         self._settings_resize_edges = Qt.Edges()
         self._settings_resize_start_global = QPoint()
@@ -1426,7 +1482,10 @@ class ResidentAccessSettingsDialog(QDialog):
         self.setObjectName("residentAccessSettingsDialog")
         self.setProperty("surfaceClassification", "Nexus-Owned Product Surface")
         self.setProperty("visualInheritance", "UIREF-001-UIREF-002-UIREF-003-UIREF-007-FAM-002")
-        self.setProperty("settingsInformationArchitecture", "global-settings-shell-tray-parent-quick-access-child-deterministic-rail-v22")
+        self.setProperty(
+            "settingsInformationArchitecture",
+            "global-settings-shell-tray-and-hud-parent-child-deterministic-rail-r2",
+        )
         self.setProperty("referenceDerivedHeader", "ndai-global-settings-centered-settings-chrome-v22")
         self.setProperty("settingsVisualRepair", "lv1-global-settings-compact-ndai-grammar-close-intercept-v32")
         self.setProperty("dirtyGuardReference", "manage-monitors-modal-save-discard-cancel")
@@ -1435,7 +1494,7 @@ class ResidentAccessSettingsDialog(QDialog):
         self.setProperty("referenceComparatorRequired", "ui-reference-plus-product-grade-same-defect-comparator-v22")
         self.setProperty("standardWindowArchitecture", "pyside-dialogchrome-native-edge-corner-hit-test-reference-derived")
         self.setProperty("platformException", "none")
-        self.setProperty("windowResizeBehavior", "uiref-007-frameless-top-level-hover-polled-edge-corner-cursor-app-owned-fallback-8px-edge-12px-corner-no-visible-grip-splitter-travel-76-270-horizontal-overflow-minimum-684x388-dynamic-content-minimum-maximum-840x610-close-intercept-cursor-release-hysteresis-v42")
+        self.setProperty("windowResizeBehavior", "uiref-007-frameless-top-level-hover-polled-edge-corner-cursor-app-owned-fallback-8px-edge-12px-corner-no-visible-grip-splitter-travel-76-270-horizontal-overflow-minimum-684x388-dynamic-content-minimum-maximum-840x610-close-intercept-no-forced-arrow-hysteresis-v43")
         self.setProperty("quickAccessLayoutPolicy", "uiref-007-deterministic-row-width-combo-integrated-action-capsule-row-count-close-intercept-v42")
         self.setProperty("settingsRailPolishPolicy", "fixed-gap-deterministic-text-width-sharpened-icons-horizontal-overflow-splitter-travel-v41")
         self.setProperty("contentScalePolicy", "control-pill-anchored-proportional-content-scale-v32")
@@ -1613,9 +1672,14 @@ class ResidentAccessSettingsDialog(QDialog):
 
         self.hud_nav_item = QFrame(self.nav_shell)
         self.hud_nav_item.setObjectName("residentAccessSettingsCategoryItem")
-        self.hud_nav_item.setProperty("settingsCategoryRole", "selectable-hud-page")
+        self.hud_nav_item.setProperty("settingsCategoryRole", "persistent-owner-bounded-parent")
+        self.hud_nav_item.setProperty("settingsNavDensity", "slim-parent-row")
         self.hud_nav_item.setAttribute(Qt.WA_StyledBackground, True)
-        self.hud_nav_item.setFixedSize(self._settings_nav_pill_width("HUD", "parent"), 28)
+        hud_label = "HUD"
+        hud_pill_width = self._settings_nav_pill_width(hud_label, "parent")
+        hud_label_width = self._settings_nav_label_width(hud_label, "parent")
+        self.hud_nav_item.setFixedSize(hud_pill_width, 28)
+        self.hud_nav_item.setProperty("settingsNavSizingPolicy", "font-metric-default-min-clamped-v39")
         hud_nav_layout = QHBoxLayout(self.hud_nav_item)
         hud_nav_layout.setContentsMargins(5, 2, 4, 2)
         hud_nav_layout.setSpacing(5)
@@ -1625,18 +1689,63 @@ class ResidentAccessSettingsDialog(QDialog):
         hud_nav_layout.addWidget(self.hud_nav_indicator)
         self.hud_nav_icon = NexusCategoryIcon("hud", self.hud_nav_item)
         self.hud_nav_icon.setObjectName("residentAccessSettingsNavPrimaryIcon")
-        self.hud_nav_icon.setAccessibleName("Monitoring HUD category icon")
+        self.hud_nav_icon.setAccessibleName("HUD category icon")
         self.hud_nav_icon.setFixedSize(12, 12)
         hud_nav_layout.addWidget(self.hud_nav_icon)
-        self.hud_nav_button = QPushButton("HUD", self.hud_nav_item)
+        self.hud_nav_button = QPushButton(hud_label, self.hud_nav_item)
         self.hud_nav_button.setObjectName("residentAccessSettingsCategoryButton")
         self.hud_nav_button.setCheckable(True)
-        self.hud_nav_button.setMaximumWidth(self._settings_nav_label_width("HUD", "parent"))
-        self.hud_nav_button.setAccessibleName("Open Monitoring HUD Settings")
-        self.hud_nav_button.clicked.connect(lambda: self.set_focus("monitoring_hud"))
+        self.hud_nav_button.setMaximumWidth(hud_label_width)
+        self.hud_nav_button.setAccessibleName("Open HUD Settings")
+        self.hud_nav_button.clicked.connect(lambda: self.set_focus("hud"))
         hud_nav_layout.addWidget(self.hud_nav_button, 1)
+        self._nav_buttons["hud"] = self.hud_nav_button
+        self.hud_expand_button = NexusGlyphButton("chevron-down", self.hud_nav_item)
+        self.hud_expand_button.setObjectName("residentAccessSettingsNavExpander")
+        self.hud_expand_button.setProperty("quietGlyph", True)
+        self.hud_expand_button.setCheckable(True)
+        self.hud_expand_button.setChecked(True)
+        self.hud_expand_button.setAccessibleName("Expand or collapse HUD settings pages")
+        self.hud_expand_button.clicked.connect(self._toggle_hud_children)
+        hud_nav_layout.addWidget(self.hud_expand_button)
         nav_layout.addWidget(self.hud_nav_item)
-        self._nav_buttons["monitoring_hud"] = self.hud_nav_button
+
+        self.hud_subpage_nav_rail = QFrame(self.nav_shell)
+        self.hud_subpage_nav_rail.setObjectName("residentAccessSettingsSubpageRail")
+        self.hud_subpage_nav_rail.setAttribute(Qt.WA_StyledBackground, True)
+        hud_subpage_layout = QVBoxLayout(self.hud_subpage_nav_rail)
+        hud_subpage_layout.setContentsMargins(14, 0, 0, 0)
+        hud_subpage_layout.setSpacing(2)
+        hud_dashboard_label = "HUD Dashboard"
+        hud_dashboard_pill_width = self._settings_nav_pill_width(hud_dashboard_label, "child")
+        hud_dashboard_label_width = self._settings_nav_label_width(hud_dashboard_label, "child")
+        self.hud_dashboard_nav_item = QFrame(self.nav_shell)
+        self.hud_dashboard_nav_item.setObjectName("residentAccessSettingsNavItem")
+        self.hud_dashboard_nav_item.setProperty("navState", "available")
+        self.hud_dashboard_nav_item.setProperty("settingsNavDensity", "two-level-subpage-row")
+        self.hud_dashboard_nav_item.setProperty("settingsNavIdentity", "ndai-signal-leaf")
+        self.hud_dashboard_nav_item.setAttribute(Qt.WA_StyledBackground, True)
+        self.hud_dashboard_nav_item.setFixedSize(hud_dashboard_pill_width, 26)
+        self.hud_dashboard_nav_item.setProperty("settingsNavSizingPolicy", "font-metric-default-min-clamped-v39")
+        hud_dashboard_nav_layout = QHBoxLayout(self.hud_dashboard_nav_item)
+        hud_dashboard_nav_layout.setContentsMargins(5, 2, 4, 2)
+        hud_dashboard_nav_layout.setSpacing(4)
+        self.hud_dashboard_nav_icon = NexusCategoryIcon("hud", self.hud_dashboard_nav_item)
+        self.hud_dashboard_nav_icon.setObjectName("residentAccessSettingsNavIcon")
+        self.hud_dashboard_nav_icon.setAccessibleName("HUD Dashboard child page icon")
+        self.hud_dashboard_nav_icon.setFixedSize(12, 12)
+        hud_dashboard_nav_layout.addWidget(self.hud_dashboard_nav_icon)
+        self.hud_dashboard_nav_button = QPushButton(hud_dashboard_label, self.hud_dashboard_nav_item)
+        self.hud_dashboard_nav_button.setObjectName("residentAccessSettingsNavButton")
+        self.hud_dashboard_nav_button.setCheckable(True)
+        self.hud_dashboard_nav_button.setMaximumWidth(hud_dashboard_label_width)
+        self.hud_dashboard_nav_button.setAccessibleName("Open HUD Dashboard Settings")
+        self.hud_dashboard_nav_button.clicked.connect(lambda: self.set_focus("hud_dashboard"))
+        hud_dashboard_nav_layout.addWidget(self.hud_dashboard_nav_button, 1)
+        self._nav_buttons["hud_dashboard"] = self.hud_dashboard_nav_button
+        hud_subpage_layout.addWidget(self.hud_dashboard_nav_item)
+        hud_subpage_layout.addStretch(1)
+        nav_layout.addWidget(self.hud_subpage_nav_rail)
         nav_layout.addStretch(1)
 
         self.nav_boundary = QLabel("", self.nav_shell)
@@ -1739,29 +1848,6 @@ class ResidentAccessSettingsDialog(QDialog):
         tray_overview_layout.addStretch(1)
         page_layout.addWidget(self.tray_overview_container)
 
-        self.hud_settings_container = QFrame(self.settings_page_frame)
-        self.hud_settings_container.setObjectName("residentAccessHudSettingsContainer")
-        self.hud_settings_container.setAttribute(Qt.WA_StyledBackground, True)
-        hud_settings_layout = QVBoxLayout(self.hud_settings_container)
-        hud_settings_layout.setContentsMargins(12, 10, 12, 12)
-        hud_settings_layout.setSpacing(8)
-        self.hud_status = QLabel("", self.hud_settings_container)
-        self.hud_status.setObjectName("residentAccessHudStatus")
-        hud_settings_layout.addWidget(self.hud_status)
-        self.hud_action = QPushButton("Enable HUD Dashboard", self.hud_settings_container)
-        self.hud_action.setObjectName("residentAccessHudAction")
-        self.hud_action.setAccessibleName("Enable HUD Dashboard")
-        self.hud_action.clicked.connect(self._toggle_monitoring_hud_from_settings)
-        hud_settings_layout.addWidget(self.hud_action, 0, Qt.AlignLeft)
-        self.hud_hint = QLabel(
-            "Your choice is saved on this computer. When enabled, the tray can open or close the HUD Dashboard.",
-            self.hud_settings_container,
-        )
-        self.hud_hint.setObjectName("residentAccessHudHint")
-        self.hud_hint.setWordWrap(True)
-        hud_settings_layout.addWidget(self.hud_hint)
-        page_layout.addWidget(self.hud_settings_container)
-
         self.quick_slot_container = QFrame(self.settings_page_frame)
         self.quick_slot_container.setObjectName("residentAccessQuickSlotContainer")
         self.quick_slot_container.setAttribute(Qt.WA_StyledBackground, True)
@@ -1817,6 +1903,73 @@ class ResidentAccessSettingsDialog(QDialog):
         add_row.addStretch(1)
         quick_slot_layout.addLayout(add_row)
         page_layout.addWidget(self.quick_slot_container)
+
+        self.hud_settings_container = QFrame(self.settings_page_frame)
+        self.hud_settings_container.setObjectName("residentAccessHudSettingsContainer")
+        self.hud_settings_container.setAttribute(Qt.WA_StyledBackground, True)
+        self.hud_settings_container.setMaximumWidth(620)
+        self.hud_settings_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        self.hud_settings_container.setProperty("hudSettingsOwnership", "FAM-003-doorway-FAM-006-state-semantics")
+        hud_settings_layout = QVBoxLayout(self.hud_settings_container)
+        hud_settings_layout.setContentsMargins(12, 10, 12, 12)
+        hud_settings_layout.setSpacing(7)
+
+        hud_master_row = QHBoxLayout()
+        hud_master_row.setContentsMargins(0, 0, 0, 0)
+        hud_master_row.setSpacing(10)
+        self.hud_enabled_label = QLabel("Enable HUD", self.hud_settings_container)
+        self.hud_enabled_label.setObjectName("residentAccessHudEnabledLabel")
+        hud_master_row.addWidget(self.hud_enabled_label, 1)
+        self.hud_enabled_checkbox = NexusToggle(self.hud_settings_container)
+        self.hud_enabled_checkbox.setObjectName("residentAccessHudEnabledControl")
+        self.hud_enabled_checkbox.setAccessibleName("Enable HUD")
+        self.hud_enabled_checkbox.toggled.connect(self._handle_hud_enabled_toggled)
+        hud_master_row.addWidget(self.hud_enabled_checkbox)
+        self.hud_state_badge = QLabel("Disabled", self.hud_settings_container)
+        self.hud_state_badge.setObjectName("residentAccessHudStateBadge")
+        self.hud_state_badge.setAlignment(Qt.AlignCenter)
+        self.hud_state_badge.setMinimumWidth(74)
+        self.hud_state_badge.setFixedHeight(24)
+        hud_settings_layout.addLayout(hud_master_row)
+
+        self.hud_enable_detail = QLabel(
+            "Enabling adds the resident HUD route. Open HUD Dashboard when you want to use it.",
+            self.hud_settings_container,
+        )
+        self.hud_enable_detail.setObjectName("residentAccessHudEnableDetail")
+        self.hud_enable_detail.setWordWrap(True)
+        hud_settings_layout.addWidget(self.hud_enable_detail)
+
+        self.hud_operation_status = QLabel("", self.hud_settings_container)
+        self.hud_operation_status.setObjectName("residentAccessHudOperationStatus")
+        self.hud_operation_status.setWordWrap(True)
+        self.hud_operation_status.setAccessibleName("HUD Dashboard operation status")
+        hud_settings_layout.addWidget(self.hud_operation_status)
+
+        hud_action_row = QHBoxLayout()
+        hud_action_row.setContentsMargins(0, 2, 0, 0)
+        hud_action_row.setSpacing(7)
+        hud_action_row.addWidget(self.hud_state_badge)
+        hud_action_row.addStretch(1)
+        self.hud_retry_button = QPushButton("Retry", self.hud_settings_container)
+        self.hud_retry_button.setObjectName("residentAccessHudRetryButton")
+        self.hud_retry_button.setAccessibleName("Retry HUD Dashboard operation")
+        self.hud_retry_button.clicked.connect(self._handle_hud_retry)
+        hud_action_row.addWidget(self.hud_retry_button)
+        self.hud_open_button = QPushButton("Open HUD Dashboard", self.hud_settings_container)
+        self.hud_open_button.setObjectName("residentAccessHudOpenButton")
+        self.hud_open_button.setAccessibleName("Open HUD Dashboard")
+        self.hud_open_button.clicked.connect(self._handle_hud_open)
+        hud_action_row.addWidget(self.hud_open_button)
+        hud_settings_layout.addLayout(hud_action_row)
+        page_layout.addWidget(self.hud_settings_container)
+
+        self.hud_dashboard_settings_container = QFrame(self.settings_page_frame)
+        self.hud_dashboard_settings_container.setObjectName("residentAccessHudDashboardSettingsContainer")
+        self.hud_dashboard_settings_container.setProperty("settingsOwner", "FAM-006")
+        self.hud_dashboard_settings_container.setProperty("settingsAvailability", "future-gated")
+        self.hud_dashboard_settings_container.setAttribute(Qt.WA_StyledBackground, True)
+        page_layout.addWidget(self.hud_dashboard_settings_container)
 
         self.route_summary = QLabel("", self.settings_page_frame)
         self.route_summary.setObjectName("residentAccessSettingsRouteSummary")
@@ -2306,13 +2459,11 @@ class ResidentAccessSettingsDialog(QDialog):
             " border-radius: 0;"
             " padding: 2px 0;"
             "}"
-            "#residentAccessTrayOverviewContainer, #residentAccessHudSettingsContainer {"
+            "#residentAccessTrayOverviewContainer {"
             " background: rgba(2, 12, 24, 0.36);"
             " border: 1px solid rgba(118, 226, 255, 0.12);"
             " border-radius: 9px;"
             "}"
-            "#residentAccessHudStatus { color: rgba(244, 250, 255, 0.96); font-size: 13px; font-weight: 850; }"
-            "#residentAccessHudHint { color: rgba(148, 184, 199, 0.90); font-size: 11px; font-weight: 700; }"
             "#residentAccessTrayDeferredNotice {"
             " background: rgba(5, 18, 32, 0.50);"
             " border: 1px solid rgba(117, 228, 255, 0.12);"
@@ -2623,6 +2774,94 @@ class ResidentAccessSettingsDialog(QDialog):
             " background: #101827;"
             " border-color: #1f2937;"
             "}"
+            "#residentAccessHudSettingsContainer {"
+            " background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(4, 20, 34, 0.82), stop:1 rgba(2, 12, 24, 0.88));"
+            " border: 1px solid rgba(122, 232, 255, 0.18);"
+            " border-radius: 10px;"
+            "}"
+            "#residentAccessHudEnabledLabel {"
+            " color: rgba(239, 252, 255, 0.98);"
+            " font-size: 12px;"
+            " font-weight: 800;"
+            "}"
+            "#residentAccessHudEnabledControl { spacing: 0; }"
+            "#residentAccessHudEnabledControl::indicator {"
+            " width: 30px;"
+            " height: 16px;"
+            " border-radius: 8px;"
+            " border: 1px solid rgba(122, 232, 255, 0.34);"
+            " background: rgba(22, 34, 50, 0.96);"
+            "}"
+            "#residentAccessHudEnabledControl::indicator:checked {"
+            " background: rgba(13, 148, 136, 0.90);"
+            " border-color: rgba(153, 246, 228, 0.72);"
+            "}"
+            "#residentAccessHudEnabledControl::indicator:disabled {"
+            " background: rgba(32, 43, 58, 0.72);"
+            " border-color: rgba(100, 116, 139, 0.35);"
+            "}"
+            "#residentAccessHudStateBadge {"
+            " color: rgba(203, 237, 244, 0.94);"
+            " background: rgba(8, 30, 47, 0.86);"
+            " border: 1px solid rgba(122, 232, 255, 0.20);"
+            " border-radius: 7px;"
+            " padding: 0 8px;"
+            " font-size: 10px;"
+            " font-weight: 800;"
+            "}"
+            "#residentAccessHudStateBadge[resultStatus=\"success\"] {"
+            " color: rgba(209, 250, 229, 0.98);"
+            " border-color: rgba(52, 211, 153, 0.42);"
+            " background: rgba(6, 78, 59, 0.42);"
+            "}"
+            "#residentAccessHudStateBadge[resultStatus=\"partial\"], #residentAccessHudStateBadge[resultStatus=\"failed\"] {"
+            " color: rgba(254, 226, 226, 0.98);"
+            " border-color: rgba(248, 113, 113, 0.46);"
+            " background: rgba(127, 29, 29, 0.34);"
+            "}"
+            "#residentAccessHudEnableDetail {"
+            " color: rgba(169, 199, 216, 0.94);"
+            " font-size: 10px;"
+            " font-weight: 650;"
+            "}"
+            "#residentAccessHudOperationStatus {"
+            " color: rgba(190, 220, 232, 0.96);"
+            " background: rgba(2, 10, 20, 0.48);"
+            " border-left: 2px solid rgba(122, 232, 255, 0.34);"
+            " border-radius: 4px;"
+            " padding: 5px 7px;"
+            " font-size: 10px;"
+            "}"
+            "#residentAccessHudOpenButton, #residentAccessHudRetryButton {"
+            " min-height: 28px;"
+            " padding: 0 11px;"
+            " border-radius: 7px;"
+            " font-size: 10px;"
+            " font-weight: 800;"
+            "}"
+            "#residentAccessHudOpenButton {"
+            " color: rgba(231, 255, 250, 0.98);"
+            " background: rgba(11, 79, 78, 0.74);"
+            " border: 1px solid rgba(94, 234, 212, 0.44);"
+            "}"
+            "#residentAccessHudOpenButton:hover, #residentAccessHudOpenButton:focus {"
+            " background: rgba(13, 111, 105, 0.88);"
+            " border-color: rgba(153, 246, 228, 0.70);"
+            "}"
+            "#residentAccessHudRetryButton {"
+            " color: rgba(217, 235, 242, 0.96);"
+            " background: rgba(18, 34, 52, 0.82);"
+            " border: 1px solid rgba(122, 232, 255, 0.22);"
+            "}"
+            "#residentAccessHudRetryButton:hover, #residentAccessHudRetryButton:focus {"
+            " background: rgba(20, 55, 70, 0.90);"
+            " border-color: rgba(122, 232, 255, 0.48);"
+            "}"
+            "#residentAccessHudOpenButton:disabled, #residentAccessHudRetryButton:disabled {"
+            " color: rgba(127, 148, 164, 0.56);"
+            " background: rgba(15, 24, 37, 0.58);"
+            " border-color: rgba(71, 85, 105, 0.34);"
+            "}"
             "QSlider::groove:horizontal {"
             " height: 5px;"
             " background: rgba(2, 12, 24, 0.96);"
@@ -2644,6 +2883,9 @@ class ResidentAccessSettingsDialog(QDialog):
 
         self._rebuild_quick_slot_rows()
         self.set_focus(self._focus)
+        self.setTabOrder(self.hud_dashboard_nav_button, self.hud_enabled_checkbox)
+        self.setTabOrder(self.hud_enabled_checkbox, self.hud_open_button)
+        self.setTabOrder(self.hud_open_button, self.hud_retry_button)
         self._install_settings_resize_event_filters()
 
     def _apply_native_settings_palette(self):
@@ -2710,6 +2952,130 @@ class ResidentAccessSettingsDialog(QDialog):
             monitoring_hud_state=monitoring_state,
             command_overlay_state=command_state,
         )
+
+    def _hud_access(self):
+        provider = getattr(self.runtime, "monitoring_hud_access", None)
+        if not callable(provider):
+            return None
+        try:
+            return provider()
+        except Exception:
+            return None
+
+    def _refresh_hud_controls(self) -> None:
+        access = self._hud_access()
+        state = access.query_state() if access is not None else None
+        enabled = bool(getattr(state, "enabled", False))
+        available = bool(getattr(state, "available", False))
+        runtime_available = bool(getattr(state, "runtime_available", False))
+        reason = str(getattr(state, "availability_reason", "") or "HUD runtime is unavailable.")
+        result = self._hud_access_result
+        result_status = str(getattr(result, "status", "") or "")
+
+        self._hud_checkbox_sync = True
+        self.hud_enabled_checkbox.setChecked(enabled)
+        self._hud_checkbox_sync = False
+        self.hud_enabled_checkbox.setEnabled(runtime_available and not self._hud_operation_active)
+        self.hud_open_button.setVisible(enabled and available)
+        self.hud_open_button.setEnabled(enabled and available and not self._hud_operation_active)
+        self.hud_retry_button.setVisible(bool(getattr(result, "retryable", False)))
+        self.hud_retry_button.setEnabled(not self._hud_operation_active)
+
+        if self._hud_operation_active:
+            badge_text = self._hud_progress_label
+            status_text = "Applying the HUD Dashboard change and waiting for owner confirmation..."
+            result_status = "progress"
+        elif result is not None:
+            badge_text = (
+                "Enabled"
+                if bool(getattr(result, "confirmed_enabled", enabled))
+                else "Disabled"
+            )
+            if result_status == "partial":
+                badge_text = "Partial"
+            elif result_status in {"failed", "blocked"}:
+                badge_text = "Needs attention"
+            status_text = str(getattr(result, "message", "") or reason)
+        elif not runtime_available:
+            badge_text = "Unavailable"
+            status_text = reason
+            result_status = "blocked"
+        elif enabled and available:
+            badge_text = "Enabled"
+            status_text = "Enabled. HUD Dashboard is available from the resident tray."
+            result_status = "success"
+        elif enabled:
+            badge_text = "Unavailable"
+            status_text = f"Enabled, but unavailable. {reason}"
+            result_status = "partial"
+        else:
+            badge_text = "Disabled"
+            status_text = "Disabled. This Settings destination remains available for recovery."
+            result_status = "disabled"
+
+        self.hud_state_badge.setText(badge_text)
+        self.hud_state_badge.setProperty("resultStatus", result_status)
+        self.hud_operation_status.setText(status_text)
+        self.hud_operation_status.setProperty("resultStatus", result_status)
+        for widget in (self.hud_state_badge, self.hud_operation_status):
+            widget.style().unpolish(widget)
+            widget.style().polish(widget)
+
+    def _begin_hud_operation(self, label: str) -> None:
+        self._hud_operation_active = True
+        self._hud_progress_label = label
+        self._hud_access_result = None
+        self._refresh_hud_controls()
+        QApplication.processEvents()
+
+    def _finish_hud_operation(self, result, source: str) -> None:
+        self._hud_operation_active = False
+        self._hud_access_result = result
+        self._refresh_hud_controls()
+        self._emit_runtime_signal(
+            "RESIDENT_ACCESS_HUD_OPERATION_RESULT",
+            source=source,
+            operation=getattr(result, "operation", "unknown"),
+            status=getattr(result, "status", "failed"),
+            generation=getattr(result, "generation", 0),
+            confirmed_enabled=getattr(result, "confirmed_enabled", False),
+            persistence=getattr(result, "persistence_succeeded", None),
+            tray_refresh=getattr(result, "tray_refresh_succeeded", None),
+            dashboard_action=getattr(result, "dashboard_action_succeeded", None),
+        )
+
+    def _handle_hud_enabled_toggled(self, enabled: bool) -> None:
+        if self._hud_checkbox_sync:
+            return
+        access = self._hud_access()
+        if access is None:
+            self._hud_access_result = None
+            self._refresh_hud_controls()
+            return
+        source = "global_settings_hud_enable" if enabled else "global_settings_hud_disable"
+        self._begin_hud_operation("Enabling..." if enabled else "Disabling...")
+        result = access.set_enabled(bool(enabled), source)
+        self._finish_hud_operation(result, source)
+
+    def _handle_hud_open(self) -> None:
+        access = self._hud_access()
+        if access is None:
+            self._refresh_hud_controls()
+            return
+        source = "global_settings_open_hud_dashboard"
+        self._begin_hud_operation("Opening...")
+        result = access.open_or_restore_dashboard(source)
+        self._finish_hud_operation(result, source)
+
+    def _handle_hud_retry(self) -> None:
+        access = self._hud_access()
+        if access is None:
+            self._refresh_hud_controls()
+            return
+        source = "global_settings_hud_retry"
+        self._begin_hud_operation("Retrying...")
+        result = access.retry_last_operation(source)
+        self._finish_hud_operation(result, source)
 
     def _route_label(self, route) -> str:
         compact_labels = {
@@ -3114,16 +3480,6 @@ class ResidentAccessSettingsDialog(QDialog):
         self._rebuild_quick_slot_rows()
         self._refresh_text()
 
-    def _toggle_monitoring_hud_from_settings(self):
-        state_provider = getattr(self.runtime, "monitoring_hud_feature_state", None)
-        settings_writer = getattr(self.runtime, "_set_monitoring_hud_feature_enabled", None)
-        if not callable(state_provider) or not callable(settings_writer):
-            self._refresh_text()
-            return
-        enabled = bool(state_provider().get("feature_enabled"))
-        self._hud_save_failed = settings_writer(not enabled, source="global_settings") is False
-        self._refresh_text()
-
     def _save_settings(self):
         should_close = self._close_guard_active
         pending_callback = self._close_guard_pending_callback
@@ -3159,13 +3515,26 @@ class ResidentAccessSettingsDialog(QDialog):
         available_slot_limit = self._available_quick_slot_limit()
         self.status_summary.clear()
         self.status_summary.setVisible(False)
+        is_hud = self._focus in {"hud", "hud_dashboard"}
         self.section_heading.setText(
-            {"tray": "Tray", "quick_access": "Quick Access", "monitoring_hud": "Monitoring HUD"}[self._focus]
+            "HUD"
+            if self._focus == "hud"
+            else "HUD Dashboard"
+            if self._focus == "hud_dashboard"
+            else "Tray"
+            if self._focus == "tray"
+            else "Quick Access"
         )
         self.section_badge.setVisible(False)
         self.slot_count_badge.setText(f"{route_count} of {available_slot_limit}")
         self.slot_count_badge.setVisible(self._focus == "quick_access")
-        if self._focus == "tray":
+        if self._focus == "hud":
+            self.section_scope.setText("HUD")
+            self.section_detail.setText("Control HUD availability and open the Dashboard explicitly.")
+        elif self._focus == "hud_dashboard":
+            self.section_scope.setText("HUD / HUD DASHBOARD")
+            self.section_detail.setText("Dashboard settings are reserved for the HUD owner.")
+        elif self._focus == "tray":
             self.section_scope.setText("NEXUS TRAY")
             self.section_detail.setText(
                 self.SETTINGS_TRAY_CONTEXT_DETAILS.get(
@@ -3173,9 +3542,6 @@ class ResidentAccessSettingsDialog(QDialog):
                     "Tray visibility help and future click behavior settings.",
                 )
             )
-        elif self._focus == "monitoring_hud":
-            self.section_scope.setText("MONITORING / HUD")
-            self.section_detail.setText("Choose whether the optional HUD Dashboard is available.")
         else:
             self.section_scope.setText("NEXUS TRAY / QUICK ACCESS")
             self.section_detail.setText("Choose the shortcuts shown in the tray menu.")
@@ -3208,30 +3574,23 @@ class ResidentAccessSettingsDialog(QDialog):
         self.route_summary.setVisible(False)
         self.tray_overview_container.setVisible(self._focus == "tray")
         self.quick_slot_container.setVisible(self._focus == "quick_access")
-        self.hud_settings_container.setVisible(self._focus == "monitoring_hud")
-        state_provider = getattr(self.runtime, "monitoring_hud_feature_state", None)
-        settings_writer = getattr(self.runtime, "_set_monitoring_hud_feature_enabled", None)
-        hud_available = callable(state_provider) and callable(settings_writer)
-        hud_enabled = bool(state_provider().get("feature_enabled")) if hud_available else False
-        self.hud_status.setText(
-            "HUD Dashboard unavailable in this runtime" if not hud_available
-            else "HUD Dashboard enabled" if hud_enabled else "HUD Dashboard disabled"
-        )
-        self.hud_action.setText("Disable HUD Dashboard" if hud_enabled else "Enable HUD Dashboard")
-        self.hud_action.setAccessibleName(self.hud_action.text())
-        self.hud_action.setEnabled(hud_available)
-        self.hud_hint.setText(
-            "The choice changed for this session, but could not be saved. Try again after checking local storage."
-            if self._hud_save_failed else
-            "Your choice is saved on this computer. When enabled, the tray can open or close the HUD Dashboard."
-        )
+        self.hud_settings_container.setVisible(self._focus == "hud")
+        self.hud_dashboard_settings_container.setVisible(self._focus == "hud_dashboard")
         self.subpage_nav_rail.setVisible(self._tray_children_expanded)
+        self.hud_subpage_nav_rail.setVisible(self._hud_children_expanded)
         self.tray_expand_button.setChecked(self._tray_children_expanded)
         if hasattr(self.tray_expand_button, "set_glyph"):
             self.tray_expand_button.set_glyph("chevron-down" if self._tray_children_expanded else "chevron-right")
         self.tray_expand_button.setProperty("expanded", "true" if self._tray_children_expanded else "false")
         self.tray_expand_button.style().unpolish(self.tray_expand_button)
         self.tray_expand_button.style().polish(self.tray_expand_button)
+        self.hud_expand_button.setChecked(self._hud_children_expanded)
+        if hasattr(self.hud_expand_button, "set_glyph"):
+            self.hud_expand_button.set_glyph("chevron-down" if self._hud_children_expanded else "chevron-right")
+        self.hud_expand_button.setProperty("expanded", "true" if self._hud_children_expanded else "false")
+        self.hud_expand_button.style().unpolish(self.hud_expand_button)
+        self.hud_expand_button.style().polish(self.hud_expand_button)
+        self._refresh_hud_controls()
         self._update_guard_buttons()
         self.footer_frame.setVisible((self._focus == "quick_access" or dirty) and not self._close_guard_active)
 
@@ -3241,12 +3600,18 @@ class ResidentAccessSettingsDialog(QDialog):
             self._focus = "tray"
         self.set_focus(self._focus)
 
+    def _toggle_hud_children(self):
+        self._hud_children_expanded = not self._hud_children_expanded
+        self._refresh_text()
+
     def set_focus(self, focus: str):
         requested_focus = (focus or "").strip()
         self._focus = self.SETTINGS_FOCUS_ALIASES.get(requested_focus, "quick_access")
         self._focus_context = requested_focus if requested_focus in self.SETTINGS_FOCUS_ALIASES else self._focus
         if self._focus == "quick_access" and not self._tray_children_expanded:
             self._tray_children_expanded = True
+        if self._focus == "hud_dashboard" and not self._hud_children_expanded:
+            self._hud_children_expanded = True
         for nav_id, button in self._nav_buttons.items():
             is_selected = nav_id == self._focus
             button.setChecked(is_selected)
@@ -3254,18 +3619,34 @@ class ResidentAccessSettingsDialog(QDialog):
             button.style().unpolish(button)
             button.style().polish(button)
         tray_state = (
-            "selected" if self._focus == "tray"
-            else "contains-selected" if self._focus == "quick_access"
+            "selected"
+            if self._focus == "tray"
+            else "contains-selected"
+            if self._focus == "quick_access"
             else "available"
         )
         self.tray_nav_item.setProperty("navState", tray_state)
-        self.hud_nav_item.setProperty(
-            "navState", "selected" if self._focus == "monitoring_hud" else "available"
-        )
         self.quick_access_nav_item.setProperty("navState", "selected" if self._focus == "quick_access" else "available")
-        for nav_item in (self.tray_nav_item, self.quick_access_nav_item, self.subpage_nav_rail, self.hud_nav_item):
+        hud_child_selected = self._focus == "hud_dashboard"
+        self.hud_nav_button.setChecked(self._focus == "hud")
+        self.hud_nav_item.setProperty(
+            "navState", "selected" if self._focus == "hud" else "contains-selected" if hud_child_selected else "available"
+        )
+        self.hud_dashboard_nav_item.setProperty("navState", "selected" if hud_child_selected else "available")
+        for nav_item in (
+            self.tray_nav_item,
+            self.quick_access_nav_item,
+            self.subpage_nav_rail,
+            self.hud_nav_item,
+            self.hud_dashboard_nav_item,
+            self.hud_subpage_nav_rail,
+        ):
             nav_item.style().unpolish(nav_item)
             nav_item.style().polish(nav_item)
+        if self._focus == "quick_access":
+            self._resize_for_slot_count(len(self._settings.quick_slot_ids))
+        else:
+            self.setMinimumSize(*self.BASE_MINIMUM_SIZE)
         self._refresh_text()
         self.show()
         self.raise_()
@@ -3750,7 +4131,9 @@ class ResidentAccessSettingsDialog(QDialog):
                     if hover_edges:
                         self._set_settings_resize_cursor(hover_edges)
                         return True, 1
-                    self._reset_settings_resize_cursor()
+                    screen_point = self._settings_cursor_screen_point()
+                    if self._settings_should_clear_resize_cursor(screen_point):
+                        self._reset_settings_resize_cursor()
                 if message_id in (WM_MOUSEMOVE, WM_NCMOUSEMOVE) and not self._settings_resize_active:
                     if message_id == WM_NCMOUSEMOVE:
                         edges = self._settings_resize_edges_for_hit_test(int(msg.wParam))
@@ -3761,7 +4144,9 @@ class ResidentAccessSettingsDialog(QDialog):
                     if edges:
                         self._set_settings_resize_cursor(edges)
                     elif message_id == WM_MOUSEMOVE:
-                        self._reset_settings_resize_cursor()
+                        screen_point = self._settings_cursor_screen_point()
+                        if self._settings_should_clear_resize_cursor(screen_point):
+                            self._reset_settings_resize_cursor()
                 if message_id == WM_LBUTTONDOWN:
                     screen_point, edges = self._settings_resize_edges_under_cursor()
                     if edges and self._start_settings_resize(edges, screen_point):
@@ -3869,6 +4254,7 @@ class ResidentAccessSettingsDialog(QDialog):
         super().resizeEvent(event)
         self._apply_quick_slot_row_geometry()
         self._position_close_guard_overlay()
+
 
 
 class AIControlCenterCommandPage(QWebEnginePage):
@@ -9749,6 +10135,9 @@ class CommandOverlayPanel(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setObjectName("commandOverlayWindow")
+        command_font = QFont("Segoe UI")
+        command_font.setPointSize(10)
+        self.setFont(command_font)
         self._visible_ambiguous_count = 0
 
         root = QVBoxLayout(self)
@@ -10002,6 +10391,9 @@ class CommandOverlayPanel(QWidget):
 
         self.setStyleSheet(
             """
+            #commandOverlayWindow, #commandOverlayWindow * {
+                font-family: "Segoe UI";
+            }
             #commandPanel {
                 border: 1px solid rgba(118, 226, 255, 0.22);
                 border-radius: 22px;
@@ -10312,7 +10704,7 @@ class CommandOverlayPanel(QWidget):
             if target_kind:
                 metadata_bits.append(target_kind)
             if metadata_bits:
-                button_text += f"\n{' • '.join(metadata_bits)}"
+                button_text += f"\n{' - '.join(metadata_bits)}"
             if target_display:
                 button_text += f"\n{target_display}"
             button = QPushButton(button_text, self.ambiguous_choices_frame)
@@ -11765,7 +12157,11 @@ class MonitoringHudStudioWebWindow(QWidget):
         self._resize_hover_timer.setInterval(max(8, self._studio_resize_frame_interval_ms()))
         self._resize_hover_timer.timeout.connect(self._poll_native_edge_resize_hover_cursor)
         if self.STUDIO_RESIZABLE:
-            self._resize_hover_timer.start()
+            self.winId()
+            window_handle = self.windowHandle()
+            if window_handle is not None:
+                window_handle.visibilityChanged.connect(self._sync_resize_hover_polling_lifecycle)
+                window_handle.windowStateChanged.connect(self._sync_resize_hover_polling_lifecycle)
 
     def _on_studio_html_loaded(self, ok: bool) -> None:
         self._page_ready = bool(ok)
@@ -12107,8 +12503,28 @@ class MonitoringHudStudioWebWindow(QWidget):
             return
         self._finish_native_edge_resize()
 
+    def _sync_resize_hover_polling_lifecycle(self, *_args) -> bool:
+        should_run = bool(
+            self.STUDIO_RESIZABLE
+            and self.isVisible()
+            and not self.isMinimized()
+        )
+        if should_run:
+            if not self._resize_hover_timer.isActive():
+                self._resize_hover_timer.start()
+        else:
+            if self._resize_hover_timer.isActive():
+                self._resize_hover_timer.stop()
+            if not self._resize_edges:
+                self._reset_native_edge_resize_cursor()
+        return should_run
+
     def _poll_native_edge_resize_hover_cursor(self) -> None:
-        if not self.STUDIO_RESIZABLE or self._resize_edges or self._drag_offset is not None:
+        if (
+            not self._sync_resize_hover_polling_lifecycle()
+            or self._resize_edges
+            or self._drag_offset is not None
+        ):
             return
         _, edges = self._resize_edges_under_cursor()
         if edges:
@@ -12340,6 +12756,7 @@ class MonitoringHudStudioWebWindow(QWidget):
         self._save_current_geometry()
 
     def closeEvent(self, event):
+        self._resize_hover_timer.stop()
         self._drag_offset = None
         self._finish_native_edge_resize()
         self._reset_native_edge_resize_cursor()
@@ -12357,6 +12774,7 @@ class MonitoringHudStudioWebWindow(QWidget):
             self.show()
         self.raise_()
         self.activateWindow()
+        self._sync_resize_hover_polling_lifecycle()
 
 
 class MonitoringHudRecordingStudioWindow(MonitoringHudStudioWebWindow):
@@ -14389,6 +14807,15 @@ class DesktopRuntimeWindow(QWidget):
         self._monitoring_hud_visible = bool(
             self._monitoring_hud_feature_enabled and monitoring_hud_dashboard_visible
         )
+        self._monitoring_hud_state_source = str(initial_hud_state.get("source") or "startup")
+        self._monitoring_hud_access_adapter = MonitoringHudAccessAdapter(
+            query_state=self.monitoring_hud_feature_state,
+            persist_enabled=self._persist_monitoring_hud_enabled_from_access,
+            open_or_restore_dashboard=self._open_or_restore_monitoring_hud_dashboard_from_access,
+            close_dashboard=self._close_monitoring_hud_dashboard_from_access,
+            is_shutting_down=lambda: bool(self._is_shutting_down),
+            event_logger=self._log_event,
+        )
         self._monitoring_hud_anchored = True
         self._monitoring_hud_snap_enabled = True
         self._monitoring_hud_polling_rate_ms = 1000
@@ -14466,6 +14893,8 @@ class DesktopRuntimeWindow(QWidget):
         self._monitoring_hud_recording_control_click_bridge_timer.timeout.connect(
             self._poll_monitoring_hud_recording_control_click_bridge
         )
+        self._monitoring_hud_lifecycle_transition_generation = 0
+        self._monitoring_hud_lifecycle_timer_signature = None
         self._monitoring_hud_recording_control_click_bridge_down = False
         self._monitoring_hud_recording_control_click_bridge_press_point = QPoint()
         self._monitoring_hud_recording_control_click_bridge_last_activation_at = 0.0
@@ -14552,8 +14981,19 @@ class DesktopRuntimeWindow(QWidget):
         self.webview.installEventFilter(self)
         QApplication.instance().installEventFilter(self)
         if self.surface_role == "hud":
-            self._monitoring_hud_resize_hover_timer.start()
-            self._monitoring_hud_recording_control_click_bridge_timer.start()
+            self.winId()
+            window_handle = self.windowHandle()
+            if window_handle is not None:
+                window_handle.visibilityChanged.connect(
+                    lambda *_args: QTimer.singleShot(
+                        0, self._apply_monitoring_hud_window_interaction_state
+                    )
+                )
+                window_handle.windowStateChanged.connect(
+                    lambda *_args: QTimer.singleShot(
+                        0, self._apply_monitoring_hud_window_interaction_state
+                    )
+                )
         self.webview.hide()
 
         self.webview.page().setBackgroundColor(
@@ -17708,6 +18148,42 @@ class DesktopRuntimeWindow(QWidget):
             self.show()
             if self._page_ready and not self._monitoring_hud_control_sync_timer.isActive():
                 self._monitoring_hud_control_sync_timer.start(500)
+        lifecycle_ready = bool(
+            self.surface_role == "hud"
+            and dashboard_visible
+            and self.desktop_mode
+            and not self._is_shutting_down
+            and self._page_ready
+            and self.isVisible()
+            and not self.isMinimized()
+            and self.webview.isVisible()
+        )
+        lifecycle_signature = (
+            lifecycle_ready,
+            feature_enabled,
+            dashboard_visible,
+            self.desktop_mode,
+            self._page_ready,
+            self.isVisible(),
+            self.isMinimized(),
+            self.webview.isVisible(),
+            self._is_shutting_down,
+        )
+        if lifecycle_signature != self._monitoring_hud_lifecycle_timer_signature:
+            self._monitoring_hud_lifecycle_transition_generation += 1
+            self._monitoring_hud_lifecycle_timer_signature = lifecycle_signature
+        if not lifecycle_ready:
+            self._reset_monitoring_hud_resize_cursor()
+            self._monitoring_hud_recording_control_click_bridge_down = False
+            self._monitoring_hud_recording_control_click_bridge_press_point = QPoint()
+        for timer in (
+            self._monitoring_hud_resize_hover_timer,
+            self._monitoring_hud_recording_control_click_bridge_timer,
+        ):
+            if lifecycle_ready and not timer.isActive():
+                timer.start()
+            elif not lifecycle_ready and timer.isActive():
+                timer.stop()
         self._emit_runtime_signal(
             "MONITORING_HUD_INTERACTION_MODE_READY",
             package="PKG-006",
@@ -17832,12 +18308,20 @@ class DesktopRuntimeWindow(QWidget):
             polling_rate_ms=self._monitoring_hud_polling_rate_ms,
         )
 
-    def _persist_monitoring_hud_feature_state(self, source: str = "runtime"):
+    def _persist_monitoring_hud_feature_state(
+        self,
+        source: str = "runtime",
+        dashboard_visible: bool | None = None,
+    ) -> bool:
         if self.surface_role != "hud":
             return False
-        return save_monitoring_hud_state(
+        return bool(save_monitoring_hud_state(
             feature_enabled=bool(self._monitoring_hud_feature_enabled),
-            dashboard_visible=bool(self._monitoring_hud_visible and self.isVisible()),
+            dashboard_visible=(
+                bool(self._monitoring_hud_visible and self.isVisible())
+                if dashboard_visible is None
+                else bool(dashboard_visible)
+            ),
             event_logger=self._log_event,
             source=source,
             monitor_ids=list(getattr(self, "_monitoring_hud_overlay_profile_monitor_ids", []) or []),
@@ -17849,16 +18333,125 @@ class DesktopRuntimeWindow(QWidget):
             overlay_profile_default_deleted_by_user=bool(
                 getattr(self, "_monitoring_hud_overlay_profile_default_deleted_by_user", False)
             ),
-        )
+        ))
 
     def monitoring_hud_feature_state(self) -> dict[str, object]:
+        runtime_available = bool(self.surface_role == "hud" and not self._is_shutting_down)
+        dashboard_available = bool(runtime_available and self._page_ready)
         return {
             "feature_enabled": bool(self._monitoring_hud_feature_enabled),
             "dashboard_visible": bool(self.isVisible() and self._monitoring_hud_visible),
+            "runtime_available": runtime_available,
+            "dashboard_available": dashboard_available,
+            "resident_route_state": (
+                "enabled_available"
+                if self._monitoring_hud_feature_enabled and dashboard_available
+                else "enabled_not_ready"
+                if self._monitoring_hud_feature_enabled
+                else "disabled_by_user"
+            ),
+            "resident_route_reason": "" if dashboard_available else "HUD Dashboard is still starting.",
             "overlay_deferred": True,
             "overlay_anchor_enabled": False,
             "anchored": self._monitoring_hud_anchored,
+            "source": self._monitoring_hud_state_source,
         }
+
+    def monitoring_hud_access(self) -> MonitoringHudAccessAdapter:
+        return self._monitoring_hud_access_adapter
+
+    def _apply_monitoring_hud_enabled_runtime_state(self, enabled: bool, source: str) -> None:
+        if enabled:
+            if self._page_ready and not self._monitoring_hud_poll_timer.isActive():
+                self._monitoring_hud_poll_timer.start(self._monitoring_hud_polling_rate_ms)
+            if self._page_ready and not self._monitoring_hud_control_sync_timer.isActive():
+                self._monitoring_hud_control_sync_timer.start(500)
+        else:
+            self._monitoring_hud_poll_timer.stop()
+            self._monitoring_hud_control_sync_timer.stop()
+            if self._monitoring_hud_minimal_native_overlay is not None:
+                self._monitoring_hud_minimal_native_overlay.update_product_state(
+                    visible=False,
+                    anchored=True,
+                    cards={},
+                )
+        if enabled:
+            self._set_monitoring_hud_control_state(
+                visible=bool(self._monitoring_hud_visible),
+                source=source,
+            )
+
+    def _persist_monitoring_hud_enabled_from_access(self, enabled: bool, source: str) -> bool:
+        if self._is_shutting_down or self.surface_role != "hud":
+            return False
+        previous_enabled = bool(self._monitoring_hud_feature_enabled)
+        previous_visible = bool(self._monitoring_hud_visible)
+        self._monitoring_hud_feature_enabled = bool(enabled)
+        persisted = self._persist_monitoring_hud_feature_state(
+            source=source,
+            dashboard_visible=False if not enabled else None,
+        )
+        if not persisted:
+            self._monitoring_hud_feature_enabled = previous_enabled
+            self._monitoring_hud_visible = previous_visible
+            self._apply_monitoring_hud_enabled_runtime_state(previous_enabled, f"{source}_rollback")
+            self._set_monitoring_hud_control_state(
+                visible=previous_visible,
+                source=f"{source}_rollback_visibility",
+            )
+            self._emit_runtime_signal(
+                "MONITORING_HUD_FEATURE_STATE_FAILED",
+                source=source,
+                requested_enabled=bool(enabled),
+                rollback_enabled=previous_enabled,
+                rollback_visible=previous_visible,
+            )
+            return False
+        self._monitoring_hud_state_source = "runtime_persisted"
+        self._apply_monitoring_hud_enabled_runtime_state(bool(enabled), source)
+        self._emit_runtime_signal(
+            "MONITORING_HUD_FEATURE_STATE_CONFIRMED",
+            source=source,
+            feature_enabled=bool(self._monitoring_hud_feature_enabled),
+            dashboard_visible=bool(self.isVisible() and self._monitoring_hud_visible),
+            persistence_confirmed=True,
+        )
+        return True
+
+    def _open_or_restore_monitoring_hud_dashboard_from_access(self, source: str) -> bool:
+        if (
+            self._is_shutting_down
+            or not self._monitoring_hud_feature_enabled
+            or not self._page_ready
+        ):
+            return False
+        self._set_monitoring_hud_control_state(visible=True, source=source)
+        if self.isMinimized():
+            self.showNormal()
+        if not self.isVisible():
+            self.show()
+        if not self.webview.isVisible():
+            self.webview.show()
+        self.raise_()
+        self.activateWindow()
+        persisted = self._persist_monitoring_hud_feature_state(source=f"{source}_dashboard_open")
+        return bool(persisted and self.isVisible() and self._monitoring_hud_visible)
+
+    def _close_monitoring_hud_dashboard_from_access(self, source: str) -> bool:
+        if self._is_shutting_down:
+            return False
+        self._set_monitoring_hud_control_state(visible=False, source=source)
+        persisted = self._persist_monitoring_hud_feature_state(source=f"{source}_dashboard_close")
+        return bool(persisted and not self.isVisible() and not self._monitoring_hud_visible)
+
+    def set_monitoring_hud_feature_enabled(self, enabled: bool, source: str = "settings"):
+        return self._monitoring_hud_access_adapter.set_enabled(bool(enabled), source)
+
+    def open_or_restore_monitoring_hud_dashboard(self, source: str = "resident"):
+        return self._monitoring_hud_access_adapter.open_or_restore_dashboard(source)
+
+    def close_monitoring_hud_dashboard(self, source: str = "resident"):
+        return self._monitoring_hud_access_adapter.close_dashboard(source)
 
     def _ensure_monitoring_hud_desktop_mode_for_visible_dashboard(self, source: str = "runtime"):
         if (
@@ -17885,35 +18478,7 @@ class DesktopRuntimeWindow(QWidget):
             self._schedule_desktop_mode_enable()
 
     def _set_monitoring_hud_feature_enabled(self, enabled: bool, *, source: str = "runtime"):
-        self._monitoring_hud_feature_enabled = bool(enabled)
-        self._monitoring_hud_visible = bool(enabled)
-        if enabled:
-            if self._page_ready and not self._monitoring_hud_poll_timer.isActive():
-                self._monitoring_hud_poll_timer.start(self._monitoring_hud_polling_rate_ms)
-            if self._page_ready and not self._monitoring_hud_control_sync_timer.isActive():
-                self._monitoring_hud_control_sync_timer.start(500)
-        else:
-            self._monitoring_hud_poll_timer.stop()
-            self._monitoring_hud_control_sync_timer.stop()
-            if self._monitoring_hud_minimal_native_overlay is not None:
-                self._monitoring_hud_minimal_native_overlay.update_product_state(
-                    visible=False,
-                    anchored=True,
-                    cards={},
-                )
-        self._set_monitoring_hud_control_state(source=source)
-        persisted = self._persist_monitoring_hud_feature_state(source=source)
-        self._emit_runtime_signal(
-            "MONITORING_HUD_FEATURE_STATE_READY",
-            package="PKG-006",
-            slice="SLC-027",
-            seam="WS43",
-            source=source,
-            feature_enabled=self._monitoring_hud_feature_enabled,
-            dashboard_visible=bool(self.isVisible() and self._monitoring_hud_visible),
-            overlay_deferred=True,
-        )
-        return persisted
+        return self.set_monitoring_hud_feature_enabled(bool(enabled), source=source)
 
     def request_monitoring_hud_unanchor_from_tray(self, source: str = "tray"):
         self._emit_runtime_signal(
@@ -17927,7 +18492,7 @@ class DesktopRuntimeWindow(QWidget):
 
     def request_monitoring_hud_toggle_from_tray(self, source: str = "tray"):
         next_enabled = not bool(self._monitoring_hud_feature_enabled)
-        self._set_monitoring_hud_feature_enabled(next_enabled, source=source)
+        result = self._set_monitoring_hud_feature_enabled(next_enabled, source=source)
         if next_enabled:
             self._emit_runtime_signal(
                 "MONITORING_HUD_TRAY_ENABLE_RENDER_STABLE_READY",
@@ -17968,20 +18533,14 @@ class DesktopRuntimeWindow(QWidget):
             feature_enabled=next_enabled,
             dashboard_visible=bool(self.isVisible() and self._monitoring_hud_visible),
         )
+        return result
 
     def request_monitoring_hud_dashboard_from_tray(self, source: str = "tray", visible: bool = True):
-        if not self._monitoring_hud_feature_enabled:
-            self._emit_runtime_signal(
-                "MONITORING_HUD_TRAY_DASHBOARD_OPEN_CLOSE_BLOCKED",
-                package="PKG-006",
-                slice="SLC-027",
-                seam="WS43",
-                source=source,
-                reason="feature_disabled",
-            )
-            return
-        self._set_monitoring_hud_control_state(visible=bool(visible), source=source)
-        self._persist_monitoring_hud_feature_state(source=source)
+        result = (
+            self.open_or_restore_monitoring_hud_dashboard(source=source)
+            if visible
+            else self.close_monitoring_hud_dashboard(source=source)
+        )
         self._emit_runtime_signal(
             "MONITORING_HUD_TRAY_DASHBOARD_OPEN_CLOSE_READY",
             package="PKG-006",
@@ -17990,7 +18549,9 @@ class DesktopRuntimeWindow(QWidget):
             source=source,
             dashboard_visible=bool(self.isVisible() and self._monitoring_hud_visible),
             feature_enabled=self._monitoring_hud_feature_enabled,
+            result_status=getattr(result, "status", "unknown"),
         )
+        return result
 
     def _sync_monitoring_hud_control_state_from_page(self):
         if not self.desktop_mode or not self._page_ready or self._is_shutting_down:
@@ -18925,6 +19486,8 @@ class DesktopRuntimeWindow(QWidget):
         )
 
     def _on_load_finished(self, ok):
+        if self._is_shutting_down:
+            return
         if not ok:
             self._log_event("RENDERER_MAIN|VISUAL_PAGE_LOAD_FAILED")
             return
@@ -20837,7 +21400,25 @@ class DesktopRuntimeWindow(QWidget):
             return False
 
         self._log_event("RENDERER_MAIN|RENDERER_SHUTDOWN_BEGIN")
+        self._monitoring_hud_access_adapter.begin_shutdown(source="renderer_request_shutdown")
         self._is_shutting_down = True
+        self._reset_monitoring_hud_resize_cursor()
+        self._monitoring_hud_recording_control_click_bridge_down = False
+        self._monitoring_hud_recording_control_click_bridge_press_point = QPoint()
+        self._monitoring_hud_resize_hover_timer.stop()
+        self._monitoring_hud_recording_control_click_bridge_timer.stop()
+        try:
+            self._monitoring_hud_resize_hover_timer.timeout.disconnect(
+                self._poll_monitoring_hud_resize_hover_cursor
+            )
+        except (RuntimeError, TypeError):
+            pass
+        try:
+            self._monitoring_hud_recording_control_click_bridge_timer.timeout.disconnect(
+                self._poll_monitoring_hud_recording_control_click_bridge
+            )
+        except (RuntimeError, TypeError):
+            pass
         self._result_close_timer.stop()
         self._monitoring_hud_poll_timer.stop()
         self._monitoring_hud_control_sync_timer.stop()
@@ -20849,12 +21430,36 @@ class DesktopRuntimeWindow(QWidget):
             self._monitoring_hud_recording_studio_window.close()
         if self._monitoring_hud_log_viewer_studio_window is not None:
             self._monitoring_hud_log_viewer_studio_window.close()
-        self.webview.stop()
+        if self._resident_access_settings_dialog is not None:
+            self._resident_access_settings_dialog.close()
+        try:
+            self.webview.stop()
+            self.webview.hide()
+            self.webview.loadFinished.connect(self._complete_webengine_shutdown)
+            self.webview.setUrl(QUrl("about:blank"))
+        except RuntimeError:
+            self._complete_webengine_shutdown()
+            return True
         self.hide()
-        self.close()
-
-        app = QApplication.instance()
-
-        if app is not None:
-            QTimer.singleShot(0, app.quit)
+        QTimer.singleShot(1000, self._complete_webengine_shutdown)
         return True
+
+    def _complete_webengine_shutdown(self, *_args):
+        if getattr(self, "_shutdown_release_completed", False):
+            return
+        self._shutdown_release_completed = True
+        self._log_event("RENDERER_MAIN|DESKTOP_RUNTIME_WEBENGINE_RELEASE_READY")
+        try:
+            self.webview.loadFinished.disconnect(self._complete_webengine_shutdown)
+        except (RuntimeError, TypeError):
+            pass
+        try:
+            self.webview.stop()
+            self.webview.deleteLater()
+        except RuntimeError:
+            pass
+        try:
+            self.close()
+            QTimer.singleShot(0, self.deleteLater)
+        except RuntimeError:
+            pass

@@ -35,6 +35,7 @@ class CoreVisualizationWindow(QWidget):
         self.event_logger = event_logger
         self._page_ready = False
         self._is_shutting_down = False
+        self._shutdown_release_completed = False
         self._pending_visual_state = "dormant"
         self._pending_voice_level = None
         self._provider_durable_consent_store_dir = (
@@ -181,6 +182,8 @@ class CoreVisualizationWindow(QWidget):
             )
 
     def _on_load_finished(self, ok):
+        if self._is_shutting_down:
+            return
         if not ok:
             self._log_event("RENDERER_MAIN|CORE_VISUALIZATION_WINDOW_LOAD_FAILED")
             return
@@ -449,12 +452,38 @@ class CoreVisualizationWindow(QWidget):
         self._apply_pending_voice_level()
 
     def request_shutdown(self):
+        if self._is_shutting_down:
+            return False
         self._is_shutting_down = True
+        self._log_event("RENDERER_MAIN|CORE_VISUALIZATION_SHUTDOWN_BEGIN")
+        try:
+            self.webview.stop()
+            self.webview.hide()
+            self.webview.loadFinished.connect(self._complete_webengine_shutdown)
+            self.webview.setUrl(QUrl("about:blank"))
+        except RuntimeError:
+            self._complete_webengine_shutdown()
+            return True
+        self.hide()
+        QTimer.singleShot(1000, self._complete_webengine_shutdown)
+        return True
+
+    def _complete_webengine_shutdown(self, *_args):
+        if self._shutdown_release_completed:
+            return
+        self._shutdown_release_completed = True
+        self._log_event("RENDERER_MAIN|CORE_VISUALIZATION_WEBENGINE_RELEASE_READY")
+        try:
+            self.webview.loadFinished.disconnect(self._complete_webengine_shutdown)
+        except (RuntimeError, TypeError):
+            pass
+        try:
+            self.webview.stop()
+            self.webview.deleteLater()
+        except RuntimeError:
+            pass
         try:
             self.close()
-        except RuntimeError:
-            return
-        try:
             QTimer.singleShot(0, self.deleteLater)
         except RuntimeError:
-            return
+            pass
