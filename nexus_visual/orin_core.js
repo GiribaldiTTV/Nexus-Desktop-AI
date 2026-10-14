@@ -1,4 +1,3 @@
-// NEXUS-SOURCE-OWNER: schema=source-owner-v1; owner=FAM007-AI; ledger=SRCOWN-FIRSTPASS-FAM007-AI-007; surface=orin-core-provider-status-script; status=shared
 const body = document.body;
 const backCanvas = document.getElementById("fx-back");
 const frontCanvas = document.getElementById("fx-front");

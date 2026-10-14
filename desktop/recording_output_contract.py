@@ -2,8 +2,7 @@
 
 The contract owns the native NDAI log shape, safe runtime output root, atomic
 write, and readback proof for Dashboard Recording Start/Stop. User-facing export
-formats such as CSV are separate export artifacts and remain outside the normal
-product save flow unless validation explicitly asks for an export proof.
+formats such as CSV are separate from the normal product save flow.
 """
 
 from __future__ import annotations
@@ -14,8 +13,6 @@ import io
 import json
 import os
 import re
-import tempfile
-from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +23,6 @@ RECORDING_OUTPUT_FORMAT = "ndai-native-recording-log"
 RECORDING_OUTPUT_EXTENSION = ".ndailog"
 RECORDING_OUTPUT_ENV = "NEXUS_MONITORING_HUD_RECORDING_OUTPUT_DIR"
 RECORDING_EXPORT_ENV = "NEXUS_MONITORING_HUD_RECORDING_EXPORT_DIR"
-RECORDING_VALIDATION_EXPORT_ENV = "NEXUS_MONITORING_HUD_RECORDING_VALIDATION_EXPORT_DIR"
 RECORDING_OUTPUT_DIR_NAME = "Recordings"
 RECORDING_EXPORT_DIR_NAME = "Exported Logs"
 RECORDING_OUTPUT_INTERNAL_PATH_TERMS = (
@@ -117,7 +113,7 @@ def recording_output_contract() -> dict[str, Any]:
             or _path_has_internal_user_visible_segment(recording_export_dir())
         ),
         "normalProductSaveCreatesExport": False,
-        "csvExportState": "manual-validation-or-future-user-export-only",
+        "csvExportState": "future-user-export-only",
         "nativeLogLoaderState": "future-separate-viewer",
         "exportShareState": "future-gated",
     }
@@ -241,29 +237,6 @@ def readback_recording_output_files(native_log_path: str | Path, manifest_path: 
     }
 
 
-def write_recording_csv_export(
-    *,
-    rows: list[dict[str, Any]],
-    export_dir: str | Path,
-    stem: str,
-) -> dict[str, Any]:
-    export_root = Path(export_dir)
-    export_root.mkdir(parents=True, exist_ok=True)
-    csv_path = export_root / f"{_safe_token(stem, 'recording-export')}.csv"
-    csv_tmp = csv_path.with_suffix(csv_path.suffix + ".tmp")
-    csv_tmp.write_text(render_recording_output_csv(rows), encoding="utf-8", newline="")
-    os.replace(csv_tmp, csv_path)
-    parsed = parse_recording_output_csv(csv_path.read_text(encoding="utf-8"))
-    return {
-        "passed": bool(parsed),
-        "csvPath": str(csv_path),
-        "exportDir": str(export_root),
-        "rowCount": len(parsed),
-        "exportFormat": "csv",
-        "exportOwner": "manual-validation-artifact",
-    }
-
-
 def write_recording_output_files(
     *,
     session_id: str,
@@ -301,14 +274,6 @@ def write_recording_output_files(
     tmp_path = native_log_path.with_suffix(native_log_path.suffix + ".tmp")
     tmp_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     os.replace(tmp_path, native_log_path)
-    validation_export = None
-    validation_export_dir = os.environ.get(RECORDING_VALIDATION_EXPORT_ENV, "").strip()
-    if validation_export_dir:
-        validation_export = write_recording_csv_export(
-            rows=rows,
-            export_dir=validation_export_dir,
-            stem=stem,
-        )
     readback = readback_recording_output_files(native_log_path)
     return {
         "passed": bool(readback.get("passed")),
@@ -318,9 +283,6 @@ def write_recording_output_files(
         "exportDir": str(export_root),
         "csvPath": "",
         "manifestPath": "",
-        "validationExportPath": str((validation_export or {}).get("csvPath") or ""),
-        "validationExportDir": str((validation_export or {}).get("exportDir") or ""),
-        "validationExportReadbackPassed": bool((validation_export or {}).get("passed") or False),
         "normalProductSaveCreatesExport": False,
         "nativeLogReadableOnlyByNDAI": True,
         "rowCount": len(rows),
@@ -335,184 +297,3 @@ def write_recording_output_files(
         "recordingExecutionState": "saved-complete",
         "outputRootOwner": "runtime-local-app-data",
     }
-
-
-def validate_recording_output_contract() -> dict[str, Any]:
-    contract = recording_output_contract()
-    samples = [
-        {
-            "timestamp_utc": "2026-06-01T19:00:00.000Z",
-            "elapsed_ms": 1000,
-            "overlay_profile_id": "default-overlay-profile",
-            "overlay_profile_name": "Default Overlay Profile",
-            "monitor_id": "gpu",
-            "monitor_name": "GPU Group",
-            "sensor_id": "gpu-load",
-            "sensor_label": "GPU Load",
-            "value": "",
-            "unit": "%",
-            "quality": "unavailable",
-            "source_state": "provider-required",
-        },
-        {
-            "timestamp_utc": "2026-06-01T19:00:00.000Z",
-            "elapsed_ms": 0,
-            "overlay_profile_id": "default-overlay-profile",
-            "overlay_profile_name": "Default Overlay Profile",
-            "monitor_id": "cpu",
-            "monitor_name": "CPU Group",
-            "sensor_id": "cpu-load",
-            "sensor_label": "CPU Load",
-            "value": "12.5",
-            "unit": "%",
-            "quality": "ok",
-            "source_state": "sample",
-        },
-    ]
-    normalized = build_recording_output_rows(samples)
-    export_csv_text = render_recording_output_csv(samples)
-    parsed_export = parse_recording_output_csv(export_csv_text)
-    with tempfile.TemporaryDirectory(prefix="nexus-fam006-recording-") as temp_dir:
-        validation_export_dir = Path(temp_dir) / "manual_validation_exports"
-        previous_validation_export_dir = os.environ.get(RECORDING_VALIDATION_EXPORT_ENV)
-        os.environ[RECORDING_VALIDATION_EXPORT_ENV] = str(validation_export_dir)
-        write_result = write_recording_output_files(
-            session_id="validation-session",
-            active_overlay_profile_id="default-overlay-profile",
-            active_overlay_profile_name="Default Overlay Profile",
-            target_monitor_ids=["cpu", "gpu"],
-            target_state="ready",
-            samples=samples,
-            started_at_utc="2026-06-01T18:59:59.000Z",
-            stopped_at_utc="2026-06-01T19:00:01.000Z",
-            output_dir=Path(temp_dir) / "native_logs",
-        )
-        readback = readback_recording_output_files(write_result["nativeLogPath"])
-        alpha_samples = [
-            {
-                "timestamp_utc": "2026-06-01T20:00:00.000Z",
-                "elapsed_ms": 0,
-                "overlay_profile_id": "overlay-profile-alpha",
-                "overlay_profile_name": "Overlay Profile Alpha",
-                "monitor_id": "cpu",
-                "monitor_name": "CPU Group",
-                "sensor_id": "cpu-load",
-                "sensor_label": "CPU Load",
-                "value": "15.0",
-                "unit": "%",
-                "quality": "ok",
-                "source_state": "sample",
-            }
-        ]
-        beta_samples = [
-            {
-                "timestamp_utc": "2026-06-01T20:00:01.000Z",
-                "elapsed_ms": 0,
-                "overlay_profile_id": "overlay-profile-beta",
-                "overlay_profile_name": "Overlay Profile Beta",
-                "monitor_id": "gpu",
-                "monitor_name": "GPU Group",
-                "sensor_id": "gpu-load",
-                "sensor_label": "GPU Load",
-                "value": "42.0",
-                "unit": "%",
-                "quality": "ok",
-                "source_state": "sample",
-            }
-        ]
-        alpha_write = write_recording_output_files(
-            session_id="validation-alpha",
-            active_overlay_profile_id="overlay-profile-alpha",
-            active_overlay_profile_name="Overlay Profile Alpha",
-            target_monitor_ids=["cpu"],
-            target_state="ready",
-            samples=alpha_samples,
-            started_at_utc="2026-06-01T19:59:59.000Z",
-            stopped_at_utc="2026-06-01T20:00:01.000Z",
-            output_dir=Path(temp_dir) / "native_logs",
-        )
-        beta_write = write_recording_output_files(
-            session_id="validation-beta",
-            active_overlay_profile_id="overlay-profile-beta",
-            active_overlay_profile_name="Overlay Profile Beta",
-            target_monitor_ids=["gpu"],
-            target_state="ready",
-            samples=beta_samples,
-            started_at_utc="2026-06-01T20:00:00.000Z",
-            stopped_at_utc="2026-06-01T20:00:02.000Z",
-            output_dir=Path(temp_dir) / "native_logs",
-        )
-        if previous_validation_export_dir is None:
-            os.environ.pop(RECORDING_VALIDATION_EXPORT_ENV, None)
-        else:
-            os.environ[RECORDING_VALIDATION_EXPORT_ENV] = previous_validation_export_dir
-    proof = {
-        "passed": False,
-        "contract": contract,
-        "nativeLogFormat": contract["format"] == RECORDING_OUTPUT_FORMAT,
-        "nativeLogExtension": contract["extension"] == RECORDING_OUTPUT_EXTENSION,
-        "nativeLogOnlyDefaultSave": contract["normalProductSaveCreatesExport"] is False,
-        "exportRootSeparate": Path(contract["exportRoot"]) != Path(contract["outputRoot"]),
-        "exportHeaderDeterministic": export_csv_text.splitlines()[0].split(",") == list(RECORDING_OUTPUT_HEADERS),
-        "rowDeterministic": normalized[0]["monitor_id"] == "cpu" and normalized[1]["monitor_id"] == "gpu",
-        "parseReadback": parsed_export == normalized,
-        "nullNoDataBehavior": parsed_export[1]["value"] == "" and parsed_export[1]["quality"] == "unavailable",
-        "graphPlotReady": contract["graphPlotReady"] is True,
-        "fileWritingEnabled": contract["fileWritingState"] == "enabled",
-        "recordingExecutionEnabled": contract["recordingExecutionState"] == "enabled",
-        "dashboardStartStopEnabled": contract["startStopState"] == "dashboard-card-enabled",
-        "writeReadbackPassed": bool(write_result.get("passed") and readback.get("passed")),
-        "profileLogConsistencyPassed": bool(
-            write_result.get("profileLogConsistencyPassed")
-            and readback.get("profileLogConsistencyPassed")
-        ),
-        "twoProfileLogConsistencyPassed": bool(
-            alpha_write.get("profileLogConsistencyPassed")
-            and beta_write.get("profileLogConsistencyPassed")
-            and alpha_write.get("rowProfileIds") == ["overlay-profile-alpha"]
-            and beta_write.get("rowProfileIds") == ["overlay-profile-beta"]
-            and alpha_write.get("rowMonitorIds") == ["cpu"]
-            and beta_write.get("rowMonitorIds") == ["gpu"]
-        ),
-        "userVisibleStorageModel": contract["userVisibleStorageModel"] == "flat-user-recording-and-export-roots",
-        "nativeRootFolderExact": Path(contract["outputRoot"]).name == RECORDING_OUTPUT_DIR_NAME,
-        "exportRootFolderExact": Path(contract["exportRoot"]).name == RECORDING_EXPORT_DIR_NAME,
-        "surfaceChildFolderAbsent": contract["surfaceChildFolderState"] == "not-used"
-        and "Monitoring HUD" not in str(contract["outputRoot"])
-        and "Monitoring HUD" not in str(contract["exportRoot"]),
-        "internalPathLeakageAbsent": contract["internalPathLeakageAbsent"] is True,
-        "manualValidationExportPassed": bool(write_result.get("validationExportReadbackPassed")),
-        "manualValidationExportInRepoStyleArtifactRoot": "manual_validation_exports" in str(write_result.get("validationExportDir") or ""),
-        "nativeLogLoaderFutureBoundary": contract["nativeLogLoaderState"] == "future-separate-viewer",
-        "exportShareBlocked": contract["exportShareState"] == "future-gated",
-    }
-    proof["passed"] = all(
-        bool(proof[key])
-        for key in (
-            "nativeLogFormat",
-            "nativeLogExtension",
-            "nativeLogOnlyDefaultSave",
-            "exportRootSeparate",
-            "exportHeaderDeterministic",
-            "rowDeterministic",
-            "parseReadback",
-            "nullNoDataBehavior",
-            "graphPlotReady",
-            "fileWritingEnabled",
-            "recordingExecutionEnabled",
-            "dashboardStartStopEnabled",
-            "writeReadbackPassed",
-            "profileLogConsistencyPassed",
-            "twoProfileLogConsistencyPassed",
-            "userVisibleStorageModel",
-            "nativeRootFolderExact",
-            "exportRootFolderExact",
-            "surfaceChildFolderAbsent",
-            "internalPathLeakageAbsent",
-            "manualValidationExportPassed",
-            "manualValidationExportInRepoStyleArtifactRoot",
-            "nativeLogLoaderFutureBoundary",
-            "exportShareBlocked",
-        )
-    )
-    return deepcopy(proof)

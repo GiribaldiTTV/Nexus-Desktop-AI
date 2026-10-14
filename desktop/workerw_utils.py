@@ -2,6 +2,7 @@ import ctypes
 from ctypes import wintypes
 
 user32 = ctypes.windll.user32
+WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 
 # --- Win32 function bindings ---
 SendMessageTimeoutW = user32.SendMessageTimeoutW
@@ -27,7 +28,7 @@ SendMessageTimeoutW.argtypes = [
 ]
 SendMessageTimeoutW.restype = wintypes.LPARAM
 
-EnumWindows.argtypes = [ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM), wintypes.LPARAM]
+EnumWindows.argtypes = [WNDENUMPROC, wintypes.LPARAM]
 EnumWindows.restype = wintypes.BOOL
 
 FindWindowW.argtypes = [wintypes.LPCWSTR, wintypes.LPCWSTR]
@@ -94,7 +95,6 @@ WS_EX_TRANSPARENT = 0x00000020
 WS_EX_NOACTIVATE = 0x08000000
 WS_EX_APPWINDOW = 0x00040000
 
-WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
 PROBE_SAMPLE_LIMIT = 4
 _LAST_WORKERW_PROBE = {}
 

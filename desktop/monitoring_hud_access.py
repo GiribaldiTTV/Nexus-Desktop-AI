@@ -173,49 +173,45 @@ class MonitoringHudAccessAdapter:
                 )
 
             if desired:
+                # Enabling changes availability; opening is a separate USER action.
                 tray_ok = self._refresh_tray(f"{source}_enabled")
                 stale = self._superseded_result_if_needed(operation, source, generation)
                 if stale is not None:
                     return stale
-                dashboard_ok = self._call_bool(self._open_dashboard_callback, source)
+                dashboard_ok = None
             else:
                 dashboard_ok = self._call_bool(self._close_dashboard_callback, source)
                 stale = self._superseded_result_if_needed(operation, source, generation)
                 if stale is not None:
                     return stale
                 tray_ok = self._refresh_tray(f"{source}_disabled")
+                stale = self._superseded_result_if_needed(operation, source, generation)
+                if stale is not None:
+                    return stale
 
             final_state = self.query_state()
-            status = HUD_ACCESS_SUCCESS if tray_ok and dashboard_ok else HUD_ACCESS_PARTIAL
+            stale = self._superseded_result_if_needed(operation, source, generation)
+            if stale is not None:
+                return stale
+            if not desired:
+                dashboard_ok = bool(dashboard_ok and not final_state.dashboard_open)
+            status = HUD_ACCESS_SUCCESS if tray_ok and dashboard_ok is not False else HUD_ACCESS_PARTIAL
             if status == HUD_ACCESS_SUCCESS:
-                message = "HUD Dashboard enabled and opened." if desired else "HUD Dashboard disabled."
+                message = "HUD Dashboard enabled. Open it when you want to use it." if desired else "HUD Dashboard disabled."
                 retry = None
+            elif tray_ok and dashboard_ok is False:
+                message = "Disabled. Dashboard close needs retry."
+                retry = ("close", None)
+            elif not tray_ok and dashboard_ok is not False:
+                message = (
+                    "Enabled. Resident menu update needs retry."
+                    if desired
+                    else "Disabled. Resident menu update needs retry."
+                )
+                retry = ("set_enabled", desired)
             else:
-                failed_children = []
-                if not tray_ok:
-                    failed_children.append("resident menu")
-                if not dashboard_ok:
-                    failed_children.append("Dashboard")
-                if tray_ok and not dashboard_ok and desired:
-                    message = "Enabled. HUD Dashboard did not open. Retry."
-                    retry = ("open_or_restore", None)
-                elif tray_ok and not dashboard_ok:
-                    message = "Disabled. Dashboard close needs retry."
-                    retry = ("close", None)
-                elif not tray_ok and dashboard_ok:
-                    message = (
-                        "Enabled. Resident menu update needs retry."
-                        if desired
-                        else "Disabled. Resident menu update needs retry."
-                    )
-                    retry = ("set_enabled", desired)
-                else:
-                    message = (
-                        ("Enabled, but " if desired else "Disabled, but ")
-                        + " and ".join(failed_children)
-                        + " did not update. Retry."
-                    )
-                    retry = ("set_enabled", desired)
+                message = "Disabled, but resident menu and Dashboard did not update. Retry."
+                retry = ("set_enabled", desired)
             return self._finish(
                 operation=operation,
                 status=status,

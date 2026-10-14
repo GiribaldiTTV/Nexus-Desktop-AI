@@ -29,24 +29,3 @@ def build_renderer_environment(parent_environment: Mapping[str, str]) -> dict[st
     env["NEXUS_RENDERER_BACKEND_POLICY"] = RENDERER_BACKEND_POLICY
     env["NEXUS_RENDERER_BACKEND_CLASSIFICATION"] = RENDERER_BACKEND_CLASSIFICATION
     return env
-
-
-def renderer_backend_contract(parent_environment: Mapping[str, str]) -> dict[str, object]:
-    """Expose deterministic provenance used by fail-capable Workstream proof."""
-
-    child_environment = build_renderer_environment(parent_environment)
-    parent_flags = str(parent_environment.get("QTWEBENGINE_CHROMIUM_FLAGS") or "").strip()
-    effective_flags = child_environment["QTWEBENGINE_CHROMIUM_FLAGS"]
-    return {
-        "policy": RENDERER_BACKEND_POLICY,
-        "classification": RENDERER_BACKEND_CLASSIFICATION,
-        "parentFlags": parent_flags,
-        "effectiveFlags": effective_flags,
-        "disableGpuCount": effective_flags.split().count(WEBENGINE_SOFTWARE_COMPOSITOR_FLAG),
-        "duplicateFlagsNormalized": (
-            len(effective_flags.split()) == len(dict.fromkeys(effective_flags.split()))
-            and effective_flags.split().count(WEBENGINE_SOFTWARE_COMPOSITOR_FLAG) == 1
-        ),
-        "hardwareAccelerationDisabled": WEBENGINE_SOFTWARE_COMPOSITOR_FLAG in effective_flags.split(),
-        "softwareCompositionActive": WEBENGINE_SOFTWARE_COMPOSITOR_FLAG in effective_flags.split(),
-    }

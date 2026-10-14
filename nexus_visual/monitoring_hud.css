@@ -1,4 +1,3 @@
-/* NEXUS-SOURCE-OWNER: schema=source-owner-v1; owner=FAM006-HUD; ledger=SRCOWN-FIRSTPASS-FAM006-HUD-008; surface=monitoring-hud-dashboard-styles; status=shared */
 html,
 body {
   width: 100%;
@@ -224,37 +223,6 @@ body.desktop-mode #monitoring-hud[data-drag-smoothing="native-os-window-move"] {
   will-change: auto;
 }
 
-body.desktop-mode #monitoring-hud[data-live-resize-active="true"][data-resize-proof-visuals="test-visible"] .monitoring-hud__chrome {
-  background-position:
-    var(--monitoring-hud-live-resize-proof-x, 0px) 0,
-    0 var(--monitoring-hud-live-resize-proof-y, 0px),
-    center;
-}
-
-.monitoring-hud__chrome::after {
-  content: "";
-  position: absolute;
-  display: none;
-  inset: 8px;
-  z-index: 40;
-  border-radius: 22px;
-  pointer-events: none;
-  opacity: 0;
-  background:
-    linear-gradient(115deg, transparent 0%, rgba(159, 247, 255, 0.72) 34%, transparent 58%),
-    radial-gradient(circle at 72% 18%, rgba(99, 255, 202, 0.56), transparent 30%);
-  background-size: 180px 100%, 150px 150px;
-  background-position:
-    var(--monitoring-hud-live-resize-proof-x, 0px) 0,
-    var(--monitoring-hud-live-resize-proof-y, 0px) 0;
-  box-shadow: 0 0 0 1px rgba(130, 242, 255, 0.28) inset;
-}
-
-body.desktop-mode #monitoring-hud[data-live-resize-active="true"][data-resize-proof-visuals="test-visible"] .monitoring-hud__chrome::after {
-  display: block;
-  opacity: var(--monitoring-hud-live-resize-proof-alpha, 0.42);
-}
-
 body.desktop-mode #monitoring-hud-minimal {
   position: absolute;
   z-index: 28;
@@ -310,11 +278,6 @@ body.desktop-mode #monitoring-hud[data-anchor-state="unanchored"] .monitoring-hu
 body.desktop-mode #monitoring-hud[data-visibility-state="hidden"] {
   opacity: 0.16;
   transform: translateY(-8px) scale(0.86);
-}
-
-body.desktop-mode #monitoring-hud.monitoring-hud--validation-fault {
-  opacity: 0.42;
-  outline: 2px solid rgba(255, 210, 116, 0.48);
 }
 
 body.desktop-mode #monitoring-hud > * {
