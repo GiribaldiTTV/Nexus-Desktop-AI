@@ -1493,13 +1493,16 @@ def run_renderer():
         "NEXUS_RENDERER_PARENT_QTWEBENGINE_CHROMIUM_FLAGS",
         "",
     )
+    effective_webengine_switches = [
+        token.split("=", 1)[0] for token in effective_webengine_flags.split()
+    ]
     runtime_event(
         "STATUS",
         "TRACE",
         "RENDERER_PROCESS",
         "WEBENGINE_RENDERING_BACKEND_REQUEST=" + (
             "explicit_parent_software_compositor"
-            if WEBENGINE_SOFTWARE_COMPOSITOR_FLAG in effective_webengine_flags.split()
+            if WEBENGINE_SOFTWARE_COMPOSITOR_FLAG in effective_webengine_switches
             else "inherited_platform_default"
         ),
         "REASON=preserve_platform_default_and_explicit_parent_flags",
@@ -1508,7 +1511,7 @@ def run_renderer():
         "AUTOMATIC_GPU_DISABLE=false",
         f"PARENT_QTWEBENGINE_CHROMIUM_FLAGS={parent_webengine_flags or '<empty>'}",
         f"QTWEBENGINE_CHROMIUM_FLAGS={effective_webengine_flags}",
-        f"DISABLE_GPU_COUNT={effective_webengine_flags.split().count(WEBENGINE_SOFTWARE_COMPOSITOR_FLAG)}",
+        f"DISABLE_GPU_COUNT={effective_webengine_switches.count(WEBENGINE_SOFTWARE_COMPOSITOR_FLAG)}",
     )
     proc = subprocess.Popen(
         [
