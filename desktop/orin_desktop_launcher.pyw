@@ -1497,11 +1497,15 @@ def run_renderer():
         "STATUS",
         "TRACE",
         "RENDERER_PROCESS",
-        "WEBENGINE_RENDERING_BACKEND=software_compositor",
-        "REASON=windows_native_shutdown_stability",
+        "WEBENGINE_RENDERING_BACKEND_REQUEST=" + (
+            "explicit_parent_software_compositor"
+            if WEBENGINE_SOFTWARE_COMPOSITOR_FLAG in effective_webengine_flags.split()
+            else "inherited_platform_default"
+        ),
+        "REASON=preserve_platform_default_and_explicit_parent_flags",
         f"POLICY={RENDERER_BACKEND_POLICY}",
         f"CLASSIFICATION={RENDERER_BACKEND_CLASSIFICATION}",
-        "TEMPORARY_SHARED_RUNTIME_SAFETY_POLICY=true",
+        "AUTOMATIC_GPU_DISABLE=false",
         f"PARENT_QTWEBENGINE_CHROMIUM_FLAGS={parent_webengine_flags or '<empty>'}",
         f"QTWEBENGINE_CHROMIUM_FLAGS={effective_webengine_flags}",
         f"DISABLE_GPU_COUNT={effective_webengine_flags.split().count(WEBENGINE_SOFTWARE_COMPOSITOR_FLAG)}",
