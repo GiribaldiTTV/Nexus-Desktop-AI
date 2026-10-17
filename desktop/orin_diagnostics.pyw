@@ -2,6 +2,7 @@
 
 import os
 import sys
+from runtime_paths import default_runtime_log_dir
 import webbrowser
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTextEdit, QPushButton,
@@ -15,7 +16,7 @@ from orin_support_reporting import (
 )
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG_DIR = os.path.join(ROOT_DIR, "logs")
+LOG_DIR = str(default_runtime_log_dir())
 CRASH_FOLDER = os.path.join(LOG_DIR, "crash")
 STATUS_FILE = os.path.join(LOG_DIR, "diagnostics_status.txt")
 STOP_SIGNAL_FILE = os.path.join(LOG_DIR, "diagnostics_stop.signal")
