@@ -1590,6 +1590,7 @@ body.desktop-mode .monitoring-hud__child-window--overlay-profile[data-overlay-pr
   inset: 0;
   z-index: 40;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   box-sizing: border-box;
   place-items: center;
   padding: clamp(10px, 1.8vw, 18px);
@@ -1988,6 +1989,7 @@ body.desktop-mode .monitoring-hud__child-window--overlay-profile {
 .monitoring-hud__child-window--monitor-management {
   width: min(920px, calc(100% - 24px));
   min-width: min(680px, calc(100% - 24px));
+  max-width: calc(100% - 24px);
   min-height: min(660px, calc(100% - 24px));
   height: min(760px, calc(100% - 24px));
   max-height: min(820px, calc(100% - 24px));

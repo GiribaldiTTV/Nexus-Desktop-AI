@@ -9,6 +9,11 @@ import subprocess
 import urllib.parse
 import zipfile
 
+if __package__:
+    from .runtime_paths import default_runtime_log_dir
+else:
+    from runtime_paths import default_runtime_log_dir
+
 
 DEFAULT_GITHUB_ISSUES_NEW_URL = ""
 SUPPORT_BUNDLE_FOLDER = "support_bundles"
@@ -221,10 +226,10 @@ def resolve_user_visible_support_bundle_dir():
 
 def ensure_support_bundle_dir(root_dir, runtime_log_path):
     runtime_dir = os.path.dirname(runtime_log_path)
-    live_logs_dir = os.path.join(root_dir, "logs")
+    live_logs_dirs = (os.path.join(root_dir, "logs"), str(default_runtime_log_dir()))
     dev_logs_dir = os.path.join(root_dir, "dev", "logs")
 
-    if path_is_within(runtime_dir, live_logs_dir) and not path_is_within(runtime_dir, dev_logs_dir):
+    if any(path_is_within(runtime_dir, logs_dir) for logs_dir in live_logs_dirs) and not path_is_within(runtime_dir, dev_logs_dir):
         return resolve_user_visible_support_bundle_dir()
 
     support_dir = os.path.join(runtime_dir, SUPPORT_BUNDLE_FOLDER)

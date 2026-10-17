@@ -13,6 +13,8 @@ import secrets
 import ctypes
 from ctypes import wintypes
 
+from runtime_paths import default_runtime_log_dir
+
 from single_instance import (
     NamedSignal,
     SingleInstanceGuard,
@@ -29,7 +31,8 @@ from renderer_backend import (
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_TARGET_SCRIPT = os.path.join(ROOT_DIR, "desktop", "orin_desktop_main.py")
-DEFAULT_LOG_DIR = os.path.join(ROOT_DIR, "logs")
+LEGACY_LOG_DIR = os.path.join(ROOT_DIR, "logs")
+DEFAULT_LOG_DIR = str(default_runtime_log_dir())
 TARGET_SCRIPT = DEFAULT_TARGET_SCRIPT
 LOG_DIR = DEFAULT_LOG_DIR
 CRASH_DIR = os.path.join(LOG_DIR, "crash")
@@ -302,7 +305,7 @@ def select_diagnostics_priority(failure_stability):
     return ""
 
 
-def legacy_history_file_path(log_dir=DEFAULT_LOG_DIR):
+def legacy_history_file_path(log_dir=LEGACY_LOG_DIR):
     return os.path.join(os.path.abspath(log_dir), HISTORY_FILENAME)
 
 

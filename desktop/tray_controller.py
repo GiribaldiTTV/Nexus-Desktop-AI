@@ -106,6 +106,7 @@ class DesktopTrayEntry:
         self.exit_button = None
         self._discovery_cue_shown = False
         self._popup_guard_active = False
+        self._tray_tooltip_suppressed = False
 
     def _emit(self, event):
         try:
@@ -188,7 +189,7 @@ class DesktopTrayEntry:
             self.refresh_monitoring_hud_actions("initialize")
 
             self.tray_icon = QSystemTrayIcon(icon, self.app)
-            self.tray_icon.setToolTip(TRAY_TOOLTIP_TEXT)
+            self._publish_tray_tooltip(TRAY_TOOLTIP_TEXT)
             self.tray_icon.activated.connect(self._handle_activation)
             self.tray_icon.show()
             self._emit("RENDERER_MAIN|TRAY_ENTRY_READY|available=true")
@@ -316,12 +317,24 @@ class DesktopTrayEntry:
     def _show_tray_popup(self):
         if self.tray_menu is None:
             return
-        self._release_mouse_capture_for_tray_popup()
-        self.refresh_resident_access_actions("tray_popup_about_to_show")
-        self.refresh_monitoring_hud_actions("tray_popup_about_to_show")
-        self._emit("RENDERER_MAIN|TRAY_STYLED_POPUP_REQUESTED|source=tray_icon|native_menu_primary=false")
-        self._popup_guard_active = True
-        self.tray_menu.popup(QCursor.pos())
+        self._tray_tooltip_suppressed = True
+        try:
+            self._publish_tray_tooltip()
+            self._release_mouse_capture_for_tray_popup()
+            self.refresh_resident_access_actions("tray_popup_about_to_show")
+            self.refresh_monitoring_hud_actions("tray_popup_about_to_show")
+            self._emit("RENDERER_MAIN|TRAY_STYLED_POPUP_REQUESTED|source=tray_icon|native_menu_primary=false")
+            self._popup_guard_active = True
+            self.tray_menu.popup(QCursor.pos())
+        except Exception:
+            self._tray_tooltip_suppressed = False
+            try:
+                self._publish_tray_tooltip()
+            except Exception as restore_error:
+                self._emit(
+                    f"RENDERER_MAIN|TRAY_TOOLTIP_RESTORE_FAILED|reason={type(restore_error).__name__}"
+                )
+            raise
 
     def _show_native_tray_menu(self):
         if not hasattr(ctypes, "windll"):
@@ -741,6 +754,19 @@ class DesktopTrayEntry:
     def _resident_menu_identity_text(self):
         return TRAY_IDENTITY_LABEL
 
+    def _publish_tray_tooltip(self, tooltip_text=None):
+        if self.tray_icon is None:
+            return
+        if self._tray_tooltip_suppressed:
+            tooltip_text = ""
+        elif tooltip_text is None:
+            try:
+                plan = self._resident_access_plan()
+                tooltip_text = str(plan.get("tooltipText") or TRAY_TOOLTIP_TEXT)
+            except Exception:
+                tooltip_text = TRAY_TOOLTIP_TEXT
+        self.tray_icon.setToolTip(tooltip_text)
+
     def refresh_resident_access_actions(self, source="runtime"):
         if not self.quick_slot_actions and not self.quick_slot_buttons:
             return
@@ -756,7 +782,7 @@ class DesktopTrayEntry:
             self.resident_status_label.setVisible(True)
 
         if self.tray_icon is not None:
-            self.tray_icon.setToolTip(str(plan.get("tooltipText") or TRAY_TOOLTIP_TEXT))
+            self._publish_tray_tooltip(str(plan.get("tooltipText") or TRAY_TOOLTIP_TEXT))
 
         quick_slots = list(plan.get("quickSlots", ()) or [])
         if self.quick_access_menu_action is not None:
@@ -851,6 +877,8 @@ class DesktopTrayEntry:
         )
 
     def _handle_menu_about_to_show(self):
+        self._tray_tooltip_suppressed = True
+        self._publish_tray_tooltip()
         guard = getattr(self.window, "set_monitoring_hud_tray_menu_interaction_guard", None)
         if callable(guard):
             guard(True, source="tray_menu_about_to_show")
@@ -858,9 +886,13 @@ class DesktopTrayEntry:
         self.refresh_monitoring_hud_actions("tray_menu_about_to_show")
 
     def _handle_menu_about_to_hide(self):
-        guard = getattr(self.window, "set_monitoring_hud_tray_menu_interaction_guard", None)
-        if callable(guard):
-            QTimer.singleShot(80, lambda: guard(False, source="tray_menu_about_to_hide"))
+        self._tray_tooltip_suppressed = False
+        try:
+            self._publish_tray_tooltip()
+        finally:
+            guard = getattr(self.window, "set_monitoring_hud_tray_menu_interaction_guard", None)
+            if callable(guard):
+                QTimer.singleShot(80, lambda: guard(False, source="tray_menu_about_to_hide"))
 
     def request_monitoring_hud_toggle_from_tray(self, source):
         self._emit(
@@ -1020,6 +1052,7 @@ class DesktopTrayEntry:
             return False
 
     def close(self):
+        self._tray_tooltip_suppressed = False
         if self.tray_icon is None:
             return
 

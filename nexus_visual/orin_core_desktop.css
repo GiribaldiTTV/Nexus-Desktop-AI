@@ -11,7 +11,24 @@ body.desktop-mode #scene {
 }
 
 body.desktop-mode #vignette {
-  opacity: 0.20;
+  display: none;
+}
+
+body.desktop-mode .ring-outer {
+  border-color: rgba(90, 220, 255, 0.70);
+}
+
+body.desktop-mode .ring-mid {
+  border-color: rgba(120, 235, 255, 0.60);
+}
+
+body.desktop-mode .ring-inner {
+  border-color: rgba(180, 245, 255, 0.64);
+}
+
+body.desktop-mode #core {
+  background:
+    radial-gradient(circle at 49% 52%, rgba(235,250,255,1) 0%, rgba(135,235,255,0.88) 17%, rgba(30,170,255,0.78) 44%, rgba(0,0,0,0) 72%);
 }
 
 body.desktop-mode #far-haze {
