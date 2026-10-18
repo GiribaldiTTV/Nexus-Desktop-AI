@@ -5445,6 +5445,14 @@ window.setMonitoringHudControlState = function(state) {
   const previousProfileContext = monitoringHudOverlayProfileEditorContext(monitoringHudControlState);
   const incomingState = state || {};
   const incomingHasCards = monitoringHudHasOwnCards(incomingState);
+  const monitorDraftOwnerId = monitoringHudDraftOriginalMonitorId;
+  const preserveMonitorDraft = monitoringHudUnsavedMonitorDirty
+    && !incomingHasCards
+    && monitorDraftOwnerId
+    && monitoringHudControlState.selectedMonitorId === monitorDraftOwnerId
+    && Object.prototype.hasOwnProperty.call(monitoringHudControlState.cards || {}, monitorDraftOwnerId)
+    && (!Object.prototype.hasOwnProperty.call(incomingState, "selectedMonitorId")
+      || incomingState.selectedMonitorId === monitorDraftOwnerId);
   monitoringHudControlState = Object.assign({}, monitoringHudControlState, incomingState);
   monitoringHudControlState.featureEnabled = Boolean(monitoringHudControlState.featureEnabled);
   monitoringHudControlState.overlayDeferred = monitoringHudControlState.overlayDeferred !== false;
@@ -5485,7 +5493,13 @@ window.setMonitoringHudControlState = function(state) {
     monitoringHudClearPanelPosition();
   }
   monitoringHudPendingDeleteMonitorId = "";
-  monitoringHudSetMonitorDraftDirty(false);
+  if (
+    !preserveMonitorDraft
+    || monitoringHudControlState.selectedMonitorId !== monitorDraftOwnerId
+    || !Object.prototype.hasOwnProperty.call(monitoringHudControlState.cards, monitorDraftOwnerId)
+  ) {
+    monitoringHudSetMonitorDraftDirty(false);
+  }
   monitoringHudSetSourceFilterDropdownOpen(false);
   monitoringHudSetPollingRateDropdownOpen(false);
   monitoringHudApplyCardLayout();
