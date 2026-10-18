@@ -54,7 +54,7 @@ def _resize_axis(position, size, delta, leading, trailing, limits, bounds):
     if bounds is not None:
         origin, extent = bounds
         span = anchor - origin if leading else origin + extent - anchor
-        high = max(low, min(high, span))
+        high = max(low, min(high, max(span, size)))
     size = max(low, min(size - delta if leading else size + delta, high))
     return (anchor - size if leading else anchor), size
 

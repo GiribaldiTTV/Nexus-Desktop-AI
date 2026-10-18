@@ -3430,7 +3430,8 @@ class ResidentAccessSettingsDialog(QDialog):
             self.quick_slot_container.setProperty("quickAccessRowPolicy", self.property("quickAccessLayoutPolicy"))
         if self.height() < target_height or self.width() < self.BASE_MINIMUM_SIZE[0]:
             self.resize(min(self.MAXIMUM_SIZE[0], target_width), target_height)
-        self.setGeometry(self._bound_settings_geometry_to_available_desktop(self.geometry()))
+        if self.isVisible():
+            self.setGeometry(self._bound_settings_geometry_to_available_desktop(self.geometry()))
 
     def _replace_quick_slots(self, slot_ids: Iterable[str], notice: str | None = None):
         self._settings = ResidentAccessSettings(
