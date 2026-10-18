@@ -3116,9 +3116,10 @@ class ResidentAccessSettingsDialog(QDialog):
             QTimer.singleShot(0, self.guard_save_button.setFocus)
 
     def _open_close_guard(self, source: str, pending_result=None, event_ignored: bool = False, pending_callback=None):
+        if not self._close_guard_active or not callable(self._close_guard_pending_callback):
+            self._close_guard_pending_callback = pending_callback
         self._close_guard_active = True
         self._close_guard_pending_result = pending_result
-        self._close_guard_pending_callback = pending_callback
         self._dirty_close_intercept_count += 1
         self._dirty_close_last_event_ignored = event_ignored
         self._dirty_close_last_resolution = ""
