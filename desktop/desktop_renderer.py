@@ -70,6 +70,7 @@ from .saved_action_authoring import (
     update_saved_action_from_draft,
 )
 from .saved_action_source import SavedActionSourceWriteBlocked
+from .resident_settings_geometry import fit_rect, resize_rect, select_work_area
 from .resident_access import (
     DEFAULT_QUICK_SLOT_ROUTE_IDS,
     MAX_QUICK_SLOT_COUNT,
@@ -1467,6 +1468,7 @@ class ResidentAccessSettingsDialog(QDialog):
         self._settings_resize_last_geometry = QRect()
         self._settings_resize_cursor_key = None
         self._settings_resize_override_cursor_active = False
+        self._settings_resize_work_area = None
         self._settings_resize_poll_timer = QTimer(self)
         self._settings_resize_poll_timer.setInterval(8)
         self._settings_resize_poll_timer.timeout.connect(self._poll_settings_resize)
@@ -3210,6 +3212,7 @@ class ResidentAccessSettingsDialog(QDialog):
 
     def showEvent(self, event):
         super().showEvent(event)
+        self.setGeometry(self._bound_settings_geometry_to_available_desktop(self.geometry()))
         self._settings_resize_hover_timer.start()
 
     def hideEvent(self, event):
@@ -3427,6 +3430,8 @@ class ResidentAccessSettingsDialog(QDialog):
             self.quick_slot_container.setProperty("quickAccessRowPolicy", self.property("quickAccessLayoutPolicy"))
         if self.height() < target_height or self.width() < self.BASE_MINIMUM_SIZE[0]:
             self.resize(min(self.MAXIMUM_SIZE[0], target_width), target_height)
+        if self.isVisible():
+            self.setGeometry(self._bound_settings_geometry_to_available_desktop(self.geometry()))
 
     def _replace_quick_slots(self, slot_ids: Iterable[str], notice: str | None = None):
         self._settings = ResidentAccessSettings(
@@ -3826,7 +3831,7 @@ class ResidentAccessSettingsDialog(QDialog):
         }
         return edge_map.get(int(hit_test), Qt.Edges())
 
-    def _settings_cursor_screen_point(self) -> QPoint:
+    def _settings_cursor_screen_point(self) -> QPoint | None:
         if os.name == "nt":
             try:
                 point = ctypes.wintypes.POINT()
@@ -3837,7 +3842,7 @@ class ResidentAccessSettingsDialog(QDialog):
         try:
             return QCursor.pos()
         except Exception:
-            return QPoint()
+            return None
 
     def _settings_left_mouse_button_down(self) -> bool:
         try:
@@ -3845,8 +3850,8 @@ class ResidentAccessSettingsDialog(QDialog):
         except Exception:
             return False
 
-    def _settings_point_belongs_to_window(self, point: QPoint) -> bool:
-        if point.isNull():
+    def _settings_point_belongs_to_window(self, point: QPoint | None) -> bool:
+        if point is None:
             return False
         if os.name != "nt":
             return self.geometry().adjusted(-2, -2, 2, 2).contains(point)
@@ -3862,8 +3867,8 @@ class ResidentAccessSettingsDialog(QDialog):
             return self.geometry().adjusted(-2, -2, 2, 2).contains(point)
         return False
 
-    def _settings_resize_edges_for_screen_point(self, screen_point: QPoint):
-        if screen_point.isNull():
+    def _settings_resize_edges_for_screen_point(self, screen_point: QPoint | None):
+        if screen_point is None:
             return Qt.Edges()
         local = self.mapFromGlobal(screen_point)
         if not QRect(0, 0, self.width(), self.height()).contains(local):
@@ -3872,22 +3877,22 @@ class ResidentAccessSettingsDialog(QDialog):
             return Qt.Edges()
         return self._settings_resize_edges_for_local_pos(local)
 
-    def _settings_resize_edges_under_cursor(self) -> tuple[QPoint, Qt.Edges]:
+    def _settings_resize_edges_under_cursor(self) -> tuple[QPoint | None, Qt.Edges]:
         if not self.isVisible():
-            return QPoint(), Qt.Edges()
+            return None, Qt.Edges()
         screen_point = self._settings_cursor_screen_point()
-        if screen_point.isNull():
-            return QPoint(), Qt.Edges()
+        if screen_point is None:
+            return None, Qt.Edges()
         if not self.geometry().adjusted(-2, -2, 2, 2).contains(screen_point):
             return screen_point, Qt.Edges()
         if not self._settings_point_belongs_to_window(screen_point):
             return screen_point, Qt.Edges()
         return screen_point, self._settings_resize_edges_for_screen_point(screen_point)
 
-    def _settings_should_clear_resize_cursor(self, screen_point: QPoint) -> bool:
+    def _settings_should_clear_resize_cursor(self, screen_point: QPoint | None) -> bool:
         if self._settings_resize_cursor_key is None:
             return False
-        if screen_point.isNull():
+        if screen_point is None:
             return True
         if not self.geometry().adjusted(-2, -2, 2, 2).contains(screen_point):
             return True
@@ -3919,57 +3924,63 @@ class ResidentAccessSettingsDialog(QDialog):
         if self._settings_resize_active:
             return
         screen_point = self._settings_cursor_screen_point()
-        if not screen_point.isNull() and self.geometry().adjusted(-2, -2, 2, 2).contains(screen_point):
+        if screen_point is not None and self.geometry().adjusted(-2, -2, 2, 2).contains(screen_point):
             if self._settings_point_belongs_to_window(screen_point):
                 return
         self._reset_settings_resize_cursor()
 
-    def _settings_screen_point_from_mouse_event(self, watched, event) -> QPoint:
+    def _settings_screen_point_from_mouse_event(self, watched, event) -> QPoint | None:
         try:
             local = event.position().toPoint()
         except Exception:
             try:
                 local = event.pos()
             except Exception:
-                local = QPoint()
-        if local.isNull():
+                local = None
+        if local is None:
             return self._settings_cursor_screen_point()
         try:
             return watched.mapToGlobal(local)
         except Exception:
             return self._settings_cursor_screen_point()
 
-    def _settings_available_desktop_geometry(self) -> QRect:
+    def _settings_available_desktop_geometry(self, rect: QRect | None = None) -> QRect | None:
         screens = QApplication.screens()
-        if not screens:
-            return QRect(0, 0, 1920, 1080)
-        available = QRect(screens[0].availableGeometry())
-        for screen in screens[1:]:
-            available = available.united(screen.availableGeometry())
-        return available
+        areas = [screen.availableGeometry().getRect() for screen in screens]
+        areas = [area for area in areas if area[2] > 0 and area[3] > 0]
+        pinned = self._settings_resize_work_area
+        if self._settings_resize_active and pinned in areas:
+            return QRect(*pinned)
+        screen = self.screen()
+        preferred = screen.availableGeometry().getRect() if screen is not None else None
+        if preferred not in areas:
+            primary = QApplication.primaryScreen()
+            preferred = primary.availableGeometry().getRect() if primary is not None else None
+        candidate = rect if rect is not None else self.geometry()
+        selected = select_work_area(candidate.getRect(), areas, preferred)
+        return QRect(*selected) if selected is not None else None
 
     def _bound_settings_geometry_to_available_desktop(self, rect: QRect) -> QRect:
-        available = self._settings_available_desktop_geometry()
-        bounded = QRect(rect)
-        bounded.setWidth(max(self.minimumWidth(), min(bounded.width(), self.maximumWidth())))
-        bounded.setHeight(max(self.minimumHeight(), min(bounded.height(), self.maximumHeight())))
-        if bounded.left() < available.left():
-            bounded.moveLeft(available.left())
-        if bounded.top() < available.top():
-            bounded.moveTop(available.top())
-        if bounded.right() > available.right():
-            bounded.moveRight(available.right())
-        if bounded.bottom() > available.bottom():
-            bounded.moveBottom(available.bottom())
-        return bounded
+        available = self._settings_available_desktop_geometry(rect)
+        if available is None:
+            return QRect(rect)
+        # Preserve the content minimum; recover the titlebar's top-left.
+        # Undersized screens need a later scrolling slice for full layout fit.
+        return QRect(*fit_rect(
+            rect.getRect(), available.getRect(),
+            (self.minimumWidth(), self.minimumHeight()),
+            (self.maximumWidth(), self.maximumHeight()),
+        ))
 
-    def _start_settings_resize(self, edges, screen_point: QPoint) -> bool:
+    def _start_settings_resize(self, edges, screen_point: QPoint | None) -> bool:
         if not edges:
             return False
-        if screen_point.isNull():
+        if screen_point is None:
             screen_point = self._settings_cursor_screen_point()
-        if screen_point.isNull():
+        if screen_point is None:
             return False
+        available = self._settings_available_desktop_geometry()
+        self._settings_resize_work_area = available.getRect() if available is not None else None
         self._settings_resize_active = True
         self._settings_resize_edges = edges
         self._settings_resize_start_global = QPoint(screen_point)
@@ -3990,14 +4001,14 @@ class ResidentAccessSettingsDialog(QDialog):
             self._settings_resize_poll_timer.stop()
             return
         screen_point = self._settings_cursor_screen_point()
-        if not screen_point.isNull():
+        if screen_point is not None:
             self._update_settings_resize(screen_point)
         if self._settings_left_mouse_button_down():
             return
         self._finish_settings_resize(screen_point)
 
-    def _update_settings_resize(self, screen_point: QPoint) -> None:
-        if not self._settings_resize_active or screen_point.isNull():
+    def _update_settings_resize(self, screen_point: QPoint | None) -> None:
+        if not self._settings_resize_active or screen_point is None:
             return
         self._settings_resize_pending_point = QPoint(screen_point)
         next_rect = self._settings_resize_rect_from_global_delta(screen_point)
@@ -4012,58 +4023,29 @@ class ResidentAccessSettingsDialog(QDialog):
         if base.isNull() or not base.isValid():
             base = QRect(self.geometry())
         delta = screen_point - self._settings_resize_start_global
-        left_edge, right_edge, top_edge, bottom_edge = self._settings_resize_edge_key(self._settings_resize_edges)
-        x = base.x()
-        y = base.y()
-        width = base.width()
-        height = base.height()
-        if left_edge:
-            x = base.x() + delta.x()
-            width = base.width() - delta.x()
-        elif right_edge:
-            width = base.width() + delta.x()
-        if top_edge:
-            y = base.y() + delta.y()
-            height = base.height() - delta.y()
-        elif bottom_edge:
-            height = base.height() + delta.y()
-        min_width = self.minimumWidth()
-        min_height = self.minimumHeight()
-        max_width = self.maximumWidth()
-        max_height = self.maximumHeight()
-        if width < min_width:
-            if left_edge:
-                x = base.right() - min_width + 1
-            width = min_width
-        if height < min_height:
-            if top_edge:
-                y = base.bottom() - min_height + 1
-            height = min_height
-        if width > max_width:
-            if left_edge:
-                x = base.right() - max_width + 1
-            width = max_width
-        if height > max_height:
-            if top_edge:
-                y = base.bottom() - max_height + 1
-            height = max_height
-        return self._bound_settings_geometry_to_available_desktop(QRect(x, y, width, height))
+        available = self._settings_available_desktop_geometry(base)
+        return QRect(*resize_rect(
+            base.getRect(), (delta.x(), delta.y()),
+            self._settings_resize_edge_key(self._settings_resize_edges),
+            available.getRect() if available is not None else None,
+            (self.minimumWidth(), self.minimumHeight()),
+            (self.maximumWidth(), self.maximumHeight()),
+        ))
 
-    def _finish_settings_resize(self, screen_point: QPoint = None) -> None:
+    def _finish_settings_resize(self, screen_point: QPoint | None = None) -> None:
         if not self._settings_resize_active:
             self._reset_settings_resize_cursor()
             return
         self._settings_resize_poll_timer.stop()
-        if screen_point is None or screen_point.isNull():
+        if screen_point is None:
             screen_point = self._settings_cursor_screen_point()
-        if screen_point.isNull():
-            screen_point = QPoint(self._settings_resize_start_global)
-        if not screen_point.isNull():
+        if screen_point is not None:
             next_rect = self._settings_resize_rect_from_global_delta(screen_point)
             if next_rect != self._settings_resize_last_geometry:
                 self.setGeometry(next_rect)
                 self._settings_resize_last_geometry = QRect(next_rect)
         self._settings_resize_active = False
+        self._settings_resize_work_area = None
         self._settings_resize_edges = Qt.Edges()
         self._settings_resize_start_global = QPoint()
         self._settings_resize_start_geometry = QRect()
@@ -4074,7 +4056,9 @@ class ResidentAccessSettingsDialog(QDialog):
         except Exception:
             pass
         self._reset_settings_resize_cursor()
-        self._position_close_guard_overlay()
+        if screen_point is not None:
+            self.setGeometry(self._bound_settings_geometry_to_available_desktop(self.geometry()))
+            self._position_close_guard_overlay()
 
     def _settings_control_cluster_rect(self) -> QRect:
         if not hasattr(self.chrome_bar, "control_cluster"):
@@ -4158,7 +4142,7 @@ class ResidentAccessSettingsDialog(QDialog):
                         return True, 0
                 if self._settings_resize_active and message_id in (WM_MOUSEMOVE, WM_NCMOUSEMOVE):
                     screen_point = self._settings_cursor_screen_point()
-                    if not screen_point.isNull():
+                    if screen_point is not None:
                         self._update_settings_resize(screen_point)
                     return True, 0
                 if self._settings_resize_active and message_id in (
@@ -4186,7 +4170,7 @@ class ResidentAccessSettingsDialog(QDialog):
         if event_type == QEvent.MouseMove:
             if self._settings_resize_active:
                 screen_point = self._settings_cursor_screen_point()
-                if screen_point.isNull():
+                if screen_point is None:
                     screen_point = self._settings_screen_point_from_mouse_event(watched, event)
                 self._update_settings_resize(screen_point)
                 event.accept()
@@ -4216,19 +4200,19 @@ class ResidentAccessSettingsDialog(QDialog):
     def mouseMoveEvent(self, event):
         if self._settings_resize_active:
             screen_point = self._settings_cursor_screen_point()
-            if screen_point.isNull():
+            if screen_point is None:
                 try:
                     screen_point = event.globalPosition().toPoint()
                 except Exception:
-                    screen_point = QPoint()
+                    screen_point = None
             self._update_settings_resize(screen_point)
             event.accept()
             return
         try:
             local = event.position().toPoint()
         except Exception:
-            local = QPoint()
-        if not local.isNull():
+            local = None
+        if local is not None:
             edges = self._settings_resize_edges_for_local_pos(local)
             if self._settings_control_cluster_rect().contains(local):
                 edges = Qt.Edges()
