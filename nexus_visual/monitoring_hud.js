@@ -245,6 +245,10 @@ const monitoringHudOverlayProfileSchemaVersion = 1;
 const monitoringHudDefaultOverlayProfileId = "default-overlay-profile";
 const monitoringHudActiveOverlayRecordingTargetSchemaVersion = 1;
 let monitoringHudOverlayProfilePendingCreate = null;
+let monitoringHudOverlayProfileEditorGeneration = 0;
+let monitoringHudOverlayProfileDraftGeneration = 0;
+let monitoringHudOverlayProfilePendingAction = null;
+let monitoringHudOverlayProfileResolvingAction = null;
 
 function monitoringHudSafeOverlayProfilesObject(overlayProfiles) {
   if (!overlayProfiles || typeof overlayProfiles !== "object" || Array.isArray(overlayProfiles)) return {};
@@ -1092,7 +1096,125 @@ function monitoringHudClearOverlayProfileMembershipList() {
   }
 }
 
+function monitoringHudOverlayProfileEditorContext(state) {
+  const cards = monitoringHudSafeCardsObject(state.cards || {});
+  const profiles = monitoringHudSafeOverlayProfilesObject(state.overlayProfiles);
+  const profileIds = Object.keys(profiles).filter((profileId) => {
+    const profile = profiles[profileId];
+    return profile && typeof profile === "object" && !Array.isArray(profile);
+  }).sort();
+  return JSON.stringify({
+    activeProfileId: String(state.activeOverlayProfileId || "").trim(),
+    defaultDeleted: Boolean(state.overlayProfileDefaultDeletedByUser),
+    monitorIds: monitoringHudStableMonitorIds(cards).sort(),
+    profiles: profileIds.map((profileId) => {
+      const profile = profiles[profileId];
+      return [
+        profileId,
+        String(profile.id || profileId).trim(),
+        String(profile.name || "Overlay Profile").trim() || "Overlay Profile",
+        monitoringHudUniqueValidMonitorIds(profile.monitorIds, cards),
+        String(profile.displayMode || "monitor-cards").trim() || "monitor-cards"
+      ];
+    })
+  });
+}
+
+function monitoringHudInvalidateOverlayProfileEditorAction() {
+  monitoringHudOverlayProfileEditorGeneration += 1;
+  monitoringHudOverlayProfilePendingAction = null;
+  monitoringHudOverlayProfileResolvingAction = null;
+  monitoringHudSetOverlayProfileUnsavedGuard(false);
+}
+
+function monitoringHudOverlayProfileActionIsCurrent(action) {
+  return Boolean(
+    action
+    && action === monitoringHudOverlayProfilePendingAction
+    && action.editorGeneration === monitoringHudOverlayProfileEditorGeneration
+    && action.draftGeneration === monitoringHudOverlayProfileDraftGeneration
+    && monitoringHudActiveChildWindow === "overlay-profile-settings"
+    && monitoringHudOverlayProfileDetailOpen
+    && action.draftId === monitoringHudOverlayProfileDraftId
+    && action.selectedId === monitoringHudOverlayProfileWindowSelectedId
+    && action.pendingCreateId === (monitoringHudOverlayProfilePendingCreate ? monitoringHudOverlayProfilePendingCreate.id : "")
+  );
+}
+
+function monitoringHudOverlayProfileActionTargetExists(action) {
+  if (action.type === "close" || action.type === "create") return true;
+  return action.type === "editorSelect"
+    && Boolean((monitoringHudControlState.overlayProfiles || {})[action.profileId]);
+}
+
+function monitoringHudGuardOverlayProfileAction(type, profileId = "") {
+  if (monitoringHudOverlayProfilePendingAction) return true;
+  if (monitoringHudActiveChildWindow !== "overlay-profile-settings"
+      || !monitoringHudOverlayProfileDetailOpen
+      || !monitoringHudOverlayProfileDraftDirty()) return false;
+  monitoringHudOverlayProfileEditorGeneration += 1;
+  monitoringHudOverlayProfilePendingAction = {
+    type,
+    profileId,
+    editorGeneration: monitoringHudOverlayProfileEditorGeneration,
+    draftGeneration: monitoringHudOverlayProfileDraftGeneration,
+    draftId: monitoringHudOverlayProfileDraftId,
+    selectedId: monitoringHudOverlayProfileWindowSelectedId,
+    pendingCreateId: monitoringHudOverlayProfilePendingCreate ? monitoringHudOverlayProfilePendingCreate.id : ""
+  };
+  monitoringHudSetOverlayProfileWindowDropdownOpen(false);
+  monitoringHudSetOverlayProfileUnsavedGuard(true);
+  return true;
+}
+
+function monitoringHudResolveOverlayProfileUnsavedGuard(saveDraft) {
+  const action = monitoringHudOverlayProfilePendingAction;
+  if (!action || monitoringHudOverlayProfileResolvingAction) return false;
+  if (!monitoringHudOverlayProfileActionIsCurrent(action)
+      || !monitoringHudOverlayProfileActionTargetExists(action)) {
+    monitoringHudInvalidateOverlayProfileEditorAction();
+    return false;
+  }
+  monitoringHudOverlayProfileResolvingAction = action;
+  let resolved = false;
+  try {
+    resolved = saveDraft ? monitoringHudSaveOverlayProfileDraft() : monitoringHudDiscardOverlayProfileDraft();
+  } finally {
+    if (monitoringHudOverlayProfileResolvingAction === action) monitoringHudOverlayProfileResolvingAction = null;
+  }
+  if (!resolved) {
+    if (monitoringHudOverlayProfileActionIsCurrent(action)) monitoringHudSetOverlayProfileUnsavedGuard(true);
+    return false;
+  }
+  // Save/Discard may replace this draft once; any other lifecycle change cancels the continuation.
+  if (monitoringHudOverlayProfilePendingAction !== action
+      || action.editorGeneration !== monitoringHudOverlayProfileEditorGeneration
+      || monitoringHudOverlayProfileDraftGeneration !== action.draftGeneration + 1
+      || monitoringHudActiveChildWindow !== "overlay-profile-settings"
+      || !monitoringHudOverlayProfileActionTargetExists(action)) {
+    if (monitoringHudOverlayProfilePendingAction === action) monitoringHudInvalidateOverlayProfileEditorAction();
+    return false;
+  }
+  monitoringHudOverlayProfilePendingAction = null;
+  monitoringHudSetOverlayProfileUnsavedGuard(false);
+  if (action.type === "editorSelect") return monitoringHudSelectOverlayProfileForWindow(action.profileId);
+  if (action.type === "create") return monitoringHudCreateOverlayProfile();
+  if (action.type === "close") return monitoringHudCloseChildWindow({ force: true });
+  return false;
+}
+
 function monitoringHudSetOverlayProfileDraftFromProfile(profile) {
+  const action = monitoringHudOverlayProfileResolvingAction;
+  const resolvingThisDraft = action
+    && action === monitoringHudOverlayProfilePendingAction
+    && action.editorGeneration === monitoringHudOverlayProfileEditorGeneration
+    && action.draftGeneration === monitoringHudOverlayProfileDraftGeneration;
+  monitoringHudOverlayProfileDraftGeneration += 1;
+  if (!resolvingThisDraft) {
+    monitoringHudOverlayProfilePendingAction = null;
+    monitoringHudOverlayProfileResolvingAction = null;
+    monitoringHudSetOverlayProfileUnsavedGuard(false);
+  }
   const activeProfile = profile || null;
   const cards = monitoringHudControlState.cards || {};
   monitoringHudOverlayProfileDraftId = activeProfile && activeProfile.id ? activeProfile.id : "";
@@ -1329,9 +1451,15 @@ function monitoringHudSelectOverlayProfile(profileId) {
 }
 
 function monitoringHudSelectOverlayProfileForWindow(profileId) {
-  monitoringHudNormalizeOverlayProfileState(monitoringHudControlState);
   const normalizedProfileId = String(profileId || "").trim();
+  if (normalizedProfileId && normalizedProfileId === monitoringHudOverlayProfileWindowSelectedId) {
+    monitoringHudSetOverlayProfileWindowDropdownOpen(false);
+    return true;
+  }
+  if (monitoringHudOverlayProfilePendingAction) return false;
+  monitoringHudNormalizeOverlayProfileState(monitoringHudControlState);
   if (!monitoringHudControlState.overlayProfiles[normalizedProfileId]) return false;
+  if (monitoringHudGuardOverlayProfileAction("editorSelect", normalizedProfileId)) return false;
   monitoringHudOverlayProfilePendingCreate = null;
   monitoringHudOverlayProfileWindowSelectedId = normalizedProfileId;
   monitoringHudOverlayProfileDetailOpen = true;
@@ -1344,7 +1472,9 @@ function monitoringHudSelectOverlayProfileForWindow(profileId) {
 }
 
 function monitoringHudCreateOverlayProfile() {
+  if (monitoringHudOverlayProfilePendingAction) return false;
   monitoringHudNormalizeOverlayProfileState(monitoringHudControlState);
+  if (monitoringHudGuardOverlayProfileAction("create")) return false;
   const profileId = monitoringHudNextOverlayProfileId();
   const profileName = monitoringHudUniqueOverlayProfileName("Overlay Profile", profileId);
   monitoringHudOverlayProfilePendingCreate = {
@@ -1494,7 +1624,9 @@ function monitoringHudSetOverlayProfileUnsavedGuard(open) {
   monitoringHudOverlayProfileUnsavedGuard.hidden = !isOpen;
   monitoringHudOverlayProfileUnsavedGuard.dataset.unsavedGuard = isOpen ? "open-save-discard" : "closed";
   monitoringHudOverlayProfileUnsavedGuard.dataset.guardActionLayout = "modal-save-discard-cancel";
-  monitoringHudOverlayProfileUnsavedGuard.dataset.pendingOverlayProfileAction = isOpen ? "close" : "";
+  monitoringHudOverlayProfileUnsavedGuard.dataset.pendingOverlayProfileAction = isOpen && monitoringHudOverlayProfilePendingAction
+    ? monitoringHudOverlayProfilePendingAction.type
+    : "";
   if (monitoringHudOverlayProfileWindow) {
     monitoringHudSetChildWindowDirtyModalState(monitoringHudOverlayProfileWindow, isOpen);
     monitoringHudOverlayProfileWindow.dataset.overlayProfileUnsavedState = isOpen ? "open" : "closed";
@@ -1513,47 +1645,37 @@ function monitoringHudSetOverlayProfileUnsavedGuard(open) {
 }
 
 function monitoringHudCancelOverlayProfileUnsavedGuard() {
-  const pendingCreate = monitoringHudOverlayProfilePendingCreate
-    ? Object.assign({}, monitoringHudOverlayProfilePendingCreate)
-    : null;
-  const selectedId = monitoringHudOverlayProfileWindowSelectedId || (pendingCreate ? pendingCreate.id : "");
-  const detailWasOpen = Boolean(monitoringHudOverlayProfileDetailOpen || pendingCreate);
-  const restoreDraftState = () => {
-    if (pendingCreate) {
-      monitoringHudOverlayProfilePendingCreate = Object.assign({}, pendingCreate);
-    }
-    if (selectedId) {
-      monitoringHudOverlayProfileWindowSelectedId = selectedId;
-    }
-    if (detailWasOpen) {
-      monitoringHudOverlayProfileDetailOpen = true;
-    }
-    if (monitoringHudActiveChildWindow !== "overlay-profile-settings") {
-      monitoringHudActiveChildWindow = "overlay-profile-settings";
-      monitoringHudSetChildWindowVisibility("overlay-profile-settings");
-    }
-    monitoringHudSetOverlayProfileUnsavedGuard(false);
-  };
-  monitoringHudSetOverlayProfileUnsavedGuard(false);
-  restoreDraftState();
+  const action = monitoringHudOverlayProfilePendingAction;
+  if (!action || monitoringHudOverlayProfileResolvingAction) return false;
+  if (!monitoringHudOverlayProfileActionIsCurrent(action)) {
+    monitoringHudInvalidateOverlayProfileEditorAction();
+    return false;
+  }
+  monitoringHudInvalidateOverlayProfileEditorAction();
+  const editorGeneration = monitoringHudOverlayProfileEditorGeneration;
+  const draftGeneration = monitoringHudOverlayProfileDraftGeneration;
+  const selectedId = monitoringHudOverlayProfileWindowSelectedId;
+  const pendingCreateId = monitoringHudOverlayProfilePendingCreate ? monitoringHudOverlayProfilePendingCreate.id : "";
   monitoringHudRenderControls();
   window.requestAnimationFrame(() => {
-    restoreDraftState();
+    if (editorGeneration !== monitoringHudOverlayProfileEditorGeneration
+        || draftGeneration !== monitoringHudOverlayProfileDraftGeneration
+        || monitoringHudOverlayProfilePendingAction
+        || monitoringHudActiveChildWindow !== "overlay-profile-settings"
+        || selectedId !== monitoringHudOverlayProfileWindowSelectedId
+        || pendingCreateId !== (monitoringHudOverlayProfilePendingCreate ? monitoringHudOverlayProfilePendingCreate.id : "")) return;
+    monitoringHudSetOverlayProfileUnsavedGuard(false);
     monitoringHudRenderControls();
   });
   return true;
 }
 
 function monitoringHudSaveOverlayProfileAndClose() {
-  if (!monitoringHudSaveOverlayProfileDraft()) return false;
-  monitoringHudSetOverlayProfileUnsavedGuard(false);
-  return monitoringHudCloseChildWindow({ force: true });
+  return monitoringHudResolveOverlayProfileUnsavedGuard(true);
 }
 
 function monitoringHudDiscardOverlayProfileAndClose() {
-  if (!monitoringHudDiscardOverlayProfileDraft()) return false;
-  monitoringHudSetOverlayProfileUnsavedGuard(false);
-  return monitoringHudCloseChildWindow({ force: true });
+  return monitoringHudResolveOverlayProfileUnsavedGuard(false);
 }
 
 let monitoringHudControlState = {
@@ -2082,6 +2204,9 @@ function monitoringHudEnsureCardNodes() {
 }
 
 function monitoringHudSetChildWindowVisibility(kind) {
+  if (monitoringHudActiveChildWindow === "overlay-profile-settings" && kind !== "overlay-profile-settings") {
+    monitoringHudInvalidateOverlayProfileEditorAction();
+  }
   monitoringHudActiveChildWindow = kind || "";
   if (!monitoringHudChildWindowLayer) return;
   const open = Boolean(monitoringHudActiveChildWindow);
@@ -3506,6 +3631,7 @@ function monitoringHudRenderChildWindows() {
 }
 
 function monitoringHudOpenChildWindow(kind) {
+  if (kind === "overlay-profile-settings") monitoringHudInvalidateOverlayProfileEditorAction();
   if (kind === "monitor-group-create" && monitoringHudCreateMonitorName) {
     monitoringHudCreateMonitorName.value = monitoringHudSuggestedMonitorName();
   }
@@ -3551,8 +3677,7 @@ function monitoringHudCloseChildWindow(options = {}) {
     monitoringHudShowUnsavedGuard({ type: "close" });
     return false;
   }
-  if (!options.force && monitoringHudActiveChildWindow === "overlay-profile-settings" && monitoringHudOverlayProfileDetailOpen && monitoringHudOverlayProfileDraftDirty()) {
-    monitoringHudSetOverlayProfileUnsavedGuard(true);
+  if (!options.force && monitoringHudActiveChildWindow === "overlay-profile-settings" && monitoringHudGuardOverlayProfileAction("close")) {
     return false;
   }
   if (!options.force && monitoringHudActiveChildWindow === "monitor-overlay-assignment") {
@@ -5317,6 +5442,7 @@ window.getMonitoringHudLiveClientGeometry = function() {
 };
 
 window.setMonitoringHudControlState = function(state) {
+  const previousProfileContext = monitoringHudOverlayProfileEditorContext(monitoringHudControlState);
   const incomingState = state || {};
   const incomingHasCards = monitoringHudHasOwnCards(incomingState);
   monitoringHudControlState = Object.assign({}, monitoringHudControlState, incomingState);
@@ -5338,6 +5464,9 @@ window.setMonitoringHudControlState = function(state) {
     monitoringHudControlState.selectedMonitorId = Object.keys(monitoringHudControlState.cards)[0] || "";
   }
   monitoringHudNormalizeOverlayProfileState(monitoringHudControlState);
+  if (previousProfileContext !== monitoringHudOverlayProfileEditorContext(monitoringHudControlState)) {
+    monitoringHudInvalidateOverlayProfileEditorAction();
+  }
   monitoringHudControlState.monitorSequence = Math.max(
     Number(monitoringHudControlState.monitorSequence || 2),
     Object.keys(monitoringHudControlState.cards).length
