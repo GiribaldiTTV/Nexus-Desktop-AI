@@ -3625,8 +3625,8 @@ function monitoringHudRenderChildWindows() {
     monitoringHudRenderSourceSettingsWindow();
   }
   if (monitoringHudEditMonitor) {
-    monitoringHudEditMonitor.disabled = count === 0;
-    monitoringHudEditMonitor.setAttribute("aria-disabled", count === 0 ? "true" : "false");
+    monitoringHudEditMonitor.disabled = false;
+    monitoringHudEditMonitor.setAttribute("aria-disabled", "false");
   }
 }
 
@@ -3666,7 +3666,9 @@ function monitoringHudOpenChildWindow(kind) {
           ? monitoringHudOverlayAssignmentList
           : kind === "sensor-source-settings"
             ? monitoringHudSourceSettingsBody
-            : monitoringHudEditMonitorName;
+            : kind === "monitor-group-edit" && Object.keys(monitoringHudControlState.cards || {}).length === 0
+              ? monitoringHudMonitorEmptyCreate
+              : monitoringHudEditMonitorName;
   if (focusTarget && typeof focusTarget.focus === "function") {
     setTimeout(() => focusTarget.focus(), 0);
   }
@@ -4181,7 +4183,9 @@ function monitoringHudRenderMonitorManagement() {
     cardNode.dataset.assignedSensorCount = String(Array.isArray(layout.sensors) ? layout.sensors.length : 0);
   });
   if (monitoringHudMonitorListSummary) {
-    monitoringHudMonitorListSummary.textContent = `${monitorCount} Monitor Groups configured with ${assignedSensorCount} supported source assignment${assignedSensorCount === 1 ? "" : "s"}. Manage opens list, create, edit, delete, and sensor controls.`;
+    monitoringHudMonitorListSummary.textContent = monitorCount === 0
+      ? "No monitors yet. Open Manage Monitors to create one."
+      : `${monitorCount} Monitor Groups configured with ${assignedSensorCount} supported source assignment${assignedSensorCount === 1 ? "" : "s"}. Manage opens list, create, edit, delete, and sensor controls.`;
   }
   if (monitoringHudMonitorCount) {
     monitoringHudMonitorCount.textContent = `${monitorCount} configured`;
