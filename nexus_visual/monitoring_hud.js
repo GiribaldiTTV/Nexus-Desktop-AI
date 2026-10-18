@@ -459,7 +459,11 @@ function monitoringHudSetRecordingError(message) {
 }
 
 function monitoringHudStartRecording() {
-  if (monitoringHudRecordingState() === "paused") {
+  const currentRecordingState = monitoringHudRecordingState();
+  if (["recording", "saving"].includes(currentRecordingState)) {
+    return false;
+  }
+  if (currentRecordingState === "paused") {
     const resumedAt = monitoringHudRecordingNowIso();
     monitoringHudControlState.recordingSessionState = "recording";
     monitoringHudControlState.recordingSessionMessage = "Recording resumed.";
@@ -517,7 +521,7 @@ function monitoringHudPauseRecording() {
 function monitoringHudStopRecording() {
   const currentRecordingState = monitoringHudRecordingState();
   if (!["recording", "paused"].includes(currentRecordingState)) {
-    return monitoringHudStartRecording();
+    return false;
   }
   const target = monitoringHudControlState.recordingSnapshotTarget || monitoringHudControlState.activeOverlayRecordingTarget || {};
   const stoppedAt = monitoringHudRecordingNowIso();
