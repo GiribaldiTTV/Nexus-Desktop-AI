@@ -2990,6 +2990,7 @@ function monitoringHudUpdateMonitorActionState() {
 }
 
 function monitoringHudDiscardCurrentMonitorDraft() {
+  let removedNewMonitor = false;
   if (!monitoringHudUnsavedMonitorDirty) {
     monitoringHudUpdateMonitorActionState();
     return false;
@@ -3005,10 +3006,12 @@ function monitoringHudDiscardCurrentMonitorDraft() {
     } else {
       delete monitoringHudControlState.cards[monitoringHudDraftOriginalMonitorId];
       monitoringHudControlState.selectedMonitorId = Object.keys(monitoringHudControlState.cards || {})[0] || "";
+      removedNewMonitor = true;
     }
   }
   monitoringHudPendingDeleteMonitorId = "";
   monitoringHudSetMonitorDraftDirty(false);
+  if (removedNewMonitor) monitoringHudMarkChanged();
   monitoringHudRenderMonitorManagement();
   return true;
 }
@@ -4086,6 +4089,7 @@ function monitoringHudSaveAndSelectPendingMonitor() {
 
 function monitoringHudDiscardAndSelectPendingMonitor() {
   const pendingAction = monitoringHudPendingGuardActionSnapshot();
+  let removedNewMonitor = false;
   if (
     monitoringHudDraftOriginalMonitorId
     && monitoringHudControlState.cards
@@ -4096,9 +4100,11 @@ function monitoringHudDiscardAndSelectPendingMonitor() {
     } else {
       delete monitoringHudControlState.cards[monitoringHudDraftOriginalMonitorId];
       monitoringHudControlState.selectedMonitorId = Object.keys(monitoringHudControlState.cards || {})[0] || "";
+      removedNewMonitor = true;
     }
   }
   monitoringHudSetMonitorDraftDirty(false);
+  if (removedNewMonitor) monitoringHudMarkChanged();
   monitoringHudRunPendingGuardAction(pendingAction);
 }
 
