@@ -4104,7 +4104,10 @@ function monitoringHudDiscardAndSelectPendingMonitor() {
     }
   }
   monitoringHudSetMonitorDraftDirty(false);
-  if (removedNewMonitor) monitoringHudMarkChanged();
+  if (removedNewMonitor) {
+    monitoringHudMarkChanged();
+    monitoringHudRenderMonitorManagement();
+  }
   monitoringHudRunPendingGuardAction(pendingAction);
 }
 
