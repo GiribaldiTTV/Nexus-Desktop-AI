@@ -4108,7 +4108,19 @@ function monitoringHudDiscardAndSelectPendingMonitor() {
     monitoringHudMarkChanged();
     monitoringHudRenderMonitorManagement();
   }
+  const preContinuationSelection = monitoringHudControlState.selectedMonitorId;
   monitoringHudRunPendingGuardAction(pendingAction);
+  if (
+    removedNewMonitor
+    && pendingAction.type === "select"
+    && monitoringHudControlState.cards
+    && Object.prototype.hasOwnProperty.call(monitoringHudControlState.cards, pendingAction.cardId)
+    && monitoringHudControlState.cards[pendingAction.cardId]
+    && monitoringHudControlState.selectedMonitorId === pendingAction.cardId
+    && monitoringHudControlState.selectedMonitorId !== preContinuationSelection
+  ) {
+    monitoringHudMarkChanged();
+  }
 }
 
 function monitoringHudRenderMonitorManagement() {
