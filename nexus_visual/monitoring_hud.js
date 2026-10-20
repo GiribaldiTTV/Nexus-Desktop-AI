@@ -196,7 +196,7 @@ let monitoringHudStatus = {
   sliceId: "SLC-028",
   statusId: "hud-local-readiness-status",
   statusKind: "no-data",
-  statusLabel: "Provider setup required",
+  statusLabel: "Waiting for Dashboard status",
   noDataBehavior: "Show unavailable; no fake values",
   degradedBehavior: "Name reconnect/setup gap; visual warning only"
 };
@@ -5669,7 +5669,7 @@ window.setMonitoringHudStatusBehavior = function(snapshot) {
     monitoringHud.dataset.pollingRateDropdown = "nexus-styled-bounded-control";
   }
   if (monitoringHudStatusLabel) {
-    monitoringHudStatusLabel.textContent = monitoringHudStatus.statusLabel || "Provider setup required";
+    monitoringHudStatusLabel.textContent = monitoringHudStatus.statusLabel || "Dashboard status unavailable";
   }
   if (monitoringHudNoDataBehavior) {
     monitoringHudNoDataBehavior.textContent = monitoringHudStatus.noDataBehavior || "Show unavailable; no fake values";

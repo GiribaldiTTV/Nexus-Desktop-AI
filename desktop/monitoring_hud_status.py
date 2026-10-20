@@ -49,20 +49,20 @@ def build_monitoring_hud_status_snapshot(
     desktop_mode: bool,
     event_route_present: bool,
 ) -> MonitoringHudStatusSnapshot:
-    """Build truthful no-data/degraded HUD status from local renderer facts."""
+    """Describe local page, desktop-mode and logging flags without provider claims."""
 
     if not page_ready:
         status_kind = "no-data"
-        status_label = "Provider setup required"
+        status_label = "Dashboard page unavailable"
     elif not desktop_mode:
         status_kind = "degraded"
-        status_label = "Desktop surface pending"
+        status_label = "Desktop surface inactive"
     elif not event_route_present:
         status_kind = "degraded"
-        status_label = "Reconnect/setup route unavailable"
+        status_label = "Local event logging unavailable"
     else:
         status_kind = "ready"
-        status_label = "Provider setup required"
+        status_label = "Dashboard loaded"
 
     return MonitoringHudStatusSnapshot(
         package_id=PACKAGE_ID,
@@ -74,5 +74,5 @@ def build_monitoring_hud_status_snapshot(
         degraded_behavior="Name reconnect/setup gap with visual warning only",
         warning_state="advisory",
         warning_posture="Visual badge, color state, and text label only",
-        source_truth="Provider-contract-first local readiness only",
+        source_truth="renderer-local-flags-only",
     )
