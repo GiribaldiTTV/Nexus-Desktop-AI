@@ -275,7 +275,10 @@ class MonitoringHudAccessAdapter:
                     message="Enable HUD Dashboard in Global Settings first.",
                     retryable=False,
                 )
-            if not state.available:
+            action_available = (
+                state.runtime_available if operation == "close" else state.available
+            )
+            if not action_available:
                 return self._finish(
                     operation=operation,
                     status=HUD_ACCESS_BLOCKED,

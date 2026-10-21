@@ -14984,6 +14984,7 @@ class DesktopRuntimeWindow(QWidget):
         self.webview.page().setBackgroundColor(
             QColor(0, 0, 0, 0) if self.surface_role == "hud" else QColor(0, 0, 0)
         )
+        self.webview.loadStarted.connect(self._on_load_started)
         self.webview.loadFinished.connect(self._on_load_finished)
         self.webview.load(QUrl.fromLocalFile(self.visual_html_path))
 
@@ -19470,10 +19471,16 @@ class DesktopRuntimeWindow(QWidget):
             anchor="virtual_desktop",
         )
 
+    def _on_load_started(self):
+        if self._is_shutting_down:
+            return
+        self._page_ready = False
+
     def _on_load_finished(self, ok):
         if self._is_shutting_down:
             return
         if not ok:
+            self._page_ready = False
             self._log_event("RENDERER_MAIN|VISUAL_PAGE_LOAD_FAILED")
             return
 
@@ -21387,6 +21394,7 @@ class DesktopRuntimeWindow(QWidget):
         self._log_event("RENDERER_MAIN|RENDERER_SHUTDOWN_BEGIN")
         self._monitoring_hud_access_adapter.begin_shutdown(source="renderer_request_shutdown")
         self._is_shutting_down = True
+        self._page_ready = False
         self._reset_monitoring_hud_resize_cursor()
         self._monitoring_hud_recording_control_click_bridge_down = False
         self._monitoring_hud_recording_control_click_bridge_press_point = QPoint()
