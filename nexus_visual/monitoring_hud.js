@@ -723,7 +723,13 @@ function monitoringHudRenderActiveOverlayRecordingTargetPreview() {
   }
   if (monitoringHudRecordingTargetSummary) {
     const resultText = outputResult && outputResult.nativeLogPath ? ` Saved ${outputResult.rowCount || 0} rows to a native NDAI log.` : "";
-    monitoringHudRecordingTargetSummary.textContent = `${targetLabel}: ${targetNames}. ${monitoringHudControlState.recordingSessionMessage || "Ready for local Start/Stop recording."}${resultText}`;
+    const targetSummary = count > 0 ? `${targetLabel}: ${targetNames}` : targetLabel;
+    const sessionMessage = monitoringHudControlState.recordingSessionMessage;
+    const summaryMessage = sessionState === "ready" && !targetReady
+      && (!sessionMessage || sessionMessage === "Ready for local Start/Stop recording.")
+      ? "Set up an Overlay Profile with monitors in Overlay Profile Settings before recording. Create monitors in Manage Monitors if needed."
+      : (sessionMessage || "Ready for local Start/Stop recording.");
+    monitoringHudRecordingTargetSummary.textContent = `${targetSummary}. ${summaryMessage}${resultText}`;
   }
   if (monitoringHudRecordingControlLauncher) {
     monitoringHudRecordingControlLauncher.disabled = !buttonEnabled;
