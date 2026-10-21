@@ -71,7 +71,7 @@ def build_monitoring_hud_status_snapshot(
         status_kind=status_kind,
         status_label=status_label,
         no_data_behavior="Show unavailable; no fake values",
-        degraded_behavior="Name reconnect/setup gap with visual warning only",
+        degraded_behavior="Show local readiness gaps with a visual warning only",
         warning_state="advisory",
         warning_posture="Visual badge, color state, and text label only",
         source_truth="renderer-local-flags-only",

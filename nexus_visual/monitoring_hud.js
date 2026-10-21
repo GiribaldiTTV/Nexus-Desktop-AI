@@ -198,7 +198,7 @@ let monitoringHudStatus = {
   statusKind: "no-data",
   statusLabel: "Waiting for Dashboard status",
   noDataBehavior: "Show unavailable; no fake values",
-  degradedBehavior: "Name reconnect/setup gap; visual warning only"
+  degradedBehavior: "Show local readiness gaps with a visual warning only"
 };
 
 function monitoringHudInitialCards() {
@@ -5675,7 +5675,7 @@ window.setMonitoringHudStatusBehavior = function(snapshot) {
     monitoringHudNoDataBehavior.textContent = monitoringHudStatus.noDataBehavior || "Show unavailable; no fake values";
   }
   if (monitoringHudDegradedBehavior) {
-    monitoringHudDegradedBehavior.textContent = monitoringHudStatus.degradedBehavior || "Name reconnect/setup gap";
+    monitoringHudDegradedBehavior.textContent = monitoringHudStatus.degradedBehavior || "Show local readiness gaps with a visual warning only";
   }
   if (monitoringHudWarningPosture) {
     monitoringHudWarningPosture.textContent = monitoringHudStatus.warningPosture || "Visual notifications enabled";
