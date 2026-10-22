@@ -108,31 +108,31 @@
     aria-hidden="true"
   >
     <div class="monitoring-hud__chrome" aria-label="Visible Nexus Desktop AI Monitoring HUD panel">
-      <button type="button" id="monitoring-hud-dashboard-close-action" class="monitoring-hud__chrome-button monitoring-hud__chrome-button--close monitoring-hud__window-close" data-control="close-dashboard" data-window-control-cluster="UIREF-002-compact-window-control-cluster" aria-label="Close HUD Dashboard" title="Close HUD Dashboard">
+      <button type="button" id="monitoring-hud-dashboard-close-action" class="monitoring-hud__chrome-button monitoring-hud__chrome-button--close monitoring-hud__window-close" data-control="close-dashboard" data-window-control-cluster="UIREF-002-compact-window-control-cluster" aria-label="Hide Dashboard" title="Hide Dashboard">
         X
       </button>
       <div class="monitoring-hud__title-group">
         <div class="monitoring-hud__header" id="monitoring-hud-drag-handle">
           <div>
             <div class="monitoring-hud__kicker">Nexus Desktop AI</div>
-            <div class="monitoring-hud__title">HUD Dashboard</div>
-            <div class="monitoring-hud__subtitle">Configure HUD access, monitor groups, data sources, warning notifications, and future display behavior.</div>
+            <div class="monitoring-hud__title">Dashboard</div>
+            <div class="monitoring-hud__subtitle">Set up monitors, profiles and recording.</div>
           </div>
         </div>
         <div class="monitoring-hud__surface-role" data-dashboard-role="configuration-settings-surface">
           <div class="monitoring-hud__surface-role-copy">
             <span>Dashboard</span>
-            <strong>Settings and control hub</strong>
-            <span>HUD Overlay</span>
-            <strong>Deferred future overlay</strong>
-            <span>Relationship</span>
-            <strong>Dashboard configures overlay behavior</strong>
+            <strong>Configure here</strong>
+            <span>Overlay display</span>
+            <strong>Not available yet</strong>
+            <span>Profiles</span>
+            <strong>Choose which monitors to include</strong>
           </div>
           <div class="monitoring-hud__surface-role-actions" aria-label="HUD Dashboard IA card controls">
             <button type="button" id="monitoring-hud-settings-action" class="monitoring-hud__chrome-button monitoring-hud__chrome-button--settings" data-control="open-dashboard-settings" data-child-window-target="dashboard-settings" aria-label="Open HUD Dashboard settings" aria-haspopup="dialog" aria-expanded="false" title="Open HUD Dashboard settings">
               Settings
             </button>
-            <div class="monitoring-hud__mode-pill monitoring-hud__mode-pill--quiet" id="monitoring-hud-anchor-status">HUD Overlay deferred</div>
+            <div class="monitoring-hud__mode-pill monitoring-hud__mode-pill--quiet" id="monitoring-hud-anchor-status">Not available yet</div>
           </div>
         </div>
       </div>
@@ -167,16 +167,16 @@
         <article class="monitoring-hud__hub-card" data-dashboard-hub-card="hud-overlay" data-slice="SLC-026">
           <div class="monitoring-hud__hub-card-topline">
             <span>01</span>
-            <strong>HUD Overlay</strong>
+            <strong>Overlay Profiles</strong>
           </div>
-          <p id="monitoring-hud-placement-owner">HUD Overlay release acceptance is deferred. The Dashboard can describe the future overlay boundary without enabling it.</p>
+          <p id="monitoring-hud-placement-owner">Choose monitors for each profile. The overlay display is not available yet.</p>
           <div class="monitoring-hud__state-row">
-            <span>Overlay status</span>
-            <strong id="monitoring-hud-placement-anchor">Deferred / non-gating</strong>
+            <span>Overlay display</span>
+            <strong id="monitoring-hud-placement-anchor">Not available yet</strong>
           </div>
           <div class="monitoring-hud__state-row">
-            <span>Control boundary</span>
-            <strong id="monitoring-hud-resize-posture">Overlay settings are future branch scope</strong>
+            <span>Configuration</span>
+            <strong id="monitoring-hud-resize-posture">Overlay sizing is unavailable in this build.</strong>
           </div>
           <div
             class="monitoring-hud__overlay-profile-panel"
@@ -226,7 +226,7 @@
             <div class="monitoring-hud__hub-actions monitoring-hud__overlay-profile-actions" data-overlay-profile-actions="settings-window-entry">
               <button type="button" id="monitoring-hud-overlay-profile-open-settings" class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__dashboard-paired-action" data-control="overlay-profile-open-settings" data-dashboard-action-size="paired-overlay-manage-250" data-child-window-target="overlay-profile-settings" aria-haspopup="dialog" aria-expanded="false">Overlay Profile Settings</button>
             </div>
-            <small id="monitoring-hud-overlay-profile-membership-note">Membership is editable inside Overlay Profile Settings; monitor groups remain separate.</small>
+            <small id="monitoring-hud-overlay-profile-membership-note">Select a profile to edit, or create a new one.</small>
           </div>
         </article>
         <article
@@ -245,7 +245,7 @@
             <span>02</span>
             <strong>Recording</strong>
           </div>
-          <p id="monitoring-hud-recording-card-summary">Recording follows the active Overlay Profile and saves a native NDAI log when stopped.</p>
+          <p id="monitoring-hud-recording-card-summary">Recording follows the active Overlay Profile and saves a Nexus recording log (.ndailog) when stopped.</p>
           <div
             class="monitoring-hud__recording-target-preview"
             id="monitoring-hud-recording-target-preview"
@@ -299,37 +299,37 @@
         <article class="monitoring-hud__hub-card monitoring-hud__hub-card--monitor-groups" data-dashboard-hub-card="monitor-groups" data-slice="SLC-027" data-dashboard-issue="125" data-monitor-group-flow="sensor-command-center-list-detail-source-picker">
           <div class="monitoring-hud__hub-card-topline">
             <span>03</span>
-            <strong>Monitor Groups</strong>
+            <strong>Monitors</strong>
           </div>
-          <p id="monitoring-hud-monitor-list-summary">2 Monitor Groups configured. Manage opens list, create, edit, delete, and supported sensor assignment controls.</p>
-          <div class="monitoring-hud__monitor-summary-grid" aria-label="Monitor group summary">
+          <p id="monitoring-hud-monitor-list-summary">2 monitors configured. Open Manage Monitors to edit them.</p>
+          <div class="monitoring-hud__monitor-summary-grid" aria-label="Monitor summary">
             <div class="monitoring-hud__state-row">
-              <span>Groups</span>
+              <span>Monitors</span>
               <strong id="monitoring-hud-monitor-count">2 configured</strong>
             </div>
             <div class="monitoring-hud__state-row">
-              <span>Sensors</span>
+              <span>Source assignments</span>
               <strong id="monitoring-hud-monitor-polling-summary">Assignments inside Manage</strong>
             </div>
           </div>
           <div class="monitoring-hud__hub-actions">
             <button type="button" id="monitoring-hud-edit-monitor-action" class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__dashboard-paired-action monitoring-hud__hub-action--dashboard-entry" data-control="edit-monitor" data-control-visual-parity="overlay-profile-settings" data-dashboard-action-size="paired-overlay-manage-250" data-child-window-target="monitor-group-edit">Manage Monitors</button>
           </div>
-          <small id="monitoring-hud-monitor-editor-scope">Monitor Groups assign supported sources and settings. HUD Overlay owns future visual display; fake values remain blocked.</small>
+          <small id="monitoring-hud-monitor-editor-scope">Choose data sources and settings for each monitor.</small>
         </article>
         <article class="monitoring-hud__hub-card" data-dashboard-hub-card="data-sources" data-slice="SLC-025">
           <div class="monitoring-hud__hub-card-topline">
             <span>04</span>
             <strong>Data Sources</strong>
           </div>
-          <p>Provider truth and setup live here. Waiting for safe provider remains the data rule; Manage Data Sources is Feature Deferred.</p>
+          <p>Monitoring data-source setup is not available in this build. Use Manage Monitors to assign available sources.</p>
           <div class="monitoring-hud__state-row">
             <span>Status</span>
-            <strong id="monitoring-hud-adapter-status">Feature Deferred</strong>
+            <strong id="monitoring-hud-adapter-status">Not available here yet</strong>
           </div>
           <div class="monitoring-hud__state-row">
-            <span>Truth rule</span>
-            <strong id="monitoring-hud-source-scope">Provider-first; no fake values</strong>
+            <span>Readings</span>
+            <strong id="monitoring-hud-source-scope">Only available readings are shown.</strong>
           </div>
           <div class="monitoring-hud__hub-actions" data-dashboard-actions="data-sources-deferred-entry">
             <button type="button" class="monitoring-hud__hub-action monitoring-hud__hub-action--compact monitoring-hud__dashboard-paired-action monitoring-hud__hub-action--dashboard-entry monitoring-hud__hub-action--deferred" data-control="open-data-sources" data-child-window-target="data-sources" data-feature-status="feature-deferred" aria-disabled="true" disabled>Manage Data Sources</button>
@@ -374,42 +374,41 @@
         >
           <header class="monitoring-hud__child-window-header">
             <div>
-              <span>Dashboard Settings</span>
-              <strong id="monitoring-hud-settings-title">Settings Panel</strong>
+              <strong id="monitoring-hud-settings-title">Dashboard Settings</strong>
             </div>
             <button type="button" class="monitoring-hud__child-window-close" data-child-window-close="dashboard-settings" data-window-control-class="child-window-compact-symbol-close" aria-label="Close Dashboard Settings" title="Close Dashboard Settings">Close</button>
           </header>
           <div class="monitoring-hud__settings-grid" aria-label="Dashboard settings status">
             <div class="monitoring-hud__setting-row">
-              <span>Feature control</span>
-              <strong id="monitoring-hud-settings-feature-control">Tray owns HUD feature enablement; Dashboard close hides this window only</strong>
+              <span>HUD access</span>
+              <strong id="monitoring-hud-settings-feature-control">Turn the HUD on or off from the tray icon. Closing the Dashboard hides it without changing this setting.</strong>
             </div>
             <div class="monitoring-hud__setting-row">
-              <span>Warning mode</span>
-              <strong id="monitoring-hud-settings-warning-state">Visual notifications enabled</strong>
+              <span>Warning notifications</span>
+              <strong id="monitoring-hud-settings-warning-state">On</strong>
             </div>
             <div class="monitoring-hud__setting-row">
-              <span>Persistence</span>
-              <strong id="monitoring-hud-settings-persistence">Monitor group and Dashboard layout posture are stored locally</strong>
+              <span>Saved settings</span>
+              <strong id="monitoring-hud-settings-persistence">Monitor settings and the Dashboard layout are saved on this device.</strong>
             </div>
             <div class="monitoring-hud__setting-row">
               <span>Overlay display</span>
-              <strong id="monitoring-hud-settings-overlay-state">Deferred; no Overlay/display acceptance in this branch</strong>
+              <strong id="monitoring-hud-settings-overlay-state">Not available yet.</strong>
             </div>
             <div class="monitoring-hud__setting-row">
-              <span>Provider data</span>
-              <strong id="monitoring-hud-settings-provider-state">Provider setup required; no fake telemetry values</strong>
+              <span>Data source setup</span>
+              <strong id="monitoring-hud-settings-provider-state">Not available here.</strong>
             </div>
           </div>
           <label class="monitoring-hud__child-check monitoring-hud__setting-toggle">
             <input id="monitoring-hud-settings-warning-toggle" type="checkbox" data-control="settings-warning-notifications" checked />
             Warning notifications
           </label>
-          <div class="monitoring-hud__hub-actions" aria-label="Deferred Dashboard settings">
-            <button type="button" class="monitoring-hud__hub-action monitoring-hud__hub-action--deferred" data-control="settings-overlay-display" aria-disabled="true" disabled>Overlay Display Deferred</button>
-            <button type="button" class="monitoring-hud__hub-action monitoring-hud__hub-action--deferred" data-control="settings-provider-setup" aria-disabled="true" disabled>Provider Setup Required</button>
+          <div class="monitoring-hud__hub-actions" aria-label="Unavailable settings">
+            <button type="button" class="monitoring-hud__hub-action monitoring-hud__hub-action--deferred" data-control="settings-overlay-display" aria-disabled="true" disabled>Overlay display unavailable</button>
+            <button type="button" class="monitoring-hud__hub-action monitoring-hud__hub-action--deferred" data-control="settings-provider-setup" aria-disabled="true" disabled>Data source setup unavailable</button>
           </div>
-          <p class="monitoring-hud__child-note">This panel owns supported Dashboard settings only. Provider/model, external telemetry parity, and Overlay/display acceptance remain future USER decisions.</p>
+          <p class="monitoring-hud__child-note">Change warning notifications here. Manage monitors and profiles from the Dashboard.</p>
           <div class="monitoring-hud__child-actions">
             <button type="button" class="monitoring-hud__hub-action" data-child-window-close="dashboard-settings">Done</button>
           </div>
@@ -431,8 +430,7 @@
         >
           <header class="monitoring-hud__child-window-header">
             <div>
-              <span>Overlay Profiles</span>
-              <strong id="monitoring-hud-overlay-profile-window-title">Select Or Create</strong>
+              <strong id="monitoring-hud-overlay-profile-window-title">Overlay Profile Settings</strong>
             </div>
             <button type="button" class="monitoring-hud__child-window-close" data-child-window-close="overlay-profile-settings" data-window-control-class="child-window-compact-symbol-close" aria-label="Close Overlay Profile Settings" title="Close Overlay Profile Settings">Close</button>
           </header>
@@ -528,7 +526,7 @@
                 aria-label="Select monitors visible in this Overlay Profile"
               ></div>
             </div>
-            <p class="monitoring-hud__child-note" id="monitoring-hud-overlay-profile-membership-note">Select an existing profile or create a new one first. Visible monitor membership is scroll-contained here; Monitor Groups and Recording Profiles remain separate.</p>
+            <p class="monitoring-hud__child-note" id="monitoring-hud-overlay-profile-membership-note">Choose the monitors to include, then save your changes.</p>
             <div class="monitoring-hud__delete-confirmation monitoring-hud__overlay-profile-delete-confirmation" id="monitoring-hud-overlay-profile-delete-confirmation" data-overlay-profile-delete-confirmation="closed" hidden>
               <strong id="monitoring-hud-overlay-profile-delete-title">Delete Overlay Profile?</strong>
               <span id="monitoring-hud-overlay-profile-delete-copy">Confirm before removing this Overlay Profile. Monitor Groups and Recording Profiles stay separate.</span>
@@ -811,7 +809,7 @@
                   </div>
                 </div>
               </section>
-              <p class="monitoring-hud__child-note" id="monitoring-hud-monitor-detail-note">Supported source settings only. Overlay visual display, external telemetry parity, and provider expansion remain future USER decisions.</p>
+              <p class="monitoring-hud__child-note" id="monitoring-hud-monitor-detail-note">Choose available data sources and settings for this monitor.</p>
             </section>
           </div>
         </div>

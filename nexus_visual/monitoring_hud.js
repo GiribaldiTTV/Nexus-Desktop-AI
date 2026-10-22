@@ -713,7 +713,7 @@ function monitoringHudRenderActiveOverlayRecordingTargetPreview() {
     monitoringHudRecordingTargetPreview.dataset.trayRecordingControlState = "not-created";
   }
   if (monitoringHudRecordingCardSummary) {
-    monitoringHudRecordingCardSummary.textContent = "Recording follows the active Overlay Profile and saves a native NDAI log when stopped.";
+    monitoringHudRecordingCardSummary.textContent = "Recording follows the active Overlay Profile and saves a Nexus recording log (.ndailog) when stopped.";
   }
   if (monitoringHudRecordingTargetProfile) {
     monitoringHudRecordingTargetProfile.textContent = activeProfileName;
@@ -722,7 +722,7 @@ function monitoringHudRenderActiveOverlayRecordingTargetPreview() {
     monitoringHudRecordingTargetCount.textContent = `${count} active monitor${count === 1 ? "" : "s"}`;
   }
   if (monitoringHudRecordingTargetSummary) {
-    const resultText = outputResult && outputResult.nativeLogPath ? ` Saved ${outputResult.rowCount || 0} rows to a native NDAI log.` : "";
+    const resultText = outputResult && outputResult.nativeLogPath ? ` Saved ${outputResult.rowCount || 0} rows to a Nexus recording log (.ndailog).` : "";
     const targetSummary = count > 0 ? `${targetLabel}: ${targetNames}` : targetLabel;
     const sessionMessage = monitoringHudControlState.recordingSessionMessage;
     const summaryMessage = sessionState === "ready" && !targetReady
@@ -2260,22 +2260,22 @@ function monitoringHudRenderDashboardSettingsPanel() {
   }
   if (monitoringHudSettingsFeatureControl) {
     monitoringHudSettingsFeatureControl.textContent = monitoringHudControlState.featureEnabled
-      ? "Tray owns HUD feature enablement; Dashboard close hides this window only"
-      : "HUD feature disabled from tray path; Dashboard opens only when feature is enabled";
+      ? "Turn the HUD on or off from the tray icon. Closing the Dashboard hides it without changing this setting."
+      : "Turn on the HUD from the tray icon to open the Dashboard.";
   }
   if (monitoringHudSettingsWarningState) {
     monitoringHudSettingsWarningState.textContent = warningEnabled
-      ? "Visual notifications enabled"
-      : "Warning notifications muted; monitor group settings preserved";
+      ? "On"
+      : "Off. Monitor settings are kept.";
   }
   if (monitoringHudSettingsPersistence) {
-    monitoringHudSettingsPersistence.textContent = "Monitor group and Dashboard layout posture are stored locally";
+    monitoringHudSettingsPersistence.textContent = "Monitor settings and the Dashboard layout are saved on this device.";
   }
   if (monitoringHudSettingsOverlayState) {
-    monitoringHudSettingsOverlayState.textContent = "Deferred; no Overlay/display acceptance in this branch";
+    monitoringHudSettingsOverlayState.textContent = "Not available yet.";
   }
   if (monitoringHudSettingsProviderState) {
-    monitoringHudSettingsProviderState.textContent = "Provider setup required; no fake telemetry values";
+    monitoringHudSettingsProviderState.textContent = "Not available here.";
   }
 }
 
@@ -2385,7 +2385,7 @@ function monitoringHudRenderOverlayProfileControls() {
     monitoringHudOverlayProfileWindow.dataset.contextMonitorId = monitoringHudOverlayProfileContextMonitorId || "";
   }
   if (monitoringHudOverlayProfileWindowTitle) {
-    monitoringHudOverlayProfileWindowTitle.textContent = "Select Or Create";
+    monitoringHudOverlayProfileWindowTitle.textContent = "Overlay Profile Settings";
   }
   if (monitoringHudOverlayProfileWindowActiveName) {
     monitoringHudOverlayProfileWindowActiveName.textContent = selectedProfile
@@ -2438,8 +2438,8 @@ function monitoringHudRenderOverlayProfileControls() {
   }
   if (monitoringHudOverlayProfileMembershipNote) {
     monitoringHudOverlayProfileMembershipNote.textContent = detailOpen
-      ? "Visible monitor membership is scroll-contained here; Monitor Groups and Recording Profiles remain separate."
-      : "Select an existing profile to edit or create a new draft profile first.";
+      ? "Choose the monitors to include, then save your changes."
+      : "Select a profile to edit, or create a new one.";
   }
 }
 
@@ -4212,7 +4212,7 @@ function monitoringHudRenderMonitorManagement() {
   if (monitoringHudMonitorListSummary) {
     monitoringHudMonitorListSummary.textContent = monitorCount === 0
       ? "No monitors yet. Open Manage Monitors to create one."
-      : `${monitorCount} Monitor Groups configured with ${assignedSensorCount} supported source assignment${assignedSensorCount === 1 ? "" : "s"}. Manage opens list, create, edit, delete, and sensor controls.`;
+      : `${monitorCount} monitor${monitorCount === 1 ? "" : "s"} configured with ${assignedSensorCount} source assignment${assignedSensorCount === 1 ? "" : "s"}. Open Manage Monitors to edit them.`;
   }
   if (monitoringHudMonitorCount) {
     monitoringHudMonitorCount.textContent = `${monitorCount} configured`;
@@ -4230,7 +4230,7 @@ function monitoringHudRenderMonitorManagement() {
     monitoringHudSetPollingRateValue(selectedLayout ? String(Math.max(1000, Number(selectedLayout.pollingRateMs) || 1000)) : "1000");
   }
   if (monitoringHudMonitorEditorScope) {
-    monitoringHudMonitorEditorScope.textContent = "Monitor Groups assign available runtime sources and settings. HUD Overlay owns future visual display; fake values remain blocked.";
+    monitoringHudMonitorEditorScope.textContent = "Choose data sources and settings for each monitor.";
   }
   monitoringHudRenderChildWindows();
 }
@@ -4572,7 +4572,7 @@ function monitoringHudRenderControls() {
     monitoringHudRuntimeStatus.textContent = dashboardVisible ? "Dashboard visible" : "Dashboard hidden";
   }
   if (monitoringHudAnchorStatus) {
-    monitoringHudAnchorStatus.textContent = overlayDeferred ? "HUD Overlay deferred" : (monitoringHudControlState.anchored ? "HUD Overlay anchored" : "HUD Overlay unanchored");
+    monitoringHudAnchorStatus.textContent = overlayDeferred ? "Not available yet" : (monitoringHudControlState.anchored ? "HUD Overlay anchored" : "HUD Overlay unanchored");
   }
   if (monitoringHudToggle) {
     monitoringHudToggle.textContent = featureEnabled ? "Disable HUD Overlay" : "Enable HUD Overlay";
@@ -4608,6 +4608,15 @@ function monitoringHudRenderControls() {
     monitoringHudWarningPosture.textContent = monitoringHudControlState.warningNotificationsMuted
       ? "Globally muted; Monitor Group settings preserved"
       : "Visual notifications enabled";
+  }
+  if (monitoringHudPlacementOwner) {
+    monitoringHudPlacementOwner.textContent = overlayDeferred && (!monitoringHudPlacement.rendererOwner || monitoringHudPlacement.rendererOwner === "HUD Overlay release acceptance is deferred. The Dashboard can describe the future overlay boundary without enabling it." || monitoringHudPlacement.rendererOwner === "Dashboard-first runtime window") ? "Choose monitors for each profile. The overlay display is not available yet." : (monitoringHudPlacement.rendererOwner || "HUD Overlay release acceptance is deferred. The Dashboard can describe the future overlay boundary without enabling it.");
+  }
+  if (monitoringHudPlacementAnchor) {
+    monitoringHudPlacementAnchor.textContent = overlayDeferred && (!monitoringHudPlacement.anchor || monitoringHudPlacement.anchor === "Deferred / non-gating" || monitoringHudPlacement.anchor === "Overlay anchor deferred until future interface release") ? "Not available yet" : (monitoringHudPlacement.anchor || "Deferred / non-gating");
+  }
+  if (monitoringHudResizePosture) {
+    monitoringHudResizePosture.textContent = overlayDeferred && (!monitoringHudPlacement.resizePosture || monitoringHudPlacement.resizePosture === "Overlay settings are future branch scope") ? "Overlay sizing is unavailable in this build." : (monitoringHudPlacement.resizePosture || "Overlay settings are future branch scope");
   }
   if (monitoringHudPlacementPointer) {
     monitoringHudPlacementPointer.textContent = "Dashboard configures future HUD Overlay behavior";
@@ -5577,11 +5586,11 @@ window.setMonitoringHudTelemetry = function(snapshot) {
     monitoringHudProviderState.textContent = monitoringHudTelemetry.providerLabel || "Provider setup required";
   }
   if (monitoringHudAdapterStatus) {
-    monitoringHudAdapterStatus.textContent = "Feature Deferred";
+    monitoringHudAdapterStatus.textContent = "Not available here yet";
     monitoringHudAdapterStatus.dataset.providerTruth = monitoringHudTelemetry.adapterStatus || "Waiting for safe provider";
   }
   if (monitoringHudSourceScope) {
-    monitoringHudSourceScope.textContent = monitoringHudTelemetry.sourceScope || "Provider-first; no fake values";
+    monitoringHudSourceScope.textContent = (!monitoringHudTelemetry.sourceScope || monitoringHudTelemetry.sourceScope === "Provider-first; no fake values") ? "Only available readings are shown." : (monitoringHudTelemetry.sourceScope || "Provider-first; no fake values");
   }
   if (monitoringHudHardwarePolling) {
     monitoringHudHardwarePolling.textContent = monitoringHudTelemetry.hardwarePolling || "1s after provider proof";
@@ -5610,16 +5619,16 @@ window.setMonitoringHudPlacementOwnership = function(contract) {
     monitoringHud.dataset.interactionMode = "standalone-dashboard-window";
   }
   if (monitoringHudPlacementOwner) {
-    monitoringHudPlacementOwner.textContent = monitoringHudPlacement.rendererOwner || "HUD Overlay release acceptance is deferred. The Dashboard can describe the future overlay boundary without enabling it.";
+    monitoringHudPlacementOwner.textContent = monitoringHudControlState.overlayDeferred !== false && (!monitoringHudPlacement.rendererOwner || monitoringHudPlacement.rendererOwner === "HUD Overlay release acceptance is deferred. The Dashboard can describe the future overlay boundary without enabling it." || monitoringHudPlacement.rendererOwner === "Dashboard-first runtime window") ? "Choose monitors for each profile. The overlay display is not available yet." : (monitoringHudPlacement.rendererOwner || "HUD Overlay release acceptance is deferred. The Dashboard can describe the future overlay boundary without enabling it.");
   }
   if (monitoringHudPlacementAnchor) {
-    monitoringHudPlacementAnchor.textContent = monitoringHudPlacement.anchor || "Deferred / non-gating";
+    monitoringHudPlacementAnchor.textContent = monitoringHudControlState.overlayDeferred !== false && (!monitoringHudPlacement.anchor || monitoringHudPlacement.anchor === "Deferred / non-gating" || monitoringHudPlacement.anchor === "Overlay anchor deferred until future interface release") ? "Not available yet" : (monitoringHudPlacement.anchor || "Deferred / non-gating");
   }
   if (monitoringHudPlacementPointer) {
     monitoringHudPlacementPointer.textContent = monitoringHudPlacement.pointerModel || "Dashboard configures future HUD Overlay behavior";
   }
   if (monitoringHudResizePosture) {
-    monitoringHudResizePosture.textContent = monitoringHudPlacement.resizePosture || "Overlay settings are future branch scope";
+    monitoringHudResizePosture.textContent = monitoringHudControlState.overlayDeferred !== false && (!monitoringHudPlacement.resizePosture || monitoringHudPlacement.resizePosture === "Overlay settings are future branch scope") ? "Overlay sizing is unavailable in this build." : (monitoringHudPlacement.resizePosture || "Overlay settings are future branch scope");
   }
   monitoringHudUpdateSurfaceSplit();
 };

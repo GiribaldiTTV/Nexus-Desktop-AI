@@ -1127,6 +1127,15 @@ body.desktop-mode #monitoring-hud > * {
   --recording-card-row-visual-contract: inherits-dashboard-state-row;
 }
 
+body.desktop-mode #monitoring-hud[data-product-surface="nexus-monitoring-hud"] .monitoring-hud__state-row {
+  min-height: 0;
+  padding: 4px 0 2px;
+}
+
+body.desktop-mode #monitoring-hud[data-product-surface="nexus-monitoring-hud"] .monitoring-hud__hub-card[data-dashboard-hub-card="hud-overlay"] > .monitoring-hud__state-row {
+  margin-bottom: -11px;
+}
+
 .monitoring-hud__recording-target-preview small {
   color: rgba(180, 211, 220, 0.82);
   padding: 1px 0;
