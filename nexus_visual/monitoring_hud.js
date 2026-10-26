@@ -4091,7 +4091,7 @@ function monitoringHudPendingGuardActionSnapshot() {
 
 function monitoringHudSaveAndSelectPendingMonitor() {
   const pendingAction = monitoringHudPendingGuardActionSnapshot();
-  monitoringHudPersistCurrentMonitorDraft();
+  if (monitoringHudPersistCurrentMonitorDraft() === false) return;
   monitoringHudRunPendingGuardAction(pendingAction);
 }
 
