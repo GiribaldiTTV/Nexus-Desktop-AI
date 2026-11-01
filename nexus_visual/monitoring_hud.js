@@ -1862,13 +1862,22 @@ function monitoringHudLoadStoredState() {
   }
 }
 
-function monitoringHudSaveStoredState() {
+function monitoringHudWriteStoredState(state) {
   try {
-    if (!window.localStorage) return;
-    const persistedState = JSON.parse(JSON.stringify(monitoringHudControlState));
+    if (!window.localStorage) return false;
+    const persistedState = JSON.parse(JSON.stringify(state));
     monitoringHudNormalizeOverlayProfileState(persistedState);
     monitoringHudClearTransientRecordingRuntimeState(persistedState);
     window.localStorage.setItem(monitoringHudStorageKey, JSON.stringify(persistedState));
+    return true;
+  } catch (_err) {
+    return false;
+  }
+}
+
+function monitoringHudSaveStoredState() {
+  if (monitoringHudWriteStoredState(monitoringHudControlState) === false) return;
+  try {
     monitoringHudSyncActiveOverlayRecordingTargetFromOverlayProfile();
   } catch (_err) {}
 }
@@ -3895,13 +3904,22 @@ function monitoringHudPersistCurrentMonitorDraft() {
     ? monitoringHudCloneMonitorLayout(monitoringHudDraftWorkingLayout)
     : monitoringHudCloneMonitorLayout(monitoringHudControlState.cards[targetId]);
   monitoringHudNormalizeSensorAssignments(targetId, targetLayout);
+  const candidateState = Object.assign({}, monitoringHudControlState, {
+    cards: Object.assign({}, monitoringHudControlState.cards, { [targetId]: targetLayout }),
+    pollingRateMs: monitoringHudEffectivePollingRateMs(targetLayout),
+    changedAt: Date.now()
+  });
+  if (monitoringHudWriteStoredState(candidateState) === false) return false;
   monitoringHudControlState.cards[targetId] = targetLayout;
+  monitoringHudControlState.changedAt = candidateState.changedAt;
   monitoringHudApplyEffectivePollingRate(targetLayout, "selected-monitor-persist");
   monitoringHudPendingDeleteMonitorId = "";
   monitoringHudSetMonitorDraftDirty(false);
   monitoringHudApplyCardLayout();
   monitoringHudRenderControls();
-  monitoringHudMarkChanged();
+  try {
+    monitoringHudSyncActiveOverlayRecordingTargetFromOverlayProfile();
+  } catch (_err) {}
   return true;
 }
 
@@ -3990,6 +4008,9 @@ function monitoringHudShowUnsavedGuard(action) {
   monitoringHudPendingSelectMonitorId = pendingAction.type === "select" ? (pendingAction.cardId || "") : "";
   if (!monitoringHudMonitorUnsavedGuard) return;
   monitoringHudMonitorUnsavedGuard.hidden = false;
+  monitoringHudMonitorUnsavedGuard.dataset.monitorSaveState = "ready";
+  const message = monitoringHudMonitorUnsavedGuard.querySelector("span");
+  if (message) message.textContent = "Save changes or discard the draft before continuing.";
   monitoringHudMonitorUnsavedGuard.dataset.unsavedGuard = "open-save-discard";
   monitoringHudMonitorUnsavedGuard.dataset.guardActionLayout = "modal-save-discard-cancel";
   monitoringHudMonitorUnsavedGuard.dataset.draftMonitorId = monitoringHudDraftOriginalMonitorId || "";
@@ -4090,8 +4111,19 @@ function monitoringHudPendingGuardActionSnapshot() {
 }
 
 function monitoringHudSaveAndSelectPendingMonitor() {
+  monitoringHudSaveAndSelectPendingMonitorFromControl();
+}
+
+function monitoringHudSaveAndSelectPendingMonitorFromControl() {
   const pendingAction = monitoringHudPendingGuardActionSnapshot();
-  if (monitoringHudPersistCurrentMonitorDraft() === false) return;
+  if (monitoringHudPersistCurrentMonitorDraft() === false) {
+    if (monitoringHudMonitorUnsavedGuard) {
+      monitoringHudMonitorUnsavedGuard.dataset.monitorSaveState = "failed";
+      const message = monitoringHudMonitorUnsavedGuard.querySelector("span");
+      if (message) message.textContent = "Could not save monitor changes. Your draft is still open. Try Save again, or choose Discard or Cancel.";
+    }
+    return false;
+  }
   monitoringHudRunPendingGuardAction(pendingAction);
 }
 
@@ -4893,7 +4925,7 @@ function monitoringHudWireControls() {
     });
   }
   if (monitoringHudMonitorUnsavedSave) {
-    monitoringHudWireReliableControl(monitoringHudMonitorUnsavedSave, "manage:dirty-save", monitoringHudSaveAndSelectPendingMonitor);
+    monitoringHudWireReliableControl(monitoringHudMonitorUnsavedSave, "manage:dirty-save", monitoringHudSaveAndSelectPendingMonitorFromControl);
   }
   if (monitoringHudMonitorUnsavedDiscard) {
     monitoringHudWireReliableControl(monitoringHudMonitorUnsavedDiscard, "manage:dirty-discard", monitoringHudDiscardAndSelectPendingMonitor);
