@@ -3164,12 +3164,14 @@ class ResidentAccessSettingsDialog(QDialog):
     def _discard_and_close(self):
         pending_callback = self._close_guard_pending_callback
         self._settings = self._saved_settings
+        self._notice_text = ""
         self._close_guard_active = False
         self._dirty_close_last_resolution = "discard-dropped-draft-closed"
         self.setProperty("dirtyCloseInterceptState", self._dirty_close_last_resolution)
         self.setProperty("dirtyCloseResolution", self._dirty_close_last_resolution)
         self._close_guard_pending_result = None
         self._close_guard_pending_callback = None
+        self._rebuild_quick_slot_rows()
         super().reject()
         if callable(pending_callback):
             QTimer.singleShot(0, pending_callback)
@@ -3902,14 +3904,7 @@ class ResidentAccessSettingsDialog(QDialog):
         local = self.mapFromGlobal(screen_point)
         if self._settings_control_cluster_rect().contains(local):
             return True
-        release_margin = self.RESIZE_MARGIN + self.RESIZE_CURSOR_RELEASE_MARGIN
-        near_edge = (
-            local.x() <= release_margin
-            or local.x() >= self.width() - release_margin
-            or local.y() <= release_margin
-            or local.y() >= self.height() - release_margin
-        )
-        return not near_edge
+        return not self._settings_resize_edges_for_local_pos(local)
 
     def _poll_settings_resize_hover_cursor(self) -> None:
         if self._settings_resize_active:
