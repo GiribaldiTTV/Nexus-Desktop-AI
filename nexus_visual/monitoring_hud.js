@@ -1862,13 +1862,22 @@ function monitoringHudLoadStoredState() {
   }
 }
 
-function monitoringHudSaveStoredState() {
+function monitoringHudWriteStoredState(state) {
   try {
-    if (!window.localStorage) return;
-    const persistedState = JSON.parse(JSON.stringify(monitoringHudControlState));
+    if (!window.localStorage) return false;
+    const persistedState = JSON.parse(JSON.stringify(state));
     monitoringHudNormalizeOverlayProfileState(persistedState);
     monitoringHudClearTransientRecordingRuntimeState(persistedState);
     window.localStorage.setItem(monitoringHudStorageKey, JSON.stringify(persistedState));
+    return true;
+  } catch (_err) {
+    return false;
+  }
+}
+
+function monitoringHudSaveStoredState() {
+  if (monitoringHudWriteStoredState(monitoringHudControlState) === false) return;
+  try {
     monitoringHudSyncActiveOverlayRecordingTargetFromOverlayProfile();
   } catch (_err) {}
 }
@@ -3578,6 +3587,13 @@ function monitoringHudRenderChildWindows() {
   monitoringHudUpdateMonitorActionState();
   if (monitoringHudMonitorDetailNote) {
     monitoringHudMonitorDetailNote.hidden = !hasSelectedMonitor;
+    const failedSaveForCurrentDraft = monitoringHudUnsavedMonitorDirty
+      && monitoringHudDraftOriginalMonitorId === selected.id
+      && monitoringHudMonitorDetailNote.dataset.monitorSaveFailureFor === selected.id;
+    if (!failedSaveForCurrentDraft) {
+      monitoringHudMonitorDetailNote.dataset.monitorSaveFailureFor = "";
+      monitoringHudMonitorDetailNote.textContent = "Choose available data sources and settings for this monitor.";
+    }
   }
   const settingsPanel = monitoringHudEditMonitorWindow
     ? monitoringHudEditMonitorWindow.querySelector(".monitoring-hud__monitor-settings-panel")
@@ -3870,21 +3886,23 @@ function monitoringHudUpdateMonitorDraftFromWindow() {
 }
 
 function monitoringHudSaveEditMonitorWindow(options = {}) {
+  monitoringHudSaveEditMonitorWindowFromControl(options);
+}
+
+function monitoringHudSaveEditMonitorWindowFromControl(options = {}) {
   const selected = monitoringHudSelectedMonitor();
   if (!selected.id || !selected.layout) return;
-  const draft = monitoringHudUpdateMonitorDraftFromWindow();
-  const targetId = draft && draft.id ? draft.id : selected.id;
-  const targetLayout = draft && draft.layout ? monitoringHudCloneMonitorLayout(draft.layout) : monitoringHudCloneMonitorLayout(selected.layout);
-  monitoringHudNormalizeSensorAssignments(targetId, targetLayout);
-  monitoringHudControlState.cards[targetId] = targetLayout;
-  monitoringHudApplyEffectivePollingRate(targetLayout, "selected-monitor-save");
-  monitoringHudPendingDeleteMonitorId = "";
-  monitoringHudSetMonitorDraftDirty(false);
-  monitoringHudApplyCardLayout();
-  monitoringHudRenderControls();
+  monitoringHudUpdateMonitorDraftFromWindow();
+  if (monitoringHudPersistCurrentMonitorDraft() === false) {
+    if (monitoringHudMonitorDetailNote) {
+      monitoringHudMonitorDetailNote.hidden = false;
+      monitoringHudMonitorDetailNote.dataset.monitorSaveFailureFor = monitoringHudDraftOriginalMonitorId || selected.id;
+      monitoringHudMonitorDetailNote.textContent = "Could not save monitor changes. Your draft is still open. Try Save Monitor again, or choose Discard.";
+    }
+    return false;
+  }
   if (options.keepOpen) monitoringHudRenderMonitorManagement();
   if (!options.keepOpen) monitoringHudCloseChildWindow({ force: true });
-  monitoringHudMarkChanged();
 }
 
 function monitoringHudPersistCurrentMonitorDraft() {
@@ -3895,13 +3913,22 @@ function monitoringHudPersistCurrentMonitorDraft() {
     ? monitoringHudCloneMonitorLayout(monitoringHudDraftWorkingLayout)
     : monitoringHudCloneMonitorLayout(monitoringHudControlState.cards[targetId]);
   monitoringHudNormalizeSensorAssignments(targetId, targetLayout);
+  const candidateState = Object.assign({}, monitoringHudControlState, {
+    cards: Object.assign({}, monitoringHudControlState.cards, { [targetId]: targetLayout }),
+    pollingRateMs: monitoringHudEffectivePollingRateMs(targetLayout),
+    changedAt: Date.now()
+  });
+  if (monitoringHudWriteStoredState(candidateState) === false) return false;
   monitoringHudControlState.cards[targetId] = targetLayout;
+  monitoringHudControlState.changedAt = candidateState.changedAt;
   monitoringHudApplyEffectivePollingRate(targetLayout, "selected-monitor-persist");
   monitoringHudPendingDeleteMonitorId = "";
   monitoringHudSetMonitorDraftDirty(false);
   monitoringHudApplyCardLayout();
   monitoringHudRenderControls();
-  monitoringHudMarkChanged();
+  try {
+    monitoringHudSyncActiveOverlayRecordingTargetFromOverlayProfile();
+  } catch (_err) {}
   return true;
 }
 
@@ -3990,6 +4017,9 @@ function monitoringHudShowUnsavedGuard(action) {
   monitoringHudPendingSelectMonitorId = pendingAction.type === "select" ? (pendingAction.cardId || "") : "";
   if (!monitoringHudMonitorUnsavedGuard) return;
   monitoringHudMonitorUnsavedGuard.hidden = false;
+  monitoringHudMonitorUnsavedGuard.dataset.monitorSaveState = "ready";
+  const message = monitoringHudMonitorUnsavedGuard.querySelector("span");
+  if (message) message.textContent = "Save changes or discard the draft before continuing.";
   monitoringHudMonitorUnsavedGuard.dataset.unsavedGuard = "open-save-discard";
   monitoringHudMonitorUnsavedGuard.dataset.guardActionLayout = "modal-save-discard-cancel";
   monitoringHudMonitorUnsavedGuard.dataset.draftMonitorId = monitoringHudDraftOriginalMonitorId || "";
@@ -4090,8 +4120,19 @@ function monitoringHudPendingGuardActionSnapshot() {
 }
 
 function monitoringHudSaveAndSelectPendingMonitor() {
+  monitoringHudSaveAndSelectPendingMonitorFromControl();
+}
+
+function monitoringHudSaveAndSelectPendingMonitorFromControl() {
   const pendingAction = monitoringHudPendingGuardActionSnapshot();
-  monitoringHudPersistCurrentMonitorDraft();
+  if (monitoringHudPersistCurrentMonitorDraft() === false) {
+    if (monitoringHudMonitorUnsavedGuard) {
+      monitoringHudMonitorUnsavedGuard.dataset.monitorSaveState = "failed";
+      const message = monitoringHudMonitorUnsavedGuard.querySelector("span");
+      if (message) message.textContent = "Could not save monitor changes. Your draft is still open. Try Save again, or choose Discard or Cancel.";
+    }
+    return false;
+  }
   monitoringHudRunPendingGuardAction(pendingAction);
 }
 
@@ -4853,7 +4894,7 @@ function monitoringHudWireControls() {
     monitoringHudWireReliableControl(monitoringHudMonitorEmptyCreate, "manage:empty-create", monitoringHudCreateMonitorGroupFromManageWindow);
   }
   if (monitoringHudEditMonitorConfirm) {
-    monitoringHudWireReliableControl(monitoringHudEditMonitorConfirm, "manage:save-monitor", () => monitoringHudSaveEditMonitorWindow({ keepOpen: true }));
+    monitoringHudWireReliableControl(monitoringHudEditMonitorConfirm, "manage:save-monitor", () => monitoringHudSaveEditMonitorWindowFromControl({ keepOpen: true }));
   }
   if (monitoringHudEditMonitorDiscard) {
     monitoringHudWireReliableControl(monitoringHudEditMonitorDiscard, "manage:discard-monitor", monitoringHudDiscardCurrentMonitorDraft);
@@ -4893,7 +4934,7 @@ function monitoringHudWireControls() {
     });
   }
   if (monitoringHudMonitorUnsavedSave) {
-    monitoringHudWireReliableControl(monitoringHudMonitorUnsavedSave, "manage:dirty-save", monitoringHudSaveAndSelectPendingMonitor);
+    monitoringHudWireReliableControl(monitoringHudMonitorUnsavedSave, "manage:dirty-save", monitoringHudSaveAndSelectPendingMonitorFromControl);
   }
   if (monitoringHudMonitorUnsavedDiscard) {
     monitoringHudWireReliableControl(monitoringHudMonitorUnsavedDiscard, "manage:dirty-discard", monitoringHudDiscardAndSelectPendingMonitor);
