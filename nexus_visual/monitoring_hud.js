@@ -248,6 +248,7 @@ const monitoringHudOverlayProfileSchemaVersion = 1;
 const monitoringHudDefaultOverlayProfileId = "default-overlay-profile";
 const monitoringHudActiveOverlayRecordingTargetSchemaVersion = 1;
 let monitoringHudOverlayProfilePendingCreate = null;
+let monitoringHudOverlayProfileRefreshPending = null;
 let monitoringHudOverlayProfileEditorGeneration = 0;
 let monitoringHudOverlayProfileDraftGeneration = 0;
 let monitoringHudOverlayProfilePendingAction = null;
@@ -1235,7 +1236,46 @@ function monitoringHudSetOverlayProfileSaveFailure(failed) {
     : "Choose the monitors to include, then save your changes.";
 }
 
+function monitoringHudOverlayProfileRefreshPendingIsCurrent(owner = monitoringHudOverlayProfileRefreshPending) {
+  return Boolean(
+    owner
+    && owner.profileId === monitoringHudOverlayProfileDraftId
+    && owner.draftGeneration === monitoringHudOverlayProfileDraftGeneration
+    && monitoringHudActiveChildWindow === "overlay-profile-settings"
+    && monitoringHudOverlayProfileDetailOpen
+    && monitoringHudOverlayProfileWindowSelectedId === owner.profileId
+  );
+}
+
+function monitoringHudSetOverlayProfileRefreshPending(owner) {
+  if (owner && !monitoringHudOverlayProfileRefreshPendingIsCurrent(owner)) return;
+  const previousOwner = monitoringHudOverlayProfileRefreshPending;
+  if (owner) monitoringHudOverlayProfileRefreshPending = owner;
+  const expectedOwner = owner || previousOwner;
+  try {
+    if (monitoringHudOverlayProfileEditorNote) {
+      if (!monitoringHudOverlayProfileSaveFailureIsCurrent()) {
+        monitoringHudOverlayProfileEditorNote.textContent = owner
+          ? "Profile changes were saved, but the HUD view could not fully refresh."
+          : (monitoringHudOverlayProfileDetailOpen
+            ? "Choose the monitors to include, then save your changes."
+            : "Select a profile to edit, or create a new one.");
+      }
+      if (monitoringHudOverlayProfileRefreshPending !== expectedOwner) return;
+      monitoringHudOverlayProfileEditorNote.dataset.overlayProfileRefreshState = owner
+        ? "saved-refresh-pending"
+        : "ready";
+    }
+  } catch (_err) {
+    return;
+  }
+  if (!owner && monitoringHudOverlayProfileRefreshPending === expectedOwner) {
+    monitoringHudOverlayProfileRefreshPending = null;
+  }
+}
+
 function monitoringHudSetOverlayProfileDraftFromProfile(profile) {
+  monitoringHudSetOverlayProfileRefreshPending(null);
   monitoringHudSetOverlayProfileSaveFailure(false);
   const action = monitoringHudOverlayProfileResolvingAction;
   const resolvingThisDraft = action
@@ -1651,13 +1691,15 @@ function monitoringHudSaveOverlayProfileDraft() {
   monitoringHudSetOverlayProfileDraftFromProfile(savedProfile);
   monitoringHudClearOverlayProfileMembershipList();
   monitoringHudPendingDeleteOverlayProfileId = "";
+  const refreshOwner = {
+    profileId: savedProfile.id,
+    draftGeneration: monitoringHudOverlayProfileDraftGeneration
+  };
   try {
     monitoringHudSyncActiveOverlayRecordingTargetFromOverlayProfile();
     monitoringHudRenderControls();
   } catch (_err) {
-    if (monitoringHudOverlayProfileEditorNote) {
-      monitoringHudOverlayProfileEditorNote.textContent = "Profile changes were saved, but the view could not refresh. Reopen Profile Settings to refresh it.";
-    }
+    monitoringHudSetOverlayProfileRefreshPending(refreshOwner);
   }
   return true;
 }
@@ -2290,10 +2332,15 @@ function monitoringHudEnsureCardNodes() {
 }
 
 function monitoringHudSetChildWindowVisibility(kind) {
-  if (monitoringHudActiveChildWindow === "overlay-profile-settings" && kind !== "overlay-profile-settings") {
+  const leavingProfile = monitoringHudActiveChildWindow === "overlay-profile-settings" && kind !== "overlay-profile-settings";
+  const leavingRefreshOwner = leavingProfile ? monitoringHudOverlayProfileRefreshPending : null;
+  if (leavingProfile) {
     monitoringHudInvalidateOverlayProfileEditorAction();
   }
   monitoringHudActiveChildWindow = kind || "";
+  if (leavingRefreshOwner && monitoringHudOverlayProfileRefreshPending === leavingRefreshOwner) {
+    monitoringHudOverlayProfileRefreshPending = null;
+  }
   if (!monitoringHudChildWindowLayer) return;
   const open = Boolean(monitoringHudActiveChildWindow);
   monitoringHudChildWindowLayer.hidden = !open;
@@ -2523,9 +2570,14 @@ function monitoringHudRenderOverlayProfileControls() {
   }
   if (monitoringHudOverlayProfileEditorNote && !monitoringHudOverlayProfileSaveFailureIsCurrent()) {
     monitoringHudSetOverlayProfileSaveFailure(false);
-    monitoringHudOverlayProfileEditorNote.textContent = detailOpen
-      ? "Choose the monitors to include, then save your changes."
-      : "Select a profile to edit, or create a new one.";
+    if (monitoringHudOverlayProfileRefreshPendingIsCurrent()) {
+      monitoringHudSetOverlayProfileRefreshPending(monitoringHudOverlayProfileRefreshPending);
+    } else {
+      monitoringHudSetOverlayProfileRefreshPending(null);
+      monitoringHudOverlayProfileEditorNote.textContent = detailOpen
+        ? "Choose the monitors to include, then save your changes."
+        : "Select a profile to edit, or create a new one.";
+    }
   }
 }
 
@@ -4631,6 +4683,9 @@ function monitoringHudSyncActiveOverlayRecordingTargetFromOverlayProfile() {
 
 function monitoringHudRenderControls() {
   if (!monitoringHud) return;
+  const profileRefreshPending = monitoringHudOverlayProfileRefreshPendingIsCurrent()
+    ? monitoringHudOverlayProfileRefreshPending
+    : null;
   const featureEnabled = Boolean(monitoringHudControlState.featureEnabled);
   const dashboardVisible = Boolean(featureEnabled && monitoringHudControlState.visible);
   const overlayDeferred = monitoringHudControlState.overlayDeferred !== false;
@@ -4742,6 +4797,11 @@ function monitoringHudRenderControls() {
   monitoringHudUpdateSurfaceSplit();
   monitoringHudRenderMonitorManagement();
   monitoringHudRenderOverlayDisplay();
+  if (profileRefreshPending
+      && monitoringHudOverlayProfileRefreshPending === profileRefreshPending
+      && monitoringHudOverlayProfileRefreshPendingIsCurrent()) {
+    monitoringHudSetOverlayProfileRefreshPending(null);
+  }
 }
 
 function monitoringHudApplyPanelPosition(position) {
